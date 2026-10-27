@@ -28,7 +28,7 @@ impl WriterAggregator {
         self.write_string("\r\n");
     }
 
-    pub(crate) fn string(self) -> String {
+    fn string(self) -> String {
         tsrs_core::utf8::from_utf8_lossy(&self.buf).into_owned()
     }
 }
@@ -82,7 +82,7 @@ impl SourceMapDecoder {
     }
 }
 
-pub struct SourceMapSpanWriter<'a> {
+struct SourceMapSpanWriter<'a> {
     source_map_recorder: &'a mut WriterAggregator,
     source_map_sources: Vec<String>,
     source_map_names: Vec<String>,
@@ -97,7 +97,7 @@ pub struct SourceMapSpanWriter<'a> {
     source_map_decoder: SourceMapDecoder,
 }
 
-pub fn new_source_map_span_writer<'a>(
+fn new_source_map_span_writer<'a>(
     source_map_recorder: &'a mut WriterAggregator,
     source_map: &RawSourceMap,
     js_file: TestFile,
@@ -185,7 +185,7 @@ impl SourceMapSpanWriter<'_> {
         map_string
     }
 
-    pub(crate) fn record_source_map_span(&mut self, source_map_span: Mapping) {
+    fn record_source_map_span(&mut self, source_map_span: Mapping) {
         // verify the decoded span is same as the new span
         let decode_result = self.source_map_decoder.decode_next_encoded_source_map_span();
         let mut decode_errors = Vec::new();
@@ -218,7 +218,7 @@ impl SourceMapSpanWriter<'_> {
             .push(SourceMapSpanWithDecodeErrors { source_map_span, decode_errors });
     }
 
-    pub(crate) fn record_new_source_file_span(
+    fn record_new_source_file_span(
         &mut self,
         source_map_span: Mapping,
         new_source_file_code: &str,
@@ -268,7 +268,7 @@ impl SourceMapSpanWriter<'_> {
         self.prev_written_source_pos = 0;
     }
 
-    pub(crate) fn close(&mut self) {
+    fn close(&mut self) {
         // Write the lines pending on the single line
         self.write_recorded_spans();
 
@@ -517,7 +517,7 @@ fn bytes_to_string(bytes: &[u8]) -> String {
 }
 
 // harnessutil.go:931 (`CompilationResult.GetSourceMapRecord`)
-pub struct SourceMapRecordInput<'a> {
+pub(crate) struct SourceMapRecordInput<'a> {
     pub(crate) generated_file: &'a str,
     pub(crate) input_source_file_names: &'a [String],
     pub(crate) source_map: &'a RawSourceMap,
@@ -525,7 +525,7 @@ pub struct SourceMapRecordInput<'a> {
 
 // `get_output` is `c.DTS.GetOrZero` / `c.JS.GetOrZero` (Go picks by `IsDeclarationFileName`, done here), and
 // `get_source_file` is `c.Program.GetSourceFile(name)` returning the file's identity and `OriginalText()`.
-pub fn get_source_map_record(
+pub(crate) fn get_source_map_record(
     source_maps: &[SourceMapRecordInput],
     get_js: impl Fn(&str) -> Option<TestFile>,
     get_dts: impl Fn(&str) -> Option<TestFile>,

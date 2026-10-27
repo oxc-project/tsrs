@@ -122,16 +122,6 @@ impl LogTree {
         }
     }
 
-    // logtree.go:88
-    #[must_use]
-    pub fn verbose(&self) -> LogTree {
-        match &self.0 {
-            // Relaxed: this is a logging preference; it does not publish log entries or other data.
-            Some(c) if c.verbose.load(Ordering::Relaxed) => self.clone(),
-            _ => LogTree::nil(),
-        }
-    }
-
     // logtree.go:119
     pub fn embed(&self, logs: &LogTree) {
         let Some(c) = &self.0 else {

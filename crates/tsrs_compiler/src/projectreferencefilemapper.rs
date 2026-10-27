@@ -33,7 +33,7 @@ pub struct ProjectReferenceFileMapper {
     pub(crate) loader_host: Option<&'static dyn ResolutionHost>,
 }
 
-pub struct ProjectReferenceFileMapperBuilder {
+pub(crate) struct ProjectReferenceFileMapperBuilder {
     pub(crate) mapper: &'static ProjectReferenceFileMapper,
     pub(crate) host: &'static dyn ResolutionHost,
 }
@@ -54,7 +54,7 @@ pub fn resolution_host_for(host: Arc<dyn CompilerHost>) -> &'static dyn Resoluti
     Box::leak(Box::new(CompilerResolutionHost(host)))
 }
 
-pub fn as_resolved_project_reference(
+pub(crate) fn as_resolved_project_reference(
     config: P<ParsedCommandLine>,
 ) -> &'static dyn ResolvedProjectReference {
     config.get()
@@ -212,17 +212,6 @@ impl ProjectReferenceFileMapper {
         }
 
         self.realpath_dts_to_source.load(path).flatten()
-    }
-
-    // projectreferencefilemapper.go:119
-    pub(crate) fn get_resolved_reference_for(
-        &self,
-        path: &Path,
-    ) -> (Option<P<ParsedCommandLine>>, bool) {
-        match self.config_to_project_reference.get(path) {
-            Some(config) => (*config, true),
-            None => (None, false),
-        }
     }
 
     // projectreferencefilemapper.go:124

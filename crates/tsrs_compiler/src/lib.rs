@@ -29,8 +29,8 @@ pub use checkerpool::{
 pub use emitter::EmitOnly;
 pub use file_include::FileIncludeReason;
 pub use fileloader::{
-    DuplicateSourceFile, LibFile, content_mapper_initialization_diagnostic,
-    content_mapper_project_diagnostic, content_mapper_project_error_diagnostic,
+    DuplicateSourceFile, LibFile, content_mapper_project_diagnostic,
+    content_mapper_project_error_diagnostic,
 };
 pub use fileregions::{
     LeafMode, LeafSettings, bind_in_file_regions, enable as enable_file_regions, enable_lazy_dts,

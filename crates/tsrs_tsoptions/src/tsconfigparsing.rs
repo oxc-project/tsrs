@@ -528,7 +528,7 @@ fn is_compiler_options_value(
     false
 }
 
-pub fn validate_json_option_value(
+pub(crate) fn validate_json_option_value(
     opt: &CommandLineOption,
     val: CompilerOptionsValue,
     value_expression: Option<P<Node>>,
@@ -630,7 +630,7 @@ fn normalize_non_list_option_value(
 
 // Match the path that the file system will receive after resolving it against
 // the config's base directory; normalization can add or remove an /??/ prefix.
-pub fn is_network_path_value(value: &str, base_path: &str) -> bool {
+pub(crate) fn is_network_path_value(value: &str, base_path: &str) -> bool {
     tspath::is_network_path(&tspath::get_normalized_absolute_path(value, base_path))
 }
 
@@ -914,7 +914,7 @@ impl CommandLineOptionNameMap {
     }
 }
 
-pub fn command_line_options_to_map(
+pub(crate) fn command_line_options_to_map(
     compiler_options: &[&'static CommandLineOption],
 ) -> CommandLineOptionNameMap {
     let mut result =
@@ -930,7 +930,7 @@ pub fn command_line_options_to_map(
 pub static COMMAND_LINE_COMPILER_OPTIONS_MAP: LazyLock<CommandLineOptionNameMap> =
     LazyLock::new(|| command_line_options_to_map(&OPTIONS_DECLARATIONS));
 
-pub fn convert_map_to_options<O: OptionParser>(
+pub(crate) fn convert_map_to_options<O: OptionParser>(
     compiler_options: &OrderedMap<String, CompilerOptionsValue>,
     mut result: O,
 ) -> O {
@@ -3045,7 +3045,7 @@ fn remove_wildcard_files_with_lower_priority_extension(
 // options is the Compiler options.
 // host is the host used to resolve files and directories.
 // extraExtensions are additional file extensions (e.g. from content mappers) to treat as supported.
-pub fn get_file_names_from_config_specs(
+pub(crate) fn get_file_names_from_config_specs(
     config_file_specs: &ConfigFileSpecs,
     base_path: &str, // considering this is the current directory
     options: Option<&CompilerOptions>,

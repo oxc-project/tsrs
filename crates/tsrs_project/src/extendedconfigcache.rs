@@ -35,7 +35,7 @@ pub type ExtendedConfigCache =
     OwnerCache<Path, Arc<ExtendedConfigCacheEntry>, ExtendedConfigLoadArgs>;
 
 // extendedconfigcache.go:25
-pub fn new_extended_config_cache() -> ExtendedConfigCache {
+pub(crate) fn new_extended_config_cache() -> ExtendedConfigCache {
     new_owner_cache(
         |path: &Path, args: &ExtendedConfigParseArgs<'_>| {
             let extended_config_cache_entry = tsoptions::parse_extended_config(

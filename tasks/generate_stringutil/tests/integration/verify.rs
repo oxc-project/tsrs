@@ -3,7 +3,11 @@ use std::fmt::Write as _;
 
 #[path = "../../../../crates/tsrs_core/src/stringutil/js_case_generated.rs"]
 mod compact;
-#[expect(dead_code, reason = "Only range-table types are needed by the generated table")]
+#[expect(
+    dead_code,
+    clippy::redundant_pub_crate,
+    reason = "The generator only needs the shared crate-private range-table types."
+)]
 #[path = "../../../../crates/tsrs_core/src/stringutil/rangetable.rs"]
 mod rangetable;
 
@@ -37,7 +41,7 @@ fn all_mappings_and_properties_match_the_pinned_unicode_table() {
         );
     }
     for table in [&compact::UNICODE_CASED_RANGES, &compact::UNICODE_CASE_IGNORABLE_RANGES] {
-        count(&mut hash, table.latin_offset);
+        count(&mut hash, table.r16.iter().take_while(|range| range.hi <= 0xFF).count());
         count(&mut hash, table.r16.len());
         for range in table.r16 {
             for value in [range.lo, range.hi, range.stride] {

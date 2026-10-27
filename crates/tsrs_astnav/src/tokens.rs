@@ -393,42 +393,6 @@ fn get_position(
     scanner::get_token_pos_of_node(node, source_file, true /*includeJSDoc*/)
 }
 
-// tokens.go:283
-pub fn find_rightmost_node(node: P<Node>) -> P<Node> {
-    let next: Rc<Cell<Option<P<Node>>>> = Rc::new(Cell::new(None));
-    let mut current = node;
-    let visit_node: VisitNodeFn = {
-        let next = Rc::clone(&next);
-        Rc::new(move |node: Option<P<Node>>, _: &mut NodeVisitor| {
-            if node.is_some() {
-                next.set(node);
-            }
-            node
-        })
-    };
-    let visit_nodes: VisitNodesFn = {
-        let next = Rc::clone(&next);
-        Rc::new(move |node_list: Option<P<NodeList>>, _: &mut NodeVisitor| {
-            if let Some(list) = node_list
-                && let Some(rightmost) = ast::find_last_visible_node(list.nodes())
-            {
-                next.set(Some(rightmost));
-            }
-            node_list
-        })
-    };
-    let mut visitor = get_node_visitor(Some(visit_node), Some(visit_nodes));
-
-    loop {
-        current.visit_each_child(&mut visitor);
-        let Some(n) = next.get() else {
-            return current;
-        };
-        current = n;
-        next.set(None);
-    }
-}
-
 // tokens.go:312
 pub fn visit_each_child_and_jsdoc(
     node: P<Node>,

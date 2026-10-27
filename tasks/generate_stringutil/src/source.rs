@@ -23,7 +23,7 @@ const FILES: [&str; 7] = [
     "Binary_Property/Case_Ignorable/ranges.js",
 ];
 
-pub fn load(root: &Path) -> Result<BTreeMap<&'static str, String>> {
+pub(crate) fn load(root: &Path) -> Result<BTreeMap<&'static str, String>> {
     let cache = root.join("target/generate-stringutil/unicode-15.1.0-1.6.17.tgz");
     let archive = if cache.is_file() {
         std::fs::read(&cache)?
@@ -74,7 +74,7 @@ fn payload<'a>(source: &'a str, prefix: &str, suffix: &str) -> Result<&'a str> {
         .ok_or_else(|| "unexpected pinned npm data format".into())
 }
 
-pub fn scalar(value: u32) -> Result<char> {
+pub(crate) fn scalar(value: u32) -> Result<char> {
     char::from_u32(value).ok_or_else(|| format!("invalid Unicode scalar: {value:#X}").into())
 }
 

@@ -87,10 +87,3 @@ pub fn is_exclusively_prefixed_node_core_module(name: &str) -> bool {
 pub fn node_core_modules() -> &'static FxHashSet<String> {
     &NODE_CORE_MODULES
 }
-
-pub fn non_relative_module_name_for_typing_cache(module_name: &str) -> &str {
-    if node_core_modules().contains(module_name) {
-        return "node";
-    }
-    module_name
-}

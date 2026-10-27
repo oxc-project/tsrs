@@ -28,13 +28,13 @@ pub struct OutputRecorderFS {
 }
 
 // recorderfs.go:17
-pub fn new_output_recorder_fs(fs: Arc<dyn FS>) -> Arc<OutputRecorderFS> {
+pub(crate) fn new_output_recorder_fs(fs: Arc<dyn FS>) -> Arc<OutputRecorderFS> {
     Arc::new(OutputRecorderFS { fs, outputs: Mutex::new((FxHashMap::default(), Vec::new())) })
 }
 
 impl OutputRecorderFS {
     // recorderfs.go:42
-    pub fn outputs(&self) -> Vec<TestFile> {
+    fn outputs(&self) -> Vec<TestFile> {
         self.outputs.lock().unwrap().1.clone()
     }
 }
@@ -90,18 +90,18 @@ impl FS for OutputRecorderFS {
 /// The outputs of an emitting compilation (Go `CompilationResult.JS/DTS/Maps` and `Repeat`).
 #[derive(Default)]
 pub struct EmitOutputs {
-    pub emit_result: compiler::EmitResult,
-    pub js: IndexMap<String, TestFile>,
-    pub dts: IndexMap<String, TestFile>,
-    pub maps: IndexMap<String, TestFile>,
+    pub(crate) emit_result: compiler::EmitResult,
+    pub(crate) js: IndexMap<String, TestFile>,
+    pub(crate) dts: IndexMap<String, TestFile>,
+    pub(crate) maps: IndexMap<String, TestFile>,
     // Go `CompilationResult.inputs` (every program source file) and `.outputs` (the per-input JS/DTS/map outputs).
-    pub inputs: Vec<TestFile>,
-    pub outputs: Vec<TestFile>,
+    pub(crate) inputs: Vec<TestFile>,
+    pub(crate) outputs: Vec<TestFile>,
 }
 
 // harnessutil.go:626 (from the pre-emit program on). Returns the diagnostics and the emit result of the post-emit
 // program.
-pub fn compile_files_with_host_emit(
+pub(crate) fn compile_files_with_host_emit(
     host: Arc<dyn CompilerHost>,
     config: P<ParsedCommandLine>,
     harness_options: &HarnessOptions,
@@ -186,7 +186,7 @@ pub fn compile_files_with_host_emit(
 }
 
 // harnessutil.go:746 (the output part of newCompilationResult)
-pub fn new_emit_outputs(
+pub(crate) fn new_emit_outputs(
     recorder: &OutputRecorderFS,
     program: &'static compiler::Program,
     options: &CompilerOptions,
@@ -312,7 +312,7 @@ fn get_output_path(
 }
 
 // js_emit_baseline.go:174
-pub fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
+pub(crate) fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
     let file_name = if settings.full_emit_paths {
         tsbaseline::remove_test_path_prefixes(
             &file.unit_name,
@@ -326,7 +326,7 @@ pub fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
 
 /// What `DoJSEmitBaseline` needs to recompile (Go: `result.Repeat` and `compileDeclarationFiles` call
 /// `CompileFilesEx` again).
-pub trait Recompile {
+pub(crate) trait Recompile {
     fn compile(
         &self,
         input_files: &[TestFile],
@@ -337,7 +337,7 @@ pub trait Recompile {
 }
 
 // js_emit_baseline.go:20. Returns the baseline text (`NO_CONTENT` when empty); a Go `t.Fatal` is an `Err`.
-pub fn do_js_emit_baseline(
+pub(crate) fn do_js_emit_baseline(
     header: &str,
     options: &CompilerOptions,
     result: &CompilationResult,

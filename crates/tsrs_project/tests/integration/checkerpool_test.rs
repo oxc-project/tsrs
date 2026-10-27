@@ -46,7 +46,6 @@ fn setup_checker_pool_session(opts: CheckerPoolOptions) -> (Arc<Session>, Arc<Ch
         logger: Some(new_test_logger()),
         npm_executor: None,
         parse_cache: None,
-        content_mapped_parse_cache: None,
     });
     session.did_open_file(
         &Context::background(),

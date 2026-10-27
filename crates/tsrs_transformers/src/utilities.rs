@@ -5,27 +5,27 @@
 use crate::*;
 
 // utilities.go:12
-pub fn is_generated_identifier(emit_context: P<EmitContext>, name: P<Node>) -> bool {
+pub(crate) fn is_generated_identifier(emit_context: P<EmitContext>, name: P<Node>) -> bool {
     emit_context.has_auto_generate_info(Some(name))
 }
 
 // utilities.go:16
-pub fn is_helper_name(emit_context: P<EmitContext>, name: P<Node>) -> bool {
+pub(crate) fn is_helper_name(emit_context: P<EmitContext>, name: P<Node>) -> bool {
     emit_context.emit_flags(name).intersects(EmitFlags::HelperName)
 }
 
 // utilities.go:20
-pub fn is_local_name(emit_context: P<EmitContext>, name: P<Node>) -> bool {
+pub(crate) fn is_local_name(emit_context: P<EmitContext>, name: P<Node>) -> bool {
     emit_context.emit_flags(name).intersects(EmitFlags::LocalName)
 }
 
 // utilities.go:24
-pub fn is_export_name(emit_context: P<EmitContext>, name: P<Node>) -> bool {
+pub(crate) fn is_export_name(emit_context: P<EmitContext>, name: P<Node>) -> bool {
     emit_context.emit_flags(name).intersects(EmitFlags::ExportName)
 }
 
 // utilities.go:28
-pub fn is_identifier_reference(name: P<Node>, parent: P<Node>) -> bool {
+pub(crate) fn is_identifier_reference(name: P<Node>, parent: P<Node>) -> bool {
     match parent.kind() {
         Kind::BinaryExpression
         | Kind::PrefixUnaryExpression
@@ -186,7 +186,7 @@ fn convert_binding_element_to_object_assignment_element(
 }
 
 // utilities.go:169
-pub fn convert_binding_pattern_to_assignment_pattern(
+pub(crate) fn convert_binding_pattern_to_assignment_pattern(
     emit_context: P<EmitContext>,
     element: P<Node>,
 ) -> P<Node> {
@@ -257,7 +257,7 @@ fn convert_binding_name_to_assignment_element_target(
 }
 
 // utilities.go:213
-pub fn convert_variable_declaration_to_assignment_expression(
+pub(crate) fn convert_variable_declaration_to_assignment_expression(
     emit_context: P<EmitContext>,
     element: P<Node>,
 ) -> Option<P<Node>> {
@@ -271,7 +271,7 @@ pub fn convert_variable_declaration_to_assignment_expression(
 }
 
 // utilities.go:224. Go distinguishes a nil slice (-> nil) from an empty one (-> an empty SyntaxList).
-pub fn single_or_many(
+pub(crate) fn single_or_many(
     nodes: Option<Vec<P<Node>>>,
     factory: &printer::NodeFactory,
 ) -> Option<P<Node>> {
@@ -316,7 +316,7 @@ pub fn is_simple_inlineable_expression(expression: P<Node>) -> bool {
 }
 
 // utilities.go:275
-pub fn find_super_statement_index_path(statements: &[P<Node>], start: usize) -> Vec<usize> {
+pub(crate) fn find_super_statement_index_path(statements: &[P<Node>], start: usize) -> Vec<usize> {
     let mut indices =
         find_super_statement_index_path_worker(statements, start, Vec::new()).unwrap_or_default();
     indices.reverse();
@@ -363,7 +363,7 @@ fn get_super_call_from_statement(statement: P<Node>) -> Option<P<Node>> {
 
 // MoveRangePastModifiers returns a text range that starts past any modifiers on the node.
 // utilities.go:308
-pub fn move_range_past_modifiers(node: P<Node>) -> tsrs_core::TextRange {
+pub(crate) fn move_range_past_modifiers(node: P<Node>) -> tsrs_core::TextRange {
     if ast::is_property_declaration(node) || ast::is_method_declaration(node) {
         return tsrs_core::TextRange::from_text_pos(node.name().unwrap().pos(), node.end());
     }
@@ -383,7 +383,7 @@ pub fn move_range_past_modifiers(node: P<Node>) -> tsrs_core::TextRange {
 
 // MoveRangePastDecorators returns a text range that starts past any decorators on the node.
 // utilities.go:325
-pub fn move_range_past_decorators(node: P<Node>) -> tsrs_core::TextRange {
+pub(crate) fn move_range_past_decorators(node: P<Node>) -> tsrs_core::TextRange {
     let mut last_decorator = None;
     if ast::can_have_modifiers(node) {
         let nodes = node.modifier_nodes();
@@ -402,7 +402,7 @@ pub fn move_range_past_decorators(node: P<Node>) -> tsrs_core::TextRange {
 
 // GetNonAssignmentOperatorForCompoundAssignment returns the non-assignment operator for a compound assignment.
 // utilities.go:341
-pub fn get_non_assignment_operator_for_compound_assignment(kind: Kind) -> Kind {
+pub(crate) fn get_non_assignment_operator_for_compound_assignment(kind: Kind) -> Kind {
     match kind {
         Kind::PlusEqualsToken => Kind::PlusToken,
         Kind::MinusEqualsToken => Kind::MinusToken,
@@ -431,11 +431,11 @@ fn is_super_call(node: P<Node>) -> bool {
 }
 
 // ast/utilities.go:4038 (Go ast.IsEmptyObjectLiteral; here because tsrs_checker glob-imports its own copy)
-pub fn is_empty_object_literal(expression: P<Node>) -> bool {
+pub(crate) fn is_empty_object_literal(expression: P<Node>) -> bool {
     ast::is_object_literal_expression(expression) && expression.properties().is_empty()
 }
 
 // ast/utilities.go:4042 (Go ast.IsEmptyArrayLiteral; same reason)
-pub fn is_empty_array_literal(expression: P<Node>) -> bool {
+pub(crate) fn is_empty_array_literal(expression: P<Node>) -> bool {
     ast::is_array_literal_expression(expression) && expression.elements().is_empty()
 }

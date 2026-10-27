@@ -279,7 +279,6 @@ fn get_session_init_options(
             logger: Some(logger),
             npm_executor: None,
             parse_cache: None,
-            content_mapped_parse_cache: None,
         },
         session_utils,
     )

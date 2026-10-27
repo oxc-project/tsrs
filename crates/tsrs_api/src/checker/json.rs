@@ -73,7 +73,7 @@ pub fn obj() -> Obj {
 }
 
 /// Go `literalValueToJSON`.
-pub fn literal_value_to_json(value: Option<LiteralValue>) -> Value {
+pub(crate) fn literal_value_to_json(value: Option<LiteralValue>) -> Value {
     match value {
         Some(LiteralValue::String(s)) => Value::String(s.to_string()),
         Some(LiteralValue::Number(n)) => {

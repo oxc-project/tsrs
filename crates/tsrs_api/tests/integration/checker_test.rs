@@ -108,7 +108,6 @@ impl TestHost {
             logger: None,
             npm_executor: None,
             parse_cache: None,
-            content_mapped_parse_cache: None,
         };
         let snapshot_host = tsrs_project::new_snapshot_host(&init);
         let root = snapshot_host.new_root_snapshot();

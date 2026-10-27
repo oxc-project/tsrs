@@ -204,18 +204,6 @@ impl<K: Hash + Eq + Clone, T: Cloneable + Clone> Map<K, T> {
         self.inner.dirty.lock().unwrap().insert(key, entry);
     }
 
-    // map.go:98
-    pub fn change(&self, key: &K, apply: impl FnOnce(&mut T)) {
-        match self.get(key) {
-            Some(entry) => {
-                entry.change(apply);
-            }
-            _ => {
-                panic!("tried to change a non-existent entry");
-            }
-        }
-    }
-
     // map.go:106
     pub fn try_delete(&self, key: &K) -> bool {
         if let Some(entry) = self.get(key) {

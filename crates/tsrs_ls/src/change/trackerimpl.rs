@@ -651,7 +651,7 @@ fn leading_indentation(text: &str) -> &str {
 }
 
 // trackerimpl.go:285
-pub fn get_format_code_settings_for_writing(
+pub(crate) fn get_format_code_settings_for_writing(
     options: FormatCodeSettings,
     source_file: P<SourceFile>,
 ) -> FormatCodeSettings {
@@ -668,7 +668,7 @@ pub fn get_format_code_settings_for_writing(
 }
 
 // trackerimpl.go:452
-pub fn has_comments_before_line_break(text: &str, start: u32) -> bool {
+pub(crate) fn has_comments_before_line_break(text: &str, start: u32) -> bool {
     if let Some(result) = text[start as usize..].chars().into_iter().find_map(|ch| {
         if stringutil::is_white_space_single_line(ch as u32) { None } else { Some(ch == '/') }
     }) {
@@ -678,7 +678,7 @@ pub fn has_comments_before_line_break(text: &str, start: u32) -> bool {
 }
 
 // trackerimpl.go:461
-pub fn need_semicolon_between(a: P<Node>, b: P<Node>) -> bool {
+pub(crate) fn need_semicolon_between(a: P<Node>, b: P<Node>) -> bool {
     (ast::is_property_signature_declaration(a) || ast::is_property_declaration(a))
         && ast::is_class_or_type_element(b)
         && b.name().unwrap().kind() == Kind::ComputedPropertyName

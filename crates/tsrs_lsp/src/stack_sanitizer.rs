@@ -28,7 +28,7 @@ fn match_generic_secret_keyword_at(s: &[u8], i: usize) -> Option<usize> {
 }
 
 // stack_sanitizer.go:19
-pub fn defeat_generic_secret_regex(s: &str) -> String {
+fn defeat_generic_secret_regex(s: &str) -> String {
     let b = s.as_bytes();
     let mut result = String::with_capacity(s.len());
     let mut last = 0;

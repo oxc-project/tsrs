@@ -132,14 +132,14 @@ impl Checker {
 }
 
 // checker.go:30601
-pub fn is_spread_argument(arg: P<Node>) -> bool {
+pub(crate) fn is_spread_argument(arg: P<Node>) -> bool {
     ast::is_spread_element(arg)
         || ast::is_synthetic_expression(arg) && arg.as_synthetic_expression().is_spread
 }
 
 // Go `node.AsSyntheticExpression().Type.(*Type)`. The Go `any` field holds the checker type as a `&'static P<Type>`;
 // `create_synthetic_expression` is the only writer.
-pub fn synthetic_expression_type(node: P<Node>) -> P<Type> {
+pub(crate) fn synthetic_expression_type(node: P<Node>) -> P<Type> {
     *node
         .as_synthetic_expression()
         .type_
@@ -1751,7 +1751,7 @@ impl Checker {
 }
 
 // checker.go:31625
-pub fn is_zero_big_int(t: P<Type>) -> bool {
+pub(crate) fn is_zero_big_int(t: P<Type>) -> bool {
     get_big_int_literal_value(t) == jsnum::PseudoBigInt::default()
 }
 

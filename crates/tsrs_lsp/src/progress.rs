@@ -125,7 +125,7 @@ pub struct ProjectLoadingProgress {
 }
 
 // progress.go:76
-pub fn new_project_loading_progress(
+pub(crate) fn new_project_loading_progress(
     server: Weak<Server>,
     delay: Duration,
 ) -> Arc<ProjectLoadingProgress> {

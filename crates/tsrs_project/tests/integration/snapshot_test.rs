@@ -35,7 +35,6 @@ fn setup(files: &[(&str, &str)]) -> Arc<Session> {
         logger: None,
         npm_executor: None,
         parse_cache: None,
-        content_mapped_parse_cache: None,
     })
 }
 

@@ -72,7 +72,7 @@ pub struct ApiOpenedFile {
     pub(crate) ref_count: usize,
 }
 
-pub fn new_project_collection(to_path: ToPath, open_files: Set<Path>) -> ProjectCollection {
+pub(crate) fn new_project_collection(to_path: ToPath, open_files: Set<Path>) -> ProjectCollection {
     ProjectCollection {
         to_path,
         config_file_registry: Arc::default(),
@@ -398,7 +398,7 @@ impl ProjectCollection {
 }
 
 // projectcollection.go:202
-pub fn open_file_paths(overlays: &OverlayMap) -> Set<Path> {
+pub(crate) fn open_file_paths(overlays: &OverlayMap) -> Set<Path> {
     let mut open_files = new_set_with_size_hint(overlays.len());
     // pure set insert; Go ranges the map too
     open_files.m.extend(overlays.keys().map(std::clone::Clone::clone));
@@ -412,7 +412,7 @@ pub fn open_file_paths(overlays: &OverlayMap) -> Set<Path> {
 // Along with the resulting project path, a boolean is returned indicating whether there were multiple
 // direct inclusions of the file in different projects, indicating that the caller may want to perform
 // additional logic to determine the best project.
-pub fn find_default_configured_project_from_program_inclusion(
+pub(crate) fn find_default_configured_project_from_program_inclusion(
     _file_name: &str,
     path: &Path,
     project_paths: &[Path],

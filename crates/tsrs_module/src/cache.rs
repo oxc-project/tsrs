@@ -191,7 +191,7 @@ pub struct ResolutionData {
     pub(crate) package_json_info_cache: P<InfoCache>,
 }
 
-pub fn new_resolution_data(opts: ResolverOptions<'_>) -> P<ResolutionData> {
+pub(crate) fn new_resolution_data(opts: ResolverOptions<'_>) -> P<ResolutionData> {
     let package_json_info_cache = match opts.package_json_cache {
         Some(cache) => cache,
         None => P::new(packagejson::new_info_cache(
@@ -229,11 +229,11 @@ impl ResolutionData {
     }
 }
 
-pub fn get_redirect_config_name(redirect: Option<&dyn ResolvedProjectReference>) -> String {
+pub(crate) fn get_redirect_config_name(redirect: Option<&dyn ResolvedProjectReference>) -> String {
     redirect_config_name(redirect).to_string()
 }
 
-pub fn redirect_config_name(redirect: Option<&dyn ResolvedProjectReference>) -> &str {
+pub(crate) fn redirect_config_name(redirect: Option<&dyn ResolvedProjectReference>) -> &str {
     match redirect {
         None => "",
         Some(redirect) => redirect.config_name(),

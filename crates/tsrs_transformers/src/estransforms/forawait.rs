@@ -46,10 +46,9 @@ const FOR_AWAIT_HIERARCHY_FACTS_ITERATION_STATEMENT_EXCLUDES: ForAwaitHierarchyF
     FOR_AWAIT_HIERARCHY_FACTS_NONE;
 
 // forawait.go:43
-pub struct ForawaitTransformer {
+struct ForawaitTransformer {
     base: Transformer,
     super_access_state: SuperAccessState,
-    pub compiler_options: P<CompilerOptions>,
 
     enclosing_function_flags: Cell<FunctionFlags>,
     for_await_hierarchy_facts: Cell<ForAwaitHierarchyFacts>,
@@ -64,11 +63,14 @@ pub struct ForawaitTransformer {
     clippy::unnecessary_wraps,
     reason = "Transformer factories share an optional result so disabled transforms can return None."
 )]
-pub fn newforawait_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn newforawait_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
     let tx = P::new(ForawaitTransformer {
         base: Transformer::default(),
         super_access_state: SuperAccessState::default(),
-        compiler_options: opt.compiler_options,
         enclosing_function_flags: Cell::new(FunctionFlags::Normal),
         for_await_hierarchy_facts: Cell::new(FOR_AWAIT_HIERARCHY_FACTS_NONE),
         exported_variable_statement: Cell::new(false),

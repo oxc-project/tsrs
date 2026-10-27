@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 //! Non-function declarations of the modulespecifiers package (types.go, plus those of preferences.go, specifiers.go
 //! and util.go).
 
@@ -37,7 +42,6 @@ pub enum ResultKind {
 #[derive(Clone, Debug, Default)]
 pub struct ModuleSpecifiersResult {
     pub specifiers: Vec<String>,
-    pub kind: ResultKind,
     pub ambient_module_symbol: Option<P<Symbol>>, // used to construct an import attributes node, if one is needed
 }
 
@@ -208,7 +212,7 @@ pub enum MatchingMode {
 /// options, so the owned captures are stored here and `get_allowed_endings_in_preferred_order(host,
 /// compiler_options, mode)` (preferences.rs) takes the other two from the caller, which always holds the same
 /// ones Go captured.
-pub struct ModuleSpecifierPreferences {
+pub(crate) struct ModuleSpecifierPreferences {
     pub(crate) relative_preference: RelativePreferenceKind,
     pub(crate) exclude_regexes: Vec<String>,
     pub(crate) prefs: UserPreferences,
@@ -225,7 +229,7 @@ pub struct RegexPatternCacheKey {
 }
 
 /// Go `regexPatternCache` guarded by `regexPatternCacheMu` (one `RwLock`).
-pub static REGEX_PATTERN_CACHE: LazyLock<
+pub(crate) static REGEX_PATTERN_CACHE: LazyLock<
     RwLock<FxHashMap<RegexPatternCacheKey, Option<P<regex::Regex>>>>,
 > = LazyLock::new(|| RwLock::new(FxHashMap::default()));
 

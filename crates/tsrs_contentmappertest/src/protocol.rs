@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 // Package contentmappertest provides realistic content mapper implementations used by tests.
 
 use std::sync::Arc;
@@ -16,12 +21,12 @@ use tsrs_spanmap::{Feature, Kind, Segment};
     clippy::unnecessary_wraps,
     reason = "This no-op implementation supplies the Result-returning Handler::handle_notification contract."
 )]
-pub fn no_notifications() -> Result<(), ipc::Error> {
+pub(crate) fn no_notifications() -> Result<(), ipc::Error> {
     Ok(())
 }
 
 // protocol.go:20
-pub fn initialize_result(source: &str) -> InitializeResult {
+pub(crate) fn initialize_result(source: &str) -> InitializeResult {
     InitializeResult {
         position_encoding: PositionEncoding::UTF8,
         diagnostic_source: source.to_string(),
@@ -29,7 +34,7 @@ pub fn initialize_result(source: &str) -> InitializeResult {
 }
 
 // protocol.go:27
-pub fn identity_mapped_output(content: &str) -> Result<MappedOutput, ipc::Error> {
+pub(crate) fn identity_mapped_output(content: &str) -> Result<MappedOutput, ipc::Error> {
     let mappings = marshal_span_map(&[Segment {
         virtual_end: content.len() as u32,
         original_end: content.len() as u32,
@@ -107,12 +112,12 @@ impl Handler for StaticProjectHandler {
 }
 
 // Go's `json.Unmarshal(params, &p)` in a handler: the error becomes the handler's error response.
-pub fn unmarshal_params<T: ProtocolJson>(params: Option<&Value>) -> Result<T, ipc::Error> {
+pub(crate) fn unmarshal_params<T: ProtocolJson>(params: Option<&Value>) -> Result<T, ipc::Error> {
     unmarshal(params.cloned()).map_err(ipc::Error::new)
 }
 
 // Go's `json.Value(spanmap.New(segments).Marshal())`: the span map's tuple-array JSON, as the value it is sent as.
-pub fn marshal_span_map(segments: &[Segment]) -> Result<Value, ipc::Error> {
+pub(crate) fn marshal_span_map(segments: &[Segment]) -> Result<Value, ipc::Error> {
     let data = tsrs_spanmap::new(segments).marshal().map_err(ipc::Error::new)?;
     let text =
         tsrs_core::utf8::into_string(data).map_err(|err| ipc::Error::new(err.to_string()))?;
@@ -120,16 +125,16 @@ pub fn marshal_span_map(segments: &[Segment]) -> Result<Value, ipc::Error> {
 }
 
 // Go's `string(raw)` of a json.Value: "" when it is empty (absent), else its compact JSON text.
-pub fn raw_text(raw: Option<&Value>) -> String {
+pub(crate) fn raw_text(raw: Option<&Value>) -> String {
     raw.map(|value| json::marshal(value).unwrap_or_default()).unwrap_or_default()
 }
 
 // The handlers' error for a method they do not implement: Go's `fmt.Errorf("contentmappertest: unexpected method %q", method)`.
-pub fn unexpected_method(method: &str) -> ipc::Error {
+pub(crate) fn unexpected_method(method: &str) -> ipc::Error {
     ipc::Error::new(format!("contentmappertest: unexpected method {}", quote(method)))
 }
 
 // Go `strconv.Quote`, which fmt's %q verb uses for a string.
-pub fn quote(s: &str) -> String {
+pub(crate) fn quote(s: &str) -> String {
     tsrs_core::gocompat::quote(s.as_bytes(), tsrs_core::gocompat::QuoteStyle::MapperTest)
 }

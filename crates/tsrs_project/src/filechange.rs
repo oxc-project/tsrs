@@ -91,7 +91,7 @@ impl FileChangeSummary {
 
 // filechange.go:79
 // mergeFileChangeSummary merges src into dst, combining their change sets.
-pub fn merge_file_change_summary(dst: &mut FileChangeSummary, src: &FileChangeSummary) {
+pub(crate) fn merge_file_change_summary(dst: &mut FileChangeSummary, src: &FileChangeSummary) {
     if src.is_empty() {
         return;
     }

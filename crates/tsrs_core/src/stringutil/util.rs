@@ -1,6 +1,6 @@
 // Package stringutil Exports common rune utilities for parsing and emitting javascript
 
-use super::rangetable::{Rune, decode_last_rune, decode_rune, push_rune, unicode_to_lower};
+use super::rangetable::{Rune, decode_last_rune, decode_rune, push_rune};
 
 pub fn is_white_space_like(ch: Rune) -> bool {
     is_white_space_single_line(ch) || is_line_break(ch)
@@ -238,17 +238,6 @@ pub fn unquote_string(str: &str) -> String {
     }
     out.push_str(&inner[last..]);
     out
-}
-
-pub fn lower_first_char(str: &str) -> String {
-    let (ch, size) = decode_rune(str.as_bytes());
-    if size > 0 {
-        let mut s = String::with_capacity(str.len());
-        push_rune(&mut s, unicode_to_lower(ch));
-        s.push_str(&str[size..]);
-        return s;
-    }
-    str.to_string()
 }
 
 pub fn truncate_by_runes(str: &str, max_length: usize) -> &str {

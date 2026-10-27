@@ -184,7 +184,7 @@ pub struct KqueueBackend {
 }
 
 // kqueue.go:129 (init)
-pub fn init(mut w: PlatformWatcher) -> PlatformWatcher {
+pub(crate) fn init(mut w: PlatformWatcher) -> PlatformWatcher {
     w.factory = Some(|| Arc::new(new_kqueue_backend()) as Arc<dyn WatcherImpl>);
     w
 }

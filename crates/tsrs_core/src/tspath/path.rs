@@ -473,14 +473,6 @@ pub fn resolve_path(path: &str, paths: &[&str]) -> String {
     normalize_path(&combined_path)
 }
 
-pub fn resolve_tripleslash_reference(module_name: &str, containing_file: &str) -> String {
-    let base_path = get_directory_path(containing_file);
-    if is_rooted_disk_path(module_name) {
-        return normalize_path(module_name);
-    }
-    normalize_path(&combine_paths(&base_path, &[module_name]))
-}
-
 pub fn get_normalized_path_components(path: &str, current_directory: &str) -> Vec<String> {
     let combined = combine_paths(current_directory, &[path]);
     get_normalized_path_components_from_combined(&combined)
@@ -1270,28 +1262,6 @@ pub fn compare_paths(a: &str, b: &str, options: &ComparePathsOptions) -> Orderin
         return result;
     }
     a_components.len().cmp(&b_components.len())
-}
-
-pub fn compare_paths_case_sensitive(a: &str, b: &str, current_directory: &str) -> Ordering {
-    compare_paths(
-        a,
-        b,
-        &ComparePathsOptions {
-            use_case_sensitive_file_names: true,
-            current_directory: current_directory.to_string(),
-        },
-    )
-}
-
-pub fn compare_paths_case_insensitive(a: &str, b: &str, current_directory: &str) -> Ordering {
-    compare_paths(
-        a,
-        b,
-        &ComparePathsOptions {
-            use_case_sensitive_file_names: false,
-            current_directory: current_directory.to_string(),
-        },
-    )
 }
 
 pub fn contains_path(parent: &str, child: &str, options: &ComparePathsOptions) -> bool {

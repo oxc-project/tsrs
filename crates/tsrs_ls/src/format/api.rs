@@ -57,7 +57,7 @@ pub fn with_format_code_settings(
 }
 
 // api.go:39
-pub fn get_format_code_settings_from_context(ctx: &FormatContext) -> FormatCodeSettings {
+pub(crate) fn get_format_code_settings_from_context(ctx: &FormatContext) -> FormatCodeSettings {
     if let Some(opt) = &ctx.format_options {
         return opt.clone();
     }
@@ -65,7 +65,7 @@ pub fn get_format_code_settings_from_context(ctx: &FormatContext) -> FormatCodeS
 }
 
 // api.go:46
-pub fn get_new_line_or_default_from_context(ctx: &FormatContext) -> String {
+pub(crate) fn get_new_line_or_default_from_context(ctx: &FormatContext) -> String {
     // TODO: Move into broader LS - more than just the formatter uses the newline editor setting/host new line
     let opt = get_format_code_settings_from_context(ctx);
     if !opt.new_line_character.is_empty() {
@@ -187,7 +187,7 @@ pub fn format_selection(
 }
 
 // api.go:119
-pub fn format_on_opening_curly(
+pub(crate) fn format_on_opening_curly(
     ctx: &FormatContext,
     source_file: P<SourceFile>,
     position: u32,
@@ -222,7 +222,7 @@ pub fn format_on_opening_curly(
 }
 
 // api.go:142
-pub fn format_on_closing_curly(
+pub(crate) fn format_on_closing_curly(
     ctx: &FormatContext,
     source_file: P<SourceFile>,
     position: u32,
@@ -238,7 +238,7 @@ pub fn format_on_closing_curly(
 }
 
 // api.go:147
-pub fn format_on_semicolon(
+pub(crate) fn format_on_semicolon(
     ctx: &FormatContext,
     source_file: P<SourceFile>,
     position: u32,
@@ -254,7 +254,7 @@ pub fn format_on_semicolon(
 }
 
 // api.go:152
-pub fn format_on_enter(
+pub(crate) fn format_on_enter(
     ctx: &FormatContext,
     source_file: P<SourceFile>,
     position: u32,

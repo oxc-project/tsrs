@@ -28,11 +28,11 @@ pub struct PoolOptions {
 #[derive(Clone, Debug)]
 pub struct TestResult {
     pub class: Class,
-    pub ms: u64,
-    pub diff: String,
+    pub(crate) ms: u64,
+    pub(crate) diff: String,
     pub panic: String,
-    pub loc: String,
-    pub skip: String,
+    pub(crate) loc: String,
+    pub(crate) skip: String,
     // `.types` / `.symbols` results (class, first difference) when those baselines were requested.
     pub types: Option<(Class, String)>,
     pub symbols: Option<(Class, String)>,

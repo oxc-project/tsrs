@@ -66,11 +66,6 @@ impl Error {
     }
 
     // `fmt.Errorf("%w: %w", a, b)` and similar: both chains.
-    pub fn wrap2(message: impl Into<String>, a: &Error, b: &Error) -> Error {
-        let mut wraps = a.wraps.clone();
-        wraps.extend(b.wraps.iter().copied());
-        Error { message: message.into(), wraps, errno: a.errno.or(b.errno) }
-    }
 
     pub fn is(&self, s: Sentinel) -> bool {
         self.wraps.contains(&s)
@@ -78,10 +73,6 @@ impl Error {
 
     pub fn is_errno(&self, errno: i32) -> bool {
         self.errno == Some(errno)
-    }
-
-    pub fn errno(&self) -> Option<i32> {
-        self.errno
     }
 
     pub fn message(&self) -> &str {
@@ -103,15 +94,15 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-pub static ERR_NIL_CALLBACK: Sentinel = Sentinel("fswatch: callback must not be nil");
+static ERR_NIL_CALLBACK: Sentinel = Sentinel("fswatch: callback must not be nil");
 
 // errRootPath is returned by WatchFile when the supplied path is a
 // filesystem root with no parent directory to watch.
-pub static ERR_ROOT_PATH: Sentinel = Sentinel("fswatch: cannot watch a root path");
+static ERR_ROOT_PATH: Sentinel = Sentinel("fswatch: cannot watch a root path");
 
 // errNotAbsolute is returned by [Watcher.WatchDirectory] and
 // [Watcher.WatchFile] when the supplied path is not absolute.
-pub static ERR_NOT_ABSOLUTE: Sentinel = Sentinel("fswatch: path must be absolute");
+static ERR_NOT_ABSOLUTE: Sentinel = Sentinel("fswatch: path must be absolute");
 
 // Returned when a requested watch may resolve to a network location.
 pub static ERR_NETWORK_PATH: Sentinel = Sentinel("fswatch: network paths are not supported");
@@ -135,12 +126,12 @@ pub static ERR_UNAVAILABLE: Sentinel = Sentinel("fswatch: watcher not available 
 // ErrFilesystemUnsupported indicates that the active watcher backend cannot
 // operate on the target filesystem, even though the backend is available on
 // the current platform.
-pub static ERR_FILESYSTEM_UNSUPPORTED: Sentinel =
+static ERR_FILESYSTEM_UNSUPPORTED: Sentinel =
     Sentinel("fswatch: watcher backend unsupported on this filesystem");
 
 // `fmt.Errorf("%w: watched directory removed", ErrWatchTerminated)`.
 #[cfg(unix)]
-pub fn err_watched_directory_removed() -> Error {
+pub(crate) fn err_watched_directory_removed() -> Error {
     Error::wrap(
         format!("{}: watched directory removed", ERR_WATCH_TERMINATED.0),
         &ERR_WATCH_TERMINATED.into(),
@@ -275,19 +266,19 @@ pub trait Watch: Send + Sync {
 }
 
 // Package-level watcher instances. Platform init() functions set the factory.
-pub static INOTIFY_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
+static INOTIFY_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
     let w = PlatformWatcher::new("inotify");
     #[cfg(target_os = "linux")]
     let w = crate::inotify_linux::init(w);
     w
 });
-pub static FSEVENTS_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
+static FSEVENTS_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
     let w = PlatformWatcher::new("fsevents");
     #[cfg(target_os = "macos")]
     let w = crate::fsevents_darwin::init(w);
     w
 });
-pub static KQUEUE_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
+static KQUEUE_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
     let w = PlatformWatcher::new("kqueue");
     #[cfg(any(
         target_os = "macos",
@@ -300,13 +291,13 @@ pub static KQUEUE_WATCHER: LazyLock<PlatformWatcher> = LazyLock::new(|| {
     w
 });
 // windows.go (ReadDirectoryChangesW) is not ported: Windows builds get an unavailable watcher.
-pub static WINDOWS_WATCHER: LazyLock<PlatformWatcher> =
+static WINDOWS_WATCHER: LazyLock<PlatformWatcher> =
     LazyLock::new(|| PlatformWatcher::new("windows"));
 // fanotify_linux.go is not ported: fanotify().Available() is false, so Linux uses inotify (Go's Default() falls
 // back to inotify the same way on kernels without fanotify).
-pub static FANOTIFY_WATCHER: LazyLock<PlatformWatcher> =
+static FANOTIFY_WATCHER: LazyLock<PlatformWatcher> =
     LazyLock::new(|| PlatformWatcher::new("fanotify"));
-pub static FANOTIFY_FALLBACK_WATCHER: LazyLock<FallbackWatcher> =
+static FANOTIFY_FALLBACK_WATCHER: LazyLock<FallbackWatcher> =
     LazyLock::new(|| FallbackWatcher { primary: &*FANOTIFY_WATCHER, secondary: &*INOTIFY_WATCHER });
 static UNSUPPORTED_WATCHER: LazyLock<PlatformWatcher> =
     LazyLock::new(|| PlatformWatcher::new("unsupported"));
@@ -345,14 +336,14 @@ pub fn kqueue() -> &'static dyn Watcher {
 
 // watcher.go:223
 // Windows returns the ReadDirectoryChangesW watcher (Windows).
-pub fn windows() -> &'static dyn Watcher {
+fn windows() -> &'static dyn Watcher {
     &*WINDOWS_WATCHER
 }
 
 // watcher.go:227
 // Fanotify returns the fanotify watcher (Linux, kernel ≥ 5.13). Directories on
 // filesystems that don't support fanotify watches automatically use inotify instead.
-pub fn fanotify() -> &'static dyn Watcher {
+fn fanotify() -> &'static dyn Watcher {
     &*FANOTIFY_FALLBACK_WATCHER
 }
 
@@ -371,7 +362,7 @@ pub fn set_write_settling(on: bool) {
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-pub fn write_settling() -> bool {
+pub(crate) fn write_settling() -> bool {
     // Relaxed: set before the first watch is made; the backend threads that read it took the locks that publish
     // that watch, which order the store before this load.
     WRITE_SETTLING.load(std::sync::atomic::Ordering::Relaxed)
@@ -1026,10 +1017,7 @@ fn run(impl_: &Arc<dyn WatcherImpl>) -> Result<(), Error> {
 }
 
 // watcher.go:717
-pub fn watch_add_many(
-    impl_: &Arc<dyn WatcherImpl>,
-    watches: &[Arc<DirWatch>],
-) -> Result<(), Error> {
+fn watch_add_many(impl_: &Arc<dyn WatcherImpl>, watches: &[Arc<DirWatch>]) -> Result<(), Error> {
     let mut st = impl_.base().mu.lock().unwrap();
     let to_add: Vec<Arc<DirWatch>> = watches
         .iter()
@@ -1062,23 +1050,12 @@ pub fn watch_add_many(
 }
 
 // watcher.go:764
-pub fn watch_remove(impl_: &Arc<dyn WatcherImpl>, w: &Arc<DirWatch>) {
+fn watch_remove(impl_: &Arc<dyn WatcherImpl>, w: &Arc<DirWatch>) {
     let mut st = impl_.base().mu.lock().unwrap();
     if !st.subscriptions.remove(&DwKey(Arc::clone(w))) {
         return;
     }
     let _ = impl_.close_watch(w);
-}
-
-// watcher.go:775
-pub fn handle_watcher_error(impl_: &Arc<dyn WatcherImpl>, werr: &DirWatchError) {
-    watch_remove(impl_, &werr.dir_watch);
-    let err = Error::wrap2(
-        format!("{}: {}", ERR_WATCH_TERMINATED.0, werr.err),
-        &ERR_WATCH_TERMINATED.into(),
-        &werr.err,
-    );
-    werr.dir_watch.notify_error(&err);
 }
 
 // ----- dirWatch: per-directory watch state -------------------------
@@ -1101,18 +1078,6 @@ pub struct Callback {
     dir_comparison: ComparisonPath<'static>,
     physical_comparison: ComparisonPath<'static>,
     file_comparison: ComparisonPath<'static>,
-}
-
-// dirWatchError associates an error with a specific directory watch.
-pub struct DirWatchError {
-    err: Error,
-    dir_watch: Arc<DirWatch>,
-}
-
-impl From<DirWatchError> for Error {
-    fn from(e: DirWatchError) -> Error {
-        e.err
-    }
 }
 
 // dirWatch holds per-directory state: pending events, registered callbacks,
@@ -1704,7 +1669,7 @@ fn child_on_path<'p>(dir: &str, path: &'p str) -> &'p str {
 // watcher.go:1108
 // isDirectChild reports whether path is an immediate child of dir.
 // Both paths must be absolute. Returns false for path == dir.
-pub fn is_direct_child(dir: &str, path: &str) -> bool {
+fn is_direct_child(dir: &str, path: &str) -> bool {
     if !path.starts_with(dir) {
         return false;
     }
@@ -1720,7 +1685,7 @@ pub fn is_direct_child(dir: &str, path: &str) -> bool {
 }
 
 // Go `filepath.Clean` (Unix).
-pub fn filepath_clean(path: &str) -> String {
+fn filepath_clean(path: &str) -> String {
     if path.is_empty() {
         return ".".to_string();
     }
@@ -1750,7 +1715,7 @@ pub fn filepath_clean(path: &str) -> String {
 }
 
 // Go `filepath.Dir` (Unix).
-pub fn filepath_dir(path: &str) -> String {
+fn filepath_dir(path: &str) -> String {
     let i = path.rfind('/').map_or(0, |i| i + 1);
     filepath_clean(&path[..i])
 }

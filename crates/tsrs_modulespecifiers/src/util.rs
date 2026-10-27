@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use crate::*;
 use tsrs_ast::*;
 use tsrs_core::tspath;
@@ -14,7 +19,7 @@ use tsrs_core::*;
 // func ProcessEntrypointEnding (util.go:388) is not generated; it is hand-ported below (process_entrypoint_ending).
 
 // util.go:29
-pub fn compare_paths_by_redirect(
+pub(crate) fn compare_paths_by_redirect(
     a: &ModulePath,
     b: &ModulePath,
     use_case_sensitive_file_names: bool,
@@ -41,7 +46,7 @@ pub fn compare_paths_by_redirect(
 }
 
 // util.go:42
-pub fn path_is_bare_specifier(path: &str) -> bool {
+pub(crate) fn path_is_bare_specifier(path: &str) -> bool {
     !tspath::path_is_absolute(path) && !tspath::path_is_relative(path)
 }
 
@@ -129,7 +134,7 @@ fn string_to_regex(pattern: &str) -> Option<P<regex::Regex>> {
  *
  */
 // util.go:136
-pub fn ensure_path_is_non_module_name(path: &str) -> String {
+pub(crate) fn ensure_path_is_non_module_name(path: &str) -> String {
     if path_is_bare_specifier(path) {
         return format!("./{path}");
     }
@@ -137,7 +142,7 @@ pub fn ensure_path_is_non_module_name(path: &str) -> String {
 }
 
 // util.go:143
-pub fn get_js_extension_for_declaration_file_extension(ext: &str) -> String {
+pub(crate) fn get_js_extension_for_declaration_file_extension(ext: &str) -> String {
     match ext {
         tspath::EXTENSION_DTS => tspath::EXTENSION_JS.to_string(),
         tspath::EXTENSION_DMTS => tspath::EXTENSION_MJS.to_string(),
@@ -170,7 +175,7 @@ pub fn try_get_real_file_name_for_non_js_declaration_file_name(file_name: &str) 
 }
 
 // util.go:174
-pub fn get_js_extension_for_file(file_name: &str, options: &CompilerOptions) -> String {
+pub(crate) fn get_js_extension_for_file(file_name: &str, options: &CompilerOptions) -> String {
     let result = tsrs_module::try_get_js_extension_for_file(file_name, options);
     assert!(
         !result.is_empty(),
@@ -193,7 +198,10 @@ fn extension_from_path(path: &str) -> String {
 }
 
 // util.go:194
-pub fn try_get_any_file_from_path(host: &dyn ModuleSpecifierGenerationHost, path: &str) -> bool {
+pub(crate) fn try_get_any_file_from_path(
+    host: &dyn ModuleSpecifierGenerationHost,
+    path: &str,
+) -> bool {
     // !!! TODO: shouldn't this use readdir instead of fileexists for perf?
     // We check all js, `node` and `json` extensions in addition to TS, since node module resolution would also choose those over the directory
     let ext_groups = tsrs_tsoptions::get_supported_extensions(
@@ -213,7 +221,7 @@ pub fn try_get_any_file_from_path(host: &dyn ModuleSpecifierGenerationHost, path
 }
 
 // util.go:214
-pub fn get_paths_relative_to_root_dirs(
+pub(crate) fn get_paths_relative_to_root_dirs(
     path: &str,
     root_dirs: &[String],
     use_case_sensitive_file_names: bool,
@@ -228,12 +236,12 @@ pub fn get_paths_relative_to_root_dirs(
 }
 
 // util.go:225
-pub fn is_path_relative_to_parent(path: &str) -> bool {
+pub(crate) fn is_path_relative_to_parent(path: &str) -> bool {
     path.starts_with("..")
 }
 
 // util.go:229
-pub fn get_relative_path_if_in_same_volume(
+pub(crate) fn get_relative_path_if_in_same_volume(
     path: &str,
     directory_path: &str,
     use_case_sensitive_file_names: bool,
@@ -254,7 +262,7 @@ pub fn get_relative_path_if_in_same_volume(
 }
 
 // util.go:240
-pub fn package_json_paths_are_equal(
+pub(crate) fn package_json_paths_are_equal(
     a: &str,
     b: &str,
     options: &tspath::ComparePathsOptions,
@@ -269,14 +277,14 @@ pub fn package_json_paths_are_equal(
 }
 
 // util.go:250
-pub fn prefers_ts_extension(allowed_endings: &[ModuleSpecifierEnding]) -> bool {
+pub(crate) fn prefers_ts_extension(allowed_endings: &[ModuleSpecifierEnding]) -> bool {
     let js_priority = index_of_ending(allowed_endings, ModuleSpecifierEnding::JsExtension);
     let ts_priority = index_of_ending(allowed_endings, ModuleSpecifierEnding::TsExtension);
     matches!((ts_priority, js_priority), (Some(ts), Some(js)) if ts < js)
 }
 
 /// Go `slices.Index(allowedEndings, e)`.
-pub fn index_of_ending(
+pub(crate) fn index_of_ending(
     allowed_endings: &[ModuleSpecifierEnding],
     e: ModuleSpecifierEnding,
 ) -> Option<usize> {
@@ -284,7 +292,7 @@ pub fn index_of_ending(
 }
 
 // util.go:259
-pub fn replace_first_star(s: &str, replacement: &str) -> String {
+pub(crate) fn replace_first_star(s: &str, replacement: &str) -> String {
     s.replacen('*', replacement, 1)
 }
 
@@ -345,46 +353,6 @@ pub fn get_node_module_path_parts(full_path: &str) -> Option<NodeModulePathParts
         });
     }
     None
-}
-
-// util.go:332
-pub fn get_node_modules_package_name(
-    compiler_options: &CompilerOptions,
-    importing_source_file: P<SourceFile>,
-    node_modules_file_name: &str,
-    host: &dyn ModuleSpecifierGenerationHost,
-    preferences: &UserPreferences,
-    options: ModuleSpecifierOptions,
-) -> String {
-    let info = get_info(importing_source_file.file_name(), host);
-    let module_paths = get_all_module_paths(
-        &info,
-        node_modules_file_name,
-        host,
-        compiler_options,
-        preferences,
-        options,
-    );
-    if let Some(result) = module_paths.iter().find_map(|module_path| {
-        let result = try_get_module_name_as_node_module(
-            module_path,
-            &info,
-            importing_source_file,
-            host,
-            compiler_options,
-            preferences,
-            true, /*packageNameOnly*/
-            options.override_import_mode,
-        );
-        if !result.is_empty() {
-            return Some(result);
-        }
-
-        None
-    }) {
-        return result;
-    }
-    String::new()
 }
 
 // util.go:359

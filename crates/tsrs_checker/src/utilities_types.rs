@@ -13,7 +13,7 @@ pub enum AssignmentKind {
     Compound,
 }
 
-pub type AssignmentTarget = Node; // BinaryExpression | PrefixUnaryExpression | PostfixUnaryExpression | ForInOrOfStatement
+// BinaryExpression | PrefixUnaryExpression | PostfixUnaryExpression | ForInOrOfStatement
 
 /// orderedSetMapThreshold is the size at which an orderedSet materializes its dedup map. Below this,
 /// `contains()` scans the values slice.

@@ -14,7 +14,7 @@ use tsrs_core::{
 use super::*;
 
 pub type StringComparer = Rc<dyn Fn(&str, &str) -> Ordering>;
-pub type NodeComparer = Rc<dyn Fn(P<Node>, P<Node>) -> Ordering>;
+pub(crate) type NodeComparer = Rc<dyn Fn(P<Node>, P<Node>) -> Ordering>;
 
 // Go `cmp.Compare` / `strings.Compare`.
 fn go_cmp<T: Ord + Copy>(a: T, b: T) -> Ordering {
@@ -23,13 +23,13 @@ fn go_cmp<T: Ord + Copy>(a: T, b: T) -> Ordering {
 
 // organizeimports.go:18
 // FilterImportDeclarations filters out non-import declarations from a list of statements.
-pub fn filter_import_declarations(statements: &[P<Node>]) -> Vec<P<Node>> {
+pub(crate) fn filter_import_declarations(statements: &[P<Node>]) -> Vec<P<Node>> {
     statements.iter().copied().filter(|stmt| stmt.kind() == Kind::ImportDeclaration).collect()
 }
 
 // organizeimports.go:25
 // GetDetectionLists returns the lists of comparers and type orders to test for organize imports detection.
-pub fn get_detection_lists(
+pub(crate) fn get_detection_lists(
     preferences: &UserPreferences,
 ) -> (Vec<StringComparer>, Vec<OrganizeImportsTypeOrder>) {
     let comparers_to_test: Vec<StringComparer> =
@@ -358,7 +358,7 @@ fn get_module_specifier_expression(declaration: P<Node>) -> Option<P<Node>> {
 
 // organizeimports.go:299
 // GetExternalModuleName returns the module name from a module specifier expression.
-pub fn get_external_module_name(specifier: Option<P<Node>>) -> &'static str {
+pub(crate) fn get_external_module_name(specifier: Option<P<Node>>) -> &'static str {
     if let Some(specifier) = specifier
         && ast::is_string_literal_like(specifier)
     {
@@ -369,7 +369,7 @@ pub fn get_external_module_name(specifier: Option<P<Node>>) -> &'static str {
 
 // organizeimports.go:307
 // CompareModuleSpecifiers compares two module specifiers using the given comparer.
-pub fn compare_module_specifiers(
+pub(crate) fn compare_module_specifiers(
     m1: Option<P<Node>>,
     m2: Option<P<Node>>,
     comparer: &dyn Fn(&str, &str) -> Ordering,
@@ -441,7 +441,7 @@ fn get_import_kind_order(s1: P<Node>) -> u8 {
 
 // organizeimports.go:370
 // CompareImportsOrRequireStatements compares two import or require statements.
-pub fn compare_imports_or_require_statements(
+pub(crate) fn compare_imports_or_require_statements(
     s1: P<Node>,
     s2: P<Node>,
     comparer: &dyn Fn(&str, &str) -> Ordering,
@@ -491,7 +491,7 @@ fn compare_import_or_export_specifiers(
 
 // organizeimports.go:400
 // GetNamedImportSpecifierComparer returns a comparer function for sorting import specifiers.
-pub fn get_named_import_specifier_comparer(
+pub(crate) fn get_named_import_specifier_comparer(
     preferences: &UserPreferences,
     comparer: Option<StringComparer>,
 ) -> NodeComparer {
@@ -512,7 +512,7 @@ pub fn get_named_import_specifier_comparer(
 
 // organizeimports.go:414
 // GetImportSpecifierInsertionIndex returns the index at which to insert a new import specifier.
-pub fn get_import_specifier_insertion_index(
+pub(crate) fn get_import_specifier_insertion_index(
     sorted_imports: &[P<Node>],
     new_import: P<Node>,
     comparer: &dyn Fn(P<Node>, P<Node>) -> Ordering,
@@ -522,7 +522,7 @@ pub fn get_import_specifier_insertion_index(
 
 // organizeimports.go:421
 // GetImportDeclarationInsertIndex returns the index at which to insert a new import declaration.
-pub fn get_import_declaration_insert_index(
+pub(crate) fn get_import_declaration_insert_index(
     sorted_imports: &[P<Node>],
     new_import: P<Node>,
     comparer: &dyn Fn(P<Node>, P<Node>) -> Ordering,
@@ -532,7 +532,7 @@ pub fn get_import_declaration_insert_index(
 
 // organizeimports.go:428
 // GetOrganizeImportsStringComparerWithDetection returns a string comparer based on detecting the order of import statements by the module specifier
-pub fn get_organize_imports_string_comparer_with_detection(
+pub(crate) fn get_organize_imports_string_comparer_with_detection(
     original_import_decls: &[P<Node>],
     preferences: &UserPreferences,
 ) -> (Option<StringComparer>, bool) {
@@ -569,7 +569,7 @@ struct NamedImportSortResult {
 
 // organizeimports.go:454
 // DetectNamedImportOrganizationBySort detects the order of named imports throughout the file by considering the named imports in each statement as a group
-pub fn detect_named_import_organization_by_sort(
+pub(crate) fn detect_named_import_organization_by_sort(
     original_groups: &[P<Node>],
     comparers_to_test: &[StringComparer],
     types_to_test: &[OrganizeImportsTypeOrder],
@@ -729,7 +729,7 @@ struct CaseSensitivityDetectionResult {
 
 // organizeimports.go:603
 // DetectModuleSpecifierCaseBySort detects the order of module specifiers based on import statements throughout the module/file
-pub fn detect_module_specifier_case_by_sort(
+pub(crate) fn detect_module_specifier_case_by_sort(
     import_decls_by_group: &[Vec<P<Node>>],
     comparers_to_test: &[StringComparer],
 ) -> (Option<StringComparer>, bool) {
@@ -791,7 +791,7 @@ fn measure_sortedness<T>(arr: &[T], comparer: impl Fn(&T, &T) -> Ordering) -> us
 
 // organizeimports.go:662
 // GetNamedImportSpecifierComparerWithDetection returns a specifier comparer based on detecting the existing sort order within a single import statement
-pub fn get_named_import_specifier_comparer_with_detection(
+pub(crate) fn get_named_import_specifier_comparer_with_detection(
     import_decl: P<Node>,
     source_file: Option<P<SourceFile>>,
     preferences: &UserPreferences,

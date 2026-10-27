@@ -37,7 +37,7 @@ pub mod nodebuilder {
 
 pub mod chain;
 pub mod emithost;
-pub mod modifiervisitor;
+pub(crate) mod modifiervisitor;
 pub mod resolver;
 pub mod transformer;
 pub mod utilities;

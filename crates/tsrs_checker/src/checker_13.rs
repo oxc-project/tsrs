@@ -241,11 +241,6 @@ impl Checker {
         t
     }
 
-    // checker.go:26227
-    pub fn union_types(&self) -> Vec<P<Type>> {
-        self.union_types.values().collect()
-    }
-
     // checker.go:26231
     /// tsrs-only, after can1357's microsoft/TypeScript perf/checker-speedups-v3 (a3f430da0, 628f51ceb): each flattened
     /// union is already sorted and unique, and filtering keeps that order, so only the boundaries between inputs can
@@ -1072,34 +1067,34 @@ impl BaseConstraintStack<'_> {
 }
 
 // checker.go:26695
-pub fn is_union_with_undefined(t: P<Type>) -> bool {
+fn is_union_with_undefined(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::Union) && t.types()[0].flags().intersects(TypeFlags::Undefined)
 }
 
 // checker.go:26699
-pub fn is_union_with_null(t: P<Type>) -> bool {
+fn is_union_with_null(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::Union)
         && (t.types()[0].flags().intersects(TypeFlags::Null)
             || t.types()[1].flags().intersects(TypeFlags::Null))
 }
 
 // checker.go:26703
-pub fn is_intersection_type(t: P<Type>) -> bool {
+fn is_intersection_type(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::Intersection)
 }
 
 // checker.go:26707
-pub fn is_primitive_union(t: P<Type>) -> bool {
+fn is_primitive_union(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::PrimitiveUnion)
 }
 
 // checker.go:26711
-pub fn is_not_undefined_type(t: P<Type>) -> bool {
+fn is_not_undefined_type(t: P<Type>) -> bool {
     !t.flags().intersects(TypeFlags::Undefined)
 }
 
 // checker.go:26715
-pub fn is_not_null_type(t: P<Type>) -> bool {
+fn is_not_null_type(t: P<Type>) -> bool {
     !t.flags().intersects(TypeFlags::Null)
 }
 
@@ -1369,7 +1364,7 @@ impl Checker {
 }
 
 // checker.go:26922
-pub fn get_constituent_count(t: P<Type>) -> usize {
+fn get_constituent_count(t: P<Type>) -> usize {
     if !t.flags().intersects(TypeFlags::UnionOrIntersection) || t.alias().is_some() {
         return 1;
     }
@@ -1382,7 +1377,7 @@ pub fn get_constituent_count(t: P<Type>) -> usize {
 }
 
 // checker.go:26932
-pub fn get_constituent_count_of_types(types: &[P<Type>]) -> usize {
+fn get_constituent_count_of_types(types: &[P<Type>]) -> usize {
     let mut n = 0;
     for &t in types {
         n += get_constituent_count(t);
@@ -1516,7 +1511,7 @@ impl Checker {
 // checker.go:26997
 // The callbacks of these Go free functions receive the checker (PORTING.md callback rule) so that callers never
 // capture `self`; `c` is only passed through.
-pub fn for_each_type(c: &mut Checker, t: P<Type>, mut f: impl FnMut(&mut Checker, P<Type>)) {
+pub(crate) fn for_each_type(c: &mut Checker, t: P<Type>, mut f: impl FnMut(&mut Checker, P<Type>)) {
     if t.flags().intersects(TypeFlags::Union) {
         for &u in t.types() {
             f(c, u);
@@ -1527,7 +1522,7 @@ pub fn for_each_type(c: &mut Checker, t: P<Type>, mut f: impl FnMut(&mut Checker
 }
 
 // checker.go:27007
-pub fn some_type(
+pub(crate) fn some_type(
     c: &mut Checker,
     t: P<Type>,
     mut f: impl FnMut(&mut Checker, P<Type>) -> bool,
@@ -1539,7 +1534,7 @@ pub fn some_type(
 }
 
 // checker.go:27014
-pub fn every_type(
+pub(crate) fn every_type(
     c: &mut Checker,
     t: P<Type>,
     mut f: impl FnMut(&mut Checker, P<Type>) -> bool,
@@ -1551,7 +1546,7 @@ pub fn every_type(
 }
 
 // checker.go:27021
-pub fn every_contained_type(
+pub(crate) fn every_contained_type(
     c: &mut Checker,
     t: P<Type>,
     mut f: impl FnMut(&mut Checker, P<Type>) -> bool,
@@ -1780,7 +1775,7 @@ fn maybe_constituent_of_kind(types: &[P<Type>], kind: TypeFlags) -> bool {
 }
 
 // checker.go:27086
-pub fn contains_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> bool {
+pub(crate) fn contains_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> bool {
     // tsrs-only (can1357's 628f51ceb): small lists often hold the very type asked for, found without comparing
     // structure; a miss still searches. Only while the binary search would find it too (a total order).
     if types.len() <= 8 && types.contains(&t) && c.program.source_files_complete() {
@@ -1810,11 +1805,7 @@ fn contains_regular_literal_type(
 /// Whether every type of the sorted, unique `source` is in the sorted, unique `target`. tsrs-only: `contains_type` for each source type binary-searches the target
 /// with `compare_types`; in sorted lists each source type can only be found after the previous one's position, so a
 /// forward scan by identity answers the same with no comparisons. Used when the scan is the cheaper of the two.
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub fn is_sorted_subset(source: &[P<Type>], target: &[P<Type>]) -> bool {
+pub(crate) fn is_sorted_subset(source: &[P<Type>], target: &[P<Type>]) -> bool {
     let mut rest = target;
     !(source.iter().any(|&t| {
         match rest.iter().position(|&u| u == t) {
@@ -1827,7 +1818,7 @@ pub fn is_sorted_subset(source: &[P<Type>], target: &[P<Type>]) -> bool {
 }
 
 // checker.go:27091
-pub fn insert_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> (Vec<P<Type>>, bool) {
+fn insert_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> (Vec<P<Type>>, bool) {
     if let (i, false) = tsrs_core::goslices::binary_search_func(types, &t, |&probe, &t| {
         compare_types(c, Some(probe), Some(t))
     }) {
@@ -1839,7 +1830,7 @@ pub fn insert_type(c: &mut Checker, types: &[P<Type>], t: P<Type>) -> (Vec<P<Typ
 }
 
 // checker.go:27098
-pub fn count_types(t: P<Type>) -> usize {
+pub(crate) fn count_types(t: P<Type>) -> usize {
     if t.flags().intersects(TypeFlags::Union) {
         return t.types().len();
     } else if t.flags().intersects(TypeFlags::Never) {
@@ -2151,7 +2142,7 @@ impl Checker {
 }
 
 // checker.go:27266
-pub fn is_invalid_computed_property_name(node: P<Node>) -> bool {
+pub(crate) fn is_invalid_computed_property_name(node: P<Node>) -> bool {
     let grand_parent = node.parent().unwrap().parent().unwrap();
     (is_type_literal_node(grand_parent)
         || is_class_like(grand_parent)
@@ -3172,7 +3163,7 @@ impl Checker {
 }
 
 // checker.go:27727
-pub fn get_index_node_for_access_expression(access_node: P<Node>) -> Option<P<Node>> {
+fn get_index_node_for_access_expression(access_node: P<Node>) -> Option<P<Node>> {
     match access_node.kind() {
         Kind::ElementAccessExpression => {
             Some(access_node.as_element_access_expression().argument_expression)
@@ -3381,7 +3372,7 @@ impl Checker {
 }
 
 // checker.go:27851
-pub fn index_type_less_than(c: &mut Checker, index_type: P<Type>, limit: usize) -> bool {
+fn index_type_less_than(c: &mut Checker, index_type: P<Type>, limit: usize) -> bool {
     every_type(c, index_type, |_, t| {
         if t.flags().intersects(TypeFlags::StringOrNumberLiteral) {
             let prop_name = get_property_name_from_type(t);
@@ -3860,13 +3851,13 @@ impl Checker {
 }
 
 // checker.go:28134
-pub fn is_const_enum_object_type(t: P<Type>) -> bool {
+pub(crate) fn is_const_enum_object_type(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::Anonymous)
         && t.symbol().is_some_and(is_const_enum_symbol)
 }
 
 // checker.go:28138
-pub fn is_const_enum_symbol(symbol: P<Symbol>) -> bool {
+pub(crate) fn is_const_enum_symbol(symbol: P<Symbol>) -> bool {
     symbol.flags().intersects(SymbolFlags::ConstEnum)
 }
 
@@ -3910,7 +3901,7 @@ impl Checker {
 }
 
 // checker.go:28169
-pub fn compare_types_equal(s: P<Type>, t: P<Type>) -> Ternary {
+pub(crate) fn compare_types_equal(s: P<Type>, t: P<Type>) -> Ternary {
     if s == t {
         return Ternary::TRUE;
     }
@@ -3957,18 +3948,18 @@ impl Checker {
 }
 
 // checker.go:28257
-pub fn has_rest_parameter(signature: P<Node>) -> bool {
+pub(crate) fn has_rest_parameter(signature: P<Node>) -> bool {
     let last = signature.parameters().last().copied();
     last.is_some_and(is_rest_parameter)
 }
 
 // checker.go:28262
-pub fn is_rest_parameter(param: P<Node>) -> bool {
+pub(crate) fn is_rest_parameter(param: P<Node>) -> bool {
     param.as_parameter_declaration().dot_dot_dot_token().is_some()
 }
 
 // checker.go:28266
-pub fn get_name_from_index_info(info: P<IndexInfo>) -> String {
+pub(crate) fn get_name_from_index_info(info: P<IndexInfo>) -> String {
     if let Some(declaration) = info.declaration() {
         return tsrs_scanner::declaration_name_to_string(declaration.parameters()[0].name());
     }

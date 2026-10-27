@@ -10,13 +10,14 @@ pub enum FlattenLevel {
 // CreateAssignmentCallback is a callback used to create custom assignment expressions during destructuring flattening.
 // When provided, the target will always be an Identifier, and the callback can wrap the assignment with additional logic
 // (e.g., export expressions in CJS modules or namespace member assignments).
-pub type CreateAssignmentCallback<'a> = &'a dyn Fn(P<Node>, P<Node>, Option<&TextRange>) -> P<Node>;
+pub(crate) type CreateAssignmentCallback<'a> =
+    &'a dyn Fn(P<Node>, P<Node>, Option<&TextRange>) -> P<Node>;
 
 // FlattenDestructuringAssignment flattens a destructuring assignment expression into a sequence of
 // individual property/element access assignments. Supports custom assignment callbacks for module
 // export or namespace member expressions.
 // destructuring.go:27
-pub fn flatten_destructuring_assignment(
+pub(crate) fn flatten_destructuring_assignment(
     tx: &Transformer,
     node: P<Node>, // VariableDeclaration | DestructuringAssignment
     needs_value: bool,
@@ -48,7 +49,7 @@ struct PendingDecl {
 // into individual variable declarations. Returns a single VariableDeclaration, a SyntaxList of
 // declarations, or nil.
 // destructuring.go:56
-pub fn flatten_destructuring_binding(
+pub(crate) fn flatten_destructuring_binding(
     tx: &Transformer,
     node: P<Node>, // VariableDeclaration | ParameterDeclaration | BindingElement
     rval: Option<P<Node>>,

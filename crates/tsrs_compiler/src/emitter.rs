@@ -141,7 +141,6 @@ pub fn get_declaration_diagnostics(
         tsrs_transformers::EmitHost::get_emit_resolver(host),
         options,
         "",
-        "",
     );
     transform.base.transform_source_file(file);
     transform.get_diagnostics()
@@ -312,7 +311,6 @@ mod emit {
             &self,
             source_file: P<SourceFile>,
             declaration_file_path: &str,
-            declaration_map_path: &str,
         ) -> (P<SourceFile>, Vec<P<Diagnostic>>) {
             let force_dts_emit = self.emit_only == EmitOnly::EmitOnlyBuilderSignature
                 || self.force_emit && self.emit_only == EmitOnly::EmitOnlyDts;
@@ -323,7 +321,6 @@ mod emit {
                 self.host.get_emit_resolver(),
                 self.host.options(),
                 declaration_file_path,
-                declaration_map_path,
             );
             let supplemental = tsrs_declarations::new_supplemental_references_transformer(
                 self.host,
@@ -435,11 +432,8 @@ mod emit {
             let content_mapped_source = source_file;
 
             let emit_context = self.emit_context;
-            let (source_file, diags) = self.run_declaration_transformers(
-                source_file,
-                declaration_file_path,
-                declaration_map_path,
-            );
+            let (source_file, diags) =
+                self.run_declaration_transformers(source_file, declaration_file_path);
 
             // added to the emit diagnostics in `print`, after the JS file is written
             let decl_blocked = !diags.is_empty()

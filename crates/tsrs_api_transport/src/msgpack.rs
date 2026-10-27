@@ -253,10 +253,3 @@ impl<W: Write + Send> ProtocolWriter for MessagePackWriter<W> {
         self.write_tuple(MessageType::Error, method.as_bytes(), err.message.as_bytes())
     }
 }
-
-/// Encodes a tuple exactly as writeTuple does (test and client helper).
-pub fn encode_tuple(msg_type: MessageType, method: &[u8], payload: &[u8]) -> Vec<u8> {
-    let mut w = MessagePackWriter::new(Vec::new());
-    w.write_tuple(msg_type, method, payload).expect("writing to a Vec cannot fail");
-    w.w.into_inner().map_err(|_| ()).expect("flush to Vec")
-}

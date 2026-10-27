@@ -42,20 +42,16 @@ use tsrs_core::P;
 const MU: f64 = 1.0;
 const GAMMA: f64 = 0.5;
 const MAX_PASSES: usize = 3;
-pub const MIN_CHECKERS: usize = 16;
+pub(crate) const MIN_CHECKERS: usize = 16;
 /// From `LARGE_MIN_CHECKERS` checkers on when at least `LARGE_PROGRAM_FILES` files are checked. On the
 /// 38k-file codebase at 8 checkers each checker holds a smaller share of the modules than on the ~10k-file
 /// projects the 8-checker regressions above were measured on: there the term lowers user-space instructions
 /// by 3.3%, CPU time by 4%, wall time by 4% and peak RSS by 3.6%.
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub const LARGE_MIN_CHECKERS: usize = 8;
-pub const LARGE_PROGRAM_FILES: usize = 24_000;
+const LARGE_MIN_CHECKERS: usize = 8;
+const LARGE_PROGRAM_FILES: usize = 24_000;
 
 /// Whether the module affinity and the sticky thieves apply to `checker_count` checkers checking `files` files.
-pub fn applies(checker_count: usize, files: usize) -> bool {
+pub(crate) fn applies(checker_count: usize, files: usize) -> bool {
     checker_count >= MIN_CHECKERS
         || checker_count >= LARGE_MIN_CHECKERS && files >= LARGE_PROGRAM_FILES
 }

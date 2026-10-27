@@ -53,7 +53,6 @@ pub static IMPORT_FIX_PROVIDER: std::sync::LazyLock<CodeFixProvider> =
     std::sync::LazyLock::new(|| CodeFixProvider {
         error_codes: import_fix_error_codes(),
         get_code_actions: get_import_code_actions,
-        fix_ids: &[IMPORT_FIX_ID],
         get_all_code_actions: Some(get_all_import_code_actions),
     });
 
@@ -95,12 +94,7 @@ fn get_import_code_actions(
         );
 
         if ok {
-            Some(CodeAction {
-                description,
-                changes: edits,
-                fix_id: IMPORT_FIX_ID.to_string(),
-                fix_all_description: diagnostics::ADD_ALL_MISSING_IMPORTS.localize(&[]),
-            })
+            Some(CodeAction { description, changes: edits, fix_id: IMPORT_FIX_ID.to_string() })
         } else {
             None
         }
@@ -179,7 +173,6 @@ fn add_import_from_diagnostic(
         program: fix_context.program,
         ls: fix_context.ls,
         diagnostic: None,
-        params: None,
     };
 
     let infos = get_fix_infos(

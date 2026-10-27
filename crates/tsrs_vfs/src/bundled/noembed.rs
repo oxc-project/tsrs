@@ -6,7 +6,7 @@ use tsrs_core::tspath;
 
 use crate::FS;
 
-pub fn wrap_fs<T: FS>(fs: T) -> T {
+pub(crate) fn wrap_fs<T: FS>(fs: T) -> T {
     fs
 }
 
@@ -47,7 +47,7 @@ pub fn executable_realpath(path: &Path) -> io::Result<PathBuf> {
     }
 }
 
-pub fn lib_path() -> String {
+pub(crate) fn lib_path() -> String {
     LIB_PATH.get_or_init(executable_lib_path).clone()
 }
 
@@ -57,6 +57,6 @@ pub fn is_bundled(path: &str) -> bool {
     super::embed::is_bundled(path)
 }
 
-pub fn embedded_file(_path: &str) -> Option<&'static str> {
+pub(crate) fn embedded_file(_path: &str) -> Option<&'static str> {
     None
 }

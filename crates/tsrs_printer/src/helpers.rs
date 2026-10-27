@@ -7,7 +7,6 @@ pub struct Priority {
 }
 
 pub struct EmitHelper {
-    pub name: &'static str,        // A unique name for this helper.
     pub scoped: bool, // Indicates whether the helper MUST be emitted in the current scope.
     pub(crate) text: &'static str, // ES3-compatible raw script text
     pub(crate) text_callback:
@@ -17,7 +16,7 @@ pub struct EmitHelper {
     pub import_name: &'static str, // The name of the helper to use when importing via `--importHelpers`.
 }
 
-pub fn compare_emit_helpers(
+pub(crate) fn compare_emit_helpers(
     x: tsrs_core::SP<EmitHelper>,
     y: tsrs_core::SP<EmitHelper>,
 ) -> Ordering {

@@ -10,12 +10,12 @@ use crate::*;
 
 // TODO: Memoize once per checker to retain threadsafety
 // printer.go:13
-pub fn create_printer_with_defaults(emit_context: P<EmitContext>) -> Printer {
+fn create_printer_with_defaults(emit_context: P<EmitContext>) -> Printer {
     new_printer(PrinterOptions::default(), PrintHandlers::default(), Some(emit_context))
 }
 
 // printer.go:17
-pub fn create_printer_with_remove_comments(emit_context: P<EmitContext>) -> Printer {
+fn create_printer_with_remove_comments(emit_context: P<EmitContext>) -> Printer {
     new_printer(
         PrinterOptions { remove_comments: true, ..Default::default() },
         PrintHandlers::default(),
@@ -24,7 +24,7 @@ pub fn create_printer_with_remove_comments(emit_context: P<EmitContext>) -> Prin
 }
 
 // printer.go:21
-pub fn create_printer_with_remove_comments_omit_trailing_semicolon(
+fn create_printer_with_remove_comments_omit_trailing_semicolon(
     emit_context: P<EmitContext>,
 ) -> Printer {
     new_printer(
@@ -39,7 +39,7 @@ pub fn create_printer_with_remove_comments_omit_trailing_semicolon(
 }
 
 // printer.go:28
-pub fn create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(
+fn create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(
     emit_context: P<EmitContext>,
 ) -> Printer {
     new_printer(
@@ -77,7 +77,7 @@ impl Checker {
 }
 
 // printer.go:51
-pub fn to_node_builder_flags(flags: TypeFormatFlags) -> Flags {
+fn to_node_builder_flags(flags: TypeFormatFlags) -> Flags {
     Flags::from_bits_retain((flags & TypeFormatFlags::NodeBuilderFlagsMask).bits())
 }
 
@@ -271,17 +271,6 @@ impl Checker {
     // printer.go:179
     pub(crate) fn signature_to_string(&mut self, signature: P<Signature>) -> String {
         self.signature_to_string_ex(signature, None, TypeFormatFlags::None, None)
-    }
-
-    // printer.go:183
-    pub fn signature_to_string_ex_exported(
-        &mut self,
-        signature: P<Signature>,
-        enclosing_declaration: Option<P<Node>>,
-        flags: TypeFormatFlags,
-        vc: Option<P<VerbosityContext>>,
-    ) -> String {
-        self.signature_to_string_ex(signature, enclosing_declaration, flags, vc)
     }
 
     // printer.go:187
@@ -753,14 +742,14 @@ impl Checker {
 }
 
 // symbolaccessibility.go:105
-pub fn has_non_global_augmentation_external_module_symbol(declaration: P<Node>) -> bool {
+pub(crate) fn has_non_global_augmentation_external_module_symbol(declaration: P<Node>) -> bool {
     ast::is_module_with_string_literal_name(declaration)
         || (declaration.kind() == Kind::SourceFile
             && ast::is_external_or_common_js_module(declaration.as_source_file_p()))
 }
 
 // symbolaccessibility.go:109
-pub fn get_qualified_left_meaning(right_meaning: SymbolFlags) -> SymbolFlags {
+pub(crate) fn get_qualified_left_meaning(right_meaning: SymbolFlags) -> SymbolFlags {
     // If we are looking in value space, the parent meaning is value, other wise it is namespace
     if right_meaning == SymbolFlags::Value {
         return SymbolFlags::Value;
@@ -950,7 +939,7 @@ impl Checker {
 }
 
 // symbolaccessibility.go:249
-pub fn has_external_module_symbol(declaration: P<Node>) -> bool {
+fn has_external_module_symbol(declaration: P<Node>) -> bool {
     ast::is_ambient_module(declaration)
         || (declaration.kind() == Kind::SourceFile
             && ast::is_external_or_common_js_module(declaration.as_source_file_p()))
@@ -1354,7 +1343,7 @@ impl Checker {
 // symbolTableID uniquely identifies a symbol table by encoding its source.
 // The high 3 bits encode the kind, and the remaining bits encode the
 // NodeId or SymbolId of the source.
-pub const ST_KIND_SHIFT: u64 = 61;
+const ST_KIND_SHIFT: u64 = 61;
 
 pub const ST_KIND_LOCALS: SymbolTableID = 0 << ST_KIND_SHIFT;
 pub const ST_KIND_EXPORTS: SymbolTableID = 1 << ST_KIND_SHIFT;
@@ -1366,12 +1355,12 @@ pub const ST_KIND_RESOLVED_EXPORTS: SymbolTableID = 4 << ST_KIND_SHIFT; // resol
 pub const ST_KIND_MASK: SymbolTableID = !((1 << ST_KIND_SHIFT) - 1);
 
 // symbolaccessibility.go:417
-pub fn symbol_table_id_from_locals(node: P<Node>) -> SymbolTableID {
+fn symbol_table_id_from_locals(node: P<Node>) -> SymbolTableID {
     ST_KIND_LOCALS | ast::get_node_id(node).0
 }
 
 // symbolaccessibility.go:421
-pub fn symbol_table_id_from_exports(sym: P<Symbol>) -> SymbolTableID {
+fn symbol_table_id_from_exports(sym: P<Symbol>) -> SymbolTableID {
     ST_KIND_EXPORTS | ast::get_symbol_id(sym).0
 }
 
@@ -1380,17 +1369,17 @@ pub fn symbol_table_id_from_exports(sym: P<Symbol>) -> SymbolTableID {
 // and late-bound members). This is distinct from symbolTableIDFromExports to prevent
 // cache collisions with raw sym.Exports tables passed by someSymbolTableInScope.
 // symbolaccessibility.go:429
-pub fn symbol_table_id_from_resolved_exports(sym: P<Symbol>) -> SymbolTableID {
+fn symbol_table_id_from_resolved_exports(sym: P<Symbol>) -> SymbolTableID {
     ST_KIND_RESOLVED_EXPORTS | ast::get_symbol_id(sym).0
 }
 
 // symbolaccessibility.go:433
-pub fn symbol_table_id_from_members(sym: P<Symbol>) -> SymbolTableID {
+fn symbol_table_id_from_members(sym: P<Symbol>) -> SymbolTableID {
     ST_KIND_MEMBERS | ast::get_symbol_id(sym).0
 }
 
 // symbolaccessibility.go:437
-pub fn symbol_table_id_from_globals() -> SymbolTableID {
+fn symbol_table_id_from_globals() -> SymbolTableID {
     ST_KIND_GLOBALS
 }
 
@@ -1625,7 +1614,7 @@ impl Checker {
 }
 
 // symbolaccessibility.go:612
-pub fn is_umd_export_symbol(symbol: Option<P<Symbol>>) -> bool {
+fn is_umd_export_symbol(symbol: Option<P<Symbol>>) -> bool {
     symbol.is_some_and(|symbol| {
         let declarations = symbol.declarations();
         !declarations.is_empty() && ast::is_namespace_export_declaration(declarations[0])
@@ -1633,7 +1622,7 @@ pub fn is_umd_export_symbol(symbol: Option<P<Symbol>>) -> bool {
 }
 
 // symbolaccessibility.go:616
-pub fn is_namespace_reexport_declaration(node: P<Node>) -> bool {
+fn is_namespace_reexport_declaration(node: P<Node>) -> bool {
     ast::is_namespace_export(node) && node.parent().unwrap().module_specifier().is_some()
 }
 
@@ -1808,7 +1797,7 @@ impl Checker {
 }
 
 // symbolaccessibility.go:728
-pub fn is_property_or_method_declaration_symbol(symbol: P<Symbol>) -> bool {
+fn is_property_or_method_declaration_symbol(symbol: P<Symbol>) -> bool {
     let declarations = symbol.declarations();
     if !declarations.is_empty() {
         if declarations.iter().any(|declaration| {
@@ -2069,7 +2058,7 @@ impl Checker {
 //   type SymbolTrackerImpl (symboltracker.go:8)
 
 // symboltracker.go:14
-pub fn new_symbol_tracker_impl(
+pub(crate) fn new_symbol_tracker_impl(
     context: P<NodeBuilderContext>,
     tracker: Option<&'static dyn SymbolTracker>,
 ) -> P<SymbolTrackerImpl> {

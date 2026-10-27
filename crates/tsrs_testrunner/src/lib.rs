@@ -15,7 +15,7 @@ pub mod sourcemap_baseline;
 pub mod sourcemap_recorder;
 pub mod test_case_parser;
 pub mod tsbaseline;
-pub mod type_symbol_baseline;
+pub(crate) mod type_symbol_baseline;
 pub mod types_dump;
 pub mod worker;
 

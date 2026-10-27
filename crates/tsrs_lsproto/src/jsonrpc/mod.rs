@@ -1,5 +1,9 @@
 // Go package internal/jsonrpc.
 
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "The framing constructors are re-exported only for the crate's LSP framing layer."
+)]
 mod baseproto;
 #[expect(
     clippy::module_inception,

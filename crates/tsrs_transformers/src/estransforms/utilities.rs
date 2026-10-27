@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 // Port of estransforms/utilities.go.
 
 use super::async_::{assignment_target_contains_super_property, is_update_expression};
@@ -5,7 +10,7 @@ use crate::*;
 use tsrs_core::collections::OrderedSet;
 
 // utilities.go:10
-pub fn convert_class_declaration_to_class_expression(
+pub(crate) fn convert_class_declaration_to_class_expression(
     emit_context: P<EmitContext>,
     node: P<Node>,
 ) -> P<Node> {
@@ -23,7 +28,7 @@ pub fn convert_class_declaration_to_class_expression(
 }
 
 // utilities.go:23
-pub fn create_not_null_condition(
+pub(crate) fn create_not_null_condition(
     emit_context: P<EmitContext>,
     left: P<Node>,
     right: P<Node>,
@@ -396,7 +401,7 @@ impl SuperAccessState {
 
 // utilities.go:280
 // createAccessorPropertyBackingField creates a private backing field for an `accessor` PropertyDeclaration.
-pub fn create_accessor_property_backing_field(
+pub(crate) fn create_accessor_property_backing_field(
     f: &printer::NodeFactory,
     node: P<Node>,
     modifiers: Option<P<ModifierList>>,

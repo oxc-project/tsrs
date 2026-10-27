@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use crate::*;
 
 // Non-function declarations in transform.go:1-1339 (hand-ported in types.rs):
@@ -10,7 +15,7 @@ use crate::*;
 //   const declarationEmitInternalNodeBuilderFlags (transform.go:223)
 
 // transform.go:53
-pub fn get_this_property_assignment_key(
+pub(crate) fn get_this_property_assignment_key(
     name: Option<P<Node>>,
     node: P<Node>,
     is_static: bool,
@@ -33,7 +38,6 @@ pub fn new_declaration_transformer(
     resolver: Resolver,
     compiler_options: P<CompilerOptions>,
     declaration_file_path: &str,
-    declaration_map_path: &str,
 ) -> P<DeclarationTransformer> {
     let context = Some(resolver.r.emit_context());
     let state = P::new(SymbolTrackerSharedState {
@@ -50,7 +54,7 @@ pub fn new_declaration_transformer(
         resolver,
         report_expando_function_errors: OnceCell::new(),
     });
-    let tracker = new_symbol_tracker(host, resolver, state);
+    let tracker = new_symbol_tracker(resolver, state);
     // TODO: Use new host GetOutputPathsFor method instead of passing in entrypoint paths (which will also better support bundled emit)
     let tx = P::new(DeclarationTransformer {
         base: Transformer::default(),
@@ -60,7 +64,6 @@ pub fn new_declaration_transformer(
         state,
         resolver,
         declaration_file_path: declaration_file_path.to_string(),
-        declaration_map_path: declaration_map_path.to_string(),
         needs_declare: Cell::new(false),
         needs_scope_fix_marker: Cell::new(false),
         result_has_scope_marker: Cell::new(false),
@@ -433,7 +436,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:382
-pub fn create_empty_exports(factory: &NodeFactory) -> P<Node> {
+pub(crate) fn create_empty_exports(factory: &NodeFactory) -> P<Node> {
     factory.new_export_declaration(
         None, /*isTypeOnly*/
         false,

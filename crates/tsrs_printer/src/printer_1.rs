@@ -55,7 +55,10 @@ pub type SourceMapGenerator = tsrs_sourcemap::Generator;
 /// (`declarationMapSource`), and Go compares them by identity.
 pub type SourceMapSource = &'static dyn tsrs_sourcemap::Source;
 
-pub fn same_source_map_source(a: Option<SourceMapSource>, b: Option<SourceMapSource>) -> bool {
+pub(crate) fn same_source_map_source(
+    a: Option<SourceMapSource>,
+    b: Option<SourceMapSource>,
+) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => std::ptr::addr_eq(
             std::ptr::from_ref::<dyn tsrs_sourcemap::Source>(a),

@@ -1563,7 +1563,7 @@ impl ModuleCompletionNameAndKindSet {
 }
 
 // string_completions.go:1256
-pub struct ExtensionOptions {
+struct ExtensionOptions {
     extensions_to_search: Vec<String>,
     reference_kind: ReferenceKind,
     importing_source_file: P<SourceFile>,

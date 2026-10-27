@@ -84,7 +84,7 @@ pub struct FsEventsState {
 }
 
 // fsevents_darwin.go:161 (init)
-pub fn init(mut w: PlatformWatcher) -> PlatformWatcher {
+pub(crate) fn init(mut w: PlatformWatcher) -> PlatformWatcher {
     w.factory = Some(|| Arc::new(new_fs_events_backend()) as Arc<dyn WatcherImpl>);
     w.sequence = Some(fs_events_get_current_event_id);
     w
@@ -434,7 +434,7 @@ impl WatcherImpl for FsEventsBackend {
 
 // fsevents_darwin.go:467
 // fsEventsCallback processes a batch of FSEvents (on the stream's serial dispatch queue thread).
-pub fn fs_events_callback(cb: &StreamCallback, payload: &FsEventsCallbackPayload) {
+pub(crate) fn fs_events_callback(cb: &StreamCallback, payload: &FsEventsCallbackPayload) {
     if payload.is_empty() {
         return;
     }

@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 // esdecorator.go lines 1-1230 (types, constructor, lexical state, visitors, class transform, constructor).
 
 use printer::EmitFlags;
@@ -18,7 +23,7 @@ pub enum LexicalEntryKind {
 // esdecorator.go:59
 // lexicalEntry represents a single entry in the lexical scope stack used to track
 // nested class declarations and their state during transformation.
-pub struct LexicalEntry {
+pub(crate) struct LexicalEntry {
     kind: LexicalEntryKind,
     next: Option<P<LexicalEntry>>,
     class_info_data: Option<P<ClassInfo>>,
@@ -40,8 +45,7 @@ pub struct MemberInfo {
 
 // esdecorator.go:78
 // classInfo stores all transformation data for a single decorated class.
-pub struct ClassInfo {
-    pub class: P<Node>,
+pub(crate) struct ClassInfo {
     class_decorators_name: Cell<Option<P<Node>>>, // used in class definition step 2
     class_descriptor_name: Cell<Option<P<Node>>>, // used in class definition step 10
     class_extra_initializers_name: Cell<Option<P<Node>>>, // used in class definition step 13
@@ -63,9 +67,8 @@ pub struct ClassInfo {
 }
 
 // esdecorator.go:100
-pub struct EsDecoratorTransformer {
+pub(crate) struct EsDecoratorTransformer {
     pub(crate) base: Transformer,
-    pub compiler_options: P<CompilerOptions>,
     top: Cell<Option<P<LexicalEntry>>>,
     pub(crate) class_info_stack: Cell<Option<P<ClassInfo>>>,
     pub(crate) class_this: Cell<Option<P<Node>>>,
@@ -88,7 +91,7 @@ pub struct EsDecoratorTransformer {
 }
 
 // esdecorator.go:124
-pub fn new_es_decorator_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
+pub(crate) fn new_es_decorator_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     // When experimentalDecorators is set, the legacy decorator transformer handles all
     // decorators. When targeting ESNext with useDefineForClassFields, there's nothing to
     // transform. In either case every node would be returned unchanged, so skip entirely.
@@ -100,7 +103,6 @@ pub fn new_es_decorator_transformer(opts: &TransformOptions) -> Option<P<Transfo
     }
     let tx = P::new(EsDecoratorTransformer {
         base: Transformer::default(),
-        compiler_options: opts.compiler_options,
         top: Cell::new(None),
         class_info_stack: Cell::new(None),
         class_this: Cell::new(None),
@@ -564,7 +566,6 @@ impl EsDecoratorTransformer {
             ..Default::default()
         };
         let ci = P::new(ClassInfo {
-            class: node,
             class_decorators_name: Cell::new(None),
             class_descriptor_name: Cell::new(None),
             class_extra_initializers_name: Cell::new(None),
@@ -1233,7 +1234,7 @@ impl EsDecoratorTransformer {
 }
 
 // esdecorator.go:1014
-pub fn is_decorated_class_like(node: P<Node>) -> bool {
+pub(crate) fn is_decorated_class_like(node: P<Node>) -> bool {
     ast::class_or_constructor_parameter_is_decorated(false, node)
         || ast::child_is_decorated(false, node, None)
 }

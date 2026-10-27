@@ -908,7 +908,11 @@ fn get_all_decorators_of_method(
  *
  * @param node The function-like node.
  */
-pub fn get_decorators_of_parameters(node: Option<P<Node>>) -> Vec<Vec<P<Node>>> {
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn get_decorators_of_parameters(node: Option<P<Node>>) -> Vec<Vec<P<Node>>> {
     let mut decorators: Vec<Vec<P<Node>>> = Vec::new();
     if let Some(node) = node {
         let parameters = node.parameters();

@@ -128,7 +128,7 @@ static KEYWORD_TABLE: [u8; 256] = {
 
 /// Go `textToKeyword[s]` (zero value `KindUnknown` when absent).
 #[inline]
-pub fn text_to_keyword(s: &str) -> Kind {
+pub(crate) fn text_to_keyword(s: &str) -> Kind {
     let b = s.as_bytes();
     if b.len() < 2 {
         return Kind::Unknown;
@@ -417,7 +417,7 @@ static ASCII_JSDOC_COMMENT_TEXT: [[bool; 256]; 2] = {
     }
     tables
 };
-pub const RUNE_ERROR: Rune = 0xFFFD;
+pub(crate) const RUNE_ERROR: Rune = 0xFFFD;
 
 static STRING_LITERAL_END: [[bool; 256]; 2] = {
     let mut table = [[false; 256]; 2];
@@ -436,7 +436,7 @@ static STRING_LITERAL_END: [[bool; 256]; 2] = {
 /// Go `utf8.DecodeRuneInString` over raw bytes: `(RuneError, 0)` for empty input,
 /// `(RuneError, 1)` for an invalid encoding.
 #[inline]
-pub fn decode_rune(b: &[u8]) -> (Rune, usize) {
+pub(crate) fn decode_rune(b: &[u8]) -> (Rune, usize) {
     let Some(&b0) = b.first() else {
         return (RUNE_ERROR, 0);
     };
@@ -522,7 +522,7 @@ fn rune_to_char(r: Rune) -> char {
 }
 
 #[inline]
-pub fn rune_string(r: Rune) -> String {
+pub(crate) fn rune_string(r: Rune) -> String {
     rune_to_char(r).to_string()
 }
 
@@ -3281,7 +3281,7 @@ pub fn is_valid_identifier(s: &str) -> bool {
 }
 
 // Section 6.1.4
-pub fn is_word_character(ch: Rune) -> bool {
+pub(crate) fn is_word_character(ch: Rune) -> bool {
     stringutil::is_ascii_letter(ch) || stringutil::is_digit(ch) || ch == '_' as Rune
 }
 
@@ -3299,7 +3299,7 @@ pub fn is_identifier_part(ch: Rune) -> bool {
 }
 
 #[inline]
-pub fn is_identifier_part_ex(ch: Rune, language_variant: LanguageVariant) -> bool {
+pub(crate) fn is_identifier_part_ex(ch: Rune, language_variant: LanguageVariant) -> bool {
     is_word_character(ch)
         || ch == '$' as Rune
         || ch >= RUNE_SELF && stringutil::is_unicode_identifier_part(ch)
@@ -3864,20 +3864,6 @@ pub fn get_ecma_end_line_position(source_file: P<SourceFile>, line: usize) -> Op
 // GetECMAPositionOfLineAndUTF16Character converts a 0-based line number and UTF-16
 // code unit character offset back to an absolute byte position in the source text.
 // Uses ECMAScript line separators.
-pub fn get_ecma_position_of_line_and_utf16_character(
-    source_file: &(impl SourceFileLike + ?Sized),
-    line: usize,
-    character: UTF16Offset,
-) -> u32 {
-    let line_starts = get_ecma_line_starts(source_file);
-    compute_position_of_line_and_utf16_character(
-        line_starts,
-        line,
-        character,
-        source_file.text(),
-        false,
-    )
-}
 
 // GetECMAPositionOfLineAndByteOffset converts a 0-based line number and byte offset
 // from line start back to an absolute byte position in the source text.

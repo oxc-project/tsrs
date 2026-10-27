@@ -755,40 +755,37 @@ impl std::fmt::Debug for Kind {
 }
 
 impl Kind {
-    pub const FIRST_ASSIGNMENT: Kind = Kind::EqualsToken;
-    pub const LAST_ASSIGNMENT: Kind = Kind::CaretEqualsToken;
-    pub const FIRST_COMPOUND_ASSIGNMENT: Kind = Kind::PlusEqualsToken;
-    pub const LAST_COMPOUND_ASSIGNMENT: Kind = Kind::CaretEqualsToken;
+    pub(crate) const FIRST_COMPOUND_ASSIGNMENT: Kind = Kind::PlusEqualsToken;
+    pub(crate) const LAST_COMPOUND_ASSIGNMENT: Kind = Kind::CaretEqualsToken;
     pub const FIRST_RESERVED_WORD: Kind = Kind::BreakKeyword;
     pub const LAST_RESERVED_WORD: Kind = Kind::WithKeyword;
     pub const FIRST_KEYWORD: Kind = Kind::BreakKeyword;
     pub const LAST_KEYWORD: Kind = Kind::SourceKeyword;
     pub const FIRST_FUTURE_RESERVED_WORD: Kind = Kind::ImplementsKeyword;
     pub const LAST_FUTURE_RESERVED_WORD: Kind = Kind::YieldKeyword;
-    pub const FIRST_TYPE_NODE: Kind = Kind::TypePredicate;
-    pub const LAST_TYPE_NODE: Kind = Kind::ImportType;
-    pub const FIRST_PUNCTUATION: Kind = Kind::OpenBraceToken;
-    pub const LAST_PUNCTUATION: Kind = Kind::CaretEqualsToken;
+    pub(crate) const FIRST_TYPE_NODE: Kind = Kind::TypePredicate;
+    pub(crate) const LAST_TYPE_NODE: Kind = Kind::ImportType;
+    pub(crate) const FIRST_PUNCTUATION: Kind = Kind::OpenBraceToken;
+    pub(crate) const LAST_PUNCTUATION: Kind = Kind::CaretEqualsToken;
     pub const FIRST_TOKEN: Kind = Kind::Unknown;
     pub const LAST_TOKEN: Kind = Kind::LAST_KEYWORD;
-    pub const FIRST_LITERAL_TOKEN: Kind = Kind::NumericLiteral;
-    pub const LAST_LITERAL_TOKEN: Kind = Kind::NoSubstitutionTemplateLiteral;
-    pub const FIRST_TEMPLATE_TOKEN: Kind = Kind::NoSubstitutionTemplateLiteral;
-    pub const LAST_TEMPLATE_TOKEN: Kind = Kind::TemplateTail;
+    pub(crate) const FIRST_LITERAL_TOKEN: Kind = Kind::NumericLiteral;
+    pub(crate) const LAST_LITERAL_TOKEN: Kind = Kind::NoSubstitutionTemplateLiteral;
+    pub(crate) const FIRST_TEMPLATE_TOKEN: Kind = Kind::NoSubstitutionTemplateLiteral;
+    pub(crate) const LAST_TEMPLATE_TOKEN: Kind = Kind::TemplateTail;
     pub const FIRST_BINARY_OPERATOR: Kind = Kind::LessThanToken;
     pub const LAST_BINARY_OPERATOR: Kind = Kind::CaretEqualsToken;
     pub const FIRST_STATEMENT: Kind = Kind::VariableStatement;
     pub const LAST_STATEMENT: Kind = Kind::DebuggerStatement;
     pub const FIRST_NODE: Kind = Kind::QualifiedName;
-    pub const FIRST_JSDOC_NODE: Kind = Kind::JSDocTypeExpression;
-    pub const LAST_JSDOC_NODE: Kind = Kind::JSDocImportTag;
-    pub const FIRST_JSDOC_TAG_NODE: Kind = Kind::JSDocUnknownTag;
-    pub const LAST_JSDOC_TAG_NODE: Kind = Kind::JSDocImportTag;
-    pub const FIRST_CONTEXTUAL_KEYWORD: Kind = Kind::AbstractKeyword;
-    pub const LAST_CONTEXTUAL_KEYWORD: Kind = Kind::SourceKeyword;
-    pub const LAST_UNARY_OPERATOR: Kind = Kind::TildeToken;
-    pub const FIRST_TRIVIA_TOKEN: Kind = Kind::SingleLineCommentTrivia;
-    pub const LAST_TRIVIA_TOKEN: Kind = Kind::ConflictMarkerTrivia;
+    pub(crate) const FIRST_JSDOC_NODE: Kind = Kind::JSDocTypeExpression;
+    pub(crate) const LAST_JSDOC_NODE: Kind = Kind::JSDocImportTag;
+    pub(crate) const FIRST_JSDOC_TAG_NODE: Kind = Kind::JSDocUnknownTag;
+    pub(crate) const LAST_JSDOC_TAG_NODE: Kind = Kind::JSDocImportTag;
+    pub(crate) const FIRST_CONTEXTUAL_KEYWORD: Kind = Kind::AbstractKeyword;
+    pub(crate) const LAST_CONTEXTUAL_KEYWORD: Kind = Kind::SourceKeyword;
+    pub(crate) const FIRST_TRIVIA_TOKEN: Kind = Kind::SingleLineCommentTrivia;
+    pub(crate) const LAST_TRIVIA_TOKEN: Kind = Kind::ConflictMarkerTrivia;
 
     /// The kind whose discriminant is `v` (`0..=Count`); panics on any other value.
     #[inline]
@@ -1157,38 +1154,3 @@ impl Kind {
 fn not_a_kind(v: i16) -> ! {
     panic!("not a Kind discriminant: {v}")
 }
-
-pub type TriviaSyntaxKind = Kind;
-pub type LiteralSyntaxKind = Kind;
-pub type PseudoLiteralSyntaxKind = Kind;
-pub type PunctuationSyntaxKind = Kind;
-pub type KeywordSyntaxKind = Kind;
-pub type ModifierSyntaxKind = Kind;
-pub type KeywordTypeSyntaxKind = Kind;
-pub type KeywordExpressionSyntaxKind = Kind;
-pub type TokenSyntaxKind = Kind;
-pub type JsxTokenSyntaxKind = Kind;
-pub type JSDocNodeSyntaxKind = Kind;
-pub type ImportPhaseModifierSyntaxKind = Kind;
-pub type PostfixUnaryOperator = Kind;
-pub type PrefixUnaryOperator = Kind;
-pub type AssignmentOperator = Kind;
-pub type BinaryOperator = Kind;
-pub type ExponentiationOperator = Kind;
-pub type MultiplicativeOperator = Kind;
-pub type MultiplicativeOperatorOrHigher = Kind;
-pub type AdditiveOperator = Kind;
-pub type AdditiveOperatorOrHigher = Kind;
-pub type ShiftOperator = Kind;
-pub type ShiftOperatorOrHigher = Kind;
-pub type RelationalOperator = Kind;
-pub type RelationalOperatorOrHigher = Kind;
-pub type EqualityOperator = Kind;
-pub type EqualityOperatorOrHigher = Kind;
-pub type BitwiseOperator = Kind;
-pub type BitwiseOperatorOrHigher = Kind;
-pub type LogicalOperator = Kind;
-pub type LogicalOperatorOrHigher = Kind;
-pub type CompoundAssignmentOperator = Kind;
-pub type AssignmentOperatorOrHigher = Kind;
-pub type LogicalOrCoalescingAssignmentOperator = Kind;

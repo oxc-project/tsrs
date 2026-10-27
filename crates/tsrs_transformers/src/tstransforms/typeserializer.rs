@@ -1,7 +1,12 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use crate::*;
 use tsrs_checker::TypeReferenceSerializationKind;
 
-pub struct MetadataSerializer {
+pub(crate) struct MetadataSerializer {
     resolver: Resolver,
     language_version: ScriptTarget,
     strict_null_checks: bool,
@@ -18,7 +23,7 @@ pub struct MetadataSerializerContext {
 }
 
 // typeserializer.go:26
-pub fn new_metadata_serializer(
+pub(crate) fn new_metadata_serializer(
     resolver: Resolver,
     f: &'static printer::NodeFactory,
     ec: P<EmitContext>,

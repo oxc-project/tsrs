@@ -65,11 +65,11 @@ static HARNESS_COMMAND_LINE_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> =
         ]
     });
 
-pub fn get_command_line_option(option: &str) -> Option<&'static CommandLineOption> {
+pub(crate) fn get_command_line_option(option: &str) -> Option<&'static CommandLineOption> {
     HARNESS_COMPILER_OPTIONS.iter().copied().find(|d| d.name.eq_ignore_ascii_case(option))
 }
 
-pub fn get_harness_option(name: &str) -> Option<&'static CommandLineOption> {
+fn get_harness_option(name: &str) -> Option<&'static CommandLineOption> {
     HARNESS_COMMAND_LINE_OPTIONS.iter().copied().find(|d| d.name.eq_ignore_ascii_case(name))
 }
 
@@ -192,7 +192,7 @@ pub fn tsoptions_option_table() -> OptionTable {
     OptionTable { decls, vary_by }
 }
 
-pub fn get_option_value(
+fn get_option_value(
     option: &'static CommandLineOption,
     value: &str,
     cwd: &str,
@@ -296,7 +296,7 @@ fn parse_harness_option(
     Ok(())
 }
 
-pub fn set_options_from_test_config(
+fn set_options_from_test_config(
     test_config: &TestConfiguration,
     compiler_options: &mut CompilerOptions,
     harness_options: &mut HarnessOptions,

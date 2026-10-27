@@ -25,7 +25,7 @@ use crate::dirty::Shared;
 use crate::filechange::{FileChange, FileChangeKind, FileChangeSummary, merge_file_change_summary};
 use crate::logging::{Logger, new_nop_logger};
 use crate::overlayfs::{FsRef, OverlayFS, OverlayMap, ToPath, new_overlay_fs};
-use crate::parsecache::{ContentMappedParseCache, ParseCache};
+use crate::parsecache::ParseCache;
 use crate::project::{HR, ID, Kind, ProgramUpdateKind, Project};
 use crate::snapshot::{
     APISnapshotRequest, ATAStateChange, ProjectTreeRequest, ResourceRequest, Snapshot,
@@ -105,7 +105,6 @@ pub struct SessionInit {
     pub logger: Option<Arc<dyn Logger>>,
     pub npm_executor: Option<Arc<dyn ata::NpmExecutor>>,
     pub parse_cache: Option<Arc<ParseCache>>,
-    pub content_mapped_parse_cache: Option<Arc<ContentMappedParseCache>>,
 }
 
 struct UserConfigState {
@@ -301,9 +300,6 @@ impl Session {
 
     // session.go:251
     // FS implements module.ResolutionHost
-    pub fn fs(&self) -> &dyn FS {
-        &*self.fs
-    }
 
     /// `fs` as a shared handle (a Go `vfs.FS` is a reference), for an LSP-attached API session.
     pub fn shared_fs(&self) -> Arc<dyn FS> {
@@ -312,9 +308,6 @@ impl Session {
 
     // session.go:256
     // GetCurrentDirectory implements module.ResolutionHost
-    pub fn get_current_directory(&self) -> &str {
-        &self.options.current_directory
-    }
 
     // session.go:260
     pub fn default_library_path(&self) -> &str {
@@ -1161,30 +1154,6 @@ impl Session {
     // LanguageService for the default project. Use this only outside of request handling
     // (e.g. cache warming). For request handlers, use GetLanguageServiceWithAutoImports
     // with the request-level snapshot instead.
-    pub fn get_current_language_service_with_auto_imports(
-        &self,
-        ctx: &Context,
-        uri: &lsproto::DocumentUri,
-    ) -> Result<Arc<LanguageService>, lsproto::Error> {
-        let snapshot = self.get_snapshot(
-            ctx,
-            ResourceRequest {
-                documents: vec![uri.clone()],
-                auto_imports: uri.clone(),
-                ..Default::default()
-            },
-            false, /*callerRef*/
-        );
-        let Some(project) = snapshot.get_default_project(uri) else {
-            return Err(lsproto::Error::new(format!("no project found for URI {uri}")));
-        };
-        Ok(Arc::new(new_language_service(
-            ProjectID(project.id().0),
-            project.get_program().unwrap(),
-            snapshot,
-            &uri.file_name(),
-        )))
-    }
 
     // session.go:1257
     // WithLanguageServiceAndSnapshot synchronously acquires a ref'd snapshot and
@@ -2037,7 +2006,7 @@ impl Session {
         }
     }
 
-    // session.go:1827
+    // Preserve the SessionInit npm executor hook for embedding hosts.
     pub fn npm_install(&self, cwd: &str, npm_install_args: &[String]) -> Result<Vec<u8>, String> {
         self.npm_executor.as_ref().expect("no npm executor").npm_install(cwd, npm_install_args)
     }

@@ -163,7 +163,6 @@ pub struct Census {
     /// call node, repeats at another call node.
     pub(crate) infer_keys: FxHashMap<u128, (u32, u64, usize, u32, Option<P<Node>>)>,
     pub(crate) infer_args: Vec<u32>,
-    pub infer_key_ok: Vec<bool>,
     /// Flow: steps walked in the current invocations (stack), per-invocation histogram, sampled re-walks.
     pub(crate) flow_steps: u64,
     pub(crate) flow_stack: Vec<(u64, u64, Option<u64>)>,
@@ -206,7 +205,6 @@ impl Census {
             rel_cache: [[0; 3]; 6],
             infer_keys: FxHashMap::default(),
             infer_args: Vec::new(),
-            infer_key_ok: Vec::new(),
             flow_steps: 0,
             flow_stack: Vec::new(),
             flow_hist: [Stat::default(); 24],
@@ -315,14 +313,6 @@ impl Census {
         if let Some(parent) = self.stack.last_mut() {
             parent.overhead_ns += now.saturating_sub(t0);
         }
-    }
-
-    pub fn count(&mut self, cat: Cat, key: CKey, a: u64, b: u64, c: u64) {
-        let s = self.stats.entry((cat, key)).or_default();
-        s.count += 1;
-        s.a += a;
-        s.b += b;
-        s.c += c;
     }
 }
 

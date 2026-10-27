@@ -257,6 +257,3 @@ impl SymbolTracker for SymbolTrackerImpl {
 
 // Go `context.Context`.
 pub use tsrs_core::context::Context;
-
-/// Go `iter.Seq[T]`: materialized as a `Vec`.
-pub type Seq<T> = Vec<T>;

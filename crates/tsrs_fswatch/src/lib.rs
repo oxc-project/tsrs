@@ -26,12 +26,10 @@ pub mod pathkey;
 mod walkdir_unix;
 pub mod watcher;
 
-pub use canonicalize::path_comparer_for_path;
 pub use event::{Event, EventKind};
-pub use pathkey::{NATIVE_PATH_COMPARISON_AVAILABLE, PathComparer};
+pub use pathkey::PathComparer;
 pub use watcher::{
-    ERR_FILESYSTEM_UNSUPPORTED, ERR_OVERFLOW, ERR_UNAVAILABLE, ERR_WATCH_TERMINATED, Error,
-    IgnoreFunc, Sentinel, Watch, WatchCallback, WatchDirectoryRequest, WatchOption, Watcher,
-    all_watchers, default, fanotify, fsevents, inotify, kqueue, set_write_settling, windows,
-    with_ignore, with_recursive,
+    ERR_OVERFLOW, ERR_UNAVAILABLE, ERR_WATCH_TERMINATED, Error, IgnoreFunc, Sentinel, Watch,
+    WatchCallback, WatchDirectoryRequest, WatchOption, Watcher, all_watchers, default, fsevents,
+    inotify, kqueue, set_write_settling, with_ignore, with_recursive,
 };

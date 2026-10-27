@@ -825,7 +825,7 @@ impl Checker {
 }
 
 // checker.go:28826
-pub fn is_export_or_export_expression(location: P<Node>) -> bool {
+fn is_export_or_export_expression(location: P<Node>) -> bool {
     find_ancestor(location, |n| {
         if let Some(parent) = n.parent() {
             if is_any_export_assignment(parent) {
@@ -841,7 +841,7 @@ pub fn is_export_or_export_expression(location: P<Node>) -> bool {
 }
 
 // checker.go:28841
-pub fn should_mark_identifier_alias_referenced(node: P<Node>) -> bool {
+pub(crate) fn should_mark_identifier_alias_referenced(node: P<Node>) -> bool {
     if let Some(parent) = node.parent() {
         // A property access expression LHS? checkPropertyAccessExpression will handle that.
         if is_property_access_expression(parent) && parent.expression() == Some(node) {
@@ -863,7 +863,7 @@ pub fn should_mark_identifier_alias_referenced(node: P<Node>) -> bool {
 }
 
 // checker.go:28862
-pub fn is_internal_module_import_equals_declaration(node: P<Node>) -> bool {
+pub(crate) fn is_internal_module_import_equals_declaration(node: P<Node>) -> bool {
     node.kind() == Kind::ImportEqualsDeclaration
         && node.as_import_equals_declaration().module_reference.kind()
             != Kind::ExternalModuleReference
@@ -972,7 +972,7 @@ impl Checker {
 }
 
 // checker.go:28949
-pub fn is_part_of_import_equals_module_reference(location: P<Node>) -> bool {
+fn is_part_of_import_equals_module_reference(location: P<Node>) -> bool {
     let Some(import_equals) = find_ancestor_kind(location, Kind::ImportEqualsDeclaration) else {
         return false;
     };
@@ -1703,7 +1703,7 @@ impl Checker {
 }
 
 // checker.go:29482
-pub fn get_mapped_type_modifiers(t: P<Type>) -> MappedTypeModifiers {
+pub(crate) fn get_mapped_type_modifiers(t: P<Type>) -> MappedTypeModifiers {
     let declaration = t.as_mapped_type().declaration.get().unwrap().as_mapped_type_node();
     let mut modifiers = MappedTypeModifiers::empty();
     if let Some(readonly_token) = declaration.readonly_token {
@@ -1724,7 +1724,7 @@ pub fn get_mapped_type_modifiers(t: P<Type>) -> MappedTypeModifiers {
 }
 
 // checker.go:29496
-pub fn get_mapped_type_optionality(t: P<Type>) -> std::cmp::Ordering {
+fn get_mapped_type_optionality(t: P<Type>) -> std::cmp::Ordering {
     let modifiers = get_mapped_type_modifiers(t);
     if modifiers.intersects(MappedTypeModifiers::ExcludeOptional) {
         return std::cmp::Ordering::Less;
@@ -1769,7 +1769,7 @@ impl Checker {
 }
 
 // checker.go:29530
-pub fn is_partial_mapped_type(t: P<Type>) -> bool {
+pub(crate) fn is_partial_mapped_type(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::Mapped)
         && get_mapped_type_modifiers(t).intersects(MappedTypeModifiers::IncludeOptional)
 }
@@ -2074,7 +2074,7 @@ fn add_template_spans(
 }
 
 // checker.go:29731
-pub fn apply_string_mapping(symbol: P<Symbol>, str: &str) -> String {
+pub(crate) fn apply_string_mapping(symbol: P<Symbol>, str: &str) -> String {
     match INTRINSIC_TYPE_KINDS.get(symbol.name()).copied().unwrap_or_default() {
         IntrinsicTypeKind::Uppercase => stringutil::to_upper_js(str),
         IntrinsicTypeKind::Lowercase => stringutil::to_lower_js(str),

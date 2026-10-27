@@ -13,7 +13,7 @@ impl IndentStyle {
 }
 
 // formatcodeoptions.go:19
-pub fn parse_indent_style(v: &Value) -> IndentStyle {
+pub(crate) fn parse_indent_style(v: &Value) -> IndentStyle {
     match v {
         Value::String(s) => match s.to_lowercase().as_str() {
             "none" => return IndentStyle::NONE,
@@ -38,7 +38,7 @@ pub enum SemicolonPreference {
 }
 
 impl SemicolonPreference {
-    pub fn as_str(self) -> &'static str {
+    pub(crate) fn as_str(self) -> &'static str {
         match self {
             SemicolonPreference::None => "",
             SemicolonPreference::Ignore => "ignore",
@@ -49,7 +49,7 @@ impl SemicolonPreference {
 }
 
 // formatcodeoptions.go:46
-pub fn parse_semicolon_preference(v: &Value) -> SemicolonPreference {
+pub(crate) fn parse_semicolon_preference(v: &Value) -> SemicolonPreference {
     if let Value::String(s) = v {
         match s.to_lowercase().as_str() {
             "ignore" => return SemicolonPreference::Ignore,
@@ -115,7 +115,7 @@ impl std::ops::DerefMut for FormatCodeSettings {
 }
 
 // formatcodeoptions.go:94
-pub fn from_ls_format_options(
+pub(crate) fn from_ls_format_options(
     f: &FormatCodeSettings,
     opt: tsrs_lsproto::FormattingOptions,
 ) -> FormatCodeSettings {
@@ -128,19 +128,6 @@ pub fn from_ls_format_options(
             tsrs_core::bool_to_tristate(trim_trailing_whitespace);
     }
     updated_settings
-}
-
-impl FormatCodeSettings {
-    // formatcodeoptions.go:105
-    pub fn to_ls_format_options(&self) -> tsrs_lsproto::FormattingOptions {
-        let trim_trailing_whitespace = self.trim_trailing_whitespace.is_true();
-        tsrs_lsproto::FormattingOptions {
-            tab_size: self.tab_size as u32,
-            insert_spaces: self.convert_tabs_to_spaces.is_true(),
-            trim_trailing_whitespace: Some(trim_trailing_whitespace),
-            ..Default::default()
-        }
-    }
 }
 
 // formatcodeoptions.go:114

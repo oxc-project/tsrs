@@ -256,11 +256,6 @@ impl Context {
     }
 
     // Go `context.Cause(ctx)`.
-    pub fn cause(&self) -> Option<String> {
-        let state = nearest_cancel(self)?;
-        state.err()?;
-        state.inner.lock().unwrap().cause.clone()
-    }
 
     // Go `ctx.Done() == nil`: the context can never be canceled (no WithCancel/WithTimeout in its chain).
     pub fn done_is_nil(&self) -> bool {

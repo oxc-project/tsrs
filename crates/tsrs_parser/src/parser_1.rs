@@ -535,7 +535,7 @@ impl Parser {
     }
 
     /// `initialize_state` for text that already lives in the arena (Go shares the string; no copy).
-    pub(crate) fn initialize_state_static(
+    fn initialize_state_static(
         &mut self,
         opts: SourceFileParseOptions,
         source_text: &'static str,

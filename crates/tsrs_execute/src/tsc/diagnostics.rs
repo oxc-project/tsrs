@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use tsrs_ast::Diagnostic;
 use tsrs_compiler::diagnosticwriter::{self, FormattingOptions};
 use tsrs_core::tspath::ComparePathsOptions;
@@ -19,9 +24,9 @@ fn get_format_opts_of_sys(sys: &dyn System) -> FormattingOptions {
 pub type DiagnosticReporter<'a> = Box<dyn Fn(P<Diagnostic>) + Send + Sync + 'a>;
 
 // Go `io.Writer` for the reporters: `sys.Writer()` or a build task's output buffer.
-pub type Writer<'a> = std::sync::Arc<dyn Fn(&str) + Send + Sync + 'a>;
+pub(crate) type Writer<'a> = std::sync::Arc<dyn Fn(&str) + Send + Sync + 'a>;
 
-pub fn create_diagnostic_reporter<'a>(
+pub(crate) fn create_diagnostic_reporter<'a>(
     sys: &'a dyn System,
     options: Option<&CompilerOptions>,
 ) -> DiagnosticReporter<'a> {
@@ -33,7 +38,7 @@ pub fn create_diagnostic_reporter<'a>(
 }
 
 // diagnostics.go:27 CreateDiagnosticReporter(sys, w, locale, options)
-pub fn create_diagnostic_reporter_with_writer<'a>(
+pub(crate) fn create_diagnostic_reporter_with_writer<'a>(
     sys: &'a dyn System,
     w: Writer<'a>,
     options: Option<&CompilerOptions>,
@@ -53,13 +58,14 @@ pub fn create_diagnostic_reporter_with_writer<'a>(
 }
 
 /// Formats a diagnostic into a buffer, as the reporter of `create_diagnostic_reporter` writes it.
-pub type DiagnosticFormatter<'a> = Box<dyn Fn(&mut Vec<u8>, P<Diagnostic>) + Send + Sync + 'a>;
+pub(crate) type DiagnosticFormatter<'a> =
+    Box<dyn Fn(&mut Vec<u8>, P<Diagnostic>) + Send + Sync + 'a>;
 
 /// tsrs-only: the text `create_diagnostic_reporter(sys, options)` writes for each diagnostic.
 ///
 /// `None` when that reporter writes nothing itself (`--quiet`, or a system with a diagnostic sink). Lets the report
 /// loop format many diagnostics in parallel and write them in order (`EmitInput::format_diagnostic`).
-pub fn create_diagnostic_formatter<'a>(
+pub(crate) fn create_diagnostic_formatter<'a>(
     sys: &'a dyn System,
     options: Option<&CompilerOptions>,
 ) -> Option<DiagnosticFormatter<'a>> {
@@ -90,7 +96,7 @@ fn new_diagnostic_formatter<'a>(
 }
 
 // diagnostics.go:155
-pub fn create_builder_status_reporter<'a>(
+pub(crate) fn create_builder_status_reporter<'a>(
     sys: &'a dyn System,
     w: Writer<'a>,
     options: &CompilerOptions,
@@ -134,7 +140,7 @@ pub fn create_builder_status_reporter<'a>(
 
 // diagnostics.go:168 CreateWatchStatusReporter: clears the screen before a compilation starts, then writes the status
 // with its time stamp and a blank line.
-pub fn create_watch_status_reporter<'a>(
+pub(crate) fn create_watch_status_reporter<'a>(
     sys: &'a dyn System,
     options: &CompilerOptions,
     testing: Option<&'a dyn super::CommandLineTesting>,
@@ -177,7 +183,7 @@ pub fn create_watch_status_reporter<'a>(
 }
 
 // diagnostics.go:149
-pub fn quiet_diagnostics_reporter<'a>() -> DiagnosticsReporter<'a> {
+pub(crate) fn quiet_diagnostics_reporter<'a>() -> DiagnosticsReporter<'a> {
     Box::new(|_| {})
 }
 
@@ -203,7 +209,7 @@ fn should_be_pretty(sys: &dyn System, options: Option<&CompilerOptions>) -> bool
 
 pub type DiagnosticsReporter<'a> = Box<dyn Fn(&[P<Diagnostic>]) + Send + Sync + 'a>;
 
-pub fn create_report_error_summary<'a>(
+pub(crate) fn create_report_error_summary<'a>(
     sys: &'a dyn System,
     options: &CompilerOptions,
 ) -> DiagnosticsReporter<'a> {

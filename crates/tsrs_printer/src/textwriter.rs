@@ -6,7 +6,7 @@ use crate::EmitTextWriter;
 
 /// Go `utf8.DecodeLastRuneInString(s)` reduced to "is the last rune white-space-like", the only use Go makes of
 /// `lastWritten` (`RuneError` counts as not white space).
-pub fn last_rune_is_white_space_like(s: &str) -> bool {
+pub(crate) fn last_rune_is_white_space_like(s: &str) -> bool {
     let (ch, _) = stringutil::decode_last_rune(s.as_bytes());
     if ch == 0xFFFD {
         return false;
@@ -229,7 +229,7 @@ pub fn get_default_indent_size() -> usize {
     DEFAULT_INDENT_SIZE
 }
 
-pub fn get_indent_string(indent: u32, indent_size: usize) -> String {
+pub(crate) fn get_indent_string(indent: u32, indent_size: usize) -> String {
     if indent == 0 {
         return String::new();
     }

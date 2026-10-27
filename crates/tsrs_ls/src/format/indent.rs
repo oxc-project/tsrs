@@ -8,7 +8,7 @@ use crate::astnav;
 use crate::lsutil::{self, FormatCodeSettings, IndentStyle};
 
 // indent.go:17
-pub fn get_indentation_for_node(
+pub(crate) fn get_indentation_for_node(
     n: P<Node>,
     ignore_actual_indentation_range: Option<TextRange>,
     source_file: P<SourceFile>,
@@ -684,7 +684,7 @@ fn find_column_for_first_non_whitespace_character_in_line(
 }
 
 // indent.go:465
-pub fn find_first_non_whitespace_column(
+pub(crate) fn find_first_non_whitespace_column(
     start_pos: u32,
     end_pos: u32,
     source_file: P<SourceFile>,
@@ -703,7 +703,7 @@ pub fn find_first_non_whitespace_column(
 * value of 'character' for '$' is 3
 * value of 'column' for '$' is 6 (assuming that tab size is 4)
  */
-pub fn find_first_non_whitespace_character_and_column(
+pub(crate) fn find_first_non_whitespace_character_and_column(
     start_pos: u32,
     end_pos: u32,
     source_file: P<SourceFile>,
@@ -732,7 +732,7 @@ pub fn find_first_non_whitespace_character_and_column(
 }
 
 // indent.go:500
-pub fn child_starts_on_the_same_line_with_else_in_if_statement(
+pub(crate) fn child_starts_on_the_same_line_with_else_in_if_statement(
     parent: P<Node>,
     child: P<Node>,
     child_start_line: usize,
@@ -919,7 +919,7 @@ pub fn should_indent_child_node(
 }
 
 // indent.go:646
-pub fn node_will_indent_child(
+pub(crate) fn node_will_indent_child(
     settings: &FormatCodeSettings,
     parent: P<Node>,
     child: Option<P<Node>>,
@@ -1089,7 +1089,7 @@ pub fn node_will_indent_child(
 // whenTrue and whenFalse children to avoid double-indenting their contents. To identify this scenario,
 // we check for the whenTrue branch beginning on the line that the condition ends, and the whenFalse
 // branch beginning on the line that the whenTrue branch ends.
-pub fn child_is_unindented_branch_of_conditional_expression(
+pub(crate) fn child_is_unindented_branch_of_conditional_expression(
     parent: P<Node>,
     child: P<Node>,
     child_start_line: usize,
@@ -1133,7 +1133,7 @@ pub fn child_is_unindented_branch_of_conditional_expression(
 }
 
 // indent.go:800
-pub fn argument_starts_on_same_line_as_previous_argument(
+pub(crate) fn argument_starts_on_same_line_as_previous_argument(
     parent: P<Node>,
     child: P<Node>,
     child_start_line: usize,

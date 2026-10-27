@@ -26,7 +26,11 @@ pub enum Status {
 pub struct MethodInfo {
     pub name: &'static str,
     pub owner: Owner,
-    pub status: Status,
+    #[expect(
+        dead_code,
+        reason = "tools/node-api/inventory.mjs reads the status from this source inventory."
+    )]
+    status: Status,
 }
 
 pub const METHODS: [MethodInfo; 177] = [

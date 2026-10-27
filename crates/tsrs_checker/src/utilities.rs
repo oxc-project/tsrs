@@ -25,7 +25,7 @@ pub fn new_diagnostic_for_node(
 }
 
 // utilities.go:31
-pub fn new_diagnostic_chain_for_node(
+pub(crate) fn new_diagnostic_chain_for_node(
     chain: Option<P<Diagnostic>>,
     node: P<Node>,
     message: Option<&'static Message>,
@@ -38,27 +38,27 @@ pub fn new_diagnostic_chain_for_node(
 }
 
 // utilities.go:55
-pub fn has_override_modifier(node: P<Node>) -> bool {
+pub(crate) fn has_override_modifier(node: P<Node>) -> bool {
     ast::has_syntactic_modifier(node, ModifierFlags::Override)
 }
 
 // utilities.go:59
-pub fn has_async_modifier(node: P<Node>) -> bool {
+pub(crate) fn has_async_modifier(node: P<Node>) -> bool {
     ast::has_syntactic_modifier(node, ModifierFlags::Async)
 }
 
 // utilities.go:63
-pub fn get_selected_modifier_flags(node: P<Node>, flags: ModifierFlags) -> ModifierFlags {
+pub(crate) fn get_selected_modifier_flags(node: P<Node>, flags: ModifierFlags) -> ModifierFlags {
     node.modifier_flags() & flags
 }
 
 // utilities.go:67
-pub fn has_readonly_modifier(node: P<Node>) -> bool {
+pub(crate) fn has_readonly_modifier(node: P<Node>) -> bool {
     ast::has_modifier(node, ModifierFlags::Readonly)
 }
 
 // utilities.go:71
-pub fn is_static_private_identifier_property(s: P<Symbol>) -> bool {
+pub(crate) fn is_static_private_identifier_property(s: P<Symbol>) -> bool {
     match s.value_declaration() {
         Some(vd) => ast::is_private_identifier_class_element_declaration(vd) && ast::is_static(vd),
         None => false,
@@ -66,7 +66,7 @@ pub fn is_static_private_identifier_property(s: P<Symbol>) -> bool {
 }
 
 // utilities.go:89
-pub fn get_assignment_target_kind(node: P<Node>) -> AssignmentKind {
+pub(crate) fn get_assignment_target_kind(node: P<Node>) -> AssignmentKind {
     let Some(target) = ast::get_assignment_target(node) else {
         return AssignmentKind::None;
     };
@@ -90,7 +90,7 @@ pub fn get_assignment_target_kind(node: P<Node>) -> AssignmentKind {
 }
 
 // utilities.go:109
-pub fn is_delete_target(node: P<Node>) -> bool {
+pub(crate) fn is_delete_target(node: P<Node>) -> bool {
     if !ast::is_access_expression(node) {
         return false;
     }
@@ -99,7 +99,7 @@ pub fn is_delete_target(node: P<Node>) -> bool {
 }
 
 // utilities.go:117
-pub fn is_in_compound_like_assignment(node: P<Node>) -> bool {
+pub(crate) fn is_in_compound_like_assignment(node: P<Node>) -> bool {
     match ast::get_assignment_target(node) {
         Some(target) => {
             ast::is_assignment_expression(target, true /*excludeCompoundAssignment*/)
@@ -110,14 +110,14 @@ pub fn is_in_compound_like_assignment(node: P<Node>) -> bool {
 }
 
 // utilities.go:122
-pub fn is_compound_like_assignment(assignment: P<Node>) -> bool {
+fn is_compound_like_assignment(assignment: P<Node>) -> bool {
     let right = ast::skip_parentheses(assignment.as_binary_expression().right());
     right.kind() == Kind::BinaryExpression
         && is_shift_operator_or_higher(right.as_binary_expression().operator_token.kind())
 }
 
 // utilities.go:127
-pub fn is_const_type_reference(node: P<Node>) -> bool {
+pub(crate) fn is_const_type_reference(node: P<Node>) -> bool {
     ast::is_type_reference_node(node)
         && node.type_arguments().is_empty()
         && ast::is_identifier(node.as_type_reference_node().type_name)
@@ -127,7 +127,7 @@ pub fn is_const_type_reference(node: P<Node>) -> bool {
 // isConstTypeReferenceName reports whether node is the `const` type name of a `const`
 // assertion (`x as const` / `<const>x`), which must not be resolved as a real name.
 // utilities.go:133
-pub fn is_const_type_reference_name(node: Option<P<Node>>) -> bool {
+pub(crate) fn is_const_type_reference_name(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
@@ -151,7 +151,7 @@ pub fn is_const_type_reference_name(node: Option<P<Node>>) -> bool {
 // type-only name there is legal, and checkExportAssignment decides whether it is an error,
 // so checkIdentifier must not report a value-usage error for it.
 // utilities.go:143
-pub fn is_export_assignment_expression_name(node: Option<P<Node>>) -> bool {
+pub(crate) fn is_export_assignment_expression_name(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
@@ -168,22 +168,8 @@ pub fn is_export_assignment_expression_name(node: Option<P<Node>>) -> bool {
     }
 }
 
-// utilities.go:154
-pub fn get_single_variable_of_variable_statement(node: P<Node>) -> Option<P<Node>> {
-    if !ast::is_variable_statement(node) {
-        return None;
-    }
-    node.as_variable_statement()
-        .declaration_list
-        .as_variable_declaration_list()
-        .declarations
-        .nodes()
-        .first()
-        .copied()
-}
-
 // utilities.go:161
-pub fn is_type_reference_identifier(node: P<Node>) -> bool {
+pub(crate) fn is_type_reference_identifier(node: P<Node>) -> bool {
     let mut node = node;
     while node.parent().unwrap().kind() == Kind::QualifiedName {
         node = node.parent().unwrap();
@@ -205,7 +191,7 @@ pub fn is_in_type_query(node: P<Node>) -> bool {
 }
 
 // utilities.go:183
-pub fn can_have_locals(node: P<Node>) -> bool {
+pub(crate) fn can_have_locals(node: P<Node>) -> bool {
     matches!(
         node.kind(),
         Kind::ArrowFunction
@@ -239,18 +225,18 @@ pub fn can_have_locals(node: P<Node>) -> bool {
 }
 
 // utilities.go:197
-pub fn is_shorthand_ambient_module_symbol(module_symbol: P<Symbol>) -> bool {
+pub(crate) fn is_shorthand_ambient_module_symbol(module_symbol: P<Symbol>) -> bool {
     is_shorthand_ambient_module(module_symbol.value_declaration())
 }
 
 // utilities.go:201
-pub fn is_shorthand_ambient_module(node: Option<P<Node>>) -> bool {
+fn is_shorthand_ambient_module(node: Option<P<Node>>) -> bool {
     // The only kind of module that can be missing a body is a shorthand ambient module.
     matches!(node, Some(n) if n.kind() == Kind::ModuleDeclaration && n.body().is_none())
 }
 
 // utilities.go:206
-pub fn get_alias_declaration_from_name(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_alias_declaration_from_name(node: P<Node>) -> Option<P<Node>> {
     let parent = node.parent().unwrap();
     match parent.kind() {
         Kind::ImportClause
@@ -266,12 +252,12 @@ pub fn get_alias_declaration_from_name(node: P<Node>) -> Option<P<Node>> {
 }
 
 // utilities.go:217
-pub fn entity_name_to_string(name: P<Node>) -> String {
+pub(crate) fn entity_name_to_string(name: P<Node>) -> String {
     ast::entity_name_to_string(name, Some(&tsrs_scanner::get_text_of_node))
 }
 
 // utilities.go:221
-pub fn get_containing_qualified_name_node(node: P<Node>) -> P<Node> {
+pub(crate) fn get_containing_qualified_name_node(node: P<Node>) -> P<Node> {
     let mut node = node;
     while ast::is_qualified_name(node.parent().unwrap()) {
         node = node.parent().unwrap();
@@ -280,13 +266,13 @@ pub fn get_containing_qualified_name_node(node: P<Node>) -> P<Node> {
 }
 
 // utilities.go:228
-pub fn is_side_effect_import(node: P<Node>) -> bool {
+pub(crate) fn is_side_effect_import(node: P<Node>) -> bool {
     let ancestor = ast::find_ancestor(node, ast::is_import_declaration);
     matches!(ancestor, Some(a) if a.import_clause().is_none())
 }
 
 // utilities.go:233
-pub fn get_external_module_require_argument(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_external_module_require_argument(node: P<Node>) -> Option<P<Node>> {
     if ast::is_variable_declaration_initialized_to_require(node) {
         return Some(node.initializer().unwrap().arguments()[0]);
     }
@@ -294,7 +280,7 @@ pub fn get_external_module_require_argument(node: P<Node>) -> Option<P<Node>> {
 }
 
 // utilities.go:240
-pub fn is_right_side_of_access_expression(node: P<Node>) -> bool {
+pub(crate) fn is_right_side_of_access_expression(node: P<Node>) -> bool {
     let Some(parent) = node.parent() else {
         return false;
     };
@@ -304,7 +290,7 @@ pub fn is_right_side_of_access_expression(node: P<Node>) -> bool {
 }
 
 // utilities.go:245
-pub fn is_top_level_in_external_module_augmentation(node: Option<P<Node>>) -> bool {
+pub(crate) fn is_top_level_in_external_module_augmentation(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
@@ -315,7 +301,7 @@ pub fn is_top_level_in_external_module_augmentation(node: Option<P<Node>>) -> bo
 }
 
 // utilities.go:249
-pub fn is_syntactic_default(node: P<Node>) -> bool {
+pub(crate) fn is_syntactic_default(node: P<Node>) -> bool {
     (ast::is_export_assignment(node) && !node.as_export_assignment().is_export_equals)
         || ast::has_syntactic_modifier(node, ModifierFlags::Default)
         || ast::is_export_specifier(node)
@@ -323,7 +309,7 @@ pub fn is_syntactic_default(node: P<Node>) -> bool {
 }
 
 // utilities.go:256
-pub fn has_export_assignment_symbol(module_symbol: P<Symbol>) -> bool {
+pub(crate) fn has_export_assignment_symbol(module_symbol: P<Symbol>) -> bool {
     match module_symbol.exports() {
         Some(exports) => exports.lookup(INTERNAL_SYMBOL_NAME_EXPORT_EQUALS).is_some(),
         None => false,
@@ -331,12 +317,12 @@ pub fn has_export_assignment_symbol(module_symbol: P<Symbol>) -> bool {
 }
 
 // utilities.go:260
-pub fn is_type_alias(node: P<Node>) -> bool {
+pub(crate) fn is_type_alias(node: P<Node>) -> bool {
     ast::is_type_or_js_type_alias_declaration(node)
 }
 
 // utilities.go:264
-pub fn has_only_expression_initializer(node: P<Node>) -> bool {
+pub(crate) fn has_only_expression_initializer(node: P<Node>) -> bool {
     matches!(
         node.kind(),
         Kind::VariableDeclaration
@@ -349,7 +335,7 @@ pub fn has_only_expression_initializer(node: P<Node>) -> bool {
 }
 
 // utilities.go:272
-pub fn has_dot_dot_dot_token(node: P<Node>) -> bool {
+pub(crate) fn has_dot_dot_dot_token(node: P<Node>) -> bool {
     match node.kind() {
         Kind::Parameter => node.as_parameter_declaration().dot_dot_dot_token().is_some(),
         Kind::BindingElement => node.as_binding_element().dot_dot_dot_token().is_some(),
@@ -365,12 +351,12 @@ pub fn is_type_any(t: Option<P<Type>>) -> bool {
 }
 
 // utilities.go:294
-pub fn is_exclamation_token(node: Option<P<Node>>) -> bool {
+pub(crate) fn is_exclamation_token(node: Option<P<Node>>) -> bool {
     matches!(node, Some(n) if n.kind() == Kind::ExclamationToken)
 }
 
 // utilities.go:298
-pub fn is_optional_declaration(declaration: P<Node>) -> bool {
+pub(crate) fn is_optional_declaration(declaration: P<Node>) -> bool {
     ast::has_question_token(declaration)
 }
 
@@ -418,12 +404,12 @@ impl Checker {
 }
 
 // utilities.go:329
-pub fn is_empty_array_literal(expression: P<Node>) -> bool {
+pub(crate) fn is_empty_array_literal(expression: P<Node>) -> bool {
     ast::is_array_literal_expression(expression) && expression.elements().is_empty()
 }
 
 // utilities.go:333
-pub fn declaration_belongs_to_private_ambient_member(declaration: P<Node>) -> bool {
+pub(crate) fn declaration_belongs_to_private_ambient_member(declaration: P<Node>) -> bool {
     let root = ast::get_root_declaration(declaration);
     let mut member_declaration = root;
     if root.kind() == Kind::Parameter {
@@ -433,19 +419,19 @@ pub fn declaration_belongs_to_private_ambient_member(declaration: P<Node>) -> bo
 }
 
 // utilities.go:342
-pub fn is_private_within_ambient(node: P<Node>) -> bool {
+pub(crate) fn is_private_within_ambient(node: P<Node>) -> bool {
     (ast::has_modifier(node, ModifierFlags::Private)
         || ast::is_private_identifier_class_element_declaration(node))
         && node.flags().intersects(NodeFlags::Ambient)
 }
 
 // utilities.go:346
-pub fn is_type_assertion(node: P<Node>) -> bool {
+pub(crate) fn is_type_assertion(node: P<Node>) -> bool {
     ast::is_assertion_expression(ast::skip_parentheses(node))
 }
 
 // utilities.go:350
-pub fn create_symbol_table(symbols: &[P<Symbol>]) -> Option<P<SymbolTable>> {
+pub(crate) fn create_symbol_table(symbols: &[P<Symbol>]) -> Option<P<SymbolTable>> {
     if symbols.is_empty() {
         return None;
     }
@@ -633,7 +619,7 @@ fn compare_numbers(a: jsnum::Number, b: jsnum::Number) -> Ordering {
 /// The identity and flag-order answers inline (union construction sorts and binary-searches with this: on large
 /// projects it runs >100M times, mostly decided by the flags); the rest out of line.
 #[inline]
-pub fn compare_types(c: &mut Checker, t1: Option<P<Type>>, t2: Option<P<Type>>) -> Ordering {
+pub(crate) fn compare_types(c: &mut Checker, t1: Option<P<Type>>, t2: Option<P<Type>>) -> Ordering {
     if t1 == t2 {
         return Ordering::Equal;
     }
@@ -991,7 +977,7 @@ fn literal_bool_value(t: P<Type>) -> bool {
 }
 
 // utilities.go:624
-pub fn get_sort_order_flags(t: P<Type>) -> u32 {
+fn get_sort_order_flags(t: P<Type>) -> u32 {
     // Return TypeFlagsEnum for all enum-like unit types (they'll be sorted by their symbols)
     if t.flags().intersects(TypeFlags::EnumLiteral | TypeFlags::Enum)
         && !t.flags().intersects(TypeFlags::Union)
@@ -1002,7 +988,7 @@ pub fn get_sort_order_flags(t: P<Type>) -> u32 {
 }
 
 // utilities.go:632
-pub fn compare_type_names(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Ordering {
+fn compare_type_names(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> Ordering {
     let s1 = get_type_name_symbol(t1);
     let s2 = get_type_name_symbol(t2);
     if s1 == s2 {
@@ -1037,7 +1023,7 @@ fn compare_names(a: &str, b: &str) -> Ordering {
 }
 
 // utilities.go:651
-pub fn get_type_name_symbol(t: P<Type>) -> Option<P<Symbol>> {
+fn get_type_name_symbol(t: P<Type>) -> Option<P<Symbol>> {
     if let Some(alias) = t.alias() {
         return alias.symbol();
     }
@@ -1050,7 +1036,7 @@ pub fn get_type_name_symbol(t: P<Type>) -> Option<P<Symbol>> {
 }
 
 // utilities.go:668
-pub fn compare_tuple_types(t1: &'static TupleType, t2: &'static TupleType) -> Ordering {
+fn compare_tuple_types(t1: &'static TupleType, t2: &'static TupleType) -> Ordering {
     if std::ptr::eq(t1, t2) {
         return Ordering::Equal;
     }
@@ -1078,7 +1064,7 @@ pub fn compare_tuple_types(t1: &'static TupleType, t2: &'static TupleType) -> Or
 }
 
 // utilities.go:691
-pub fn compare_element_labels(n1: Option<P<Node>>, n2: Option<P<Node>>) -> Ordering {
+fn compare_element_labels(n1: Option<P<Node>>, n2: Option<P<Node>>) -> Ordering {
     if n1 == n2 {
         return Ordering::Equal;
     }
@@ -1092,7 +1078,7 @@ pub fn compare_element_labels(n1: Option<P<Node>>, n2: Option<P<Node>>) -> Order
 }
 
 // utilities.go:704
-pub fn compare_type_lists(c: &mut Checker, s1: &[P<Type>], s2: &[P<Type>]) -> Ordering {
+fn compare_type_lists(c: &mut Checker, s1: &[P<Type>], s2: &[P<Type>]) -> Ordering {
     if s1.len() != s2.len() {
         return s1.len().cmp(&s2.len());
     }
@@ -1110,7 +1096,7 @@ pub fn compare_type_lists(c: &mut Checker, s1: &[P<Type>], s2: &[P<Type>]) -> Or
 }
 
 // utilities.go:716
-pub fn compare_type_mappers(
+fn compare_type_mappers(
     c: &mut Checker,
     m1: Option<P<TypeMapper>>,
     m2: Option<P<TypeMapper>>,
@@ -1164,18 +1150,14 @@ pub fn compare_type_mappers(
 }
 
 // utilities.go:757
-pub fn get_declaration_modifier_flags_from_symbol(s: P<Symbol>) -> ModifierFlags {
+pub(crate) fn get_declaration_modifier_flags_from_symbol(s: P<Symbol>) -> ModifierFlags {
     get_declaration_modifier_flags_from_symbol_ex(s, false /*isWrite*/)
 }
 
 /// The `Private` and `Protected` bits of `get_declaration_modifier_flags_from_symbol(s)`. A declared symbol whose parent
 /// is not a class has neither (its accessibility modifiers are dropped below), so its declaration is not read.
 #[inline]
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub fn get_declaration_non_public_flags_from_symbol(s: P<Symbol>) -> ModifierFlags {
+pub(crate) fn get_declaration_non_public_flags_from_symbol(s: P<Symbol>) -> ModifierFlags {
     if !s.check_flags().intersects(CheckFlags::Synthetic)
         && !s.parent().is_some_and(|p| p.flags().intersects(SymbolFlags::Class))
     {
@@ -1185,7 +1167,7 @@ pub fn get_declaration_non_public_flags_from_symbol(s: P<Symbol>) -> ModifierFla
 }
 
 // utilities.go:761
-pub fn get_declaration_modifier_flags_from_symbol_ex(
+pub(crate) fn get_declaration_modifier_flags_from_symbol_ex(
     s: P<Symbol>,
     is_write: bool,
 ) -> ModifierFlags {
@@ -1236,49 +1218,49 @@ pub fn get_declaration_modifier_flags_from_symbol_ex(
 }
 
 // utilities.go:800
-pub fn is_exponentiation_operator(kind: Kind) -> bool {
+fn is_exponentiation_operator(kind: Kind) -> bool {
     kind == Kind::AsteriskAsteriskToken
 }
 
 // utilities.go:804
-pub fn is_multiplicative_operator(kind: Kind) -> bool {
+fn is_multiplicative_operator(kind: Kind) -> bool {
     kind == Kind::AsteriskToken || kind == Kind::SlashToken || kind == Kind::PercentToken
 }
 
 // utilities.go:808
-pub fn is_multiplicative_operator_or_higher(kind: Kind) -> bool {
+fn is_multiplicative_operator_or_higher(kind: Kind) -> bool {
     is_exponentiation_operator(kind) || is_multiplicative_operator(kind)
 }
 
 // utilities.go:812
-pub fn is_additive_operator(kind: Kind) -> bool {
+fn is_additive_operator(kind: Kind) -> bool {
     kind == Kind::PlusToken || kind == Kind::MinusToken
 }
 
 // utilities.go:816
-pub fn is_additive_operator_or_higher(kind: Kind) -> bool {
+fn is_additive_operator_or_higher(kind: Kind) -> bool {
     is_additive_operator(kind) || is_multiplicative_operator_or_higher(kind)
 }
 
 // utilities.go:820
-pub fn is_shift_operator(kind: Kind) -> bool {
+fn is_shift_operator(kind: Kind) -> bool {
     kind == Kind::LessThanLessThanToken
         || kind == Kind::GreaterThanGreaterThanToken
         || kind == Kind::GreaterThanGreaterThanGreaterThanToken
 }
 
 // utilities.go:825
-pub fn is_shift_operator_or_higher(kind: Kind) -> bool {
+fn is_shift_operator_or_higher(kind: Kind) -> bool {
     is_shift_operator(kind) || is_additive_operator_or_higher(kind)
 }
 
 // utilities.go:867
-pub fn is_object_literal_type(t: P<Type>) -> bool {
+pub(crate) fn is_object_literal_type(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::ObjectLiteral)
 }
 
 // utilities.go:871
-pub fn is_declaration_readonly(declaration: P<Node>) -> bool {
+pub(crate) fn is_declaration_readonly(declaration: P<Node>) -> bool {
     ast::get_combined_modifier_flags(declaration).intersects(ModifierFlags::Readonly)
         && !ast::is_parameter_property_declaration(declaration, declaration.parent().unwrap())
 }
@@ -1311,12 +1293,12 @@ impl<T: Copy + Eq + std::hash::Hash> CheckerOrderedSet<T> {
 }
 
 // utilities.go:908
-pub fn get_containing_function_or_class_static_block(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_containing_function_or_class_static_block(node: P<Node>) -> Option<P<Node>> {
     ast::find_ancestor(node.parent(), ast::is_function_like_or_class_static_block_declaration)
 }
 
 // utilities.go:912
-pub fn is_node_descendant_of(node: Option<P<Node>>, ancestor: P<Node>) -> bool {
+pub(crate) fn is_node_descendant_of(node: Option<P<Node>>, ancestor: P<Node>) -> bool {
     let mut node = node;
     while let Some(n) = node {
         if n == ancestor {
@@ -1328,13 +1310,13 @@ pub fn is_node_descendant_of(node: Option<P<Node>>, ancestor: P<Node>) -> bool {
 }
 
 // utilities.go:922
-pub fn is_type_usable_as_property_name(t: P<Type>) -> bool {
+pub(crate) fn is_type_usable_as_property_name(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::StringOrNumberLiteralOrUnique)
 }
 
 // Gets the symbolic name for a member from its type.
 // utilities.go:929
-pub fn get_property_name_from_type(t: P<Type>) -> std::borrow::Cow<'static, str> {
+pub(crate) fn get_property_name_from_type(t: P<Type>) -> std::borrow::Cow<'static, str> {
     if t.flags().intersects(TypeFlags::StringLiteral) {
         return literal_string_value(t).into();
     }
@@ -1348,7 +1330,7 @@ pub fn get_property_name_from_type(t: P<Type>) -> std::borrow::Cow<'static, str>
 }
 
 // utilities.go:941
-pub fn is_numeric_literal_name(name: &str) -> bool {
+pub(crate) fn is_numeric_literal_name(name: &str) -> bool {
     // The intent of numeric names is that
     //     - they are names with text in a numeric form, and that
     //     - setting properties/indexing with them is always equivalent to doing so with the numeric literal 'numLit',
@@ -1374,13 +1356,13 @@ pub fn is_numeric_literal_name(name: &str) -> bool {
 }
 
 // utilities.go:966
-pub fn is_this_property(node: P<Node>) -> bool {
+pub(crate) fn is_this_property(node: P<Node>) -> bool {
     (ast::is_property_access_expression(node) || ast::is_element_access_expression(node))
         && node.expression().unwrap().kind() == Kind::ThisKeyword
 }
 
 // utilities.go:970
-pub fn is_valid_number_string(s: &str, round_trip_only: bool) -> bool {
+pub(crate) fn is_valid_number_string(s: &str, round_trip_only: bool) -> bool {
     if s.is_empty() {
         return false;
     }
@@ -1389,7 +1371,7 @@ pub fn is_valid_number_string(s: &str, round_trip_only: bool) -> bool {
 }
 
 // utilities.go:978
-pub fn is_valid_big_int_string(s: &str, round_trip_only: bool) -> bool {
+pub(crate) fn is_valid_big_int_string(s: &str, round_trip_only: bool) -> bool {
     if s.is_empty() {
         return false;
     }
@@ -1422,7 +1404,7 @@ pub fn is_valid_big_int_string(s: &str, round_trip_only: bool) -> bool {
 }
 
 // utilities.go:1004
-pub fn is_valid_es_symbol_declaration(node: P<Node>) -> bool {
+pub(crate) fn is_valid_es_symbol_declaration(node: P<Node>) -> bool {
     if ast::is_variable_declaration(node) {
         return ast::is_var_const(node)
             && ast::is_identifier(node.as_variable_declaration().name())
@@ -1435,7 +1417,7 @@ pub fn is_valid_es_symbol_declaration(node: P<Node>) -> bool {
 }
 
 // utilities.go:1014
-pub fn is_variable_declaration_in_variable_statement(node: P<Node>) -> bool {
+pub(crate) fn is_variable_declaration_in_variable_statement(node: P<Node>) -> bool {
     let parent = node.parent().unwrap();
     ast::is_variable_declaration_list(parent)
         && ast::is_variable_statement(parent.parent().unwrap())
@@ -1447,7 +1429,7 @@ pub fn is_known_symbol(symbol: P<Symbol>) -> bool {
 }
 
 // utilities.go:1022
-pub fn is_private_identifier_symbol(symbol: Option<P<Symbol>>) -> bool {
+pub(crate) fn is_private_identifier_symbol(symbol: Option<P<Symbol>>) -> bool {
     let Some(symbol) = symbol else {
         return false;
     };
@@ -1458,19 +1440,19 @@ pub fn is_private_identifier_symbol(symbol: Option<P<Symbol>>) -> bool {
 }
 
 // utilities.go:1029
-pub fn is_late_bound_name(name: &str) -> bool {
+pub(crate) fn is_late_bound_name(name: &str) -> bool {
     name.len() >= 2
         && name.as_bytes()[0] == INTERNAL_SYMBOL_NAME_PREFIX_BYTE
         && name.as_bytes()[1] == b'@'
 }
 
 // utilities.go:1033
-pub fn is_object_or_array_literal_type(t: P<Type>) -> bool {
+pub(crate) fn is_object_or_array_literal_type(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::ObjectLiteral | ObjectFlags::ArrayLiteral)
 }
 
 // utilities.go:1037
-pub fn get_containing_class_excluding_class_decorators(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_containing_class_excluding_class_decorators(node: P<Node>) -> Option<P<Node>> {
     let decorator = ast::find_ancestor_or_quit(node.parent(), |n| {
         if ast::is_class_like(n) {
             return FindAncestorResult::Quit;
@@ -1490,12 +1472,12 @@ pub fn get_containing_class_excluding_class_decorators(node: P<Node>) -> Option<
 }
 
 // utilities.go:1056
-pub fn is_this_type_parameter(t: P<Type>) -> bool {
+pub(crate) fn is_this_type_parameter(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::TypeParameter) && t.as_type_parameter().is_this_type.get()
 }
 
 // utilities.go:1060
-pub fn is_class_instance_property(node: P<Node>) -> bool {
+pub(crate) fn is_class_instance_property(node: P<Node>) -> bool {
     if ast::is_in_js_file(node) && ast::is_expando_property_declaration(node) {
         let left = node.as_binary_expression().left();
         return (!ast::is_bindable_static_access_expression(
@@ -1509,7 +1491,7 @@ pub fn is_class_instance_property(node: P<Node>) -> bool {
 }
 
 // utilities.go:1069
-pub fn is_this_initialized_object_binding_expression(node: Option<P<Node>>) -> bool {
+pub(crate) fn is_this_initialized_object_binding_expression(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
@@ -1523,7 +1505,7 @@ pub fn is_this_initialized_object_binding_expression(node: Option<P<Node>>) -> b
 }
 
 // utilities.go:1075
-pub fn is_this_initialized_declaration(node: Option<P<Node>>) -> bool {
+pub(crate) fn is_this_initialized_declaration(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
@@ -1563,7 +1545,7 @@ impl Checker {
 }
 
 // utilities.go:1101
-pub fn is_in_ambient_or_type_node(node: P<Node>) -> bool {
+pub(crate) fn is_in_ambient_or_type_node(node: P<Node>) -> bool {
     node.flags().intersects(NodeFlags::Ambient)
         || ast::find_ancestor(node, |n| {
             ast::is_interface_declaration(n)
@@ -1574,7 +1556,7 @@ pub fn is_in_ambient_or_type_node(node: P<Node>) -> bool {
 }
 
 // utilities.go:1107
-pub fn is_literal_expression_of_object(node: P<Node>) -> bool {
+pub(crate) fn is_literal_expression_of_object(node: P<Node>) -> bool {
     matches!(
         node.kind(),
         Kind::ObjectLiteralExpression
@@ -1586,17 +1568,17 @@ pub fn is_literal_expression_of_object(node: P<Node>) -> bool {
 }
 
 // utilities.go:1120
-pub fn is_non_null_access(node: P<Node>) -> bool {
+pub(crate) fn is_non_null_access(node: P<Node>) -> bool {
     ast::is_access_expression(node) && ast::is_non_null_expression(node.expression().unwrap())
 }
 
 // utilities.go:1124
-pub fn get_binding_element_property_name(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_binding_element_property_name(node: P<Node>) -> Option<P<Node>> {
     node.property_name_or_name()
 }
 
 // utilities.go:1128
-pub fn is_call_chain(node: P<Node>) -> bool {
+pub(crate) fn is_call_chain(node: P<Node>) -> bool {
     ast::is_call_expression(node) && node.flags().intersects(NodeFlags::OptionalChain)
 }
 
@@ -1610,12 +1592,12 @@ impl Checker {
 }
 
 // utilities.go:1136
-pub fn is_super_call(n: P<Node>) -> bool {
+pub(crate) fn is_super_call(n: P<Node>) -> bool {
     ast::is_call_expression(n) && n.expression().unwrap().kind() == Kind::SuperKeyword
 }
 
 // utilities.go:1140
-pub fn get_members_of_declaration(node: P<Node>) -> Vec<P<Node>> {
+pub(crate) fn get_members_of_declaration(node: P<Node>) -> Vec<P<Node>> {
     match node.kind() {
         Kind::InterfaceDeclaration
         | Kind::ClassDeclaration
@@ -1627,7 +1609,7 @@ pub fn get_members_of_declaration(node: P<Node>) -> Vec<P<Node>> {
 }
 
 // utilities.go:1150
-pub fn is_in_right_side_of_import_or_export_assignment(node: P<Node>) -> bool {
+pub(crate) fn is_in_right_side_of_import_or_export_assignment(node: P<Node>) -> bool {
     let mut node = node;
     while node.parent().unwrap().kind() == Kind::QualifiedName {
         node = node.parent().unwrap();
@@ -1639,13 +1621,13 @@ pub fn is_in_right_side_of_import_or_export_assignment(node: P<Node>) -> bool {
 }
 
 // utilities.go:1159
-pub fn is_jsx_intrinsic_tag_name(tag_name: P<Node>) -> bool {
+pub(crate) fn is_jsx_intrinsic_tag_name(tag_name: P<Node>) -> bool {
     ast::is_identifier(tag_name) && tsrs_scanner::is_intrinsic_jsx_name(tag_name.text())
         || ast::is_jsx_namespaced_name(tag_name)
 }
 
 // utilities.go:1163
-pub fn get_containing_object_literal(f: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_containing_object_literal(f: P<Node>) -> Option<P<Node>> {
     let parent = f.parent().unwrap();
     if (f.kind() == Kind::MethodDeclaration
         || f.kind() == Kind::GetAccessor
@@ -1660,7 +1642,7 @@ pub fn get_containing_object_literal(f: P<Node>) -> Option<P<Node>> {
 }
 
 // utilities.go:1174
-pub fn is_import_type_qualifier_part(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn is_import_type_qualifier_part(node: P<Node>) -> Option<P<Node>> {
     let mut node = node;
     let mut parent = node.parent();
     while let Some(p) = parent {
@@ -1682,7 +1664,7 @@ pub fn is_import_type_qualifier_part(node: P<Node>) -> Option<P<Node>> {
 }
 
 // utilities.go:1188
-pub fn is_in_name_of_expression_with_type_arguments_or_heritage_type_reference(
+pub(crate) fn is_in_name_of_expression_with_type_arguments_or_heritage_type_reference(
     node: P<Node>,
 ) -> bool {
     let mut node = node;
@@ -1699,7 +1681,7 @@ pub fn is_in_name_of_expression_with_type_arguments_or_heritage_type_reference(
 // Indicates whether the result of an `Expression` will be unused.
 // NOTE: This requires a node with a valid `parent` pointer.
 // utilities.go:1203
-pub fn expression_result_is_unused(node: P<Node>) -> bool {
+pub(crate) fn expression_result_is_unused(node: P<Node>) -> bool {
     let mut node = node;
     loop {
         let parent = node.parent().unwrap();
@@ -1733,12 +1715,12 @@ pub fn expression_result_is_unused(node: P<Node>) -> bool {
 }
 
 // utilities.go:1228
-pub fn pseudo_big_int_to_string(value: PseudoBigInt) -> String {
+pub(crate) fn pseudo_big_int_to_string(value: PseudoBigInt) -> String {
     value.string()
 }
 
 // utilities.go:1232
-pub fn get_super_container(node: P<Node>, stop_on_functions: bool) -> Option<P<Node>> {
+pub(crate) fn get_super_container(node: P<Node>, stop_on_functions: bool) -> Option<P<Node>> {
     let mut node = node;
     loop {
         node = node.parent()?;
@@ -1783,7 +1765,10 @@ pub fn get_super_container(node: P<Node>, stop_on_functions: bool) -> Option<P<N
 }
 
 // utilities.go:1264
-pub fn for_each_yield_expression(body: P<Node>, mut visitor: impl FnMut(P<Node>) -> bool) -> bool {
+pub(crate) fn for_each_yield_expression(
+    body: P<Node>,
+    mut visitor: impl FnMut(P<Node>) -> bool,
+) -> bool {
     fn traverse(node: P<Node>, visitor: &mut dyn FnMut(P<Node>) -> bool) -> bool {
         match node.kind() {
             Kind::YieldExpression => {
@@ -1824,29 +1809,32 @@ pub fn for_each_yield_expression(body: P<Node>, mut visitor: impl FnMut(P<Node>)
 }
 
 // utilities.go:1298
-pub fn get_enclosing_container(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_enclosing_container(node: P<Node>) -> Option<P<Node>> {
     ast::find_ancestor(node.parent(), |n| {
         tsrs_binder::get_container_flags(n).intersects(tsrs_binder::ContainerFlags::IsContainer)
     })
 }
 
 // utilities.go:1304
-pub fn get_declarations_of_kind(symbol: P<Symbol>, kind: Kind) -> Vec<P<Node>> {
+pub(crate) fn get_declarations_of_kind(symbol: P<Symbol>, kind: Kind) -> Vec<P<Node>> {
     symbol.declarations().iter().copied().filter(|d| d.kind() == kind).collect()
 }
 
 // utilities.go:1308
-pub fn has_type(node: P<Node>) -> bool {
+pub(crate) fn has_type(node: P<Node>) -> bool {
     node.type_node().is_some()
 }
 
 // utilities.go:1312
-pub fn get_non_rest_parameter_count(sig: P<Signature>) -> usize {
+pub(crate) fn get_non_rest_parameter_count(sig: P<Signature>) -> usize {
     sig.parameters.get().len() - usize::from(signature_has_rest_parameter(sig))
 }
 
 // utilities.go:1316
-pub fn min_and_max<T: Copy>(slice: &[T], mut get_value: impl FnMut(T) -> usize) -> (usize, usize) {
+pub(crate) fn min_and_max<T: Copy>(
+    slice: &[T],
+    mut get_value: impl FnMut(T) -> usize,
+) -> (usize, usize) {
     let mut min_value = 0;
     let mut max_value = 0;
     for (i, &element) in slice.iter().enumerate() {
@@ -1863,7 +1851,7 @@ pub fn min_and_max<T: Copy>(slice: &[T], mut get_value: impl FnMut(T) -> usize) 
 }
 
 // utilities.go:1609
-pub fn range_of_type_parameters(
+pub(crate) fn range_of_type_parameters(
     source_file: P<SourceFile>,
     type_parameters: P<NodeList>,
 ) -> TextRange {
@@ -1883,7 +1871,7 @@ pub fn range_of_type_parameters(
 }
 
 // utilities.go:1613
-pub fn try_get_property_access_or_identifier_to_string(expr: P<Node>) -> String {
+pub(crate) fn try_get_property_access_or_identifier_to_string(expr: P<Node>) -> String {
     if ast::is_property_access_expression(expr) {
         let base_str = try_get_property_access_or_identifier_to_string(expr.expression().unwrap());
         if !base_str.is_empty() {
@@ -1906,7 +1894,7 @@ pub fn try_get_property_access_or_identifier_to_string(expr: P<Node>) -> String 
 }
 
 // utilities.go:1633
-pub fn all_declarations_in_same_source_file(symbol: P<Symbol>) -> bool {
+pub(crate) fn all_declarations_in_same_source_file(symbol: P<Symbol>) -> bool {
     let declarations = symbol.declarations();
     if declarations.len() > 1 {
         let mut source_file: Option<P<SourceFile>> = None;
@@ -1926,14 +1914,14 @@ pub fn all_declarations_in_same_source_file(symbol: P<Symbol>) -> bool {
 }
 
 // utilities.go:1647
-pub fn contains_non_missing_undefined_type(c: &Checker, t: P<Type>) -> bool {
+pub(crate) fn contains_non_missing_undefined_type(c: &Checker, t: P<Type>) -> bool {
     let candidate =
         if t.flags().intersects(TypeFlags::Union) { t.as_union_type().types.get()[0] } else { t };
     candidate.flags().intersects(TypeFlags::Undefined) && candidate != c.missing_type
 }
 
 // utilities.go:1657
-pub fn get_any_import_syntax(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_any_import_syntax(node: P<Node>) -> Option<P<Node>> {
     match node.kind() {
         Kind::ImportEqualsDeclaration => Some(node),
         Kind::ImportClause => node.parent(),
@@ -1947,13 +1935,13 @@ pub fn get_any_import_syntax(node: P<Node>) -> Option<P<Node>> {
 // characters where the first character is not '@' or '#'. The '@' character indicates that the name is denoted by
 // a well known ES Symbol instance and the '#' character indicates that the name is a PrivateIdentifier.
 // utilities.go:1677
-pub fn is_reserved_member_name(name: &str) -> bool {
+pub(crate) fn is_reserved_member_name(name: &str) -> bool {
     let b = name.as_bytes();
     b.len() >= 2 && b[0] == INTERNAL_SYMBOL_NAME_PREFIX_BYTE && b[1] != b'@' && b[1] != b'#'
 }
 
 // utilities.go:1681
-pub fn introduces_arguments_exotic_object(node: P<Node>) -> bool {
+pub(crate) fn introduces_arguments_exotic_object(node: P<Node>) -> bool {
     matches!(
         node.kind(),
         Kind::MethodDeclaration
@@ -1967,7 +1955,7 @@ pub fn introduces_arguments_exotic_object(node: P<Node>) -> bool {
 }
 
 // utilities.go:1690
-pub fn symbols_to_array(symbols: Option<P<SymbolTable>>) -> Vec<P<Symbol>> {
+pub(crate) fn symbols_to_array(symbols: Option<P<SymbolTable>>) -> Vec<P<Symbol>> {
     let mut result = Vec::new();
     if let Some(symbols) = symbols {
         for (id, symbol) in symbols.entries() {
@@ -2018,7 +2006,7 @@ pub fn value_to_string(value: LiteralValue) -> String {
 }
 
 // utilities.go:1763
-pub fn node_starts_new_lexical_environment(node: P<Node>) -> bool {
+pub(crate) fn node_starts_new_lexical_environment(node: P<Node>) -> bool {
     matches!(
         node.kind(),
         Kind::Constructor
@@ -2211,7 +2199,7 @@ pub fn create_mode_mismatch_details(
 }
 
 // utilities.go:1906
-pub fn walk_up_outer_expressions(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn walk_up_outer_expressions(node: P<Node>) -> Option<P<Node>> {
     let mut parent = node.parent();
     while let Some(p) = parent {
         if !ast::is_outer_expression(p, OuterExpressionKinds::All) {
@@ -2233,6 +2221,6 @@ pub fn get_set_accessor_value_parameter(accessor: P<Node>) -> Option<P<Node>> {
 }
 
 // utilities.go:1923
-pub fn quoted_and_comma_separated(items: &[&str]) -> String {
+pub(crate) fn quoted_and_comma_separated(items: &[&str]) -> String {
     items.iter().map(|item| format!("'{item}'")).collect::<Vec<_>>().join(", ")
 }

@@ -32,7 +32,7 @@ use crate::utilities::{
 };
 
 // Go passes `literalValue` (string | jsnum.Number | PseudoBigInt) to `caseClauseTracker.hasValue`.
-pub fn tracker_value(literal: &LiteralValue) -> TrackerValue {
+pub(crate) fn tracker_value(literal: &LiteralValue) -> TrackerValue {
     match literal {
         LiteralValue::String(s) => TrackerValue::String(s.to_string()),
         LiteralValue::Number(n) => TrackerValue::Number(*n),
@@ -410,7 +410,7 @@ impl LanguageService {
 }
 
 // completions.go:2126
-pub fn completion_name_for_literal(
+pub(crate) fn completion_name_for_literal(
     file: P<SourceFile>,
     preferences: &UserPreferences,
     literal: &LiteralValue,
@@ -876,7 +876,7 @@ impl LanguageService {
 }
 
 // completions.go:2467
-pub struct MemberCompletionEntry {
+struct MemberCompletionEntry {
     insert_text: String,
     filter_text: String,
     is_snippet: bool,
@@ -1048,7 +1048,7 @@ fn is_object_literal_method_completion_candidate_declaration(declaration: Option
 }
 
 // completions.go:2585
-pub struct ObjectLiteralMethodSymbol {
+pub(crate) struct ObjectLiteralMethodSymbol {
     pub(crate) symbol: P<Symbol>,
     pub(crate) origin: SymbolOriginInfo,
 }
@@ -1431,10 +1431,7 @@ fn create_modifier_list(
 }
 
 // completions.go:2847
-pub fn create_snippet_tab_stop_body(
-    factory: &NodeFactory,
-    emit_context: P<EmitContext>,
-) -> P<Node> {
+fn create_snippet_tab_stop_body(factory: &NodeFactory, emit_context: P<EmitContext>) -> P<Node> {
     let empty_statement = factory.new_empty_statement();
     emit_context.set_snippet_element(
         empty_statement,
@@ -1520,7 +1517,10 @@ fn is_word_separator(r: char) -> bool {
 // Finds the length and first rune of the word that ends at the given position.
 // e.g. for "abc def.ghi|jkl", the word length is 3 and the word start is 'g'.
 // completions.go:2883
-pub fn get_word_length_and_start(source_file: P<SourceFile>, position: u32) -> (usize, char) {
+pub(crate) fn get_word_length_and_start(
+    source_file: P<SourceFile>,
+    position: u32,
+) -> (usize, char) {
     // !!! Port other case of vscode's `DEFAULT_WORD_REGEXP` that covers words that start like numbers, e.g. -123.456abcd.
     let text = &source_file.text()[..position as usize];
     let mut total_size = 0;
@@ -1560,7 +1560,7 @@ fn trim_element_access(text: &str) -> String {
 
 // Ported from vscode ts extension: `getFilterText`.
 // completions.go:2919
-pub fn get_filter_text(
+pub(crate) fn get_filter_text(
     _file: P<SourceFile>,
     _position: u32,
     insert_text: &str,
@@ -1631,7 +1631,7 @@ pub fn get_filter_text(
 
 // Ported from vscode's `provideCompletionItems`.
 // completions.go:2993
-pub fn get_dot_accessor(file: P<SourceFile>, position: u32) -> String {
+pub(crate) fn get_dot_accessor(file: P<SourceFile>, position: u32) -> String {
     let text = &file.text()[..position as usize];
     let mut total_size = 0;
     if text.ends_with("?.") {
@@ -1646,7 +1646,7 @@ pub fn get_dot_accessor(file: P<SourceFile>, position: u32) -> String {
 }
 
 // completions.go:3014
-pub fn str_ptr_to(v: &str) -> Option<String> {
+pub(crate) fn str_ptr_to(v: &str) -> Option<String> {
     if v.is_empty() {
         return None;
     }
@@ -1654,7 +1654,7 @@ pub fn str_ptr_to(v: &str) -> Option<String> {
 }
 
 // completions.go:3021
-pub fn bool_to_ptr(v: bool) -> Option<bool> {
+pub(crate) fn bool_to_ptr(v: bool) -> Option<bool> {
     if v {
         return Some(true);
     }
@@ -1662,12 +1662,12 @@ pub fn bool_to_ptr(v: bool) -> Option<bool> {
 }
 
 // completions.go:3028
-pub fn get_line_of_position(file: P<SourceFile>, pos: u32) -> usize {
+pub(crate) fn get_line_of_position(file: P<SourceFile>, pos: u32) -> usize {
     scanner::get_ecma_line_of_position(&*file, pos)
 }
 
 // completions.go:3033
-pub fn get_line_end_of_position(file: P<SourceFile>, pos: u32) -> u32 {
+pub(crate) fn get_line_end_of_position(file: P<SourceFile>, pos: u32) -> u32 {
     let line = get_line_of_position(file, pos);
     let line_starts = scanner::get_ecma_line_starts(&*file);
     let last_char_pos = if line + 1 >= line_starts.len() {
@@ -1850,7 +1850,7 @@ fn should_include_symbol(
 }
 
 // completions.go:3158
-pub fn get_completion_entry_display_name_for_symbol(
+pub(crate) fn get_completion_entry_display_name_for_symbol(
     file: P<SourceFile>,
     preferences: &UserPreferences,
     symbol: P<Symbol>,
@@ -1916,52 +1916,52 @@ pub fn get_completion_entry_display_name_for_symbol(
 
 // !!! refactor symbolOriginInfo so that we can tell the difference between flags and the kind of data it has
 // completions.go:3220
-pub fn origin_is_ignore(origin: Option<&SymbolOriginInfo>) -> bool {
+fn origin_is_ignore(origin: Option<&SymbolOriginInfo>) -> bool {
     origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::Ignore))
 }
 
 // completions.go:3224
-pub fn origin_includes_symbol_name(origin: Option<&SymbolOriginInfo>) -> bool {
+fn origin_includes_symbol_name(origin: Option<&SymbolOriginInfo>) -> bool {
     origin_is_computed_property_name(origin)
 }
 
 // completions.go:3228
-pub fn origin_is_computed_property_name(origin: Option<&SymbolOriginInfo>) -> bool {
+fn origin_is_computed_property_name(origin: Option<&SymbolOriginInfo>) -> bool {
     origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::ComputedPropertyName))
 }
 
 // completions.go:3232
-pub fn origin_is_object_literal_method(origin: Option<&SymbolOriginInfo>) -> bool {
+fn origin_is_object_literal_method(origin: Option<&SymbolOriginInfo>) -> bool {
     origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::ObjectLiteralMethod))
 }
 
 // completions.go:3236
-pub fn origin_is_this_type_node(origin: Option<&SymbolOriginInfo>) -> bool {
+fn origin_is_this_type_node(origin: Option<&SymbolOriginInfo>) -> bool {
     origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::ThisType))
 }
 
 // completions.go:3240
-pub fn origin_is_type_only_alias(origin: Option<&SymbolOriginInfo>) -> bool {
+fn origin_is_type_only_alias(origin: Option<&SymbolOriginInfo>) -> bool {
     origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::TypeOnlyAlias))
 }
 
 // completions.go:3244
-pub fn origin_is_symbol_member(origin: Option<&SymbolOriginInfo>) -> bool {
+fn origin_is_symbol_member(origin: Option<&SymbolOriginInfo>) -> bool {
     origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::SymbolMember))
 }
 
 // completions.go:3248
-pub fn origin_is_nullable_member(origin: Option<&SymbolOriginInfo>) -> bool {
+fn origin_is_nullable_member(origin: Option<&SymbolOriginInfo>) -> bool {
     origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::Nullable))
 }
 
 // completions.go:3252
-pub fn origin_is_promise(origin: Option<&SymbolOriginInfo>) -> bool {
+fn origin_is_promise(origin: Option<&SymbolOriginInfo>) -> bool {
     origin.is_some_and(|o| o.kind.intersects(symbolOriginInfoKind::Promise))
 }
 
 // completions.go:3256
-pub fn get_source_from_origin(origin: Option<&SymbolOriginInfo>) -> &'static str {
+pub(crate) fn get_source_from_origin(origin: Option<&SymbolOriginInfo>) -> &'static str {
     if origin_is_this_type_node(origin) {
         return COMPLETION_SOURCE_THIS_PROPERTY;
     }
@@ -1977,7 +1977,7 @@ pub fn get_source_from_origin(origin: Option<&SymbolOriginInfo>) -> &'static str
 // In `const x = 1 * o|`, the context token is *, and the previous token is `o`.
 // `contextToken` and `previousToken` can both be nil if we are at the beginning of the file.
 // completions.go:3271
-pub fn get_relevant_tokens(
+pub(crate) fn get_relevant_tokens(
     position: u32,
     file: P<SourceFile>,
 ) -> (Option<P<Node>>, Option<P<Node>>) {
@@ -1997,10 +1997,10 @@ pub fn get_relevant_tokens(
 
 // "." | '"' | "'" | "`" | "/" | "@" | "<" | "#" | " " | "*"
 // completions.go:3281
-pub type CompletionsTriggerCharacter = str;
+pub(crate) type CompletionsTriggerCharacter = str;
 
 // completions.go:3283
-pub fn is_valid_trigger(
+pub(crate) fn is_valid_trigger(
     file: P<SourceFile>,
     trigger_character: &CompletionsTriggerCharacter,
     context_token: Option<P<Node>>,
@@ -2058,17 +2058,17 @@ fn is_string_literal_or_template(node: P<Node>) -> bool {
 }
 
 // completions.go:3327
-pub fn binary_expression_may_be_open_tag(binary_expression: P<Node>) -> bool {
+pub(crate) fn binary_expression_may_be_open_tag(binary_expression: P<Node>) -> bool {
     ast::node_is_missing(binary_expression.as_binary_expression().left)
 }
 
 // completions.go:3331
-pub fn is_checked_file(file: P<SourceFile>, compiler_options: &CompilerOptions) -> bool {
+pub(crate) fn is_checked_file(file: P<SourceFile>, compiler_options: &CompilerOptions) -> bool {
     !ast::is_source_file_js(file) || ast::is_check_js_enabled_for_file(file, compiler_options)
 }
 
 // completions.go:3335
-pub fn is_context_token_value_location(context_token: Option<P<Node>>) -> bool {
+pub(crate) fn is_context_token_value_location(context_token: Option<P<Node>>) -> bool {
     context_token.is_some_and(|context_token| {
         let parent = context_token.parent().unwrap();
         (context_token.kind() == Kind::TypeOfKeyword
@@ -2079,7 +2079,7 @@ pub fn is_context_token_value_location(context_token: Option<P<Node>>) -> bool {
 }
 
 // completions.go:3341
-pub fn is_possibly_type_argument_position(
+pub(crate) fn is_possibly_type_argument_position(
     token: Option<P<Node>>,
     source_file: P<SourceFile>,
     type_checker: &mut Checker,
@@ -2094,7 +2094,7 @@ pub fn is_possibly_type_argument_position(
 }
 
 // completions.go:3348
-pub fn is_context_token_type_location(context_token: Option<P<Node>>) -> bool {
+pub(crate) fn is_context_token_type_location(context_token: Option<P<Node>>) -> bool {
     if let Some(context_token) = context_token {
         let parent_kind = context_token.parent().unwrap().kind();
         match context_token.kind() {
@@ -2125,7 +2125,7 @@ pub fn is_context_token_type_location(context_token: Option<P<Node>>) -> bool {
 
 // Go passes `collections.Set[ast.SymbolId]` by value: copies share the map once it exists, and adding to a set
 // whose map is still nil allocates a map that only that copy sees.
-pub type SeenModules = Option<Rc<RefCell<FxHashSet<SymbolId>>>>;
+pub(crate) type SeenModules = Option<Rc<RefCell<FxHashSet<SymbolId>>>>;
 
 fn seen_modules_add_if_absent(s: &mut SeenModules, id: SymbolId) -> bool {
     s.get_or_insert_with(Default::default).borrow_mut().insert(id)
@@ -2133,7 +2133,7 @@ fn seen_modules_add_if_absent(s: &mut SeenModules, id: SymbolId) -> bool {
 
 // True if symbol is a type or a module containing at least one type.
 // completions.go:3376
-pub fn symbol_can_be_referenced_at_type_location(
+pub(crate) fn symbol_can_be_referenced_at_type_location(
     symbol: P<Symbol>,
     type_checker: &mut Checker,
     seen_modules: SeenModules,
@@ -2170,7 +2170,10 @@ fn non_alias_can_be_referenced_at_type_location(
 // Gets all properties on a type, but if that type is a union of several types,
 // excludes array-like types or callable/constructable types.
 // completions.go:3398
-pub fn get_properties_for_completion(t: P<Type>, type_checker: &mut Checker) -> Vec<P<Symbol>> {
+pub(crate) fn get_properties_for_completion(
+    t: P<Type>,
+    type_checker: &mut Checker,
+) -> Vec<P<Symbol>> {
     if t.is_union() {
         type_checker.get_all_possible_properties_of_types(t.types())
     } else {
@@ -2180,7 +2183,7 @@ pub fn get_properties_for_completion(t: P<Type>, type_checker: &mut Checker) -> 
 
 // Given 'a.b.c', returns 'a'.
 // completions.go:3407
-pub fn get_left_most_name(e: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_left_most_name(e: P<Node>) -> Option<P<Node>> {
     if ast::is_identifier(e) {
         Some(e)
     } else if ast::is_property_access_expression(e) {
@@ -2191,7 +2194,7 @@ pub fn get_left_most_name(e: P<Node>) -> Option<P<Node>> {
 }
 
 // completions.go:3417
-pub fn get_first_symbol_in_chain(
+pub(crate) fn get_first_symbol_in_chain(
     symbol: P<Symbol>,
     enclosing_declaration: Option<P<Node>>,
     type_checker: &mut Checker,
@@ -2220,7 +2223,7 @@ fn is_module_symbol(symbol: P<Symbol>) -> bool {
 }
 
 // completions.go:3440
-pub fn get_nullable_symbol_origin_info_kind(
+pub(crate) fn get_nullable_symbol_origin_info_kind(
     kind: symbolOriginInfoKind,
     insert_question_dot: bool,
 ) -> symbolOriginInfoKind {
@@ -2232,7 +2235,7 @@ pub fn get_nullable_symbol_origin_info_kind(
 }
 
 // completions.go:3447
-pub fn is_static_property(symbol: P<Symbol>) -> bool {
+pub(crate) fn is_static_property(symbol: P<Symbol>) -> bool {
     symbol.value_declaration().is_some_and(|vd| {
         vd.modifier_flags().intersects(ModifierFlags::Static)
             && ast::is_class_like(vd.parent().unwrap())
@@ -2242,7 +2245,7 @@ pub fn is_static_property(symbol: P<Symbol>) -> bool {
 // getContextualTypeForConditionalExpression handles completion within a conditional expression
 // (ternary operator) by using the parent expression to find the contextual type.
 // completions.go:3455
-pub fn get_contextual_type_for_conditional_expression(
+pub(crate) fn get_contextual_type_for_conditional_expression(
     conditional_expr: P<Node>,
     position: u32,
     file: P<SourceFile>,

@@ -79,21 +79,20 @@ fn new_static_pseudo_type(kind: PseudoTypeKind) -> P<PseudoType> {
 
 pub static PSEUDO_TYPE_UNDEFINED: LazyLock<P<PseudoType>> =
     LazyLock::new(|| new_static_pseudo_type(PseudoTypeKind::Undefined));
-pub static PSEUDO_TYPE_NULL: LazyLock<P<PseudoType>> =
+pub(crate) static PSEUDO_TYPE_NULL: LazyLock<P<PseudoType>> =
     LazyLock::new(|| new_static_pseudo_type(PseudoTypeKind::Null));
-pub static PSEUDO_TYPE_ANY: LazyLock<P<PseudoType>> =
-    LazyLock::new(|| new_static_pseudo_type(PseudoTypeKind::Any));
-pub static PSEUDO_TYPE_STRING: LazyLock<P<PseudoType>> =
+
+pub(crate) static PSEUDO_TYPE_STRING: LazyLock<P<PseudoType>> =
     LazyLock::new(|| new_static_pseudo_type(PseudoTypeKind::String));
-pub static PSEUDO_TYPE_NUMBER: LazyLock<P<PseudoType>> =
+pub(crate) static PSEUDO_TYPE_NUMBER: LazyLock<P<PseudoType>> =
     LazyLock::new(|| new_static_pseudo_type(PseudoTypeKind::Number));
-pub static PSEUDO_TYPE_BIG_INT: LazyLock<P<PseudoType>> =
+pub(crate) static PSEUDO_TYPE_BIG_INT: LazyLock<P<PseudoType>> =
     LazyLock::new(|| new_static_pseudo_type(PseudoTypeKind::BigInt));
-pub static PSEUDO_TYPE_BOOLEAN: LazyLock<P<PseudoType>> =
+pub(crate) static PSEUDO_TYPE_BOOLEAN: LazyLock<P<PseudoType>> =
     LazyLock::new(|| new_static_pseudo_type(PseudoTypeKind::Boolean));
-pub static PSEUDO_TYPE_FALSE: LazyLock<P<PseudoType>> =
+pub(crate) static PSEUDO_TYPE_FALSE: LazyLock<P<PseudoType>> =
     LazyLock::new(|| new_static_pseudo_type(PseudoTypeKind::False));
-pub static PSEUDO_TYPE_TRUE: LazyLock<P<PseudoType>> =
+pub(crate) static PSEUDO_TYPE_TRUE: LazyLock<P<PseudoType>> =
     LazyLock::new(|| new_static_pseudo_type(PseudoTypeKind::True));
 
 macro_rules! pseudo_type_cast {
@@ -135,7 +134,7 @@ pub struct PseudoTypeDirect {
     pub type_node: P<Node>,
 }
 
-pub fn new_pseudo_type_direct(type_node: P<Node>) -> P<PseudoType> {
+pub(crate) fn new_pseudo_type_direct(type_node: P<Node>) -> P<PseudoType> {
     new_pseudo_type(PseudoTypeKind::Direct, PseudoTypeData::Direct(PseudoTypeDirect { type_node }))
 }
 
@@ -150,7 +149,7 @@ pub struct PseudoTypeInferred {
     pub is_signature_return: bool,
 }
 
-pub fn new_pseudo_type_inferred(expr: P<Node>, is_signature_return: bool) -> P<PseudoType> {
+pub(crate) fn new_pseudo_type_inferred(expr: P<Node>, is_signature_return: bool) -> P<PseudoType> {
     new_pseudo_type(
         PseudoTypeKind::Inferred,
         PseudoTypeData::Inferred(PseudoTypeInferred {
@@ -161,7 +160,7 @@ pub fn new_pseudo_type_inferred(expr: P<Node>, is_signature_return: bool) -> P<P
     )
 }
 
-pub fn new_pseudo_type_inferred_with_errors(
+pub(crate) fn new_pseudo_type_inferred_with_errors(
     expr: P<Node>,
     is_signature_return: bool,
     error_nodes: &[P<Node>],
@@ -183,7 +182,7 @@ pub struct PseudoTypeNoResult {
     pub declaration: P<Node>,
 }
 
-pub fn new_pseudo_type_no_result(decl: P<Node>) -> P<PseudoType> {
+pub(crate) fn new_pseudo_type_no_result(decl: P<Node>) -> P<PseudoType> {
     new_pseudo_type(
         PseudoTypeKind::NoResult,
         PseudoTypeData::NoResult(PseudoTypeNoResult { declaration: decl }),
@@ -206,7 +205,7 @@ pub struct PseudoTypeMaybeConstLocation {
     pub regular_type: P<PseudoType>,
 }
 
-pub fn new_pseudo_type_maybe_const_location(
+pub(crate) fn new_pseudo_type_maybe_const_location(
     loc: P<Node>,
     ct: P<PseudoType>,
     reg: P<PseudoType>,
@@ -241,7 +240,7 @@ pub struct PseudoParameter {
     pub type_: P<PseudoType>,
 }
 
-pub fn new_pseudo_parameter(
+pub(crate) fn new_pseudo_parameter(
     is_rest: bool,
     name: P<Node>,
     is_optional: bool,
@@ -258,7 +257,7 @@ pub struct PseudoTypeSingleCallSignature {
     pub return_type: P<PseudoType>,
 }
 
-pub fn new_pseudo_type_single_call_signature(
+pub(crate) fn new_pseudo_type_single_call_signature(
     signature: P<Node>,
     parameters: &[P<PseudoParameter>],
     type_parameters: &[P<Node>],
@@ -280,7 +279,7 @@ pub struct PseudoTypeTuple {
     pub elements: &'static [P<PseudoType>],
 }
 
-pub fn new_pseudo_type_tuple(elements: &[P<PseudoType>]) -> P<PseudoType> {
+pub(crate) fn new_pseudo_type_tuple(elements: &[P<PseudoType>]) -> P<PseudoType> {
     new_pseudo_type(
         PseudoTypeKind::Tuple,
         PseudoTypeData::Tuple(PseudoTypeTuple { elements: alloc_slice(elements) }),
@@ -304,10 +303,6 @@ pub enum PseudoObjectElementData {
 }
 
 impl PseudoObjectElement {
-    pub fn as_pseudo_object_element(&self) -> &PseudoObjectElement {
-        self
-    }
-
     pub fn signature(&self) -> Option<P<Node>> {
         match self.kind {
             PseudoObjectElementKind::Method => Some(self.as_pseudo_object_method().signature),
@@ -371,7 +366,7 @@ pub struct PseudoObjectMethod {
     pub return_type: P<PseudoType>,
 }
 
-pub fn new_pseudo_object_method(
+pub(crate) fn new_pseudo_object_method(
     signature: P<Node>,
     name: P<Node>,
     optional: bool,
@@ -397,7 +392,7 @@ pub struct PseudoPropertyAssignment {
     pub type_: P<PseudoType>,
 }
 
-pub fn new_pseudo_property_assignment(
+pub(crate) fn new_pseudo_property_assignment(
     readonly: bool,
     name: P<Node>,
     optional: bool,
@@ -419,7 +414,7 @@ pub struct PseudoSetAccessor {
     pub parameter: P<PseudoParameter>,
 }
 
-pub fn new_pseudo_set_accessor(
+pub(crate) fn new_pseudo_set_accessor(
     signature: P<Node>,
     name: P<Node>,
     optional: bool,
@@ -438,7 +433,7 @@ pub struct PseudoGetAccessor {
     pub type_: P<PseudoType>,
 }
 
-pub fn new_pseudo_get_accessor(
+pub(crate) fn new_pseudo_get_accessor(
     signature: P<Node>,
     name: P<Node>,
     optional: bool,
@@ -457,7 +452,7 @@ pub struct PseudoTypeObjectLiteral {
     pub elements: &'static [P<PseudoObjectElement>],
 }
 
-pub fn new_pseudo_type_object_literal(elements: &[P<PseudoObjectElement>]) -> P<PseudoType> {
+pub(crate) fn new_pseudo_type_object_literal(elements: &[P<PseudoObjectElement>]) -> P<PseudoType> {
     new_pseudo_type(
         PseudoTypeKind::ObjectLiteral,
         PseudoTypeData::ObjectLiteral(PseudoTypeObjectLiteral { elements: alloc_slice(elements) }),
@@ -469,21 +464,21 @@ pub struct PseudoTypeLiteral {
     pub node: P<Node>,
 }
 
-pub fn new_pseudo_type_string_literal(node: P<Node>) -> P<PseudoType> {
+pub(crate) fn new_pseudo_type_string_literal(node: P<Node>) -> P<PseudoType> {
     new_pseudo_type(
         PseudoTypeKind::StringLiteral,
         PseudoTypeData::Literal(PseudoTypeLiteral { node }),
     )
 }
 
-pub fn new_pseudo_type_numeric_literal(node: P<Node>) -> P<PseudoType> {
+pub(crate) fn new_pseudo_type_numeric_literal(node: P<Node>) -> P<PseudoType> {
     new_pseudo_type(
         PseudoTypeKind::NumericLiteral,
         PseudoTypeData::Literal(PseudoTypeLiteral { node }),
     )
 }
 
-pub fn new_pseudo_type_big_int_literal(node: P<Node>) -> P<PseudoType> {
+pub(crate) fn new_pseudo_type_big_int_literal(node: P<Node>) -> P<PseudoType> {
     new_pseudo_type(
         PseudoTypeKind::BigIntLiteral,
         PseudoTypeData::Literal(PseudoTypeLiteral { node }),

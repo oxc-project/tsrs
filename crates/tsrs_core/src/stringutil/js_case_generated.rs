@@ -35421,7 +35421,7 @@ static UNICODE_CASED_RANGES_R32: &[Range32] = &[
     Range32 { lo: 0x1F170, hi: 0x1F189, stride: 1 },
 ];
 pub static UNICODE_CASED_RANGES: RangeTable =
-    RangeTable { r16: UNICODE_CASED_RANGES_R16, r32: UNICODE_CASED_RANGES_R32, latin_offset: 6 };
+    RangeTable { r16: UNICODE_CASED_RANGES_R16, r32: UNICODE_CASED_RANGES_R32 };
 
 static UNICODE_CASE_IGNORABLE_RANGES_R16: &[Range16] = &[
     Range16 { lo: 0x27, hi: 0x2E, stride: 7 },
@@ -35804,8 +35804,5 @@ static UNICODE_CASE_IGNORABLE_RANGES_R32: &[Range32] = &[
     Range32 { lo: 0xE0021, hi: 0xE007F, stride: 1 },
     Range32 { lo: 0xE0100, hi: 0xE01EF, stride: 1 },
 ];
-pub static UNICODE_CASE_IGNORABLE_RANGES: RangeTable = RangeTable {
-    r16: UNICODE_CASE_IGNORABLE_RANGES_R16,
-    r32: UNICODE_CASE_IGNORABLE_RANGES_R32,
-    latin_offset: 5,
-};
+pub static UNICODE_CASE_IGNORABLE_RANGES: RangeTable =
+    RangeTable { r16: UNICODE_CASE_IGNORABLE_RANGES_R16, r32: UNICODE_CASE_IGNORABLE_RANGES_R32 };

@@ -20,4 +20,3 @@ pub use encoder::{
 };
 pub use format::PROTOCOL_VERSION;
 pub use handle::{ParsedNodeHandle, node_handle, parse_node_handle, resolve_node_index};
-pub use positionmap::PositionMap;

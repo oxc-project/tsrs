@@ -171,7 +171,7 @@ impl UpToDateStatus {
 }
 
 // Go time.Time.After / Before with the zero time as the earliest instant.
-pub fn after(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
+pub(crate) fn after(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => a > b,
         (Some(_), None) => true,
@@ -179,6 +179,6 @@ pub fn after(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
     }
 }
 
-pub fn before(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
+pub(crate) fn before(a: Option<SystemTime>, b: Option<SystemTime>) -> bool {
     after(b, a)
 }

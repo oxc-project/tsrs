@@ -795,7 +795,7 @@ impl Converters {
 // offset, including one past the end of the text, as it is. Offsets a client sends outside line/character positions
 // (completion item data, API positions, where the UTF-16 map sends an offset between the halves of a surrogate pair
 // into the character) skip the conversion above; Go slices its strings at whatever byte they name, Rust panics.
-pub fn snap_to_char_boundary(text: &str, position: u32) -> u32 {
+pub(crate) fn snap_to_char_boundary(text: &str, position: u32) -> u32 {
     if position as usize >= text.len() {
         return position;
     }
@@ -823,7 +823,7 @@ struct DiagnosticOptions {
 
 // DiagnosticToLSPPull converts a diagnostic for pull diagnostics (textDocument/diagnostic)
 // converters.go:459
-pub fn diagnostic_to_lsp_pull(
+pub(crate) fn diagnostic_to_lsp_pull(
     ctx: &Context,
     converters: &Converters,
     diagnostic: P<Diagnostic>,

@@ -257,7 +257,6 @@ fn server_shutdown_no_deadlock() {
         logger: Some(logger),
         npm_executor: None,
         parse_cache: None,
-        content_mapped_parse_cache: None,
     });
     server.set_session_for_test(std::sync::Arc::clone(&session));
 

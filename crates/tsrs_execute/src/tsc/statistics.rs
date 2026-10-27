@@ -123,7 +123,11 @@ fn memory_used_bytes() -> u64 {
         .unwrap_or(0)
 }
 
-pub fn statistics_from_program(input: &EmitInput, times: &CompileTimes) -> Statistics {
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn statistics_from_program(input: &EmitInput, times: &CompileTimes) -> Statistics {
     let program = input.program;
     Statistics {
         is_aggregate: false,

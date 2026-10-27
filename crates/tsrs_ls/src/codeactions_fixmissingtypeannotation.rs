@@ -61,7 +61,6 @@ pub static ISOLATED_DECLARATIONS_FIX_PROVIDER: std::sync::LazyLock<CodeFixProvid
     std::sync::LazyLock::new(|| CodeFixProvider {
         error_codes: isolated_declarations_fix_error_codes(),
         get_code_actions: get_isolated_declarations_code_actions,
-        fix_ids: &[FIX_MISSING_TYPE_ANNOTATION_ON_EXPORTS_FIX_ID],
         get_all_code_actions: Some(get_all_isolated_declarations_code_actions),
     });
 
@@ -261,7 +260,6 @@ fn try_code_action(
         description,
         changes: file_changes,
         fix_id: FIX_MISSING_TYPE_ANNOTATION_ON_EXPORTS_FIX_ID.to_string(),
-        fix_all_description: diagnostics::ADD_ALL_MISSING_TYPE_ANNOTATIONS.localize(&[]),
     })
 }
 

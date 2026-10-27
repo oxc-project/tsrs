@@ -41,14 +41,7 @@ pub fn wrap_fs<T: FS>(fs: T) -> WrappedFS<T> {
 }
 
 impl<T: FS> WrappedFS<T> {
-    pub fn inner(&self) -> &T {
-        &self.fs
-    }
-
     // ReadFile without copying the embedded contents.
-    pub fn read_embedded_file(path: &str) -> Option<&'static str> {
-        embedded_file(path)
-    }
 }
 
 /// The embedded text of a `bundled:///` path (the lib files `include_str!` put in the binary), without a copy; `None`
@@ -56,6 +49,7 @@ impl<T: FS> WrappedFS<T> {
 ///
 /// tsrs-only: the compiler host parses this text in place instead of reading a heap copy through
 /// `FS::read_file` and leaking it (lib.dom.d.ts alone is 2.3 MB).
+#[cfg(not(feature = "noembed"))]
 pub(crate) fn embedded_file(path: &str) -> Option<&'static str> {
     split_path(path).and_then(embedded_contents)
 }

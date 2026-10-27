@@ -39,11 +39,11 @@ impl CheckerError {
         CheckerError { kind: CheckerErrorKind::Client, message: message.into() }
     }
 
-    pub fn unsupported(message: impl Into<String>) -> CheckerError {
+    pub(crate) fn unsupported(message: impl Into<String>) -> CheckerError {
         CheckerError { kind: CheckerErrorKind::Unsupported, message: message.into() }
     }
 
-    pub fn invalid(message: impl Into<String>) -> CheckerError {
+    pub(crate) fn invalid(message: impl Into<String>) -> CheckerError {
         CheckerError { kind: CheckerErrorKind::InvalidRequest, message: message.into() }
     }
 }

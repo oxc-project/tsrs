@@ -99,7 +99,11 @@ impl Checker {
 }
 
 // flow.go:69
-pub fn get_flow_node_of_node(node: P<Node>) -> Option<P<FlowNode>> {
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn get_flow_node_of_node(node: P<Node>) -> Option<P<FlowNode>> {
     node.flow_node()
 }
 
@@ -661,7 +665,7 @@ impl Checker {
 }
 
 // flow.go:208
-pub fn get_branch_label_antecedents(
+fn get_branch_label_antecedents(
     flow: P<FlowNode>,
     reduce_labels: &[P<ast::FlowReduceLabelData>],
 ) -> Option<P<FlowList>> {
@@ -2698,7 +2702,7 @@ impl Checker {
 }
 
 // flow.go:1496
-pub fn get_candidate_variable_declaration_initializer(node: P<Node>) -> Option<P<Node>> {
+fn get_candidate_variable_declaration_initializer(node: P<Node>) -> Option<P<Node>> {
     if ast::is_variable_declaration(node)
         && node.type_node().is_none()
         && let Some(initializer) = node.initializer()
@@ -2738,7 +2742,7 @@ impl Checker {
 }
 
 // flow.go:1527
-pub fn is_evolving_array_type_list(types: &[P<Type>]) -> bool {
+fn is_evolving_array_type_list(types: &[P<Type>]) -> bool {
     let mut has_evolving_array_type = false;
     for &t in types {
         if !t.flags().intersects(TypeFlags::Never) {
@@ -3172,7 +3176,7 @@ impl Checker {
 }
 
 // flow.go:1782
-pub fn try_get_name_from_type(t: P<Type>) -> (String, bool) {
+fn try_get_name_from_type(t: P<Type>) -> (String, bool) {
     if t.flags().intersects(TypeFlags::UniqueESSymbol) {
         return (t.as_unique_es_symbol_type().name.get().to_string(), true);
     } else if t.flags().intersects(TypeFlags::StringOrNumberLiteral) {
@@ -3405,7 +3409,7 @@ impl Checker {
 }
 
 // flow.go:1928
-pub fn is_coercible_under_double_equals(source: P<Type>, target: P<Type>) -> bool {
+fn is_coercible_under_double_equals(source: P<Type>, target: P<Type>) -> bool {
     source.flags().intersects(TypeFlags::Number | TypeFlags::String | TypeFlags::BooleanLiteral)
         && target.flags().intersects(TypeFlags::Number | TypeFlags::String | TypeFlags::Boolean)
 }

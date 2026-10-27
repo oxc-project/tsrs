@@ -58,13 +58,11 @@ fn get_module_specifiers_with_info(
         {
             return ModuleSpecifiersResult {
                 specifiers: Vec::new(),
-                kind: ResultKind::Ambient,
                 ambient_module_symbol: ambient.symbol,
             };
         }
         return ModuleSpecifiersResult {
             specifiers: vec![ambient.name],
-            kind: ResultKind::Ambient,
             ambient_module_symbol: ambient.symbol,
         };
     }
@@ -77,7 +75,7 @@ fn get_module_specifiers_with_info(
     let module_file_name =
         host.get_source_of_project_reference_if_output_included(module_source_file);
 
-    let (specifiers, kind) = get_module_specifiers_for_file_with_info(
+    let (specifiers, _kind) = get_module_specifiers_for_file_with_info(
         importing_source_file,
         &module_file_name,
         compiler_options,
@@ -86,7 +84,7 @@ fn get_module_specifiers_with_info(
         options,
         for_auto_imports,
     );
-    ModuleSpecifiersResult { specifiers, kind, ambient_module_symbol: None }
+    ModuleSpecifiersResult { specifiers, ambient_module_symbol: None }
 }
 
 // specifiers.go:79
@@ -200,10 +198,7 @@ fn try_get_module_name_from_ambient_module(
 }
 
 // specifiers.go:168
-pub fn get_info(
-    importing_source_file_name: &str,
-    host: &dyn ModuleSpecifierGenerationHost,
-) -> Info {
+fn get_info(importing_source_file_name: &str, host: &dyn ModuleSpecifierGenerationHost) -> Info {
     let source_directory = tspath::get_directory_path(importing_source_file_name);
     Info {
         importing_source_file_name: importing_source_file_name.to_string(),
@@ -213,7 +208,7 @@ pub fn get_info(
 }
 
 // specifiers.go:180
-pub fn get_all_module_paths(
+fn get_all_module_paths(
     info: &Info,
     imported_file_name: &str,
     host: &dyn ModuleSpecifierGenerationHost,
@@ -923,7 +918,7 @@ fn try_get_module_name_from_root_dirs(
 }
 
 // specifiers.go:748
-pub fn try_get_module_name_as_node_module(
+fn try_get_module_name_as_node_module(
     path_obj: &ModulePath,
     info: &Info,
     importing_source_file: P<SourceFile>,
@@ -1792,27 +1787,6 @@ pub fn try_get_module_name_from_exports_or_imports(
 // just to get its `impliedNodeFormat` and to detect certain preferences from existing import module
 // specifiers.
 // `importing_source_file`: !!! | FutureSourceFile. `old_import_specifier`: used only in updatingModuleSpecifier.
-// specifiers.go:1333
-pub fn get_module_specifier(
-    compiler_options: &CompilerOptions,
-    host: &dyn ModuleSpecifierGenerationHost,
-    importing_source_file: P<SourceFile>,
-    importing_source_file_name: &str,
-    old_import_specifier: &str,
-    to_file_name: &str,
-    options: ModuleSpecifierOptions,
-) -> String {
-    get_module_specifier_with_preferences(
-        compiler_options,
-        host,
-        importing_source_file,
-        importing_source_file_name,
-        old_import_specifier,
-        to_file_name,
-        &UserPreferences::default(),
-        options,
-    )
-}
 
 // specifiers.go:1354
 pub fn update_module_specifier(

@@ -15,8 +15,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, RwLock};
 
 use tsrs_api_transport::strictjson::DecodeError;
-use tsrs_compiler::{CheckerHandle, Program};
-use tsrs_core::context::{CheckerLifetime, Context, with_checker_lifetime};
+use tsrs_compiler::Program;
+use tsrs_core::context::Context;
 use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_project::{ID as ProjectID, Snapshot, SnapshotHost};
 use tsrs_vfs::FS;
@@ -64,7 +64,6 @@ pub struct OpenState {
 
 /// Go `snapshotData`: one registered snapshot plus its per-snapshot registries.
 pub struct SnapshotData {
-    pub handle: SnapshotID,
     pub snapshot: Arc<Snapshot>,
     /// Request filesystem the snapshot was created with (inherited by updates), if any.
     pub(crate) file_system: Option<Arc<crate::requestfs::RequestFileSystem>>,
@@ -92,23 +91,12 @@ impl SnapshotData {
     }
 }
 
-/// Go `checkerSetup`. Holds the snapshot alive and the checker exclusively until dropped. Checker
-/// handles are not reentrant: never call `Session::setup_checker` again while one is held on the
-/// same program.
-pub struct CheckerSetup {
-    pub sd: Arc<SnapshotData>,
-    pub snapshot: SnapshotID,
-    pub project: ProjectID,
-    pub program: &'static Program,
-    pub checker: CheckerHandle,
-}
-
 /// Go `Session.openProjects` / `openFiles` / `createdPrograms`, guarded by `languageServerUpdateMu`: the canonical
 /// LSP-state resources owned by this API client.
 #[derive(Default)]
 pub struct LanguageServerState {
     pub open_state: OpenState,
-    pub created_programs: tsrs_core::collections::Set<tsrs_project::SyntheticProjectID>,
+    pub(crate) created_programs: tsrs_core::collections::Set<tsrs_project::SyntheticProjectID>,
 }
 
 pub struct Session {
@@ -157,7 +145,6 @@ impl Session {
             logger: None,
             npm_executor: None,
             parse_cache: None,
-            content_mapped_parse_cache: None,
             // Go also passes the server's ContentMapperSpawner here (api/server.go:99). The project system does not
             // transform content-mapped files yet (phase 2, notes/contentmappers.md): `--runExternalCode` is accepted
             // and recorded in the session options, and its projects get no content mapper project.
@@ -353,19 +340,6 @@ impl Session {
             .ok_or_else(|| ApiError::client(format!("snapshot {handle} not found")))
     }
 
-    /// Go `setupChecker`: resolves snapshot -> project -> program and acquires the API-lifetime checker.
-    pub fn setup_checker(
-        &self,
-        snapshot: SnapshotID,
-        project: &ProjectID,
-    ) -> ApiResult<CheckerSetup> {
-        let sd = self.snapshot_data(snapshot)?;
-        let program = sd.get_program(project)?;
-        let ctx = with_checker_lifetime(&Context::background(), CheckerLifetime::API);
-        let checker = program.get_type_checker(&ctx);
-        Ok(CheckerSetup { sd, snapshot, project: project.clone(), program, checker })
-    }
-
     /// Go `registerSnapshot`: the same snapshot id returned twice (no changes) bumps the API ref count so
     /// each client-side snapshot can be disposed independently.
     pub(crate) fn register_snapshot(
@@ -382,7 +356,6 @@ impl Session {
             entry.1 += 1;
         } else {
             let sd = Arc::new(SnapshotData {
-                handle,
                 snapshot,
                 file_system,
                 open_state,
@@ -653,7 +626,7 @@ fn scratch<T>(f: impl FnOnce() -> T) -> T {
 }
 
 /// Parses request params (raw JSON bytes; empty means absent, Go `UnmarshalParams` returns nil).
-pub fn json_response(value: &Value) -> ApiResult<Response> {
+pub(crate) fn json_response(value: &Value) -> ApiResult<Response> {
     // Most results are small objects: start with room for one instead of growing to it.
     json::marshal_with_capacity(value, 256).map(Response::Json).map_err(ApiError::internal)
 }

@@ -6,7 +6,11 @@ use tsrs_core::*;
 
 // nodebuilder_hover.go:16
 // isExpanding returns whether the node builder context is operating in hover-expansion mode.
-pub fn is_expanding(ctx: P<NodeBuilderContext>) -> bool {
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn is_expanding(ctx: P<NodeBuilderContext>) -> bool {
     ctx.max_expansion_depth.get().is_some()
 }
 
@@ -270,7 +274,7 @@ impl NodeBuilderImpl {
 // typeElementsToClassElements converts TypeElement nodes (PropertySignature, MethodSignature)
 // to their ClassElement equivalents (PropertyDeclaration, MethodDeclaration) so they can be
 // used as members of a ClassDeclaration. Nodes that are already ClassElements pass through unchanged.
-pub fn type_elements_to_class_elements(f: &NodeFactory, members: &mut [P<Node>]) -> Vec<P<Node>> {
+fn type_elements_to_class_elements(f: &NodeFactory, members: &mut [P<Node>]) -> Vec<P<Node>> {
     for element in members.iter_mut() {
         let m = *element;
         match m.kind() {
@@ -900,6 +904,6 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilder_hover.go:603
-pub fn is_hash_private(s: P<Symbol>) -> bool {
+fn is_hash_private(s: P<Symbol>) -> bool {
     s.value_declaration().is_some_and(|d| d.name().is_some_and(is_private_identifier))
 }

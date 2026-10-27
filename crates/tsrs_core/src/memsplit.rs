@@ -151,8 +151,8 @@ fn mib(b: usize) -> String {
 #[derive(Default)]
 struct ArenaTotals {
     count: usize,
-    capacity: usize,
-    used: usize,
+    pub capacity: usize,
+    pub used: usize,
     /// Resident bytes below the finger of the current chunk (never handed out).
     tail_resident: usize,
     /// Resident bytes below the finger of retired chunks.

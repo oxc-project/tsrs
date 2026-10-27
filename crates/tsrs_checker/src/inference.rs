@@ -653,7 +653,7 @@ impl Checker {
 
 // Compare two types first by depth and then by the regular type ordering.
 // inference.go:410
-pub fn compare_types_and_depth(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> std::cmp::Ordering {
+fn compare_types_and_depth(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> std::cmp::Ordering {
     let d1 = get_type_depth(c, t1, 3);
     let d2 = get_type_depth(c, t2, 3);
     if d1 != d2 {
@@ -667,7 +667,7 @@ pub fn compare_types_and_depth(c: &mut Checker, t1: P<Type>, t2: P<Type>) -> std
 // intersection types, the depth is the largest constituent type depth. For all other types,
 // the depth is zero. The maximum depth limits infinite recursion of circular types.
 // inference.go:423
-pub fn get_type_depth(c: &mut Checker, t: P<Type>, max_depth: usize) -> usize {
+fn get_type_depth(c: &mut Checker, t: P<Type>, max_depth: usize) -> usize {
     if max_depth != 0 {
         if let Some(alias) = t.alias()
             && !alias.type_arguments().is_empty()
@@ -688,7 +688,7 @@ pub fn get_type_depth(c: &mut Checker, t: P<Type>, max_depth: usize) -> usize {
 }
 
 // inference.go:440
-pub fn get_type_list_depth(c: &mut Checker, types: &[P<Type>], max_depth: usize) -> usize {
+fn get_type_list_depth(c: &mut Checker, types: &[P<Type>], max_depth: usize) -> usize {
     let mut depth = 0;
     depth = types.iter().fold(depth, |mut depth, &t| {
         depth = depth.max(get_type_depth(c, t, max_depth));
@@ -803,7 +803,7 @@ impl Checker {
 }
 
 // inference.go:532
-pub fn get_single_type_variable_from_intersection_types(
+fn get_single_type_variable_from_intersection_types(
     n: P<InferenceState>,
     types: &[P<Type>],
 ) -> Option<P<Type>> {
@@ -2016,7 +2016,7 @@ impl Checker {
 }
 
 // inference.go:1195
-pub fn tuple_types_definitely_unrelated(source: P<Type>, target: P<Type>) -> bool {
+fn tuple_types_definitely_unrelated(source: P<Type>, target: P<Type>) -> bool {
     let s = source.target_tuple_type();
     let t = target.target_tuple_type();
     !t.combined_flags.get().intersects(ElementFlags::Variadic)
@@ -2585,7 +2585,7 @@ impl Checker {
 }
 
 // inference.go:1519
-pub fn get_inference_info_for_type(n: P<InferenceState>, t: P<Type>) -> Option<P<InferenceInfo>> {
+fn get_inference_info_for_type(n: P<InferenceState>, t: P<Type>) -> Option<P<InferenceInfo>> {
     if t.flags().intersects(TypeFlags::TypeVariable) {
         let t = get_non_distributed_type_parameter(t);
         if let Some(result) = n.inferences.borrow().iter().find_map(|&inference| {
@@ -2735,7 +2735,7 @@ pub fn new_inference_info(type_parameter: P<Type>) -> P<InferenceInfo> {
 }
 
 // inference.go:1630
-pub fn clone_inference_info(info: P<InferenceInfo>) -> P<InferenceInfo> {
+fn clone_inference_info(info: P<InferenceInfo>) -> P<InferenceInfo> {
     P::new_recycled(InferenceInfo {
         type_parameter: Cell::new(info.type_parameter.get()),
         candidates: LazyVec::from_vec(info.candidates.to_vec()),
@@ -2753,7 +2753,7 @@ pub fn clone_inference_info(info: P<InferenceInfo>) -> P<InferenceInfo> {
 }
 
 // inference.go:1643
-pub fn clear_cached_inferences(inferences: &[P<InferenceInfo>]) {
+pub(crate) fn clear_cached_inferences(inferences: &[P<InferenceInfo>]) {
     for inference in inferences {
         if !inference.is_fixed.get() {
             inference.inferred_type.set(None);
@@ -2762,17 +2762,17 @@ pub fn clear_cached_inferences(inferences: &[P<InferenceInfo>]) {
 }
 
 // inference.go:1651
-pub fn has_inference_candidates(info: P<InferenceInfo>) -> bool {
+pub(crate) fn has_inference_candidates(info: P<InferenceInfo>) -> bool {
     !info.candidates.is_empty() || !info.contra_candidates.is_empty()
 }
 
 // inference.go:1655
-pub fn has_inference_candidates_or_default(info: P<InferenceInfo>) -> bool {
+pub(crate) fn has_inference_candidates_or_default(info: P<InferenceInfo>) -> bool {
     has_inference_candidates(info) || has_type_parameter_default(info.type_parameter.get().unwrap())
 }
 
 // inference.go:1659
-pub fn has_type_parameter_default(tp: P<Type>) -> bool {
+fn has_type_parameter_default(tp: P<Type>) -> bool {
     if let Some(symbol) = tp.symbol()
         && symbol.declarations().iter().any(|&d| {
             ast::is_type_parameter_declaration(d)
@@ -2785,7 +2785,7 @@ pub fn has_type_parameter_default(tp: P<Type>) -> bool {
 }
 
 // inference.go:1670
-pub fn has_overlapping_inferences(a: &[P<InferenceInfo>], b: &[P<InferenceInfo>]) -> bool {
+pub(crate) fn has_overlapping_inferences(a: &[P<InferenceInfo>], b: &[P<InferenceInfo>]) -> bool {
     (0..a.len()).any(|i| has_inference_candidates(a[i]) && has_inference_candidates(b[i]))
 }
 

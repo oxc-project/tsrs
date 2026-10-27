@@ -324,42 +324,6 @@ pub struct Timings {
 
 impl Timings {
     // Since returns the non-negative operation delta since previous.
-    // host.go:245
-    #[must_use]
-    pub fn since(&self, previous: &Timings) -> Timings {
-        let mut result = Timings {
-            mappers: OrderedMap::with_capacity_and_hasher(
-                self.mappers.len(),
-                rustc_hash::FxBuildHasher,
-            ),
-            request_wait: self.request_wait.saturating_sub(previous.request_wait),
-        };
-        result.mappers.extend(self.mappers.iter().map(|(identity, current)| {
-            let before = previous.mappers.get(identity).copied().unwrap_or_default();
-            (
-                identity.clone(),
-                MapperTimings {
-                    spawn: operation_timing_since(current.spawn, before.spawn),
-                    initialize: operation_timing_since(current.initialize, before.initialize),
-                    open_project: operation_timing_since(current.open_project, before.open_project),
-                    close_project: operation_timing_since(
-                        current.close_project,
-                        before.close_project,
-                    ),
-                    transform: operation_timing_since(current.transform, before.transform),
-                },
-            )
-        }));
-        result
-    }
-}
-
-// host.go:263
-fn operation_timing_since(current: OperationTiming, previous: OperationTiming) -> OperationTiming {
-    OperationTiming {
-        count: current.count - current.count.min(previous.count),
-        duration: current.duration.saturating_sub(previous.duration),
-    }
 }
 
 // Project is the project-scoped view of a Host. It owns mapper configuration handles and provides the
@@ -557,9 +521,6 @@ impl Error {
     }
 
     // Go `errors.Is(err, ErrProjectUnavailable)`.
-    pub fn is_project_unavailable(&self) -> bool {
-        self.chain().any(|err| matches!(err, Error::ProjectUnavailable))
-    }
 
     // Go `errors.Is(err, sentinel)` for the sentinels of package ipc (io.EOF, ipc.ErrConnClosed,
     // context.DeadlineExceeded).
@@ -625,6 +586,6 @@ impl From<ipc::Error> for Error {
 }
 
 // Go `strconv.Quote`, which fmt's %q verb uses for a string.
-pub fn quote(s: &str) -> String {
+pub(crate) fn quote(s: &str) -> String {
     tsrs_core::gocompat::quote(s.as_bytes(), tsrs_core::gocompat::QuoteStyle::Header)
 }

@@ -226,7 +226,7 @@ fn base_type(go_type: &str) -> &str {
 
 /// `name` as one of the field names of the params structs and the api-package structs nested in them, for
 /// the request decoder to borrow.
-pub fn known_member_name(name: &str) -> Option<&'static str> {
+pub(crate) fn known_member_name(name: &str) -> Option<&'static str> {
     static NAMES: LazyLock<FxHashSet<&'static str>> = LazyLock::new(|| {
         let mut names = FxHashSet::default();
         let mut seen_types = FxHashSet::default();
@@ -302,7 +302,7 @@ fn check_external_integers(
 
 /// Replaces the `*int` options decoded from `value` (a core.CompilerOptions object of the current request) with
 /// their exact literals (f64 cannot hold every Go int).
-pub fn exact_compiler_options_ints(value: &Value, options: &mut tsrs_core::CompilerOptions) {
+pub(crate) fn exact_compiler_options_ints(value: &Value, options: &mut tsrs_core::CompilerOptions) {
     if let Some(n) = exact_i64(value, "maxNodeModuleJsDepth") {
         options.max_node_module_js_depth = Some(n);
     }
@@ -312,7 +312,7 @@ pub fn exact_compiler_options_ints(value: &Value, options: &mut tsrs_core::Compi
 }
 
 /// As `exact_compiler_options_ints`, for core.BuildOptions.
-pub fn exact_build_options_ints(value: &Value, options: &mut tsrs_core::BuildOptions) {
+pub(crate) fn exact_build_options_ints(value: &Value, options: &mut tsrs_core::BuildOptions) {
     if let Some(n) = exact_i64(value, "builders") {
         options.builders = Some(n);
     }
@@ -641,12 +641,7 @@ pub fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]> {
 /// Checks `params` (an object, or `{}` for `null`) against the method's pinned params struct, nested api structs
 /// included. `raw` is the request payload the value was parsed from. Returns the number literals by pointer.
 /// `lexemes` are the request's inexact number literals (`strictjson::Decoded::lexemes`); it returns them.
-#[expect(clippy::implicit_hasher, reason = "Public for the integration tests.")]
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub fn predecode(
+pub(crate) fn predecode(
     method: &str,
     go_type: &str,
     params: &Value,
@@ -756,7 +751,7 @@ pub fn exact_u64(object: &Value, key: &str) -> Option<u64> {
 }
 
 /// The exact signed integer literal of member `key` of `object` (see `exact_u64`).
-pub fn exact_i64(object: &Value, key: &str) -> Option<i64> {
+fn exact_i64(object: &Value, key: &str) -> Option<i64> {
     FRAMES.with(|f| {
         let f = f.borrow();
         let frame = f.last()?;
@@ -767,7 +762,7 @@ pub fn exact_i64(object: &Value, key: &str) -> Option<i64> {
 
 /// The raw `params` bytes of each element of the top-level `requests` array of the current request
 /// (batchRequests), indexed in one pass over the payload; `None` where an element has no `params`.
-pub fn current_batch_params() -> Vec<Option<Vec<u8>>> {
+pub(crate) fn current_batch_params() -> Vec<Option<Vec<u8>>> {
     FRAMES.with(|f| f.borrow().last().map(|frame| batch_params(&frame.raw)).unwrap_or_default())
 }
 

@@ -7,5 +7,6 @@ pub mod map;
 pub mod plain;
 
 pub use json::*;
-pub use map::{Entry, JsonMap, Key, OccupiedEntry, VacantEntry};
+pub(crate) use map::Entry;
+pub use map::{JsonMap, Key};
 pub use plain::plain_ascii_len;

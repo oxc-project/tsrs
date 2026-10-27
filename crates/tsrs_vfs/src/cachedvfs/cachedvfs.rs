@@ -71,10 +71,6 @@ impl<T: VFS> FS<T> {
         self.stat_cache.clear();
     }
 
-    pub fn inner(&self) -> &T {
-        &self.fs
-    }
-
     fn enabled(&self) -> bool {
         self.enabled.load(Ordering::SeqCst)
     }

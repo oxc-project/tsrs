@@ -24,19 +24,9 @@ pub fn filter<T: Clone>(slice: &[T], mut f: impl FnMut(&T) -> bool) -> Cow<'_, [
     Cow::Borrowed(slice)
 }
 
-pub fn map<T, U>(slice: &[T], f: impl FnMut(&T) -> U) -> Vec<U> {
-    slice.iter().map(f).collect()
-}
-
 /// Go `MapNonNil`: the callback returns `None` where Go returns the zero value.
 pub fn map_non_nil<T, U>(slice: &[T], f: impl FnMut(&T) -> Option<U>) -> Vec<U> {
     slice.iter().filter_map(f).collect()
-}
-
-pub fn flat_map<T, U, I: IntoIterator<Item = U>>(slice: &[T], f: impl FnMut(&T) -> I) -> Vec<U> {
-    let mut result = Vec::new();
-    result.extend(slice.iter().flat_map(f));
-    result
 }
 
 pub fn same_map<T: Clone + PartialEq>(slice: &[T], mut f: impl FnMut(&T) -> T) -> Cow<'_, [T]> {
@@ -61,16 +51,8 @@ pub fn same<T>(s1: &[T], s2: &[T]) -> bool {
     false
 }
 
-pub fn some<T>(slice: &[T], f: impl FnMut(&T) -> bool) -> bool {
-    slice.iter().any(f)
-}
-
 pub fn every<T>(slice: &[T], f: impl FnMut(&T) -> bool) -> bool {
     slice.iter().all(f)
-}
-
-pub fn or<T>(funcs: Vec<Box<dyn Fn(&T) -> bool>>) -> impl Fn(&T) -> bool {
-    move |input| funcs.iter().any(|f| f(input))
 }
 
 pub fn find<T: Clone>(slice: &[T], mut f: impl FnMut(&T) -> bool) -> Option<T> {
@@ -198,17 +180,6 @@ pub fn append_if_unique<T: PartialEq>(slice: &mut Vec<T>, element: T) {
     slice.push(element);
 }
 
-pub fn memoize<T: Clone>(create: impl FnOnce() -> T) -> impl FnMut() -> T {
-    let mut create = Some(create);
-    let mut value: Option<T> = None;
-    move || {
-        if let Some(c) = create.take() {
-            value = Some(c());
-        }
-        value.clone().unwrap()
-    }
-}
-
 // Returns whenTrue if b is true; otherwise, returns whenFalse. IfElse should only be used when branches are either
 // constant or precomputed as both branches will be evaluated regardless as to the value of b.
 #[inline]
@@ -331,12 +302,6 @@ pub fn utf16_len(s: &str) -> UTF16Offset {
         }
     }
     bytes.len() as UTF16Offset
-}
-
-pub fn flatten<T: Clone>(array: &[Vec<T>]) -> Vec<T> {
-    let mut result = Vec::new();
-    result.extend(array.iter().flat_map(|sub_array| sub_array.iter().cloned()));
-    result
 }
 
 pub fn get_script_kind_from_file_name(file_name: &str) -> ScriptKind {
@@ -565,11 +530,6 @@ pub fn levenshtein_with_max<T: Copy + Eq>(
         return None;
     }
     Some(res)
-}
-
-#[inline]
-pub fn identity<T>(t: T) -> T {
-    t
 }
 
 pub fn index_after(s: &str, pattern: &str, start_index: usize) -> Option<usize> {

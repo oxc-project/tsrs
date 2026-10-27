@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use tsrs_ast::{self as ast, Kind, Node};
 use tsrs_core::{P, Tristate};
 use tsrs_scanner as scanner;
@@ -11,122 +16,126 @@ use crate::lsutil::{self, FormatCodeSettings, SemicolonPreference};
 //
 
 // rulecontext.go:18
-pub type OptionSelector = fn(&FormatCodeSettings) -> Tristate;
+pub(crate) type OptionSelector = fn(&FormatCodeSettings) -> Tristate;
 
 // rulecontext.go:22
-pub fn semicolon_option(options: &FormatCodeSettings) -> SemicolonPreference {
+pub(crate) fn semicolon_option(options: &FormatCodeSettings) -> SemicolonPreference {
     options.semicolons
 }
 
 // rulecontext.go:26
-pub fn insert_space_after_comma_delimiter_option(options: &FormatCodeSettings) -> Tristate {
+pub(crate) fn insert_space_after_comma_delimiter_option(options: &FormatCodeSettings) -> Tristate {
     options.insert_space_after_comma_delimiter
 }
 
 // rulecontext.go:30
-pub fn insert_space_after_semicolon_in_for_statements_option(
+pub(crate) fn insert_space_after_semicolon_in_for_statements_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_after_semicolon_in_for_statements
 }
 
 // rulecontext.go:34
-pub fn insert_space_before_and_after_binary_operators_option(
+pub(crate) fn insert_space_before_and_after_binary_operators_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_before_and_after_binary_operators
 }
 
 // rulecontext.go:38
-pub fn insert_space_after_constructor_option(options: &FormatCodeSettings) -> Tristate {
+pub(crate) fn insert_space_after_constructor_option(options: &FormatCodeSettings) -> Tristate {
     options.insert_space_after_constructor
 }
 
 // rulecontext.go:42
-pub fn insert_space_after_keywords_in_control_flow_statements_option(
+pub(crate) fn insert_space_after_keywords_in_control_flow_statements_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_after_keywords_in_control_flow_statements
 }
 
 // rulecontext.go:46
-pub fn insert_space_after_function_keyword_for_anonymous_functions_option(
+pub(crate) fn insert_space_after_function_keyword_for_anonymous_functions_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_after_function_keyword_for_anonymous_functions
 }
 
 // rulecontext.go:50
-pub fn insert_space_after_opening_and_before_closing_nonempty_parenthesis_option(
+pub(crate) fn insert_space_after_opening_and_before_closing_nonempty_parenthesis_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_after_opening_and_before_closing_nonempty_parenthesis
 }
 
 // rulecontext.go:54
-pub fn insert_space_after_opening_and_before_closing_nonempty_brackets_option(
+pub(crate) fn insert_space_after_opening_and_before_closing_nonempty_brackets_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_after_opening_and_before_closing_nonempty_brackets
 }
 
 // rulecontext.go:58
-pub fn insert_space_after_opening_and_before_closing_nonempty_braces_option(
+pub(crate) fn insert_space_after_opening_and_before_closing_nonempty_braces_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_after_opening_and_before_closing_nonempty_braces
 }
 
 // rulecontext.go:62
-pub fn insert_space_after_opening_and_before_closing_empty_braces_option(
+pub(crate) fn insert_space_after_opening_and_before_closing_empty_braces_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_after_opening_and_before_closing_empty_braces
 }
 
 // rulecontext.go:66
-pub fn insert_space_after_opening_and_before_closing_template_string_braces_option(
+pub(crate) fn insert_space_after_opening_and_before_closing_template_string_braces_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_after_opening_and_before_closing_template_string_braces
 }
 
 // rulecontext.go:70
-pub fn insert_space_after_opening_and_before_closing_jsx_expression_braces_option(
+pub(crate) fn insert_space_after_opening_and_before_closing_jsx_expression_braces_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.insert_space_after_opening_and_before_closing_jsx_expression_braces
 }
 
 // rulecontext.go:74
-pub fn insert_space_after_type_assertion_option(options: &FormatCodeSettings) -> Tristate {
+pub(crate) fn insert_space_after_type_assertion_option(options: &FormatCodeSettings) -> Tristate {
     options.insert_space_after_type_assertion
 }
 
 // rulecontext.go:78
-pub fn insert_space_before_function_parenthesis_option(options: &FormatCodeSettings) -> Tristate {
+pub(crate) fn insert_space_before_function_parenthesis_option(
+    options: &FormatCodeSettings,
+) -> Tristate {
     options.insert_space_before_function_parenthesis
 }
 
 // rulecontext.go:82
-pub fn place_open_brace_on_new_line_for_functions_option(options: &FormatCodeSettings) -> Tristate {
+pub(crate) fn place_open_brace_on_new_line_for_functions_option(
+    options: &FormatCodeSettings,
+) -> Tristate {
     options.place_open_brace_on_new_line_for_functions
 }
 
 // rulecontext.go:86
-pub fn place_open_brace_on_new_line_for_control_blocks_option(
+pub(crate) fn place_open_brace_on_new_line_for_control_blocks_option(
     options: &FormatCodeSettings,
 ) -> Tristate {
     options.place_open_brace_on_new_line_for_control_blocks
 }
 
 // rulecontext.go:90
-pub fn insert_space_before_type_annotation_option(options: &FormatCodeSettings) -> Tristate {
+pub(crate) fn insert_space_before_type_annotation_option(options: &FormatCodeSettings) -> Tristate {
     options.insert_space_before_type_annotation
 }
 
 // rulecontext.go:102
-pub fn option_equals<T: PartialEq + Copy + Send + Sync + 'static>(
+pub(crate) fn option_equals<T: PartialEq + Copy + Send + Sync + 'static>(
     option_name: fn(&FormatCodeSettings) -> T,
     option_value: T,
 ) -> ContextPredicate {
@@ -136,24 +145,24 @@ pub fn option_equals<T: PartialEq + Copy + Send + Sync + 'static>(
 }
 
 // rulecontext.go:108
-pub fn is_option_enabled(option_name: OptionSelector) -> ContextPredicate {
+pub(crate) fn is_option_enabled(option_name: OptionSelector) -> ContextPredicate {
     Box::leak(Box::new(move |context: &FormattingContext| option_name(&context.options).is_true()))
 }
 
 // rulecontext.go:114
-pub fn is_option_disabled(option_name: OptionSelector) -> ContextPredicate {
+pub(crate) fn is_option_disabled(option_name: OptionSelector) -> ContextPredicate {
     Box::leak(Box::new(move |context: &FormattingContext| option_name(&context.options).is_false()))
 }
 
 // rulecontext.go:120
-pub fn is_option_disabled_or_undefined(option_name: OptionSelector) -> ContextPredicate {
+pub(crate) fn is_option_disabled_or_undefined(option_name: OptionSelector) -> ContextPredicate {
     Box::leak(Box::new(move |context: &FormattingContext| {
         option_name(&context.options).is_false_or_unknown()
     }))
 }
 
 // rulecontext.go:126
-pub fn is_option_disabled_or_undefined_or_tokens_on_same_line(
+pub(crate) fn is_option_disabled_or_undefined_or_tokens_on_same_line(
     option_name: OptionSelector,
 ) -> ContextPredicate {
     Box::leak(Box::new(move |context: &FormattingContext| {
@@ -162,24 +171,24 @@ pub fn is_option_disabled_or_undefined_or_tokens_on_same_line(
 }
 
 // rulecontext.go:132
-pub fn is_option_enabled_or_undefined(option_name: OptionSelector) -> ContextPredicate {
+pub(crate) fn is_option_enabled_or_undefined(option_name: OptionSelector) -> ContextPredicate {
     Box::leak(Box::new(move |context: &FormattingContext| {
         option_name(&context.options).is_true_or_unknown()
     }))
 }
 
 // rulecontext.go:138
-pub fn is_for_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_for_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::ForStatement
 }
 
 // rulecontext.go:142
-pub fn is_not_for_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_not_for_context(context: &FormattingContext) -> bool {
     !is_for_context(context)
 }
 
 // rulecontext.go:146
-pub fn is_binary_op_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_binary_op_context(context: &FormattingContext) -> bool {
     match context.context_node().kind() {
         Kind::BinaryExpression => {
             context.context_node().as_binary_expression().operator_token.kind() != Kind::CommaToken
@@ -230,17 +239,17 @@ pub fn is_binary_op_context(context: &FormattingContext) -> bool {
 }
 
 // rulecontext.go:195
-pub fn is_not_binary_op_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_not_binary_op_context(context: &FormattingContext) -> bool {
     !is_binary_op_context(context)
 }
 
 // rulecontext.go:199
-pub fn is_not_type_annotation_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_not_type_annotation_context(context: &FormattingContext) -> bool {
     !is_type_annotation_context(context)
 }
 
 // rulecontext.go:203
-pub fn is_type_annotation_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_type_annotation_context(context: &FormattingContext) -> bool {
     let context_kind = context.context_node().kind();
     context_kind == Kind::PropertyDeclaration
         || context_kind == Kind::PropertySignature
@@ -250,29 +259,29 @@ pub fn is_type_annotation_context(context: &FormattingContext) -> bool {
 }
 
 // rulecontext.go:212
-pub fn is_optional_property_context(context: &FormattingContext) -> bool {
+fn is_optional_property_context(context: &FormattingContext) -> bool {
     ast::is_property_declaration(context.context_node())
         && ast::has_question_token(context.context_node())
 }
 
 // rulecontext.go:216
-pub fn is_non_optional_property_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_non_optional_property_context(context: &FormattingContext) -> bool {
     !is_optional_property_context(context)
 }
 
 // rulecontext.go:220
-pub fn is_conditional_operator_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_conditional_operator_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::ConditionalExpression
         || context.context_node().kind() == Kind::ConditionalType
 }
 
 // rulecontext.go:225
-pub fn is_same_line_token_or_before_block_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_same_line_token_or_before_block_context(context: &FormattingContext) -> bool {
     context.tokens_are_on_same_line() || is_before_block_context(context)
 }
 
 // rulecontext.go:229
-pub fn is_brace_wrapped_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_brace_wrapped_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::ObjectBindingPattern
         || context.context_node().kind() == Kind::MappedType
         || is_single_line_block_context(context)
@@ -280,36 +289,36 @@ pub fn is_brace_wrapped_context(context: &FormattingContext) -> bool {
 
 // rulecontext.go:236
 // This check is done before an open brace in a control construct, a function, or a typescript block declaration
-pub fn is_before_multiline_block_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_before_multiline_block_context(context: &FormattingContext) -> bool {
     is_before_block_context(context)
         && !(context.next_node_all_on_same_line() || context.next_node_block_is_on_one_line())
 }
 
 // rulecontext.go:240
-pub fn is_multiline_block_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_multiline_block_context(context: &FormattingContext) -> bool {
     is_block_context(context)
         && !(context.context_node_all_on_same_line() || context.context_node_block_is_on_one_line())
 }
 
 // rulecontext.go:244
-pub fn is_single_line_block_context(context: &FormattingContext) -> bool {
+fn is_single_line_block_context(context: &FormattingContext) -> bool {
     is_block_context(context)
         && (context.context_node_all_on_same_line() || context.context_node_block_is_on_one_line())
 }
 
 // rulecontext.go:248
-pub fn is_block_context(context: &FormattingContext) -> bool {
+fn is_block_context(context: &FormattingContext) -> bool {
     node_is_block_context(context.context_node())
 }
 
 // rulecontext.go:252
-pub fn is_before_block_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_before_block_context(context: &FormattingContext) -> bool {
     node_is_block_context(context.next_token_parent())
 }
 
 // rulecontext.go:257
 // IMPORTANT!!! This method must return true ONLY for nodes with open and close braces as immediate children
-pub fn node_is_block_context(node: P<Node>) -> bool {
+fn node_is_block_context(node: P<Node>) -> bool {
     if node_is_type_script_decl_with_block_context(node) {
         // This means we are in a context that looks like a block to the user, but in the grammar is actually not a node (it's a class, module, enum, object type literal, etc).
         return true;
@@ -322,7 +331,7 @@ pub fn node_is_block_context(node: P<Node>) -> bool {
 }
 
 // rulecontext.go:274
-pub fn is_function_decl_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_function_decl_context(context: &FormattingContext) -> bool {
     matches!(
         context.context_node().kind(),
         Kind::FunctionDeclaration
@@ -344,23 +353,25 @@ pub fn is_function_decl_context(context: &FormattingContext) -> bool {
 }
 
 // rulecontext.go:300
-pub fn is_not_function_decl_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_not_function_decl_context(context: &FormattingContext) -> bool {
     !is_function_decl_context(context)
 }
 
 // rulecontext.go:304
-pub fn is_function_declaration_or_function_expression_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_function_declaration_or_function_expression_context(
+    context: &FormattingContext,
+) -> bool {
     context.context_node().kind() == Kind::FunctionDeclaration
         || context.context_node().kind() == Kind::FunctionExpression
 }
 
 // rulecontext.go:308
-pub fn is_type_script_decl_with_block_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_type_script_decl_with_block_context(context: &FormattingContext) -> bool {
     node_is_type_script_decl_with_block_context(context.context_node())
 }
 
 // rulecontext.go:312
-pub fn node_is_type_script_decl_with_block_context(node: P<Node>) -> bool {
+fn node_is_type_script_decl_with_block_context(node: P<Node>) -> bool {
     matches!(
         node.kind(),
         Kind::ClassDeclaration
@@ -377,7 +388,7 @@ pub fn node_is_type_script_decl_with_block_context(node: P<Node>) -> bool {
 }
 
 // rulecontext.go:330
-pub fn is_after_code_block_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_after_code_block_context(context: &FormattingContext) -> bool {
     match context.current_token_parent().kind() {
         Kind::ClassDeclaration
         | Kind::ModuleDeclaration
@@ -400,7 +411,7 @@ pub fn is_after_code_block_context(context: &FormattingContext) -> bool {
 }
 
 // rulecontext.go:349
-pub fn is_control_decl_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_control_decl_context(context: &FormattingContext) -> bool {
     matches!(
         context.context_node().kind(),
         Kind::IfStatement
@@ -419,106 +430,108 @@ pub fn is_control_decl_context(context: &FormattingContext) -> bool {
 }
 
 // rulecontext.go:371
-pub fn is_object_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_object_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::ObjectLiteralExpression
 }
 
 // rulecontext.go:375
-pub fn is_function_call_context(context: &FormattingContext) -> bool {
+fn is_function_call_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::CallExpression
 }
 
 // rulecontext.go:379
-pub fn is_new_context(context: &FormattingContext) -> bool {
+fn is_new_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::NewExpression
 }
 
 // rulecontext.go:383
-pub fn is_function_call_or_new_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_function_call_or_new_context(context: &FormattingContext) -> bool {
     is_function_call_context(context) || is_new_context(context)
 }
 
 // rulecontext.go:387
-pub fn is_previous_token_not_comma(context: &FormattingContext) -> bool {
+pub(crate) fn is_previous_token_not_comma(context: &FormattingContext) -> bool {
     context.current_token_span.kind != Kind::CommaToken
 }
 
 // rulecontext.go:391
-pub fn is_next_token_not_close_bracket(context: &FormattingContext) -> bool {
+pub(crate) fn is_next_token_not_close_bracket(context: &FormattingContext) -> bool {
     context.next_token_span.kind != Kind::CloseBracketToken
 }
 
 // rulecontext.go:395
-pub fn is_next_token_not_close_paren(context: &FormattingContext) -> bool {
+pub(crate) fn is_next_token_not_close_paren(context: &FormattingContext) -> bool {
     context.next_token_span.kind != Kind::CloseParenToken
 }
 
 // rulecontext.go:399
-pub fn is_arrow_function_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_arrow_function_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::ArrowFunction
 }
 
 // rulecontext.go:403
-pub fn is_import_type_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_import_type_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::ImportType
 }
 
 // rulecontext.go:407
-pub fn is_non_jsx_same_line_token_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_non_jsx_same_line_token_context(context: &FormattingContext) -> bool {
     context.tokens_are_on_same_line() && context.context_node().kind() != Kind::JsxText
 }
 
 // rulecontext.go:411
-pub fn is_non_jsx_text_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_non_jsx_text_context(context: &FormattingContext) -> bool {
     context.context_node().kind() != Kind::JsxText
 }
 
 // rulecontext.go:415
-pub fn is_non_jsx_element_or_fragment_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_non_jsx_element_or_fragment_context(context: &FormattingContext) -> bool {
     context.context_node().kind() != Kind::JsxElement
         && context.context_node().kind() != Kind::JsxFragment
 }
 
 // rulecontext.go:419
-pub fn is_jsx_expression_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_jsx_expression_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::JsxExpression
         || context.context_node().kind() == Kind::JsxSpreadAttribute
 }
 
 // rulecontext.go:423
-pub fn is_next_token_parent_jsx_attribute(context: &FormattingContext) -> bool {
+pub(crate) fn is_next_token_parent_jsx_attribute(context: &FormattingContext) -> bool {
     context.next_token_parent().kind() == Kind::JsxAttribute
         || (context.next_token_parent().kind() == Kind::JsxNamespacedName
             && context.next_token_parent().parent().unwrap().kind() == Kind::JsxAttribute)
 }
 
 // rulecontext.go:427
-pub fn is_jsx_attribute_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_jsx_attribute_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::JsxAttribute
 }
 
 // rulecontext.go:431
-pub fn is_next_token_parent_not_jsx_namespaced_name(context: &FormattingContext) -> bool {
+pub(crate) fn is_next_token_parent_not_jsx_namespaced_name(context: &FormattingContext) -> bool {
     context.next_token_parent().kind() != Kind::JsxNamespacedName
 }
 
 // rulecontext.go:435
-pub fn is_next_token_parent_jsx_namespaced_name(context: &FormattingContext) -> bool {
+pub(crate) fn is_next_token_parent_jsx_namespaced_name(context: &FormattingContext) -> bool {
     context.next_token_parent().kind() == Kind::JsxNamespacedName
 }
 
 // rulecontext.go:439
-pub fn is_jsx_self_closing_element_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_jsx_self_closing_element_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::JsxSelfClosingElement
 }
 
 // rulecontext.go:443
-pub fn is_not_before_block_in_function_declaration_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_not_before_block_in_function_declaration_context(
+    context: &FormattingContext,
+) -> bool {
     !is_function_decl_context(context) && !is_before_block_context(context)
 }
 
 // rulecontext.go:447
-pub fn is_end_of_decorator_context_on_same_line(context: &FormattingContext) -> bool {
+pub(crate) fn is_end_of_decorator_context_on_same_line(context: &FormattingContext) -> bool {
     context.tokens_are_on_same_line()
         && ast::has_decorators(context.context_node())
         && node_is_in_decorator_context(Some(context.current_token_parent()))
@@ -526,7 +539,7 @@ pub fn is_end_of_decorator_context_on_same_line(context: &FormattingContext) -> 
 }
 
 // rulecontext.go:454
-pub fn node_is_in_decorator_context(mut node: Option<P<Node>>) -> bool {
+fn node_is_in_decorator_context(mut node: Option<P<Node>>) -> bool {
     while let Some(n) = node {
         if !ast::is_expression(n) {
             break;
@@ -537,7 +550,7 @@ pub fn node_is_in_decorator_context(mut node: Option<P<Node>>) -> bool {
 }
 
 // rulecontext.go:461
-pub fn is_start_of_variable_declaration_list(context: &FormattingContext) -> bool {
+pub(crate) fn is_start_of_variable_declaration_list(context: &FormattingContext) -> bool {
     context.current_token_parent().kind() == Kind::VariableDeclarationList
         && scanner::get_token_pos_of_node(
             context.current_token_parent(),
@@ -551,30 +564,27 @@ pub fn is_start_of_variable_declaration_list(context: &FormattingContext) -> boo
 }
 
 // rulecontext.go:466
-pub fn is_not_format_on_enter(context: &FormattingContext) -> bool {
+pub(crate) fn is_not_format_on_enter(context: &FormattingContext) -> bool {
     context.formatting_request_kind != FormatRequestKind::FormatOnEnter
 }
 
 // rulecontext.go:470
-pub fn is_module_decl_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_module_decl_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::ModuleDeclaration
 }
 
 // rulecontext.go:474
-pub fn is_object_type_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_object_type_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::TypeLiteral // && context.contextNode.parent.Kind != ast.KindInterfaceDeclaration;
 }
 
 // rulecontext.go:478
-pub fn is_constructor_signature_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_constructor_signature_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::ConstructSignature
 }
 
 // rulecontext.go:482
-pub fn is_type_argument_or_parameter_or_assertion(
-    token: TextRangeWithKind,
-    parent: P<Node>,
-) -> bool {
+fn is_type_argument_or_parameter_or_assertion(token: TextRangeWithKind, parent: P<Node>) -> bool {
     if token.kind != Kind::LessThanToken && token.kind != Kind::GreaterThanToken {
         return false;
     }
@@ -600,7 +610,9 @@ pub fn is_type_argument_or_parameter_or_assertion(
 }
 
 // rulecontext.go:509
-pub fn is_type_argument_or_parameter_or_assertion_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_type_argument_or_parameter_or_assertion_context(
+    context: &FormattingContext,
+) -> bool {
     is_type_argument_or_parameter_or_assertion(
         context.current_token_span,
         context.current_token_parent(),
@@ -611,39 +623,39 @@ pub fn is_type_argument_or_parameter_or_assertion_context(context: &FormattingCo
 }
 
 // rulecontext.go:514
-pub fn is_type_assertion_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_type_assertion_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::TypeAssertionExpression
 }
 
 // rulecontext.go:518
-pub fn is_non_type_assertion_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_non_type_assertion_context(context: &FormattingContext) -> bool {
     !is_type_assertion_context(context)
 }
 
 // rulecontext.go:522
-pub fn is_void_op_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_void_op_context(context: &FormattingContext) -> bool {
     context.current_token_span.kind == Kind::VoidKeyword
         && context.current_token_parent().kind() == Kind::VoidExpression
 }
 
 // rulecontext.go:526
-pub fn is_yield_or_yield_star_with_operand(context: &FormattingContext) -> bool {
+pub(crate) fn is_yield_or_yield_star_with_operand(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::YieldExpression
         && context.context_node().expression().is_some()
 }
 
 // rulecontext.go:530
-pub fn is_non_null_assertion_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_non_null_assertion_context(context: &FormattingContext) -> bool {
     context.context_node().kind() == Kind::NonNullExpression
 }
 
 // rulecontext.go:534
-pub fn is_not_statement_condition_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_not_statement_condition_context(context: &FormattingContext) -> bool {
     !is_statement_condition_context(context)
 }
 
 // rulecontext.go:538
-pub fn is_statement_condition_context(context: &FormattingContext) -> bool {
+fn is_statement_condition_context(context: &FormattingContext) -> bool {
     matches!(
         context.context_node().kind(),
         Kind::IfStatement
@@ -656,7 +668,7 @@ pub fn is_statement_condition_context(context: &FormattingContext) -> bool {
 }
 
 // rulecontext.go:553
-pub fn is_semicolon_deletion_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_semicolon_deletion_context(context: &FormattingContext) -> bool {
     let mut next_token_kind = context.next_token_span.kind;
     let mut next_token_start = context
         .next_token_span
@@ -741,7 +753,7 @@ pub fn is_semicolon_deletion_context(context: &FormattingContext) -> bool {
 }
 
 // rulecontext.go:621
-pub fn is_semicolon_insertion_context(context: &FormattingContext) -> bool {
+pub(crate) fn is_semicolon_insertion_context(context: &FormattingContext) -> bool {
     lsutil::position_is_asi_candidate(
         context
             .current_token_span
@@ -754,7 +766,7 @@ pub fn is_semicolon_insertion_context(context: &FormattingContext) -> bool {
 }
 
 // rulecontext.go:625
-pub fn is_not_property_access_on_integer_literal(context: &FormattingContext) -> bool {
+pub(crate) fn is_not_property_access_on_integer_literal(context: &FormattingContext) -> bool {
     !ast::is_property_access_expression(context.context_node())
         || !ast::is_numeric_literal(context.context_node().expression().unwrap())
         || context.context_node().expression().unwrap().text().contains('.')

@@ -34,7 +34,7 @@ pub struct OwnerCache<K: Hash + Eq, V, A: LoadArgs> {
 }
 
 // ownercache.go:28
-pub fn new_owner_cache<K: Hash + Eq, V, A: LoadArgs>(
+pub(crate) fn new_owner_cache<K: Hash + Eq, V, A: LoadArgs>(
     parse: impl for<'a> Fn(&K, &A::Args<'a>) -> V + Send + Sync + 'static,
     is_expired: Option<Box<dyn for<'a> Fn(&K, &V, &A::Args<'a>) -> bool + Send + Sync>>,
 ) -> OwnerCache<K, V, A> {
@@ -57,16 +57,6 @@ impl<K: Hash + Eq + Clone, V: Clone, A: LoadArgs> OwnerCache<K, V, A> {
         })
     }
 
-    // ownercache.go:48
-    pub fn acquire(&self, identity: &K, owner: u64, value: V) {
-        self.load_or_store_locked_entry(identity, |entry, loaded| {
-            if !loaded {
-                entry.value = Some(value);
-            }
-            entry.owners.insert(owner);
-        });
-    }
-
     // ownercache.go:60
     // AddOwner adds an owner to an existing live entry. The entry must exist
     // and have at least one current owner; callers must ensure the entry is
@@ -78,11 +68,6 @@ impl<K: Hash + Eq + Clone, V: Clone, A: LoadArgs> OwnerCache<K, V, A> {
         let mut st = entry.mu.lock().unwrap();
         assert!(!st.owners.is_empty(), "OwnerCache.AddOwner: entry has no owners");
         st.owners.insert(owner);
-    }
-
-    // ownercache.go:73
-    pub fn has(&self, identity: &K) -> bool {
-        self.entries.load(identity).is_some()
     }
 
     // ownercache.go:78

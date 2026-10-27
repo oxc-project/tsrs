@@ -89,12 +89,12 @@ impl NodeIndexTable {
         self.nodes.get(index as usize).copied().flatten()
     }
 
+    #[expect(
+        clippy::len_without_is_empty,
+        reason = "Index zero is reserved; the table is never empty."
+    )]
     pub fn len(&self) -> usize {
         self.nodes.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.nodes.len() <= 1
     }
 }
 

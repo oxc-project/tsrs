@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use crate::*;
 use tsrs_ast as ast;
 use tsrs_ast::*;
@@ -9,18 +14,18 @@ use tsrs_diagnostics as diagnostics;
 //   const (checker.go:26074): UnionReductionNone, UnionReductionLiteral, UnionReductionSubtype
 
 // checker.go:23954
-pub fn is_mutable_tuple_type(t: P<Type>) -> bool {
+pub(crate) fn is_mutable_tuple_type(t: P<Type>) -> bool {
     is_tuple_type(t) && !t.target_tuple_type().readonly.get()
 }
 
 // checker.go:23958
-pub fn is_generic_tuple_type(t: P<Type>) -> bool {
+fn is_generic_tuple_type(t: P<Type>) -> bool {
     is_tuple_type(t)
         && t.target_tuple_type().combined_flags.get().intersects(ElementFlags::Variadic)
 }
 
 // checker.go:23962
-pub fn is_single_element_generic_tuple_type(t: P<Type>) -> bool {
+pub(crate) fn is_single_element_generic_tuple_type(t: P<Type>) -> bool {
     is_generic_tuple_type(t) && t.target_tuple_type().element_infos.get().len() == 1
 }
 
@@ -270,7 +275,7 @@ impl Checker {
 }
 
 // checker.go:24126
-pub fn is_local_type_alias(symbol: P<Symbol>) -> bool {
+fn is_local_type_alias(symbol: P<Symbol>) -> bool {
     let declaration = symbol.declarations().iter().copied().find(|&d| is_type_alias(d));
     declaration.is_some_and(|d| ast::get_containing_function(d).is_some())
 }
@@ -306,7 +311,7 @@ impl Checker {
 }
 
 // checker.go:24157
-pub fn get_type_reference_name(node: P<Node>) -> Option<P<Node>> {
+pub(crate) fn get_type_reference_name(node: P<Node>) -> Option<P<Node>> {
     match node.kind() {
         Kind::TypeReference => {
             return Some(node.as_type_reference_node().type_name);
@@ -2416,7 +2421,7 @@ impl Checker {
 }
 
 // checker.go:25469
-pub fn is_unary_tuple_type_node(node: P<Node>) -> bool {
+fn is_unary_tuple_type_node(node: P<Node>) -> bool {
     ast::is_tuple_type_node(node) && node.elements().len() == 1
 }
 
@@ -2901,7 +2906,7 @@ impl Checker {
 }
 
 // checker.go:25771
-pub fn is_fresh_literal_type(t: P<Type>) -> bool {
+pub(crate) fn is_fresh_literal_type(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::Freshable) && t.as_literal_type().fresh_type.get() == Some(t)
 }
 
@@ -2972,7 +2977,7 @@ impl Checker {
 }
 
 // checker.go:25816
-pub fn get_string_literal_value(t: P<Type>) -> &'static str {
+pub(crate) fn get_string_literal_value(t: P<Type>) -> &'static str {
     match t.as_literal_type().value.get() {
         Some(LiteralValue::String(s)) => s,
         _ => panic!("getStringLiteralValue: not a string literal"),
@@ -2980,7 +2985,7 @@ pub fn get_string_literal_value(t: P<Type>) -> &'static str {
 }
 
 // checker.go:25820
-pub fn get_number_literal_value(t: P<Type>) -> Number {
+pub(crate) fn get_number_literal_value(t: P<Type>) -> Number {
     match t.as_literal_type().value.get() {
         Some(LiteralValue::Number(n)) => n,
         _ => panic!("getNumberLiteralValue: not a number literal"),
@@ -2988,7 +2993,7 @@ pub fn get_number_literal_value(t: P<Type>) -> Number {
 }
 
 // checker.go:25824
-pub fn get_big_int_literal_value(t: P<Type>) -> PseudoBigInt {
+pub(crate) fn get_big_int_literal_value(t: P<Type>) -> PseudoBigInt {
     match t.as_literal_type().value.get() {
         Some(LiteralValue::BigInt(v)) => v,
         _ => panic!("getBigIntLiteralValue: not a bigint literal"),
@@ -2996,7 +3001,7 @@ pub fn get_big_int_literal_value(t: P<Type>) -> PseudoBigInt {
 }
 
 // checker.go:25828
-pub fn get_boolean_literal_value(t: P<Type>) -> bool {
+pub(crate) fn get_boolean_literal_value(t: P<Type>) -> bool {
     match t.as_literal_type().value.get() {
         Some(LiteralValue::Boolean(b)) => b,
         _ => panic!("getBooleanLiteralValue: not a boolean literal"),
@@ -3044,7 +3049,7 @@ impl Checker {
 }
 
 // checker.go:25863
-pub fn is_literal_type(t: P<Type>) -> bool {
+pub(crate) fn is_literal_type(t: P<Type>) -> bool {
     if t.flags().intersects(TypeFlags::Boolean) {
         return true;
     }
@@ -3058,12 +3063,12 @@ pub fn is_literal_type(t: P<Type>) -> bool {
 }
 
 // checker.go:25876
-pub fn is_neither_unit_type_nor_never(t: P<Type>) -> bool {
+pub(crate) fn is_neither_unit_type_nor_never(t: P<Type>) -> bool {
     !t.flags().intersects(TypeFlags::Unit | TypeFlags::Never)
 }
 
 // checker.go:25880
-pub fn is_unit_type(t: P<Type>) -> bool {
+pub(crate) fn is_unit_type(t: P<Type>) -> bool {
     t.flags().intersects(TypeFlags::Unit)
 }
 
@@ -3425,7 +3430,7 @@ impl Checker {
 }
 
 /// Kind of a type for the creation-site counters (`crate::sitecount`).
-pub fn type_kind_label(flags: TypeFlags, object_flags: ObjectFlags) -> &'static str {
+pub(crate) fn type_kind_label(flags: TypeFlags, object_flags: ObjectFlags) -> &'static str {
     if flags.intersects(TypeFlags::Object) {
         if object_flags.intersects(ObjectFlags::ClassOrInterface) {
             "object:class/interface"

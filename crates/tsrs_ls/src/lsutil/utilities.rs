@@ -83,7 +83,10 @@ pub fn probably_uses_semicolons(file: P<SourceFile>) -> bool {
 }
 
 // utilities.go:77
-pub fn should_use_uri_style_node_core_modules(file: P<SourceFile>, program: &Program) -> Tristate {
+pub(crate) fn should_use_uri_style_node_core_modules(
+    file: P<SourceFile>,
+    program: &Program,
+) -> Tristate {
     if let Some(result) = file.imports().iter().find_map(|&node| {
         if tsrs_core::node_core_modules().contains(node.text())
             && !tsrs_core::is_exclusively_prefixed_node_core_module(node.text())
@@ -111,7 +114,7 @@ fn quote_preference_from_string(str: P<Node>) -> QuotePreference {
 }
 
 // utilities.go:98
-pub fn get_quote_preference(
+pub(crate) fn get_quote_preference(
     source_file: P<SourceFile>,
     preferences: &UserPreferences,
 ) -> QuotePreference {
@@ -136,7 +139,7 @@ pub fn get_quote_preference(
 }
 
 // utilities.go:115
-pub fn module_symbol_to_valid_identifier(
+pub(crate) fn module_symbol_to_valid_identifier(
     module_symbol: P<Symbol>,
     force_capitalize: bool,
 ) -> String {
@@ -190,6 +193,6 @@ pub fn module_specifier_to_valid_identifier(
 }
 
 // utilities.go:158
-pub fn is_non_contextual_keyword(token: Kind) -> bool {
+pub(crate) fn is_non_contextual_keyword(token: Kind) -> bool {
     ast::is_keyword_kind(token) && !ast::is_contextual_keyword(token)
 }

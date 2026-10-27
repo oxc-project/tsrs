@@ -1362,7 +1362,13 @@ impl RuntimeSyntaxTransformer {
 }
 
 // runtimesyntax.go:1030
-pub fn get_innermost_module_declaration_from_dotted_module(module_declaration: P<Node>) -> P<Node> {
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn get_innermost_module_declaration_from_dotted_module(
+    module_declaration: P<Node>,
+) -> P<Node> {
     let mut module_declaration = module_declaration;
     while let Some(body) = module_declaration.body() {
         if body.kind() != Kind::ModuleDeclaration {

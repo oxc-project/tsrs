@@ -156,7 +156,7 @@ pub struct SnapshotFS {
 // Go `func() FileHandle` built with `sync.OnceValue`.
 type MemoizedCachedFile = Arc<OnceLock<Option<Arc<dyn FileHandle>>>>;
 
-pub fn new_snapshot_fs(to_path: ToPath, fs: Arc<dyn LayeredFileSystem>) -> SnapshotFS {
+pub(crate) fn new_snapshot_fs(to_path: ToPath, fs: Arc<dyn LayeredFileSystem>) -> SnapshotFS {
     SnapshotFS {
         to_path,
         fs,
@@ -267,7 +267,7 @@ pub struct SnapshotFSBuilder {
 }
 
 // snapshotfs.go:186
-pub fn new_snapshot_fs_builder_from_source(
+pub(crate) fn new_snapshot_fs_builder_from_source(
     fs: Arc<dyn LayeredFileSystem>,
     cache_files: SharedMap<Path, CachedFile>,
     cache_directories: CacheDirectories,
@@ -1024,7 +1024,7 @@ impl SnapshotFS {
 // snapshotfs.go:639
 // isRelevantExtension returns true if the given extension is a known TypeScript
 // or JavaScript extension that can affect the project.
-pub fn is_relevant_extension(ext: &str) -> bool {
+pub(crate) fn is_relevant_extension(ext: &str) -> bool {
     matches!(ext, ".js" | ".jsx" | ".mjs" | ".cjs" | ".ts" | ".tsx" | ".mts" | ".cts" | ".json")
 }
 
@@ -1032,7 +1032,7 @@ pub fn is_relevant_extension(ext: &str) -> bool {
 // isNodeModulesPath reports whether path is a node_modules directory itself or
 // lives inside one. Used to preserve node_modules watch deletions, whose package
 // files are read transiently and therefore never tracked in cacheDirectories.
-pub fn is_node_modules_path(path: &Path) -> bool {
+pub(crate) fn is_node_modules_path(path: &Path) -> bool {
     path.ends_with("/node_modules") || path.contains("/node_modules/")
 }
 
@@ -1062,7 +1062,11 @@ pub struct SourceFS {
 }
 
 // snapshotfs.go:777
-pub fn new_source_fs(tracking: bool, source: Arc<dyn FileSource>, to_path: ToPath) -> SourceFS {
+pub(crate) fn new_source_fs(
+    tracking: bool,
+    source: Arc<dyn FileSource>,
+    to_path: ToPath,
+) -> SourceFS {
     let (seen_files, missing_directories) = if tracking {
         (Some(Arc::new(SyncMap::default())), Some(Arc::new(SyncSet::default())))
     } else {

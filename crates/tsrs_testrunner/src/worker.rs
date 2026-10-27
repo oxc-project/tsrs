@@ -69,11 +69,11 @@ pub struct ItemResult {
     pub expected: Option<String>,
     pub actual: Option<String>,
     // `.types` / `.symbols` (only when requested with --baselines).
-    pub types: Option<ExtraResult>,
-    pub symbols: Option<ExtraResult>,
-    pub js: Option<ExtraResult>,
-    pub jsmap: Option<ExtraResult>,
-    pub sourcemap: Option<ExtraResult>,
+    types: Option<ExtraResult>,
+    symbols: Option<ExtraResult>,
+    js: Option<ExtraResult>,
+    jsmap: Option<ExtraResult>,
+    sourcemap: Option<ExtraResult>,
 }
 
 pub struct ExtraResult {
@@ -255,7 +255,7 @@ pub fn extra_result<'a>(r: &'a ItemResult, ext: &str) -> Option<&'a ExtraResult>
 }
 
 // Writes (or removes stale) `<suite>/<name>.{actual.txt,diff}` for one result.
-pub fn write_artifacts(item: &TestItem, r: &ItemResult) {
+fn write_artifacts(item: &TestItem, r: &ItemResult) {
     let dir = results_dir().join(&item.suite);
     let actual_path = dir.join(format!("{}.actual.txt", item.name));
     let diff_path = dir.join(format!("{}.diff", item.name));
@@ -283,7 +283,7 @@ pub fn write_artifacts(item: &TestItem, r: &ItemResult) {
 }
 
 // Writes (or removes stale) `<suite>/<name>.{types,symbols}.{actual,diff}` for the requested extra baselines.
-pub fn write_extra_artifacts(item: &TestItem, r: &ItemResult) {
+fn write_extra_artifacts(item: &TestItem, r: &ItemResult) {
     let dir = results_dir().join(&item.suite);
     for (ext, bit) in EXTRA_KINDS {
         if crate::extra_baselines() & bit == 0 {
@@ -316,13 +316,13 @@ pub fn write_extra_artifacts(item: &TestItem, r: &ItemResult) {
     }
 }
 
-pub fn parse_item_line(line: &str) -> TestItem {
+fn parse_item_line(line: &str) -> TestItem {
     let mut parts = line.split('\t');
     let mut next = || parts.next().unwrap_or("").to_string();
     TestItem { suite: next(), path: next(), config: next(), name: next() }
 }
 
-pub fn format_item_line(item: &TestItem) -> String {
+pub(crate) fn format_item_line(item: &TestItem) -> String {
     format!("{}\t{}\t{}\t{}", item.suite, item.path, item.config, item.name)
 }
 
@@ -376,7 +376,7 @@ pub fn worker_main() {
 
 /// The message of the last panic caught on this thread (for panics caught inside a test, like Go's
 /// `RecoverAndFail`).
-pub fn take_last_panic_message() -> String {
+pub(crate) fn take_last_panic_message() -> String {
     take_panic_info().map_or_else(
         || "<unknown panic>".to_string(),
         |p| format!("{} at {}", p.message, p.location),

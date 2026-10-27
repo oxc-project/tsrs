@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 // Hand-ported data model of package `declarations` (types, interfaces and constants of transform.go, tracker.go,
 // diagnostics.go and supplementalreferences.go). Function bodies live in the per-file modules.
 //
@@ -53,7 +58,6 @@ pub struct DeclarationTransformer {
     pub(crate) state: P<SymbolTrackerSharedState>,
     pub(crate) resolver: Resolver,
     pub(crate) declaration_file_path: String,
-    pub declaration_map_path: String,
 
     pub(crate) needs_declare: Cell<bool>,
     pub(crate) needs_scope_fix_marker: Cell<bool>,
@@ -136,7 +140,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:215
-pub const DECLARATION_EMIT_NODE_BUILDER_FLAGS: nodebuilder::Flags =
+pub(crate) const DECLARATION_EMIT_NODE_BUILDER_FLAGS: nodebuilder::Flags =
     nodebuilder::Flags::MultilineObjectLiterals
         .union(nodebuilder::Flags::WriteClassExpressionAsTypeLiteral)
         .union(nodebuilder::Flags::UseTypeOfFunction)
@@ -146,7 +150,7 @@ pub const DECLARATION_EMIT_NODE_BUILDER_FLAGS: nodebuilder::Flags =
         .union(nodebuilder::Flags::NoTruncation);
 
 // transform.go:223
-pub const DECLARATION_EMIT_INTERNAL_NODE_BUILDER_FLAGS: nodebuilder::InternalFlags =
+pub(crate) const DECLARATION_EMIT_INTERNAL_NODE_BUILDER_FLAGS: nodebuilder::InternalFlags =
     nodebuilder::InternalFlags::AllowUnresolvedNames
         .union(nodebuilder::InternalFlags::RewriteModuleSpecifiers);
 
@@ -154,7 +158,6 @@ pub const DECLARATION_EMIT_INTERNAL_NODE_BUILDER_FLAGS: nodebuilder::InternalFla
 pub struct SymbolTrackerImpl {
     pub(crate) resolver: Resolver,
     pub(crate) state: P<SymbolTrackerSharedState>,
-    pub host: &'static dyn DeclarationEmitHost,
     pub(crate) fallback_stack: RefCell<Vec<Option<P<Node>>>>,
 
     // For detecting class expression self-references during member serialization.

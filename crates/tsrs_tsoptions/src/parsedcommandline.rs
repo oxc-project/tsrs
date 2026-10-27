@@ -378,20 +378,8 @@ impl ParsedCommandLine {
         &[]
     }
 
-    pub fn set_parsed_options(&mut self, o: ParsedOptions) {
-        self.parsed_config = o;
-    }
-
-    pub fn set_compiler_options(&mut self, o: P<CompilerOptions>) {
-        self.parsed_config.compiler_options = Some(o);
-    }
-
     pub fn compiler_options(&self) -> Option<P<CompilerOptions>> {
         self.parsed_config.compiler_options
-    }
-
-    pub fn set_type_acquisition(&mut self, o: Option<TypeAcquisition>) {
-        self.parsed_config.type_acquisition = o;
     }
 
     pub fn type_acquisition(&self) -> Option<&TypeAcquisition> {
@@ -651,11 +639,7 @@ impl ParsedCommandLine {
     }
 }
 
-#[expect(
-    clippy::implicit_hasher,
-    reason = "The compiler's output extension maps always use FxHashMap."
-)]
-pub fn get_content_mapper_output_extension<'a>(
+pub(crate) fn get_content_mapper_output_extension<'a>(
     output_extensions: &'a FxHashMap<String, String>,
     source_extension: &str,
     ignore_case: bool,

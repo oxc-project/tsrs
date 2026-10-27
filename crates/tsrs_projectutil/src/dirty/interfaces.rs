@@ -25,10 +25,6 @@ impl<T> Shared<T> {
         Arc::ptr_eq(&a.0, &b.0)
     }
 
-    pub fn as_ptr(&self) -> *const T {
-        Arc::as_ptr(&self.0)
-    }
-
     pub fn arc(&self) -> &Arc<T> {
         &self.0
     }

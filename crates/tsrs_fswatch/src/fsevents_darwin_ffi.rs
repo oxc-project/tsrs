@@ -126,7 +126,7 @@ unsafe extern "C" {
     );
 }
 
-pub const CF_STRING_ENCODING_UTF8: u32 = 0x0800_0100;
+const CF_STRING_ENCODING_UTF8: u32 = 0x0800_0100;
 const CF_STRING_NORMALIZATION_FORM_C: CFIndex = 2; // kCFStringNormalizationFormC
 // kFSEventStreamCreateFlagUseCFTypes (0x1) | kFSEventStreamCreateFlagFileEvents (0x10); Go hardcodes it in the
 // assembly trampolines.
@@ -144,7 +144,7 @@ impl Drop for CFRef {
 }
 
 // Go `cfStringCreate(0, cstr, UTF8)`; None when CFStringCreateWithCString returns NULL (or `s` contains NUL).
-pub fn cf_string_create(s: &str) -> Option<CFRef> {
+fn cf_string_create(s: &str) -> Option<CFRef> {
     let cstr = CString::new(s).ok()?;
     // SAFETY: `cstr` is NUL-terminated and outlives the call; NULL allocator = default.
     let r = unsafe {
@@ -155,7 +155,7 @@ pub fn cf_string_create(s: &str) -> Option<CFRef> {
 
 // Go `cfArrayCreate(0, values, n, 0)`: NULL callbacks, so the array does not retain its values; the caller keeps
 // `values` alive while the array is used (Go's `defer cfRelease` order).
-pub fn cf_array_create(values: &[CFRef]) -> Option<CFRef> {
+fn cf_array_create(values: &[CFRef]) -> Option<CFRef> {
     let ptrs: Vec<CFTypeRef> = values.iter().map(|v| v.0).collect();
     // SAFETY: `ptrs` holds `ptrs.len()` valid CF objects for the duration of the call.
     let r = unsafe {
@@ -186,7 +186,7 @@ pub const NATIVE_PATH_FOLDING: bool = true;
 // foldNativePath is a comparison form, never a displayed or opened path.
 // Case folding expands sharp s and ligatures without making diacritics,
 // dotless i, circled letters, or character widths interchangeable.
-pub fn fold_native_path(s: &str) -> String {
+pub(crate) fn fold_native_path(s: &str) -> String {
     const CF_COMPARE_CASE_INSENSITIVE: usize = 1;
 
     if is_ascii(s) {
@@ -225,7 +225,7 @@ fn is_ascii(s: &str) -> bool {
 // If normalization fails, it falls back to the unnormalized UTF-8 contents.
 // Returns "" only if both the normalized and unnormalized conversions fail
 // (e.g. src is not a CFString, or allocation fails).
-pub fn cf_string_to_nfc(src: CFTypeRef) -> String {
+fn cf_string_to_nfc(src: CFTypeRef) -> String {
     if src.is_null() {
         return String::new();
     }
@@ -277,7 +277,7 @@ fn cf_string_to_go(src: CFTypeRef) -> String {
 // inputs are returned unchanged. Non-ASCII inputs go through CoreFoundation;
 // if any step fails (e.g. invalid UTF-8 from a corrupt path), the original
 // string is returned so the caller still sees *something* rather than nothing.
-pub fn normalize_nfc(s: &str) -> String {
+pub(crate) fn normalize_nfc(s: &str) -> String {
     if is_ascii(s) {
         return s.to_string();
     }
@@ -292,14 +292,14 @@ pub fn normalize_nfc(s: &str) -> String {
 }
 
 // Go `fsEventsGetCurrentEventID`.
-pub fn fs_events_get_current_event_id() -> u64 {
+pub(crate) fn fs_events_get_current_event_id() -> u64 {
     // SAFETY: no arguments, no preconditions.
     unsafe { native_fs_events_get_current_event_id() }
 }
 
 // The borrowed arguments of one FSEvents callback (Go's retained/copied `fsEventsCallbackPayload`; here the
 // callback runs synchronously, so nothing is retained or freed).
-pub struct FsEventsCallbackPayload {
+pub(crate) struct FsEventsCallbackPayload {
     pub(crate) num_events: usize,
     paths: CFTypeRef,
     flags: *const u32,
@@ -445,7 +445,7 @@ pub enum StreamStartError {
 
 // The FFI part of fsevents_darwin.go `startStream`: create the CF path array and the stream, schedule it on the
 // callback's queue, start and flush it. On failure the callback is closed (Go: `cb.close()`).
-pub fn create_and_start_stream(
+pub(crate) fn create_and_start_stream(
     paths: &[String],
     cb: &mut Box<StreamCallback>,
 ) -> Result<FsEventStream, StreamStartError> {

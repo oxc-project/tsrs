@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use std::rc::Rc;
 
 use tsrs_ast::{self as ast, Kind, Node, NodeFlags, NodeList, NodeVisitor, SourceFile};
@@ -8,7 +13,7 @@ use crate::astnav::{self, VisitNodeFn, VisitNodesFn};
 
 // children.go:13
 // Replaces last(node.getChildren(sourceFile))
-pub fn get_last_child(node: P<Node>, source_file: P<SourceFile>) -> Option<P<Node>> {
+pub(crate) fn get_last_child(node: P<Node>, source_file: P<SourceFile>) -> Option<P<Node>> {
     let last_child_node = get_last_visited_child(node, source_file);
     if ast::is_jsdoc_single_comment_node(node) && last_child_node.is_none() {
         return None;
@@ -38,7 +43,7 @@ pub fn get_last_child(node: P<Node>, source_file: P<SourceFile>) -> Option<P<Nod
 }
 
 // children.go:37
-pub fn get_last_token(node: Option<P<Node>>, source_file: P<SourceFile>) -> Option<P<Node>> {
+pub(crate) fn get_last_token(node: Option<P<Node>>, source_file: P<SourceFile>) -> Option<P<Node>> {
     let node = node?;
 
     if ast::is_token_kind(node.kind()) || ast::is_identifier(node) {
@@ -59,7 +64,7 @@ pub fn get_last_token(node: Option<P<Node>>, source_file: P<SourceFile>) -> Opti
 // children.go:62
 // Gets the last visited child of the given node.
 // NOTE: This doesn't include unvisited tokens; for this, use `getLastChild` or `getLastToken`.
-pub fn get_last_visited_child(node: P<Node>, source_file: P<SourceFile>) -> Option<P<Node>> {
+pub(crate) fn get_last_visited_child(node: P<Node>, source_file: P<SourceFile>) -> Option<P<Node>> {
     let last_child: Rc<std::cell::Cell<Option<P<Node>>>> = Rc::new(std::cell::Cell::new(None));
 
     let visit_node: VisitNodeFn = {
@@ -92,7 +97,7 @@ pub fn get_last_visited_child(node: P<Node>, source_file: P<SourceFile>) -> Opti
 }
 
 // children.go:87
-pub fn get_first_token(node: P<Node>, source_file: P<SourceFile>) -> Option<P<Node>> {
+pub(crate) fn get_first_token(node: P<Node>, source_file: P<SourceFile>) -> Option<P<Node>> {
     if ast::is_identifier(node) || ast::is_token_kind(node.kind()) {
         return None;
     }

@@ -220,14 +220,6 @@ impl BucketState {
             || set_len(self.dirty_packages.as_ref()) > 0
     }
 
-    // registry.go:177
-    pub fn dirty_file(&self) -> Path {
-        if self.multiple_files_dirty {
-            return Path::default();
-        }
-        self.dirty_file.clone()
-    }
-
     // registry.go:184
     pub fn dirty_packages(&self) -> Option<Set<String>> {
         if self.multiple_files_dirty {
@@ -376,10 +368,6 @@ impl RegistryBucket {
         }
         // Track the package for granular updates
         self.state.dirty_packages.get_or_insert_with(Set::new).add(package_name.to_string());
-    }
-
-    pub fn state(&self) -> &BucketState {
-        &self.state
     }
 }
 
@@ -747,17 +735,9 @@ fn new_registry_builder<'r>(
         directories: dirty::new_map(Arc::clone(&registry.directories)),
         node_modules: dirty::new_map(Arc::clone(&registry.node_modules)),
         projects: dirty::new_map(Arc::clone(&registry.projects)),
-        specifier_cache: dirty::new_map_builder(
-            Arc::clone(&registry.specifier_cache),
-            |v: &SpecifierCache| Arc::clone(v),
-            |v| v,
-        ),
+        specifier_cache: dirty::new_map_builder(Arc::clone(&registry.specifier_cache), |v| v),
         unique_package_count: registry.unique_package_count,
-        entrypoints: dirty::new_map_builder(
-            Arc::clone(&registry.entrypoints),
-            |v: &Vec<Arc<ResolvedEntrypoint>>| v.clone(),
-            |v| v,
-        ),
+        entrypoints: dirty::new_map_builder(Arc::clone(&registry.entrypoints), |v| v),
         package_json_region: None,
     }
 }
@@ -1636,7 +1616,7 @@ fn has_symlink_to_node_modules(
 }
 
 // registry.go:1204
-pub struct FailedAmbientModuleLookupSource {
+pub(crate) struct FailedAmbientModuleLookupSource {
     file_name: String,
     package_name: String,
 }

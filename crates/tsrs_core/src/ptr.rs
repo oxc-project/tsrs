@@ -431,13 +431,6 @@ impl<T> P<T> {
             std::marker::PhantomData,
         )
     }
-
-    /// The handle (compressed mode only): the object's offset from `reserve::base()` in 8-byte units.
-    #[inline]
-    #[cfg(compressed_ptrs)]
-    pub fn handle(self) -> u32 {
-        self.0.get()
-    }
 }
 
 #[cfg(compressed_ptrs)]
@@ -532,11 +525,6 @@ pub fn key_to_usize(key: PKey) -> usize {
 }
 
 impl<T: ?Sized> P<T> {
-    #[inline]
-    pub fn ptr_eq(self, other: P<T>) -> bool {
-        self == other
-    }
-
     /// Identity as an integer, for tables keyed by object (eq and hash agree with `P`'s) and for packed fields
     /// (`from_key` turns it back; never 0).
     #[inline]
@@ -685,18 +673,10 @@ unsafe impl<T: ?Sized> Sync for P<T> {}
 pub struct PSlot<V>(pub V);
 
 impl<V> PSlot<V> {
-    /// The pointer to the element of an arena array.
-    #[inline]
-    #[cfg_attr(compressed_ptrs, track_caller)]
-    pub fn as_p(&'static self) -> P<V> {
-        // SAFETY: slots live only in arena arrays (`alloc_vec`), 8-aligned in compressed mode.
-        unsafe { P::from_arena(&self.0) }
-    }
-
     /// The first slot of an arena array of slots, for `P::array_add` indexing (`nth`).
     #[inline]
     pub fn first(slots: &'static [PSlot<V>]) -> P<PSlot<V>> {
-        // SAFETY: as in `as_p`; the array is not empty.
+        // SAFETY: the nonempty array lives in the arena; slots are 8-aligned in compressed mode.
         unsafe { P::from_arena(&slots[0]) }
     }
 
@@ -722,10 +702,7 @@ impl<T> SP<T> {
     pub const fn from_static(r: &'static T) -> SP<T> {
         SP(r)
     }
-    #[inline]
-    pub fn get(self) -> &'static T {
-        self.0
-    }
+
     #[inline]
     fn addr(self) -> usize {
         std::ptr::from_ref::<T>(self.0) as usize
@@ -768,87 +745,6 @@ impl<T> fmt::Debug for SP<T> {
 unsafe impl<T> Send for SP<T> {}
 // SAFETY: as for `Send`.
 unsafe impl<T> Sync for SP<T> {}
-
-/// Packs two arena slices so their containing enum remains small.
-///
-/// Two `&'static` slices in 24 bytes (u32 lengths) instead of 32, so an enum variant holding both still fits
-/// in a 32-byte enum (Go slice headers are larger, but Go's mapper structs are separate allocations per
-/// kind).
-pub struct SlicePair<A: 'static, B: 'static> {
-    a: std::ptr::NonNull<A>,
-    b: std::ptr::NonNull<B>,
-    a_len: u32,
-    b_len: u32,
-}
-
-impl<A, B> Clone for SlicePair<A, B> {
-    #[inline]
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-impl<A, B> Copy for SlicePair<A, B> {}
-
-impl<A, B> SlicePair<A, B> {
-    #[inline]
-    pub fn new(a: &'static [A], b: &'static [B]) -> Self {
-        assert!(u32::try_from(a.len()).is_ok() && u32::try_from(b.len()).is_ok());
-        SlicePair {
-            a: std::ptr::NonNull::from(a).cast(),
-            b: std::ptr::NonNull::from(b).cast(),
-            a_len: a.len() as u32,
-            b_len: b.len() as u32,
-        }
-    }
-    #[inline]
-    pub fn first(&self) -> &'static [A] {
-        // SAFETY: built from a `&'static [A]` of this length.
-        unsafe { std::slice::from_raw_parts(self.a.as_ptr(), self.a_len as usize) }
-    }
-    #[inline]
-    pub fn second(&self) -> &'static [B] {
-        // SAFETY: built from a `&'static [B]` of this length.
-        unsafe { std::slice::from_raw_parts(self.b.as_ptr(), self.b_len as usize) }
-    }
-}
-
-// SAFETY: two `&'static` slices of arena or static data, under `P`'s threading contract.
-unsafe impl<A, B> Send for SlicePair<A, B> {}
-// SAFETY: as for `Send`; the pair is never written through.
-unsafe impl<A, B> Sync for SlicePair<A, B> {}
-
-/// The data pointer of a `&'static [T]` whose length is stored next to it by the owner (so an enum variant can
-/// keep the length in the space after its tag instead of a 16-byte slice reference).
-pub struct StaticSlicePtr<T: 'static>(std::ptr::NonNull<T>);
-
-impl<T> Clone for StaticSlicePtr<T> {
-    #[inline]
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-impl<T> Copy for StaticSlicePtr<T> {}
-
-impl<T> StaticSlicePtr<T> {
-    #[inline]
-    pub fn new(s: &'static [T]) -> Self {
-        StaticSlicePtr(std::ptr::NonNull::from(s).cast())
-    }
-    /// The slice back.
-    ///
-    /// # Safety
-    /// `len` must be the length of the slice this pointer was built from.
-    #[inline]
-    pub unsafe fn slice(self, len: usize) -> &'static [T] {
-        // SAFETY: the pointer is the data pointer of a `&'static [T]` of length `len` (this function's contract).
-        unsafe { std::slice::from_raw_parts(self.0.as_ptr(), len) }
-    }
-}
-
-// SAFETY: the data pointer of a `&'static [T]` of arena or static data, under `P`'s threading contract.
-unsafe impl<T> Send for StaticSlicePtr<T> {}
-// SAFETY: as for `Send`; the slice is never written through.
-unsafe impl<T> Sync for StaticSlicePtr<T> {}
 
 /// A `&'static str` in 8 bytes: the data pointer in the low 48 bits and the length in the high 16.
 ///
@@ -910,7 +806,7 @@ impl PackedStr {
     #[inline]
     #[expect(
         clippy::disallowed_methods,
-        reason = "from_utf8 here and in OwnedStrCell::get: +5% instructions, one checker (notes/lint-paydown-compiler.md)"
+        reason = "from_utf8 here: +5% instructions, one checker (notes/lint-paydown-compiler.md)"
     )]
     pub fn as_str(self) -> &'static str {
         let len = self.0.addr().get() >> PACKED_STR_LEN_SHIFT;
@@ -1280,30 +1176,6 @@ pub type PSliceCell<T> = SliceCell<T>;
 #[cfg(compressed_ptrs)]
 pub type PSliceCell<T> = ThinSliceCell<T>;
 
-/// A `Cell<&'static str>` in 8 bytes (a `PackedStr`).
-pub struct StrCell(std::cell::Cell<PackedStr>);
-
-impl StrCell {
-    #[inline]
-    fn new(s: &'static str) -> Self {
-        StrCell(std::cell::Cell::new(PackedStr::new(s)))
-    }
-    #[inline]
-    pub fn get(&self) -> &'static str {
-        self.0.get().as_str()
-    }
-    #[inline]
-    pub fn set(&self, s: &'static str) {
-        self.0.set(PackedStr::new(s));
-    }
-}
-
-impl Default for StrCell {
-    fn default() -> Self {
-        StrCell::new("")
-    }
-}
-
 /// Copies a slice into the arena. Use for Go slices that are stored in long-lived objects.
 #[inline]
 pub fn alloc_slice<T: Copy>(items: &[T]) -> &'static [T] {
@@ -1340,7 +1212,7 @@ pub fn alloc_vec_scratch<T>(items: Vec<T>) -> &'static [T] {
 
 /// `alloc_slice` of bytes, 4-aligned (for a length prefix read as `u32`).
 #[inline]
-pub fn alloc_slice_aligned4(items: &[u8]) -> &'static [u8] {
+pub(crate) fn alloc_slice_aligned4(items: &[u8]) -> &'static [u8] {
     let layout =
         std::alloc::Layout::from_size_align(items.len().max(1), 4).expect("arena slice layout");
     let p = with_arena(|a| a.alloc_layout(layout));
@@ -1527,17 +1399,6 @@ impl ArenaStringBuilder {
             return ArenaStringBuilder::new();
         }
         ArenaStringBuilder { ptr: arena_string_capacity(capacity), len: 0, capacity }
-    }
-
-    /// Number of initialized UTF-8 bytes.
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.len
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.len == 0
     }
 
     #[inline]

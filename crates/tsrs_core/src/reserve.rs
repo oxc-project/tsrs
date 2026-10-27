@@ -15,7 +15,7 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Handles count units of `1 << UNIT_SHIFT` bytes, so every `P` target is 8-aligned.
-pub const UNIT_SHIFT: u32 = 3;
+pub(crate) const UNIT_SHIFT: u32 = 3;
 /// 2^32 units: 32 GiB.
 pub const RESERVE: usize = 1 << (32 + UNIT_SHIFT);
 /// Chunk sizes and offsets are multiples of this (a multiple of every supported page size).
@@ -43,7 +43,7 @@ pub const HUGE_CHUNK: usize = GRANULE;
 /// `add x, base, w, uxtw #3` then folds the zero-extension and the shift of a 32-bit handle into the one
 /// instruction. A base with disjoint bits (`0x4000_0000_0000`) gave `mov w, w` + `orr` per dereference of a
 /// handle passed in a register.
-pub const BASE_ADDR: usize = 0x4001_0000_0000;
+pub(crate) const BASE_ADDR: usize = 0x4001_0000_0000;
 
 static RESERVED: AtomicBool = AtomicBool::new(false);
 
@@ -287,11 +287,11 @@ pub(crate) unsafe fn discard(p: *mut u8, len: usize) {
 }
 
 /// Bytes of the reservation handed out as chunks and not released.
-pub fn reserved_in_use() -> usize {
+pub(crate) fn reserved_in_use() -> usize {
     CHUNKS.lock().unwrap_or_else(std::sync::PoisonError::into_inner).live
 }
 
 /// How far into the reservation chunks have ever been carved (released ranges are reused before it grows).
-pub fn reserved_high_water() -> usize {
+pub(crate) fn reserved_high_water() -> usize {
     CHUNKS.lock().unwrap_or_else(std::sync::PoisonError::into_inner).peak
 }

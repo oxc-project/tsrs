@@ -66,11 +66,6 @@ impl CheckerHandle {
     }
 
     // Go `done()`.
-    #[expect(
-        clippy::unused_self,
-        reason = "Releasing a checker handle remains an instance lifecycle operation even when the pool owns its storage."
-    )]
-    pub fn release(self) {}
 }
 
 impl std::ops::Deref for CheckerHandle {
@@ -128,10 +123,6 @@ impl PooledChecker {
     pub fn as_non_null(&mut self) -> NonNull<Checker> {
         NonNull::from(&mut *self.0)
     }
-
-    pub fn into_inner(self) -> Box<Checker> {
-        self.0
-    }
 }
 
 impl std::ops::Deref for PooledChecker {
@@ -148,7 +139,7 @@ impl std::ops::DerefMut for PooledChecker {
 }
 
 // Checkers recurse deeply (the single-threaded CLI runs on a 512 MB stack); each checker thread gets the same.
-pub const CHECKER_STACK_SIZE: usize = 512 << 20;
+pub(crate) const CHECKER_STACK_SIZE: usize = 512 << 20;
 
 // Go core.WorkGroup as used by the checker pool: runs `task(i)` for every index, each on its own OS thread,
 // and waits for all of them. Single-threaded runs execute the tasks in order on the calling thread.
@@ -412,12 +403,12 @@ pub struct PoolState {
 // TSRS_FILE_TIMES=<path> (experiments): after checking, write one line per file run by a checker group:
 // checker, seconds, thread CPU seconds, node count, text length, import count, file name, and the file's node-kind
 // histogram (`Kind=count` pairs), for fitting assignment cost models offline.
-pub fn file_times_path() -> Option<&'static str> {
+pub(crate) fn file_times_path() -> Option<&'static str> {
     static PATH: OnceLock<Option<String>> = OnceLock::new();
     PATH.get_or_init(|| std::env::var("TSRS_FILE_TIMES").ok().filter(|v| !v.is_empty())).as_deref()
 }
 
-pub fn write_file_times(program: &'static Program) {
+pub(crate) fn write_file_times(program: &'static Program) {
     fn count_kinds(node: P<tsrs_ast::Node>, counts: &mut [u32]) {
         counts[node.kind() as usize] += 1;
         node.for_each_child(&mut |child| {
@@ -454,7 +445,7 @@ pub fn write_file_times(program: &'static Program) {
 
 // CPU time of the calling thread: used by the per-file timing and checker-cost-cache tools.
 #[cfg(unix)]
-pub fn thread_cpu_seconds() -> f64 {
+pub(crate) fn thread_cpu_seconds() -> f64 {
     #[repr(C)]
     struct Timespec {
         tv_sec: i64,
@@ -860,14 +851,6 @@ impl CheckerPoolImpl {
 
     pub fn state(&self) -> &PoolState {
         self.create_checkers()
-    }
-
-    pub(crate) fn checker_count(&self) -> usize {
-        self.checker_count
-    }
-
-    pub(crate) fn checker_index_of_file(&self, file: P<SourceFile>) -> Option<usize> {
-        self.create_checkers().owner_of(file)
     }
 
     // checkerpool.go:451
@@ -1812,7 +1795,7 @@ fn read_cost_cache(path: &str) -> (FxHashMap<String, CostEntry>, usize) {
 
 // Writes the cost cache when it is enabled and more than one checker ran: per type-checked file, its thread CPU
 // seconds summed over the checker passes and its checker. Files of other runs are dropped.
-pub fn write_cost_cache(program: &'static Program) {
+pub(crate) fn write_cost_cache(program: &'static Program) {
     use std::fmt::Write;
     // Programs with an external checker pool (language server / API projects) have no cost state to write.
     let (Some(path), Some(state)) = (
@@ -1864,7 +1847,7 @@ pub fn write_cost_cache(program: &'static Program) {
 //   file:<path>:        one checker index per line by program file index (experiments)
 //   random:<seed>:      a random checker per file and a random visit order in each checker, drawn from the seed
 //                       (debug: probes assignment and visit-order sensitivity)
-pub enum CheckerAssignment {
+enum CheckerAssignment {
     Locality,
     Go,
     File(String),

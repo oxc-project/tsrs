@@ -391,16 +391,6 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMap<K, T> {
         (Some(entry), loaded)
     }
 
-    // syncmap.go:262
-    pub fn delete(&self, key: &K) {
-        let new_entry =
-            self.new_entry(key.clone(), self.inner.base.get(key).cloned(), None, false, true);
-        let (entry, loaded) = self.inner.dirty.load_or_store(key.clone(), new_entry);
-        if loaded {
-            entry.delete();
-        }
-    }
-
     // syncmap.go:274
     pub fn range(&self, mut f: impl FnMut(&Arc<SyncMapEntry<K, T>>) -> bool) {
         let mut seen_in_dirty: FxHashSet<K> = FxHashSet::default();

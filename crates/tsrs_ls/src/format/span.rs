@@ -13,7 +13,7 @@ use crate::visitedchildren::{VisitedChild, collect_visited_children};
 
 // span.go:20
 /* find node that fully contains given text range */
-pub fn find_enclosing_node(r: TextRange, source_file: P<SourceFile>) -> P<Node> {
+pub(crate) fn find_enclosing_node(r: TextRange, source_file: P<SourceFile>) -> P<Node> {
     fn find(n: P<Node>, r: TextRange, source_file: P<SourceFile>) -> P<Node> {
         let mut candidate: Option<P<Node>> = None;
         n.for_each_child(&mut |c| {
@@ -41,7 +41,7 @@ pub fn find_enclosing_node(r: TextRange, source_file: P<SourceFile>) -> P<Node> 
  * This function will look for token that is located before the start of target range
  * and return its end as start position for the scanner.
  */
-pub fn get_scan_start_position(
+pub(crate) fn get_scan_start_position(
     enclosing_node: P<Node>,
     original_range: TextRange,
     source_file: P<SourceFile>,
@@ -89,7 +89,7 @@ pub fn get_scan_start_position(
  * if parent is on the different line - its delta was already contributed
  * to the initial indentation.
  */
-pub fn get_own_or_inherited_delta(
+pub(crate) fn get_own_or_inherited_delta(
     n: P<Node>,
     options: &FormatCodeSettings,
     source_file: P<SourceFile>,
@@ -124,10 +124,10 @@ fn range_has_no_errors(_: TextRange) -> bool {
     false
 }
 
-pub type RangeContainsError = Box<dyn FnMut(TextRange) -> bool>;
+pub(crate) type RangeContainsError = Box<dyn FnMut(TextRange) -> bool>;
 
 // span.go:113
-pub fn prepare_range_contains_error_function(
+pub(crate) fn prepare_range_contains_error_function(
     errors: &[P<Diagnostic>],
     original_range: TextRange,
 ) -> RangeContainsError {
@@ -175,7 +175,7 @@ pub fn prepare_range_contains_error_function(
 }
 
 // span.go:155
-pub struct FormatSpanWorker {
+pub(crate) struct FormatSpanWorker {
     original_range: TextRange,
     enclosing_node: P<Node>,
     initial_indentation: i32,
@@ -208,7 +208,7 @@ pub struct FormatSpanWorker {
 }
 
 // span.go:188
-pub fn new_format_span_worker(
+pub(crate) fn new_format_span_worker(
     ctx: &FormatContext,
     original_range: TextRange,
     enclosing_node: P<Node>,
@@ -1431,7 +1431,7 @@ impl FormatSpanWorker {
 }
 
 // span.go:870
-pub fn is_string_or_regular_expression_or_template_literal(kind: Kind) -> bool {
+pub(crate) fn is_string_or_regular_expression_or_template_literal(kind: Kind) -> bool {
     kind == Kind::StringLiteral
         || kind == Kind::RegularExpressionLiteral
         || ast::is_template_literal_kind(kind)
@@ -1840,7 +1840,7 @@ impl FormatSpanWorker {
 }
 
 // span.go:1121
-pub struct DynamicIndenter {
+pub(crate) struct DynamicIndenter {
     node: P<Node>,
     node_start_line: usize,
     indentation: Cell<i32>,
@@ -1851,7 +1851,7 @@ pub struct DynamicIndenter {
 }
 
 // Go passes `*dynamicIndenter` around and mutates it in place (recomputeIndentation).
-pub type DynamicIndenterRef = Rc<DynamicIndenter>;
+pub(crate) type DynamicIndenterRef = Rc<DynamicIndenter>;
 
 impl DynamicIndenter {
     // span.go:1131

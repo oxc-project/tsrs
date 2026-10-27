@@ -16,17 +16,13 @@ crates/tsrs_core/src/arena.rs	Sync	RegionInner
 crates/tsrs_core/src/frozen.rs	Send	<T: Send> FrozenCell<T>
 crates/tsrs_core/src/frozen.rs	Sync	<T: Send + Sync> FrozenCell<T>
 crates/tsrs_core/src/memsplit.rs	Send	ArenaRef
-crates/tsrs_core/src/ptr.rs	Send	<A, B> SlicePair<A, B>
 crates/tsrs_core/src/ptr.rs	Send	<T: ?Sized> P<T>
 crates/tsrs_core/src/ptr.rs	Send	<T> SP<T>
-crates/tsrs_core/src/ptr.rs	Send	<T> StaticSlicePtr<T>
 crates/tsrs_core/src/ptr.rs	Send	<T> ThinSlice<T>
 crates/tsrs_core/src/ptr.rs	Send	ArenaRef
 crates/tsrs_core/src/ptr.rs	Send	PackedStr
-crates/tsrs_core/src/ptr.rs	Sync	<A, B> SlicePair<A, B>
 crates/tsrs_core/src/ptr.rs	Sync	<T: ?Sized> P<T>
 crates/tsrs_core/src/ptr.rs	Sync	<T> SP<T>
-crates/tsrs_core/src/ptr.rs	Sync	<T> StaticSlicePtr<T>
 crates/tsrs_core/src/ptr.rs	Sync	<T> ThinSlice<T>
 crates/tsrs_core/src/ptr.rs	Sync	PackedStr
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Send	FsEventStream

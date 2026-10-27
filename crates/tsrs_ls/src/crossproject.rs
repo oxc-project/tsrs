@@ -401,7 +401,7 @@ impl LanguageService {
 }
 
 // crossproject.go:298
-pub fn combine_location_array<T: HasLocation + Clone>(
+pub(crate) fn combine_location_array<T: HasLocation + Clone>(
     mut combined: Vec<T>,
     locations: &[T],
     seen: &mut Set<lsproto::Location>,
@@ -427,12 +427,14 @@ fn combine_response_locations<T: HasLocations>(results: &[T]) -> Vec<lsproto::Lo
 }
 
 // crossproject.go:322
-pub fn combine_references(results: &[lsproto::ReferencesResponse]) -> lsproto::ReferencesResponse {
+pub(crate) fn combine_references(
+    results: &[lsproto::ReferencesResponse],
+) -> lsproto::ReferencesResponse {
     lsproto::LocationsOrNull { locations: Some(combine_response_locations(results)) }
 }
 
 // crossproject.go:326
-pub fn combine_vs_references(
+pub(crate) fn combine_vs_references(
     results: Vec<lsproto::VSReferencesResponse>,
 ) -> lsproto::VSReferencesResponse {
     let mut combined: Vec<lsproto::VSReferenceItem> = Vec::new();
@@ -465,7 +467,7 @@ pub fn combine_vs_references(
 
 // Go's `return ...combineResponseLocations(results)` restarts the iteration over all results; so does the port.
 // crossproject.go:354
-pub fn combine_implementations(
+pub(crate) fn combine_implementations(
     results: &[lsproto::ImplementationResponse],
 ) -> lsproto::ImplementationResponse {
     let mut combined: Vec<lsproto::LocationLink> = Vec::new();
@@ -488,7 +490,9 @@ pub fn combine_implementations(
 
 // Go builds `map`s (random iteration order) keyed by document URI; the port keeps first-seen order.
 // crossproject.go:367
-pub fn combine_rename_response(results: Vec<lsproto::RenameResponse>) -> lsproto::RenameResponse {
+pub(crate) fn combine_rename_response(
+    results: Vec<lsproto::RenameResponse>,
+) -> lsproto::RenameResponse {
     let mut combined: OrderedMap<lsproto::DocumentUri, Vec<lsproto::TextEdit>> =
         OrderedMap::default();
     let mut seen_changes: FxHashMap<lsproto::DocumentUri, Set<lsproto::Range>> =
@@ -541,7 +545,7 @@ pub fn combine_rename_response(results: Vec<lsproto::RenameResponse>) -> lsproto
 }
 
 // crossproject.go:423
-pub fn combine_incoming_calls(
+pub(crate) fn combine_incoming_calls(
     results: Vec<lsproto::CallHierarchyIncomingCallsResponse>,
 ) -> lsproto::CallHierarchyIncomingCallsResponse {
     let mut combined: Vec<lsproto::CallHierarchyIncomingCall> = Vec::new();

@@ -170,8 +170,8 @@ pub struct CompilerOptions {
     pub checkers: Option<i64>,
 }
 
-pub static EMPTY_COMPILER_OPTIONS: LazyLock<CompilerOptions> =
-    LazyLock::new(CompilerOptions::default);
+#[cfg(not(compressed_ptrs))]
+static EMPTY_COMPILER_OPTIONS: LazyLock<CompilerOptions> = LazyLock::new(CompilerOptions::default);
 
 /// `EMPTY_COMPILER_OPTIONS` as an arena pointer (one per process; a compressed `P` cannot point to a static, so
 /// compressed builds keep a copy in the arena of the thread that first asks).
@@ -367,10 +367,6 @@ impl CompilerOptions {
         self.declaration_map == Tristate::True && self.get_emit_declarations()
     }
 
-    pub fn has_json_module_emit_enabled(&self) -> bool {
-        !matches!(self.get_emit_module_kind(), ModuleKind::SYSTEM | ModuleKind::UMD)
-    }
-
     pub fn get_paths_base_path(&self, current_directory: &str) -> String {
         if self.paths.as_ref().map_or(0, |paths| paths.len()) == 0 {
             return String::new();
@@ -440,11 +436,6 @@ impl ModuleKind {
             200 => Some("Preserve"),
             _ => None,
         }
-    }
-
-    /// Whether this is one of Go's named constants.
-    pub fn is_named(self) -> bool {
-        self.name().is_some()
     }
 
     /// The Go int32 value.
@@ -676,11 +667,6 @@ impl ScriptTarget {
         }
     }
 
-    /// Whether this is one of Go's named constants.
-    pub fn is_named(self) -> bool {
-        self.name().is_some()
-    }
-
     /// The Go int32 value.
     pub fn value(self) -> i32 {
         self.0
@@ -740,11 +726,6 @@ impl JsxEmit {
             5 => Some("ReactJSXDev"),
             _ => None,
         }
-    }
-
-    /// Whether this is one of Go's named constants.
-    pub fn is_named(self) -> bool {
-        self.name().is_some()
     }
 
     /// The Go int32 value.

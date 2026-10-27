@@ -25,20 +25,20 @@ main(() => {
             if (!ok) missing.push(what);
         },
         matches = (text, pattern) => [...text.matchAll(pattern)].map((m) => m[1]);
-    const structs = new Map([...rs.matchAll(/^pub struct (\w+)\s*\{\n(.*?)^\}/gms)].map((m) => [m[1], m[2]])),
-        tuples = new Set(matches(rs, /^pub struct (\w+)\(/gm)),
-        aliases = new Set(matches(rs, /^pub type (\w+) =/gm));
+    const structs = new Map([...rs.matchAll(/^(?:pub(?:\(crate\))? )?struct (\w+)\s*\{\n(.*?)^\}/gms)].map((m) => [m[1], m[2]])),
+        tuples = new Set(matches(rs, /^(?:pub(?:\(crate\))? )?struct (\w+)\(/gm)),
+        aliases = new Set(matches(rs, /^(?:pub(?:\(crate\))? )?type (\w+) =/gm));
     const types = new Set([
             ...structs.keys(),
             ...tuples,
             ...aliases,
-            ...matches(rs, /^pub struct (\w+);/gm),
-            ...matches(rs, /^pub struct (\w+)\s*\{\s*\}/gm),
+            ...matches(rs, /^(?:pub(?:\(crate\))? )?struct (\w+);/gm),
+            ...matches(rs, /^(?:pub(?:\(crate\))? )?struct (\w+)\s*\{\s*\}/gm),
         ]),
         constants = new Map(),
         methods = new Map();
     for (const m of rs.matchAll(/^impl (\w+) \{\n(.*?)^\}/gms)) {
-        for (const c of m[2].matchAll(/^    pub const (\w+): (\w+) =/gm)) {
+        for (const c of m[2].matchAll(/^    (?:pub(?:\(crate\))? )?const (\w+): (\w+) =/gm)) {
             if (!constants.has(c[2])) constants.set(c[2], new Set());
             constants.get(c[2]).add(c[1]);
         }
@@ -48,13 +48,13 @@ main(() => {
         }
     }
     const impls = new Set([...rs.matchAll(/^impl ([\w:]+) for (\w+) \{/gm)].map((m) => `${m[1]}:${m[2]}`)),
-        top = new Set(matches(rs, /^pub const (\w+):/gm)),
+        top = new Set(matches(rs, /^(?:pub(?:\(crate\))? )?const (\w+):/gm)),
         enums = new Set(matches(go, /^type (\w+) (?:int32|uint32|string)$/gm));
     for (const m of go.matchAll(/^type (\w+) struct \{\n(.*?)^\}/gms)) {
         need(types.has(m[1]), `type ${m[1]}`);
         for (const f of matches(m[2], /^\t(\w+) /gm))
             need(
-                new RegExp(`^    pub ${snake(f)}:`, "m").test(structs.get(m[1]) ?? ""),
+                new RegExp(`^    (?:pub(?:\\(crate\\))? )?${snake(f)}:`, "m").test(structs.get(m[1]) ?? ""),
                 `field ${m[1]}.${f} (${snake(f)})`,
             );
     }

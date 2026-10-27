@@ -756,7 +756,7 @@ pub enum QuotePreference {
 }
 
 impl QuotePreference {
-    pub fn as_str(self) -> &'static str {
+    fn as_str(self) -> &'static str {
         match self {
             QuotePreference::Unknown => "",
             QuotePreference::Auto => "auto",
@@ -789,7 +789,7 @@ pub enum JsxAttributeCompletionStyle {
 }
 
 impl JsxAttributeCompletionStyle {
-    pub fn as_str(self) -> &'static str {
+    fn as_str(self) -> &'static str {
         match self {
             JsxAttributeCompletionStyle::Unknown => "",
             JsxAttributeCompletionStyle::Auto => "auto",
@@ -809,7 +809,7 @@ pub enum IncludeInlayParameterNameHints {
 }
 
 impl IncludeInlayParameterNameHints {
-    pub fn as_str(self) -> &'static str {
+    fn as_str(self) -> &'static str {
         match self {
             IncludeInlayParameterNameHints::None => "",
             IncludeInlayParameterNameHints::All => "all",
@@ -998,7 +998,7 @@ fn parse_workspace_symbols_scope(val: &Value) -> WorkspaceSymbolsScope {
     clippy::option_option,
     reason = "Distinguishes no matching serializer or field from a matching nil value, as in Go."
 )]
-pub fn type_serializers(field: &FieldRef<'_>) -> Option<Option<Value>> {
+fn type_serializers(field: &FieldRef<'_>) -> Option<Option<Value>> {
     Some(match field {
         FieldRef::Tristate(v) => match **v {
             Tristate::True => Some(Value::Bool(true)),
@@ -1221,7 +1221,7 @@ fn get_nested_value<'a>(config: &'a JsonMap, path: &str) -> Option<&'a Value> {
 }
 
 // userpreferences.go:655
-pub fn set_nested_value(config: &mut JsonMap, path: &str, value: Value) {
+fn set_nested_value(config: &mut JsonMap, path: &str, value: Value) {
     let parts: Vec<&str> = path.split('.').collect();
     let mut current = config;
     current = parts[..parts.len() - 1].iter().fold(current, |mut current, part| {
@@ -1435,7 +1435,7 @@ fn sort_object_keys(v: &mut Value) {
 }
 
 // userpreferences.go:826
-pub fn serialize_field(field: FieldRef<'_>) -> Option<Value> {
+fn serialize_field(field: FieldRef<'_>) -> Option<Value> {
     // Check custom serializers first (for types like Tristate, enums, etc.)
     if let Some(serialized) = type_serializers(&field) {
         return serialized;
@@ -1520,14 +1520,6 @@ impl UserPreferences {
             "",
             vfsmatch::Usage::Exclude,
             use_case_sensitive_file_names,
-        )
-    }
-
-    // userpreferences.go:889
-    pub fn is_module_specifier_excluded(&self, module_specifier: &str) -> bool {
-        tsrs_modulespecifiers::is_excluded_by_regex(
-            module_specifier,
-            self.auto_import_specifier_exclude_regexes.as_deref().unwrap_or(&[]),
         )
     }
 }

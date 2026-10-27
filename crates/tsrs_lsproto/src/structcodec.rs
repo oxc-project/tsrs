@@ -28,7 +28,11 @@ pub fn field<T: Json>(name: &str, v: &Value) -> Result<T, JsonError> {
 }
 
 // A required nilable field that rejects null.
-pub fn field_non_null<T: Json>(name: &str, v: &Value, go_type: &str) -> Result<T, JsonError> {
+pub(crate) fn field_non_null<T: Json>(
+    name: &str,
+    v: &Value,
+    go_type: &str,
+) -> Result<T, JsonError> {
     if is_null(v) {
         return Err(JsonError::method(go_type, err_null(name)).within(name));
     }
@@ -36,7 +40,7 @@ pub fn field_non_null<T: Json>(name: &str, v: &Value, go_type: &str) -> Result<T
 }
 
 // An optional (pointer) field: null decodes as nil.
-pub fn opt<T: Json>(name: &str, v: &Value) -> Result<Option<T>, JsonError> {
+pub(crate) fn opt<T: Json>(name: &str, v: &Value) -> Result<Option<T>, JsonError> {
     if is_null(v) {
         return Ok(None);
     }
@@ -70,16 +74,16 @@ pub fn check_required(seen: u64, required_names: &[&str], go_type: &str) -> Resu
 }
 
 // A union arm decoded with the union's decoder (Go `o.X = new(T); json.UnmarshalDecode(dec, o.X)`).
-pub fn arm<T: Json>(v: &Value) -> Result<Option<T>, JsonError> {
+pub(crate) fn arm<T: Json>(v: &Value) -> Result<Option<T>, JsonError> {
     T::from_json(v).map(Some)
 }
 
 // A union arm decoded from the buffered value (Go `o.X = new(T); json.Unmarshal(data, o.X)`).
-pub fn arm_buffered<T: Json>(v: &Value) -> Result<Option<T>, JsonError> {
+pub(crate) fn arm_buffered<T: Json>(v: &Value) -> Result<Option<T>, JsonError> {
     T::from_json(v).map(Some).map_err(JsonError::seal)
 }
 
-pub fn value_str(v: &Value) -> Option<&str> {
+fn value_str(v: &Value) -> Option<&str> {
     match v {
         Value::String(s) => Some(s),
         _ => None,
@@ -117,7 +121,7 @@ impl DiscriminatedStructDecoder<'_> {
     }
 
     // structcodec.go:226
-    pub fn invalid_discriminator(&self, go_type: &str) -> JsonError {
+    pub(crate) fn invalid_discriminator(&self, go_type: &str) -> JsonError {
         let Some(value) = self.discriminator_value else {
             return JsonError::method(
                 go_type,
@@ -197,7 +201,7 @@ pub fn unmarshal_discriminated_arm<T: Json>(
 }
 
 // Go `cmp.Compare`.
-pub fn cmp_compare<T: PartialOrd>(a: &T, b: &T) -> std::cmp::Ordering {
+pub(crate) fn cmp_compare<T: PartialOrd>(a: &T, b: &T) -> std::cmp::Ordering {
     if a < b {
         std::cmp::Ordering::Less
     } else if a > b {

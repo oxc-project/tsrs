@@ -7,7 +7,7 @@ use crate::commandlineoption::{CommandLineOption, CommandLineOptionKind, Default
 use crate::declscompiler::COMMON_OPTIONS_WITH_BUILD;
 
 // BEGIN GENERATED
-pub static TSC_BUILD_OPTION: CommandLineOption = CommandLineOption {
+pub(crate) static TSC_BUILD_OPTION: CommandLineOption = CommandLineOption {
     name: "build",
     kind: CommandLineOptionKind::Boolean,
     short_name: "b",
@@ -83,7 +83,7 @@ static OPTIONS_FOR_BUILD_ITEMS: [CommandLineOption; 6] = [
     },
 ];
 
-pub static OPTIONS_FOR_BUILD: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
+static OPTIONS_FOR_BUILD: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
     vec![
         &TSC_BUILD_OPTION,
         &OPTIONS_FOR_BUILD_ITEMS[0],
@@ -96,6 +96,6 @@ pub static OPTIONS_FOR_BUILD: LazyLock<Vec<&'static CommandLineOption>> = LazyLo
 });
 // END GENERATED
 
-pub static BUILD_OPTS: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
+pub(crate) static BUILD_OPTS: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
     COMMON_OPTIONS_WITH_BUILD.iter().chain(OPTIONS_FOR_BUILD.iter()).copied().collect()
 });

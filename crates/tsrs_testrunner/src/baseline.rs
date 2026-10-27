@@ -17,7 +17,7 @@ pub enum Class {
 }
 
 impl Class {
-    pub const ALL: [Class; 6] =
+    pub(crate) const ALL: [Class; 6] =
         [Class::Pass, Class::Codes, Class::Fail, Class::Crash, Class::Timeout, Class::Skip];
 
     pub fn as_str(self) -> &'static str {
@@ -31,14 +31,14 @@ impl Class {
         }
     }
 
-    pub fn parse(s: &str) -> Option<Class> {
+    pub(crate) fn parse(s: &str) -> Option<Class> {
         Class::ALL.into_iter().find(|c| c.as_str() == s)
     }
 }
 
 // writeComparison: the baseline passes when the generated content equals the reference (a missing
 // reference reads as NoContent), except that a reference file that exists must not be matched by NoContent.
-pub fn baseline_matches(expected: Option<&str>, actual: &str) -> bool {
+pub(crate) fn baseline_matches(expected: Option<&str>, actual: &str) -> bool {
     let found_expected = expected.is_some();
     let expected = expected.unwrap_or(NO_CONTENT);
     expected == actual && !(actual == NO_CONTENT && found_expected)
@@ -110,7 +110,7 @@ fn truncate(s: &str, n: usize) -> String {
 }
 
 // A one-line description of the first differing line, for summaries.
-pub fn first_difference(expected: Option<&str>, actual: &str) -> String {
+pub(crate) fn first_difference(expected: Option<&str>, actual: &str) -> String {
     let expected = expected.unwrap_or(NO_CONTENT);
     let e: Vec<&str> = expected.split('\n').collect();
     let a: Vec<&str> = actual.split('\n').collect();
@@ -162,7 +162,7 @@ pub fn first_hunk(diff: &str) -> String {
 
 // baseline.go:31 (DiffText). Go uses a patience diff with 3 lines of context; `similar`'s patience algorithm and
 // unified format stand in for it (only the `!!!! File ... differs ... in noCheck emit` sections use this).
-pub fn diff_text(old_name: &str, new_name: &str, expected: &str, actual: &str) -> String {
+pub(crate) fn diff_text(old_name: &str, new_name: &str, expected: &str, actual: &str) -> String {
     let diff = similar::TextDiff::configure()
         .algorithm(similar::Algorithm::Patience)
         .diff_lines(expected, actual);

@@ -13,19 +13,17 @@ pub const COMPRESSED_PTRS: bool = cfg!(compressed_ptrs);
 /// and `tsc -b`, and `tsc -b` builds and reports on the calling thread. False on native targets, where the
 /// branches it guards fold away.
 pub const NO_THREADS: bool = cfg!(all(target_family = "wasm", not(target_feature = "atomics")));
+pub(crate) use ptr::alloc_slice_aligned4;
 pub use ptr::{
     ArenaStringBuilder, OptionSliceCell, OptionThinSliceCell, P, PACK_BITS, PKey, PSliceCell,
-    PSlot, PackedStr, SP, SliceCell, SlicePair, StaticSlicePtr, StrCell, ThinSlice, ThinSliceCell,
-    alloc, alloc_slice, alloc_slice_aligned4, alloc_slice_recycled, alloc_slice_scratch, alloc_str,
-    alloc_str_scratch, alloc_vec, alloc_vec_scratch, arena_checkpoint, arena_pin, arena_rewind,
-    arena_rewindable, free_raw, free_slice_ptr,
+    PSlot, PackedStr, SP, SliceCell, ThinSlice, ThinSliceCell, alloc, alloc_slice,
+    alloc_slice_recycled, alloc_slice_scratch, alloc_str, alloc_str_scratch, alloc_vec,
+    alloc_vec_scratch, arena_checkpoint, arena_pin, arena_rewind, arena_rewindable, free_raw,
+    free_slice_ptr,
 };
 
 pub mod frozen;
-pub use frozen::{
-    FrozenCell, FrozenRef, FrozenRefMut, OwnedCell, OwnedPSliceCell, OwnedSliceCell, OwnedStrCell,
-    OwnedTaggedStrCell,
-};
+pub use frozen::{FrozenCell, FrozenRef, FrozenRefMut, OwnedCell, OwnedTaggedStrCell};
 
 pub mod collections;
 pub mod compat;

@@ -115,7 +115,7 @@ pub use utilities_types::*;
 pub mod checker_01;
 pub(crate) use checker_01::*;
 mod checker_02;
-pub mod checker_03;
+pub(crate) mod checker_03;
 pub(crate) use checker_03::*;
 mod checker_04;
 mod checker_05;
@@ -130,7 +130,7 @@ pub mod checker_10;
 pub(crate) use checker_10::*;
 pub mod checker_11;
 pub(crate) use checker_11::*;
-pub mod checker_12;
+pub(crate) mod checker_12;
 pub(crate) use checker_12::*;
 pub mod checker_13;
 pub(crate) use checker_13::*;
@@ -140,7 +140,7 @@ pub mod checker_15;
 pub(crate) use checker_15::*;
 pub mod relater_1;
 pub(crate) use relater_1::*;
-pub mod flow;
+pub(crate) mod flow;
 mod infermemo;
 mod relater_2;
 mod unioncache;
@@ -152,7 +152,7 @@ pub mod packedmap;
 pub use packedmap::{GoPackedMap, PackedMap, StringLiteralTypes};
 pub mod inference;
 pub(crate) use inference::*;
-pub mod grammarchecks;
+pub(crate) mod grammarchecks;
 pub(crate) use grammarchecks::*;
 pub mod utilities;
 pub use utilities::new_diagnostic_for_node;
@@ -165,20 +165,19 @@ pub(crate) use printer::*;
 mod nodebuilder;
 pub mod nodebuilderimpl_1;
 pub(crate) use nodebuilderimpl_1::*;
-pub mod nodebuilderimpl_2;
+pub(crate) mod nodebuilderimpl_2;
 pub(crate) use nodebuilderimpl_2::*;
 pub mod emitresolver;
 mod nodebuilderscopes;
 mod nodecopy;
 mod pseudotypenodebuilder;
 pub(crate) use emitresolver::*;
-pub mod nodebuilder_hover;
+pub(crate) mod nodebuilder_hover;
 pub(crate) use nodebuilder_hover::*;
 mod services;
 pub use tsrs_astnav as astnav;
 
 // Exported Go package-level functions (the baseline writer, the language service and the project system call them).
-pub use checker_09::is_non_deferred_type_reference;
 pub(crate) use checker_14::get_mapped_type_modifiers;
 pub use exports::{
     get_declaration_modifier_flags_from_symbol_exported, get_property_name_from_type_exported,
@@ -189,9 +188,11 @@ pub use nodebuilder::{new_node_builder, new_node_builder_ex};
 pub use nodebuilderimpl_1::try_get_module_specifier_from_declaration;
 pub(crate) use printer::new_symbol_tracker_impl;
 pub use services::get_resolved_signature_for_signature_help;
+pub(crate) use utilities::{
+    compare_types, is_private_identifier_symbol, new_diagnostic_chain_for_node,
+};
 pub use utilities::{
-    compare_types, create_mode_mismatch_details, create_module_not_found_chain,
-    get_set_accessor_value_parameter, get_single_variable_of_variable_statement,
-    is_external_module_symbol, is_in_type_query, is_known_symbol, is_private_identifier_symbol,
-    is_type_any, new_diagnostic_chain_for_node, skip_alias, value_to_string,
+    create_mode_mismatch_details, create_module_not_found_chain, get_set_accessor_value_parameter,
+    is_external_module_symbol, is_in_type_query, is_known_symbol, is_type_any, skip_alias,
+    value_to_string,
 };

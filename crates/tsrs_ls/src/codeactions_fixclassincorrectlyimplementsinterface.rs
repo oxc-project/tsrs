@@ -41,7 +41,6 @@ pub static FIX_CLASS_INCORRECTLY_IMPLEMENTS_INTERFACE_PROVIDER: std::sync::LazyL
 > = std::sync::LazyLock::new(|| CodeFixProvider {
     error_codes: fix_class_incorrectly_implements_interface_error_codes(),
     get_code_actions: get_code_actions_to_fix_class_incorrectly_implements_interface,
-    fix_ids: &[FIX_CLASS_INCORRECTLY_IMPLEMENTS_INTERFACE_FIX_ID],
     get_all_code_actions: Some(get_all_code_actions_to_fix_class_incorrectly_implements_interface),
 });
 
@@ -89,7 +88,6 @@ fn get_code_actions_to_fix_class_incorrectly_implements_interface(
                 .localize(&[&scanner::get_text_of_node(implemented_type_node)]),
             changes,
             fix_id: FIX_CLASS_INCORRECTLY_IMPLEMENTS_INTERFACE_FIX_ID.to_string(),
-            fix_all_description: diagnostics::IMPLEMENT_ALL_UNIMPLEMENTED_INTERFACES.localize(&[]),
         });
     }
     Ok(actions)

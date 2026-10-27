@@ -2439,7 +2439,7 @@ impl Checker {
 }
 
 // checker.go:14493
-pub fn create_diagnostic_for_node(
+pub(crate) fn create_diagnostic_for_node(
     node: Option<P<Node>>,
     message: &'static Message,
     args: &[&dyn Display],
@@ -2448,7 +2448,7 @@ pub fn create_diagnostic_for_node(
 }
 
 // checker.go:14497
-pub fn get_adjusted_node_for_error(node: P<Node>) -> P<Node> {
+fn get_adjusted_node_for_error(node: P<Node>) -> P<Node> {
     let name = ast::get_name_of_declaration(node);
     if let Some(name) = name {
         return name;
@@ -2469,12 +2469,12 @@ impl Checker {
 }
 
 // checker.go:14509
-pub fn get_first_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
+fn get_first_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
     symbol.declarations().first().copied()
 }
 
 // checker.go:14516
-pub fn get_excluded_symbol_flags(flags: SymbolFlags) -> SymbolFlags {
+pub(crate) fn get_excluded_symbol_flags(flags: SymbolFlags) -> SymbolFlags {
     let mut result = SymbolFlags::empty();
     if flags.intersects(SymbolFlags::BlockScopedVariable) {
         result |= SymbolFlags::BlockScopedVariableExcludes;

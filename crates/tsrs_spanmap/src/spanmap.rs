@@ -319,12 +319,6 @@ impl SpanMap {
 }
 
 // spanmap.go:231 with a nil receiver.
-pub fn segments(m: Option<&SpanMap>) -> Vec<Segment> {
-    let Some(m) = m else {
-        return Vec::new();
-    };
-    m.segments()
-}
 
 impl SpanMap {
     // VirtualToOriginalSpan maps a virtual range to an original range, along with the fidelity of the result. A virtual
@@ -399,16 +393,6 @@ impl SpanMap {
 }
 
 // spanmap.go:279 with a nil receiver.
-pub fn virtual_to_original_span_for_feature(
-    m: Option<&SpanMap>,
-    r: TextRange,
-    feature: Feature,
-) -> (TextRange, Fidelity) {
-    let Some(m) = m else {
-        return (r, Fidelity::Exact);
-    };
-    m.virtual_to_original_span_for_feature(r, feature)
-}
 
 impl SpanMap {
     // spanmap.go:287
@@ -505,12 +489,6 @@ impl SpanMap {
 }
 
 // spanmap.go:330 with a nil receiver.
-pub fn virtual_to_original_position_exact(m: Option<&SpanMap>, pos: u32) -> (u32, bool) {
-    let Some(m) = m else {
-        return (pos, true);
-    };
-    m.virtual_to_original_position_exact(pos)
-}
 
 impl SpanMap {
     // VirtualToOriginalPositionForFeature maps pos only when its virtual segment participates in feature.
@@ -536,16 +514,6 @@ impl SpanMap {
 }
 
 // spanmap.go:350 with a nil receiver.
-pub fn virtual_to_original_position_for_feature(
-    m: Option<&SpanMap>,
-    pos: u32,
-    feature: Feature,
-) -> (u32, Fidelity) {
-    let Some(m) = m else {
-        return (pos, Fidelity::Exact);
-    };
-    m.virtual_to_original_position_for_feature(pos, feature)
-}
 
 impl SpanMap {
     // AliasForVirtualSpan returns the alias segment exactly covering r. Partial overlap does not qualify:
@@ -673,16 +641,6 @@ impl SpanMap {
 }
 
 // spanmap.go:431 with a nil receiver: a nil SpanMap maps identically.
-pub fn original_to_virtual_positions(
-    m: Option<&SpanMap>,
-    pos: u32,
-    feature: Feature,
-) -> Vec<MappedPosition> {
-    let Some(m) = m else {
-        return vec![MappedPosition { position: pos, fidelity: Fidelity::Exact }];
-    };
-    m.original_to_virtual_positions(pos, feature)
-}
 
 impl SpanMap {
     // OriginalToVirtualSpans returns every feature-compatible virtual projection of an original range.
@@ -823,16 +781,6 @@ impl SpanMap {
 }
 
 // spanmap.go:539 with a nil receiver: a nil SpanMap maps identically.
-pub fn original_to_virtual_intersecting_spans(
-    m: Option<&SpanMap>,
-    r: TextRange,
-    feature: Feature,
-) -> Vec<MappedSpan> {
-    let Some(m) = m else {
-        return vec![MappedSpan { span: r, fidelity: Fidelity::Exact }];
-    };
-    m.original_to_virtual_intersecting_spans(r, feature)
-}
 
 // originalStartProjections maps the inclusive start of an original range through every matching segment.
 // Verbatim segments preserve the offset within the segment; atoms map to their virtual start.

@@ -38,23 +38,6 @@ pub enum Cat {
 
 pub const CATS: usize = Cat::JobMax as usize + 1;
 
-pub const NAMES: [&str; CATS] = [
-    "job wall",
-    "metadata",
-    "read",
-    "parse",
-    "bind",
-    "resolve",
-    "lock: claimed",
-    "lock: syncmap",
-    "lock: vfs",
-    "claim ops",
-    "syncmap ops",
-    "vfs ops",
-    "jobs",
-    "longest job",
-];
-
 /// Whether the category is a count rather than nanoseconds.
 pub fn is_count(cat: usize) -> bool {
     cat >= Cat::ClaimOps as usize && cat <= Cat::Jobs as usize

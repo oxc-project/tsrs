@@ -79,10 +79,6 @@ impl SyncConn {
         Arc::new(SyncCaller(Arc::downgrade(self)))
     }
 
-    pub fn cancellation(&self) -> CancellationToken {
-        self.cancel.clone()
-    }
-
     fn lock(&self) -> MutexGuard<'_, SyncIo> {
         self.io.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
     }

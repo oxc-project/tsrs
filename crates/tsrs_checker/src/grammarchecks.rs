@@ -88,7 +88,11 @@ impl Checker {
 }
 
 // grammarchecks.go:58
-pub fn get_identifier_from_entity_name_expression(node: P<Node>) -> Option<P<Node>> {
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn get_identifier_from_entity_name_expression(node: P<Node>) -> Option<P<Node>> {
     match node.kind() {
         Kind::Identifier => Some(node),
         Kind::PropertyAccessExpression => Some(node.as_property_access_expression().name),
@@ -3181,7 +3185,7 @@ impl Checker {
 }
 
 // grammarchecks.go:1960
-pub fn is_initializer_string_or_number_literal_expression(expr: P<Node>) -> bool {
+fn is_initializer_string_or_number_literal_expression(expr: P<Node>) -> bool {
     ast::is_string_or_numeric_literal_like(expr)
         || expr.kind() == Kind::PrefixUnaryExpression
             && expr.as_prefix_unary_expression().operator == Kind::MinusToken
@@ -3189,7 +3193,7 @@ pub fn is_initializer_string_or_number_literal_expression(expr: P<Node>) -> bool
 }
 
 // grammarchecks.go:1965
-pub fn is_initializer_big_int_literal_expression(expr: P<Node>) -> bool {
+fn is_initializer_big_int_literal_expression(expr: P<Node>) -> bool {
     if expr.kind() == Kind::BigIntLiteral {
         return true;
     }

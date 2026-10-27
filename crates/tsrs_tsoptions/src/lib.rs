@@ -1,7 +1,11 @@
 pub mod commandlineoption;
 pub mod commandlineparser;
 pub mod contentmappers;
-pub mod declsbuild;
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Build-option tables are shared with the parser within this crate."
+)]
+mod declsbuild;
 pub mod declscompiler;
 mod declstypeacquisition;
 pub mod diagnostics;
@@ -23,7 +27,6 @@ pub mod tsoptionstest;
 pub use commandlineoption::*;
 pub use commandlineparser::*;
 pub use contentmappers::*;
-pub use declsbuild::*;
 pub use declscompiler::*;
 
 pub use enummaps::*;

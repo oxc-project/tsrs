@@ -245,7 +245,7 @@ fn can_use_original_text(node: P<Node>, flags: getLiteralTextFlags) -> bool {
     node.kind() != Kind::BigIntLiteral
 }
 
-pub fn get_literal_text(
+pub(crate) fn get_literal_text(
     node: P<Node>,
     source_file: Option<P<SourceFile>>,
     flags: getLiteralTextFlags,
@@ -380,7 +380,7 @@ pub fn range_start_positions_are_on_same_line(
     )
 }
 
-pub fn range_end_positions_are_on_same_line(
+pub(crate) fn range_end_positions_are_on_same_line(
     range1: TextRange,
     range2: TextRange,
     source_file: P<SourceFile>,
@@ -400,7 +400,7 @@ fn range_start_is_on_same_line_as_range_end(
     )
 }
 
-pub fn range_end_is_on_same_line_as_range_start(
+pub(crate) fn range_end_is_on_same_line_as_range_start(
     range1: TextRange,
     range2: TextRange,
     source_file: P<SourceFile>,
@@ -487,7 +487,7 @@ pub fn get_lines_between_positions(
     }
 }
 
-pub fn get_lines_between_range_end_and_range_start(
+pub(crate) fn get_lines_between_range_end_and_range_start(
     range1: TextRange,
     range2: TextRange,
     source_file: P<SourceFile>,
@@ -498,7 +498,7 @@ pub fn get_lines_between_range_end_and_range_start(
     get_lines_between_positions(source_file, range1.end(), range2_start)
 }
 
-pub fn get_lines_between_position_and_preceding_non_whitespace_character(
+pub(crate) fn get_lines_between_position_and_preceding_non_whitespace_character(
     pos: TextPos,
     stop_pos: TextPos,
     source_file: P<SourceFile>,
@@ -518,7 +518,7 @@ pub fn get_lines_between_position_and_preceding_non_whitespace_character(
     get_lines_between_positions(source_file, prev_pos.unwrap_or(stop_pos).into(), start_pos.into())
 }
 
-pub fn get_lines_between_position_and_next_non_whitespace_character(
+pub(crate) fn get_lines_between_position_and_next_non_whitespace_character(
     pos: TextPos,
     stop_pos: TextPos,
     source_file: P<SourceFile>,
@@ -556,7 +556,7 @@ fn get_previous_non_whitespace_position(
     None
 }
 
-pub fn sibling_node_positions_are_comparable(
+pub(crate) fn sibling_node_positions_are_comparable(
     emit_context: P<EmitContext>,
     previous_node: P<Node>,
     next_node: P<Node>,
@@ -720,7 +720,7 @@ fn can_have_decorators(node: P<Node>) -> bool {
     )
 }
 
-pub fn original_nodes_have_same_parent(
+pub(crate) fn original_nodes_have_same_parent(
     emit_context: P<EmitContext>,
     node_a: P<Node>,
     node_b: P<Node>,
@@ -770,7 +770,7 @@ impl TryGetEnd for TextRange {
     }
 }
 
-pub fn greatest_end(end: TextPos, nodes: &[&dyn TryGetEnd]) -> TextPos {
+pub(crate) fn greatest_end(end: TextPos, nodes: &[&dyn TryGetEnd]) -> TextPos {
     let mut end = end;
     for node in nodes.iter().rev() {
         if let Some(node_end) = node.try_get_end()
@@ -782,7 +782,7 @@ pub fn greatest_end(end: TextPos, nodes: &[&dyn TryGetEnd]) -> TextPos {
     end
 }
 
-pub fn skip_synthesized_parentheses(node: P<Node>) -> P<Node> {
+pub(crate) fn skip_synthesized_parentheses(node: P<Node>) -> P<Node> {
     let mut node = node;
     while node.kind() == Kind::ParenthesizedExpression && node_is_synthesized(node) {
         node = node.expression().unwrap();
@@ -790,17 +790,17 @@ pub fn skip_synthesized_parentheses(node: P<Node>) -> P<Node> {
     node
 }
 
-pub fn is_new_expression_without_arguments(node: P<Node>) -> bool {
+pub(crate) fn is_new_expression_without_arguments(node: P<Node>) -> bool {
     node.kind() == Kind::NewExpression && node.argument_list().is_none()
 }
 
-pub fn is_binary_operation(node: P<Node>, token: Kind) -> bool {
+pub(crate) fn is_binary_operation(node: P<Node>, token: Kind) -> bool {
     let node = skip_partially_emitted_expressions(node);
     node.kind() == Kind::BinaryExpression
         && node.as_binary_expression().operator_token.kind() == token
 }
 
-pub fn mixing_binary_operators_requires_parentheses(a: Kind, b: Kind) -> bool {
+pub(crate) fn mixing_binary_operators_requires_parentheses(a: Kind, b: Kind) -> bool {
     if a == Kind::QuestionQuestionToken {
         return b == Kind::AmpersandAmpersandToken || b == Kind::BarBarToken;
     }
@@ -810,7 +810,7 @@ pub fn mixing_binary_operators_requires_parentheses(a: Kind, b: Kind) -> bool {
     false
 }
 
-pub fn is_immediately_invoked_function_expression_or_arrow_function(node: P<Node>) -> bool {
+pub(crate) fn is_immediately_invoked_function_expression_or_arrow_function(node: P<Node>) -> bool {
     let node = skip_partially_emitted_expressions(node);
     if !is_call_expression(node) {
         return false;
@@ -823,15 +823,20 @@ fn has_leading_hash(text: &str) -> bool {
     !text.is_empty() && text.as_bytes()[0] == b'#'
 }
 
-pub fn remove_leading_hash(text: &str) -> &str {
+pub(crate) fn remove_leading_hash(text: &str) -> &str {
     if has_leading_hash(text) { &text[1..] } else { text }
 }
 
-pub fn ensure_leading_hash(text: &str) -> String {
+pub(crate) fn ensure_leading_hash(text: &str) -> String {
     if has_leading_hash(text) { text.to_string() } else { format!("#{text}") }
 }
 
-pub fn format_generated_name(private_name: bool, prefix: &str, base: &str, suffix: &str) -> String {
+pub(crate) fn format_generated_name(
+    private_name: bool,
+    prefix: &str,
+    base: &str,
+    suffix: &str,
+) -> String {
     let name = format!(
         "{}{}{}",
         remove_leading_hash(prefix),
@@ -848,7 +853,7 @@ fn is_ascii_word_character(ch: stringutil::Rune) -> bool {
     stringutil::is_ascii_letter(ch) || stringutil::is_digit(ch) || ch == '_' as stringutil::Rune
 }
 
-pub fn make_identifier_from_module_name(module_name: &str) -> String {
+pub(crate) fn make_identifier_from_module_name(module_name: &str) -> String {
     let module_name = tspath::get_base_file_name(module_name);
     let bytes = module_name.as_bytes();
     let mut builder = String::new();
@@ -874,7 +879,7 @@ pub fn make_identifier_from_module_name(module_name: &str) -> String {
 }
 
 // utilities.go:706
-pub fn find_span_end_with_emit_context<T: Copy>(
+pub(crate) fn find_span_end_with_emit_context<T: Copy>(
     c: &EmitContext,
     array: &[T],
     test: impl Fn(&EmitContext, T) -> bool,
@@ -886,7 +891,7 @@ pub fn find_span_end_with_emit_context<T: Copy>(
 }
 
 // utilities.go:714
-pub fn find_span_end<T: Copy>(array: &[T], test: impl Fn(T) -> bool, start: usize) -> usize {
+pub(crate) fn find_span_end<T: Copy>(array: &[T], test: impl Fn(T) -> bool, start: usize) -> usize {
     let mut i = start;
     i += (i..array.len()).take_while(|&index| test(array[index])).count();
     i
@@ -1023,7 +1028,7 @@ pub fn is_recognized_triple_slash_comment(text: &str, comment_range: CommentRang
     false
 }
 
-pub fn is_jsdoc_like_text(text: &str, comment: CommentRange) -> bool {
+pub(crate) fn is_jsdoc_like_text(text: &str, comment: CommentRange) -> bool {
     let bytes = text.as_bytes();
     comment.kind == Kind::MultiLineCommentTrivia
         && comment.text_range.len().is_some_and(|len| len >= 5)
@@ -1037,7 +1042,7 @@ pub fn is_pinned_comment(text: &str, comment: CommentRange) -> bool {
         && text.as_bytes()[comment.pos() as usize + 2] == b'!'
 }
 
-pub fn calculate_indent(text: &str, pos: u32, end: u32) -> i32 {
+pub(crate) fn calculate_indent(text: &str, pos: u32, end: u32) -> i32 {
     let mut pos = pos as usize;
     let end = end as usize;
     let mut current_line_indent = 0;
@@ -1080,7 +1085,9 @@ pub struct LineCharacterCache {
 }
 
 // utilities.go:903
-pub fn new_line_character_cache(source: &'static dyn tsrs_sourcemap::Source) -> LineCharacterCache {
+pub(crate) fn new_line_character_cache(
+    source: &'static dyn tsrs_sourcemap::Source,
+) -> LineCharacterCache {
     LineCharacterCache {
         line_map: source.ecma_line_map(),
         text: source.text(),

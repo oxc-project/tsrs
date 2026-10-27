@@ -364,14 +364,6 @@ impl Program {
         self.project_reference_file_mapper.get_project_reference_from_output_dts(path)
     }
 
-    // program.go:222
-    pub fn get_resolved_project_reference_for(
-        &self,
-        path: &Path,
-    ) -> (Option<P<ParsedCommandLine>>, bool) {
-        self.project_reference_file_mapper.get_resolved_reference_for(path)
-    }
-
     // program.go:226
     pub(crate) fn get_redirect_for_resolution(
         &self,
@@ -1051,22 +1043,6 @@ impl Program {
 
     // GetContentMapper returns the content mapper that produced the given source file, or nil if the
     // file was not produced by a content mapper.
-    // program.go:525
-    pub fn get_content_mapper(
-        &self,
-        file: P<SourceFile>,
-    ) -> Option<&'static tsrs_contentmapper::Mapper> {
-        if file.content_mapper().is_empty() {
-            return None;
-        }
-        let mapper = self.opts.config.get().get_content_mapper_for_file_name(file.file_name());
-        mapper.filter(|mapper| mapper.identity() == file.content_mapper())
-    }
-
-    // program.go:536
-    pub fn content_mapper_extensions(&self) -> Vec<String> {
-        self.opts.config.content_mapper_extensions()
-    }
 
     pub(crate) fn content_mapper_extension_rewrites(&self) -> Vec<tspath::ExtensionRewrite> {
         self.opts.config.content_mapper_extension_rewrites().to_vec()
@@ -1133,10 +1109,6 @@ impl Program {
         unresolved_imports
     }
 
-    pub fn checker_count(&self) -> usize {
-        self.pool().checker_count()
-    }
-
     pub(crate) fn processing_diagnostics(
         &self,
     ) -> std::sync::MutexGuard<'_, Vec<ProcessingDiagnostic>> {
@@ -1184,13 +1156,6 @@ impl Program {
         if let Some(pool) = self.compiler_checker_pool() {
             pool.for_each_checker_parallel(cb);
         }
-    }
-
-    /// The index (as passed to `for_each_checker_parallel`) of the checker the pool assigned `file` to, i.e. the
-    /// checker `for_each_checker_group` runs it on. Creates the checkers on first use. None when the program has no
-    /// checker pool of its own or `file` is not one of its files.
-    pub fn checker_index_of_file(&self, file: P<SourceFile>) -> Option<usize> {
-        self.compiler_checker_pool()?.checker_index_of_file(file)
     }
 
     /// Runs `cb` for every file of `files` with the file's checker, one task per checker, each visiting its files in
@@ -2894,11 +2859,6 @@ impl Program {
     fn retired_checkers(&self, f: impl Fn(&crate::checkerpool::RetiredCheckers) -> u64) -> usize {
         self.compiler_checker_pool()
             .map_or(0, |pool| f(&pool.state().retired.lock().unwrap()) as usize)
-    }
-
-    // program.go:1743
-    pub fn program(&self) -> &Program {
-        self
     }
 
     /// Go returns the struct by value (sharing its strings); a reference here, so the hot callers (module mode

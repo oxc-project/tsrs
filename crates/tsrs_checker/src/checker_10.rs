@@ -8,7 +8,7 @@ use tsrs_diagnostics as diagnostics;
 use tsrs_diagnostics::Message;
 
 // checker.go:19608
-pub fn get_base_type_node_of_class(t: P<Type>) -> Option<P<Node>> {
+pub(crate) fn get_base_type_node_of_class(t: P<Type>) -> Option<P<Node>> {
     let decl = ast::get_class_like_declaration_of_symbol(t.symbol().unwrap());
     if let Some(decl) = decl {
         return ast::get_class_extends_heritage_element(decl);
@@ -493,7 +493,7 @@ fn has_base_type_check(c: &mut Checker, t: P<Type>, check_base: Option<P<Type>>)
 }
 
 // checker.go:19907
-pub fn get_target_type(t: P<Type>) -> Option<P<Type>> {
+pub(crate) fn get_target_type(t: P<Type>) -> Option<P<Type>> {
     if t.object_flags().intersects(ObjectFlags::Reference) {
         return t.target();
     }
@@ -1087,7 +1087,7 @@ impl Checker {
 }
 
 // checker.go:20331
-pub fn is_late_bindable_ast(node: P<Node>) -> bool {
+fn is_late_bindable_ast(node: P<Node>) -> bool {
     let mut expr = None;
     if ast::is_computed_property_name(node) {
         expr = node.expression();
@@ -1276,7 +1276,7 @@ impl Checker {
 }
 
 // checker.go:20459
-pub fn get_effective_set_accessor_type_annotation_node(node: P<Node>) -> Option<P<Node>> {
+fn get_effective_set_accessor_type_annotation_node(node: P<Node>) -> Option<P<Node>> {
     let param = get_set_accessor_value_parameter(node);
     if let Some(param) = param {
         return param.type_node();
@@ -1549,7 +1549,7 @@ impl Checker {
 }
 
 // checker.go:20653
-pub fn may_return_never(fn_: P<Node>) -> bool {
+fn may_return_never(fn_: P<Node>) -> bool {
     match fn_.kind() {
         Kind::FunctionExpression | Kind::ArrowFunction => return true,
         Kind::MethodDeclaration => return ast::is_object_literal_expression(fn_.parent().unwrap()),
@@ -2370,7 +2370,7 @@ impl Checker {
 // inferred from their initializers and function members with inferred return types are conservatively
 // assumed not to be free of "this" references.
 // checker.go:21139
-pub fn is_thisless(symbol: P<Symbol>) -> bool {
+fn is_thisless(symbol: P<Symbol>) -> bool {
     let declarations = symbol.declarations();
     if declarations.len() == 1 {
         let declaration = declarations[0];
@@ -2395,7 +2395,7 @@ pub fn is_thisless(symbol: P<Symbol>) -> bool {
 // A variable-like declaration is free of this references if it has a type annotation
 // that is thisless, or if it has no type annotation and no initializer (and is thus of type any).
 // checker.go:21158
-pub fn is_thisless_variable_like_declaration(node: P<Node>) -> bool {
+fn is_thisless_variable_like_declaration(node: P<Node>) -> bool {
     let type_node = node.type_node();
     if let Some(type_node) = type_node {
         return is_thisless_type(type_node);
@@ -2407,7 +2407,7 @@ pub fn is_thisless_variable_like_declaration(node: P<Node>) -> bool {
 // literal type, an array with an element type that is free of this references, or a type reference that is
 // free of this references.
 // checker.go:21169
-pub fn is_thisless_type(node: P<Node>) -> bool {
+fn is_thisless_type(node: P<Node>) -> bool {
     match node.kind() {
         Kind::AnyKeyword
         | Kind::UnknownKeyword
@@ -2432,7 +2432,7 @@ pub fn is_thisless_type(node: P<Node>) -> bool {
 // annotation that is free of this references and if each parameter is thisless and if
 // each type parameter (if present) is thisless.
 // checker.go:21185
-pub fn is_thisless_function_like_declaration(node: P<Node>) -> bool {
+fn is_thisless_function_like_declaration(node: P<Node>) -> bool {
     let return_type = node.type_node();
     (ast::is_constructor_declaration(node) || return_type.is_some_and(is_thisless_type))
         && node.parameters().iter().all(|n| is_thisless_variable_like_declaration(*n))
@@ -2441,7 +2441,7 @@ pub fn is_thisless_function_like_declaration(node: P<Node>) -> bool {
 
 // A type parameter is thisless if its constraint is thisless, or if it has no constraint. */
 // checker.go:21193
-pub fn is_thisless_type_parameter(node: P<Node>) -> bool {
+fn is_thisless_type_parameter(node: P<Node>) -> bool {
     let constraint = node.as_type_parameter_declaration().constraint;
     constraint.is_none() || is_thisless_type(constraint.unwrap())
 }

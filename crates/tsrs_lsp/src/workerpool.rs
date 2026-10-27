@@ -10,7 +10,7 @@
 use std::collections::VecDeque;
 use std::sync::{Condvar, Mutex, OnceLock};
 
-pub const WORKER_STACK_SIZE: usize = 512 << 20;
+pub(crate) const WORKER_STACK_SIZE: usize = 512 << 20;
 
 type Job = Box<dyn FnOnce() + Send>;
 
@@ -95,7 +95,7 @@ pub fn threads() -> usize {
 
 // An unrecovered panic in a goroutine ends a Go program (exit status 2, after the runtime prints the panic); the
 // panic hook has already printed the message and location.
-pub fn run_or_exit(f: impl FnOnce()) {
+pub(crate) fn run_or_exit(f: impl FnOnce()) {
     if std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)).is_err() {
         std::process::exit(2);
     }

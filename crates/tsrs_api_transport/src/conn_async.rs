@@ -110,10 +110,6 @@ impl AsyncConn {
         Arc::new(AsyncCaller(Arc::downgrade(self)))
     }
 
-    pub fn cancellation(&self) -> CancellationToken {
-        self.cancel.clone()
-    }
-
     /// Run: blocks until EOF (Ok) or a fatal error. On exit, pending calls fail with the terminal
     /// error, the cancellation token is set, and every in-flight handler thread is joined before
     /// returning, so no handler outlives the connection.

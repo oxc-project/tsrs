@@ -15,20 +15,13 @@ mod imp {
     static COUNTS: Mutex<Option<FxHashMap<Key, u64>>> = Mutex::new(None);
 
     #[track_caller]
-    pub fn hit(kind: &'static str, label: &'static str) {
+    pub(crate) fn hit(kind: &'static str, label: &'static str) {
         let loc = Location::caller();
         let mut guard = COUNTS.lock().unwrap();
         *guard.get_or_insert_with(FxHashMap::default).entry((kind, label, loc)).or_insert(0) += 1;
     }
 
-    #[track_caller]
-    pub fn hit_n(kind: &'static str, label: &'static str, n: u64) {
-        let loc = Location::caller();
-        let mut guard = COUNTS.lock().unwrap();
-        *guard.get_or_insert_with(FxHashMap::default).entry((kind, label, loc)).or_insert(0) += n;
-    }
-
-    pub fn hit_at(kind: &'static str, label: &'static str, loc: &'static Location<'static>) {
+    pub(crate) fn hit_at(kind: &'static str, label: &'static str, loc: &'static Location<'static>) {
         let mut guard = COUNTS.lock().unwrap();
         *guard.get_or_insert_with(FxHashMap::default).entry((kind, label, loc)).or_insert(0) += 1;
     }
@@ -88,15 +81,13 @@ mod imp {
 }
 
 #[cfg(feature = "site-counts")]
-pub use imp::{dump, hit, hit_at, hit_n};
+pub use imp::dump;
+#[cfg(feature = "site-counts")]
+pub(crate) use imp::{hit, hit_at};
 
 #[cfg(not(feature = "site-counts"))]
 #[inline(always)]
-pub fn hit(_kind: &'static str, _label: &'static str) {}
-
-#[cfg(not(feature = "site-counts"))]
-#[inline(always)]
-pub fn hit_n(_kind: &'static str, _label: &'static str, _n: u64) {}
+pub(crate) fn hit(_kind: &'static str, _label: &'static str) {}
 
 #[cfg(not(feature = "site-counts"))]
 pub fn dump() {}

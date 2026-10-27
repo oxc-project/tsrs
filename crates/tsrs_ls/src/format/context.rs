@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use std::cell::Cell;
 use std::rc::Rc;
 
@@ -10,7 +15,7 @@ use crate::astnav;
 use crate::lsutil::FormatCodeSettings;
 
 // context.go:11
-pub struct FormattingContext {
+pub(crate) struct FormattingContext {
     pub(crate) current_token_span: TextRangeWithKind,
     pub(crate) next_token_span: TextRangeWithKind,
     context_node: Option<P<Node>>,
@@ -29,7 +34,7 @@ pub struct FormattingContext {
 }
 
 // context.go:29
-pub fn new_formatting_context(
+pub(crate) fn new_formatting_context(
     file: P<SourceFile>,
     kind: FormatRequestKind,
     options: Rc<FormatCodeSettings>,
@@ -166,7 +171,7 @@ impl FormattingContext {
 }
 
 // context.go:73
-pub fn with_token_start(loc: P<Node>, file: P<SourceFile>) -> TextRange {
+pub(crate) fn with_token_start(loc: P<Node>, file: P<SourceFile>) -> TextRange {
     let start_pos = scanner::get_token_pos_of_node(loc, file, false);
     TextRange::new(start_pos, loc.end().expect_source("parsed nodes have source positions"))
 }

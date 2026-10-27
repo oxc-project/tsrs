@@ -2,7 +2,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
-pub const DEFAULT_MIN_WAIT_TIME: Duration = Duration::from_millis(50);
+const DEFAULT_MIN_WAIT_TIME: Duration = Duration::from_millis(50);
 pub const DEFAULT_MAX_WAIT_TIME: Duration = Duration::from_millis(500);
 
 // Go keeps these as package variables so tests can shorten them; nothing changes them here.

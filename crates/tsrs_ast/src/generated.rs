@@ -16,34 +16,12 @@ use crate::visitor::{NodeVisitor, required_child, same_map_nodes};
 // ── Base structs ──────────────────────────────────────────────────────────
 
 pub struct IterationStatementBase {
-    pub flow_node_base: FlowNodeBase,
-    pub statement: P<Node>,
-}
-
-impl IterationStatementBase {
-    #[inline]
-    pub fn statement(&self) -> P<Node> {
-        self.statement
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
+    flow_node_base: FlowNodeBase,
+    statement: P<Node>,
 }
 
 pub struct NodeWithTypeArgumentsBase {
-    pub type_arguments: Option<P<NodeList>>,
-}
-
-impl NodeWithTypeArgumentsBase {
-    #[inline]
-    pub fn type_arguments(&self) -> Option<P<NodeList>> {
-        self.type_arguments
-    }
+    type_arguments: Option<P<NodeList>>,
 }
 
 pub struct DeclarationBase {
@@ -65,30 +43,8 @@ pub struct ExportableBase {
     pub local_symbol: OwnedCell<Option<P<Symbol>>>,
 }
 
-impl ExportableBase {
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.local_symbol.set(value);
-    }
-}
-
 pub struct ModifiersBase {
-    pub modifiers: OwnedCell<Option<P<ModifierList>>>,
-}
-
-impl ModifiersBase {
-    #[inline]
-    pub fn modifiers(&self) -> Option<P<ModifierList>> {
-        self.modifiers.get()
-    }
-    #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
-        self.modifiers.set(value);
-    }
+    modifiers: OwnedCell<Option<P<ModifierList>>>,
 }
 
 pub struct LocalsContainerBase {
@@ -98,40 +54,17 @@ pub struct LocalsContainerBase {
 
 impl LocalsContainerBase {
     #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals.get()
-    }
-    #[inline]
     pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
         self.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.next_container.set(value);
     }
 }
 
 pub struct FlowNodeBase {
-    pub flow_node: OwnedCell<Option<P<FlowNode>>>,
-}
-
-impl FlowNodeBase {
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node.set(value);
-    }
+    pub(crate) flow_node: OwnedCell<Option<P<FlowNode>>>,
 }
 
 pub struct FunctionLikeBase {
-    pub locals_container_base: LocalsContainerBase,
+    locals_container_base: LocalsContainerBase,
     pub type_parameters: OwnedCell<Option<P<NodeList>>>,
     pub parameters: OwnedCell<Option<P<NodeList>>>,
     pub type_: OwnedCell<Option<P<Node>>>,
@@ -144,48 +77,16 @@ impl FunctionLikeBase {
         self.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.parameters.get()
-    }
-    #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.parameters.set(value);
     }
     #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
-    }
-    #[inline]
     pub fn full_signature(&self) -> Option<P<Node>> {
         self.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
     }
 }
 
@@ -197,28 +98,16 @@ pub struct BodyBase {
 
 impl BodyBase {
     #[inline]
-    pub fn asterisk_token(&self) -> Option<P<Node>> {
-        self.asterisk_token
-    }
-    #[inline]
-    pub fn body(&self) -> Option<P<Node>> {
-        self.body
-    }
-    #[inline]
     pub fn end_flow_node(&self) -> Option<P<FlowNode>> {
         self.end_flow_node.get()
-    }
-    #[inline]
-    pub fn set_end_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.end_flow_node.set(value);
     }
 }
 
 pub struct ClassLikeBase {
-    pub exportable_base: ExportableBase,
-    pub modifiers_base: ModifiersBase,
-    pub locals_container_base: LocalsContainerBase,
-    pub name: Option<P<Node>>,
+    exportable_base: ExportableBase,
+    modifiers_base: ModifiersBase,
+    locals_container_base: LocalsContainerBase,
+    name: Option<P<Node>>,
     pub type_parameters: OwnedCell<Option<P<NodeList>>>,
     pub heritage_clauses: OwnedCell<Option<P<NodeList>>>,
     pub members: P<NodeList>,
@@ -226,60 +115,24 @@ pub struct ClassLikeBase {
 
 impl ClassLikeBase {
     #[inline]
-    pub fn name(&self) -> Option<P<Node>> {
+    pub(crate) fn name(&self) -> Option<P<Node>> {
         self.name
     }
     #[inline]
-    pub fn type_parameters(&self) -> Option<P<NodeList>> {
+    pub(crate) fn type_parameters(&self) -> Option<P<NodeList>> {
         self.type_parameters.get()
-    }
-    #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.type_parameters.set(value);
     }
     #[inline]
     pub fn heritage_clauses(&self) -> Option<P<NodeList>> {
         self.heritage_clauses.get()
     }
     #[inline]
-    pub fn set_heritage_clauses(&self, value: Option<P<NodeList>>) {
-        self.heritage_clauses.set(value);
-    }
-    #[inline]
     pub fn members(&self) -> P<NodeList> {
         self.members
     }
     #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
-    #[inline]
-    pub fn modifiers(&self) -> Option<P<ModifierList>> {
+    pub(crate) fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
-    }
-    #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
-        self.modifiers_base.modifiers.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
     }
 }
 
@@ -294,12 +147,8 @@ impl LiteralLikeNodeBase {
         self.text.as_str()
     }
     #[inline]
-    pub fn token_flags(&self) -> TokenFlags {
+    pub(crate) fn token_flags(&self) -> TokenFlags {
         self.token_flags.get()
-    }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.token_flags.set(value);
     }
 }
 
@@ -309,90 +158,23 @@ pub struct TemplateLiteralLikeNodeBase {
     pub template_flags: TokenFlags,
 }
 
-impl TemplateLiteralLikeNodeBase {
-    #[inline]
-    pub fn raw_text(&self) -> &'static str {
-        self.raw_text
-    }
-    #[inline]
-    pub fn template_flags(&self) -> TokenFlags {
-        self.template_flags
-    }
-    #[inline]
-    pub fn text(&self) -> &'static str {
-        self.literal_like_node_base.text.as_str()
-    }
-    #[inline]
-    pub fn token_flags(&self) -> TokenFlags {
-        self.literal_like_node_base.token_flags.get()
-    }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.literal_like_node_base.token_flags.set(value);
-    }
-}
-
 pub struct NamedMemberBase {
-    pub modifiers_base: ModifiersBase,
-    pub name: P<Node>,
+    modifiers_base: ModifiersBase,
+    name: P<Node>,
     pub postfix_token: Option<P<Node>>,
-}
-
-impl NamedMemberBase {
-    #[inline]
-    pub fn name(&self) -> P<Node> {
-        self.name
-    }
-    #[inline]
-    pub fn postfix_token(&self) -> Option<P<Node>> {
-        self.postfix_token
-    }
-    #[inline]
-    pub fn modifiers(&self) -> Option<P<ModifierList>> {
-        self.modifiers_base.modifiers.get()
-    }
-    #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
-        self.modifiers_base.modifiers.set(value);
-    }
 }
 
 pub struct UnionOrIntersectionTypeNodeBase {
     pub types: P<NodeList>,
 }
 
-impl UnionOrIntersectionTypeNodeBase {
-    #[inline]
-    pub fn types(&self) -> P<NodeList> {
-        self.types
-    }
-}
-
 pub struct JSDocTagBase {
-    pub tag_name: P<Node>,
-    pub comment: Option<P<NodeList>>,
-}
-
-impl JSDocTagBase {
-    #[inline]
-    pub fn tag_name(&self) -> P<Node> {
-        self.tag_name
-    }
-    #[inline]
-    pub fn comment(&self) -> Option<P<NodeList>> {
-        self.comment
-    }
+    pub(crate) tag_name: P<Node>,
+    pub(crate) comment: Option<P<NodeList>>,
 }
 
 pub struct JSDocCommentBase {
-    pub text: &'static [&'static str],
-}
-
-impl JSDocCommentBase {
-    #[inline]
-    pub fn text(&self) -> &'static [&'static str] {
-        self.text
-    }
+    text: &'static [&'static str],
 }
 
 // ── Node data structs ─────────────────────────────────────────────────────
@@ -400,7 +182,7 @@ impl JSDocCommentBase {
 pub struct Token;
 
 pub struct PrivateIdentifier {
-    pub text: PackedStr,
+    text: PackedStr,
 }
 
 impl PrivateIdentifier {
@@ -411,7 +193,7 @@ impl PrivateIdentifier {
 }
 
 pub struct QualifiedName {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub left: P<Node>,
     pub right: P<Node>,
 }
@@ -424,14 +206,6 @@ impl QualifiedName {
     #[inline]
     pub fn right(&self) -> P<Node> {
         self.right
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
     }
 }
 
@@ -458,22 +232,11 @@ impl Decorator {
 }
 
 pub struct EmptyStatement {
-    pub flow_node_base: FlowNodeBase,
-}
-
-impl EmptyStatement {
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
+    flow_node_base: FlowNodeBase,
 }
 
 pub struct IfStatement {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub expression: P<Node>,
     pub then_statement: P<Node>,
     pub else_statement: Option<P<Node>>,
@@ -492,18 +255,10 @@ impl IfStatement {
     pub fn else_statement(&self) -> Option<P<Node>> {
         self.else_statement
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct DoStatement {
-    pub iteration_statement_base: IterationStatementBase,
+    iteration_statement_base: IterationStatementBase,
     pub expression: P<Node>,
 }
 
@@ -516,18 +271,10 @@ impl DoStatement {
     pub fn statement(&self) -> P<Node> {
         self.iteration_statement_base.statement
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.iteration_statement_base.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.iteration_statement_base.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct WhileStatement {
-    pub iteration_statement_base: IterationStatementBase,
+    iteration_statement_base: IterationStatementBase,
     pub expression: P<Node>,
 }
 
@@ -540,19 +287,11 @@ impl WhileStatement {
     pub fn statement(&self) -> P<Node> {
         self.iteration_statement_base.statement
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.iteration_statement_base.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.iteration_statement_base.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct ForStatement {
-    pub iteration_statement_base: IterationStatementBase,
-    pub locals_container_base: LocalsContainerBase,
+    iteration_statement_base: IterationStatementBase,
+    locals_container_base: LocalsContainerBase,
     pub initializer: Option<P<Node>>,
     pub condition: Option<P<Node>>,
     pub incrementor: Option<P<Node>>,
@@ -575,35 +314,11 @@ impl ForStatement {
     pub fn statement(&self) -> P<Node> {
         self.iteration_statement_base.statement
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.iteration_statement_base.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.iteration_statement_base.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
-    }
 }
 
 pub struct ForInOrOfStatement {
-    pub flow_node_base: FlowNodeBase,
-    pub locals_container_base: LocalsContainerBase,
+    flow_node_base: FlowNodeBase,
+    locals_container_base: LocalsContainerBase,
     pub await_modifier: Option<P<Node>>,
     pub initializer: P<Node>,
     pub expression: P<Node>,
@@ -627,35 +342,11 @@ impl ForInOrOfStatement {
     pub fn statement(&self) -> P<Node> {
         self.statement
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
-    }
 }
 
 pub struct BreakStatement {
-    pub flow_node_base: FlowNodeBase,
-    pub label: Option<P<Node>>,
+    flow_node_base: FlowNodeBase,
+    pub(crate) label: Option<P<Node>>,
 }
 
 impl BreakStatement {
@@ -663,19 +354,11 @@ impl BreakStatement {
     pub fn label(&self) -> Option<P<Node>> {
         self.label
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct ContinueStatement {
-    pub flow_node_base: FlowNodeBase,
-    pub label: Option<P<Node>>,
+    flow_node_base: FlowNodeBase,
+    pub(crate) label: Option<P<Node>>,
 }
 
 impl ContinueStatement {
@@ -683,19 +366,11 @@ impl ContinueStatement {
     pub fn label(&self) -> Option<P<Node>> {
         self.label
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct ReturnStatement {
-    pub flow_node_base: FlowNodeBase,
-    pub expression: OwnedCell<Option<P<Node>>>,
+    flow_node_base: FlowNodeBase,
+    pub(crate) expression: OwnedCell<Option<P<Node>>>,
 }
 
 impl ReturnStatement {
@@ -703,24 +378,12 @@ impl ReturnStatement {
     pub fn expression(&self) -> Option<P<Node>> {
         self.expression.get()
     }
-    #[inline]
-    pub fn set_expression(&self, value: Option<P<Node>>) {
-        self.expression.set(value);
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct WithStatement {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub expression: P<Node>,
-    pub statement: P<Node>,
+    pub(crate) statement: P<Node>,
 }
 
 impl WithStatement {
@@ -732,18 +395,10 @@ impl WithStatement {
     pub fn statement(&self) -> P<Node> {
         self.statement
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct SwitchStatement {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub expression: P<Node>,
     pub case_block: P<Node>,
 }
@@ -757,18 +412,10 @@ impl SwitchStatement {
     pub fn case_block(&self) -> P<Node> {
         self.case_block
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct CaseBlock {
-    pub locals_container_base: LocalsContainerBase,
+    locals_container_base: LocalsContainerBase,
     pub clauses: P<NodeList>,
 }
 
@@ -776,22 +423,6 @@ impl CaseBlock {
     #[inline]
     pub fn clauses(&self) -> P<NodeList> {
         self.clauses
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
     }
 }
 
@@ -821,8 +452,8 @@ impl CaseOrDefaultClause {
 }
 
 pub struct ThrowStatement {
-    pub flow_node_base: FlowNodeBase,
-    pub expression: P<Node>,
+    flow_node_base: FlowNodeBase,
+    pub(crate) expression: P<Node>,
 }
 
 impl ThrowStatement {
@@ -830,18 +461,10 @@ impl ThrowStatement {
     pub fn expression(&self) -> P<Node> {
         self.expression
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct TryStatement {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub try_block: P<Node>,
     pub catch_clause: Option<P<Node>>,
     pub finally_block: Option<P<Node>>,
@@ -860,18 +483,10 @@ impl TryStatement {
     pub fn finally_block(&self) -> Option<P<Node>> {
         self.finally_block
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct CatchClause {
-    pub locals_container_base: LocalsContainerBase,
+    locals_container_base: LocalsContainerBase,
     pub variable_declaration: Option<P<Node>>,
     pub block: P<Node>,
 }
@@ -885,41 +500,14 @@ impl CatchClause {
     pub fn block(&self) -> P<Node> {
         self.block
     }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
-    }
 }
 
 pub struct DebuggerStatement {
-    pub flow_node_base: FlowNodeBase,
-}
-
-impl DebuggerStatement {
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
+    flow_node_base: FlowNodeBase,
 }
 
 pub struct LabeledStatement {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub label: P<Node>,
     pub statement: P<Node>,
 }
@@ -933,18 +521,10 @@ impl LabeledStatement {
     pub fn statement(&self) -> P<Node> {
         self.statement
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct ExpressionStatement {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub expression: P<Node>,
 }
 
@@ -953,19 +533,11 @@ impl ExpressionStatement {
     pub fn expression(&self) -> P<Node> {
         self.expression
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct Block {
-    pub flow_node_base: FlowNodeBase,
-    pub locals_container_base: LocalsContainerBase,
+    flow_node_base: FlowNodeBase,
+    locals_container_base: LocalsContainerBase,
     pub statements: P<NodeList>,
     pub multi_line: bool,
 }
@@ -979,35 +551,11 @@ impl Block {
     pub fn multi_line(&self) -> bool {
         self.multi_line
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
-    }
 }
 
 pub struct VariableStatement {
-    pub flow_node_base: FlowNodeBase,
-    pub modifiers_base: ModifiersBase,
+    flow_node_base: FlowNodeBase,
+    modifiers_base: ModifiersBase,
     pub declaration_list: P<Node>,
 }
 
@@ -1017,34 +565,26 @@ impl VariableStatement {
         self.declaration_list
     }
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct VariableDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
     pub name: P<Node>,
-    pub type_: OwnedCell<Option<P<Node>>>,
-    pub initializer: OwnedCell<Option<P<Node>>>,
+    pub(crate) type_: OwnedCell<Option<P<Node>>>,
+    pub(crate) initializer: OwnedCell<Option<P<Node>>>,
 }
 
 /// The rare tail of `VariableDeclaration` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct VariableDeclarationRare {
-    pub exclamation_token: Option<P<Node>>,
+pub(crate) struct VariableDeclarationRare {
+    exclamation_token: Option<P<Node>>,
 }
 
 impl NodeRareTail for VariableDeclaration {
@@ -1065,32 +605,8 @@ impl VariableDeclaration {
         self.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
-    }
-    #[inline]
     pub fn initializer(&self) -> Option<P<Node>> {
         self.initializer.get()
-    }
-    #[inline]
-    pub fn set_initializer(&self, value: Option<P<Node>>) {
-        self.initializer.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
     }
 }
 
@@ -1117,17 +633,17 @@ impl BindingPattern {
 }
 
 pub struct ParameterDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
     pub name: P<Node>,
     pub question_token: OwnedCell<Option<P<Node>>>,
     pub type_: OwnedCell<Option<P<Node>>>,
 }
 
 /// The rare tail of `ParameterDeclaration` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct ParameterDeclarationRare {
-    pub dot_dot_dot_token: Option<P<Node>>,
-    pub initializer: Option<P<Node>>,
+pub(crate) struct ParameterDeclarationRare {
+    dot_dot_dot_token: Option<P<Node>>,
+    initializer: Option<P<Node>>,
 }
 
 impl NodeRareTail for ParameterDeclaration {
@@ -1148,51 +664,35 @@ impl ParameterDeclaration {
         self.question_token.get()
     }
     #[inline]
-    pub fn set_question_token(&self, value: Option<P<Node>>) {
-        self.question_token.set(value);
-    }
-    #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.type_.get()
-    }
-    #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
     }
     #[inline]
     pub fn initializer(&self) -> Option<P<Node>> {
         rare_tail(self)?.initializer
     }
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct BindingElement {
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
-    pub flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
+    flow_node_base: FlowNodeBase,
     pub name: Option<P<Node>>,
 }
 
 /// The rare tail of `BindingElement` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct BindingElementRare {
-    pub dot_dot_dot_token: Option<P<Node>>,
-    pub property_name: Option<P<Node>>,
-    pub initializer: Option<P<Node>>,
+pub(crate) struct BindingElementRare {
+    dot_dot_dot_token: Option<P<Node>>,
+    property_name: Option<P<Node>>,
+    initializer: Option<P<Node>>,
 }
 
 impl NodeRareTail for BindingElement {
@@ -1216,74 +716,34 @@ impl BindingElement {
     pub fn initializer(&self) -> Option<P<Node>> {
         rare_tail(self)?.initializer
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct MissingDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
 }
 
 impl MissingDeclaration {
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
     #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct FunctionDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
-    pub modifiers_base: ModifiersBase,
-    pub function_like_base: FunctionLikeBase,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
+    modifiers_base: ModifiersBase,
+    function_like_base: FunctionLikeBase,
     pub body_base: BodyBase,
-    pub name: Option<P<Node>>,
-    pub return_flow_node: OwnedCell<Option<P<FlowNode>>>,
+    name: Option<P<Node>>,
+    return_flow_node: OwnedCell<Option<P<FlowNode>>>,
 }
 
 impl FunctionDeclaration {
@@ -1300,35 +760,11 @@ impl FunctionDeclaration {
         self.return_flow_node.set(value);
     }
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -1336,48 +772,16 @@ impl FunctionDeclaration {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
-    }
-    #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
     }
     #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
     pub fn full_signature(&self) -> Option<P<Node>> {
         self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
     #[inline]
     pub fn asterisk_token(&self) -> Option<P<Node>> {
@@ -1387,40 +791,16 @@ impl FunctionDeclaration {
     pub fn body(&self) -> Option<P<Node>> {
         self.body_base.body
     }
-    #[inline]
-    pub fn end_flow_node(&self) -> Option<P<FlowNode>> {
-        self.body_base.end_flow_node.get()
-    }
-    #[inline]
-    pub fn set_end_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.body_base.end_flow_node.set(value);
-    }
 }
 
 pub struct ClassDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
     pub class_like_base: ClassLikeBase,
 }
 
 impl ClassDeclaration {
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn name(&self) -> Option<P<Node>> {
         self.class_like_base.name
     }
@@ -1429,70 +809,30 @@ impl ClassDeclaration {
         self.class_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.class_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn heritage_clauses(&self) -> Option<P<NodeList>> {
         self.class_like_base.heritage_clauses.get()
-    }
-    #[inline]
-    pub fn set_heritage_clauses(&self, value: Option<P<NodeList>>) {
-        self.class_like_base.heritage_clauses.set(value);
     }
     #[inline]
     pub fn members(&self) -> P<NodeList> {
         self.class_like_base.members
     }
     #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.class_like_base.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.class_like_base.exportable_base.local_symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.class_like_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.class_like_base.modifiers_base.modifiers.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.class_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.class_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.class_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.class_like_base.locals_container_base.next_container.set(value);
     }
 }
 
 pub struct ClassExpression {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub class_like_base: ClassLikeBase,
 }
 
 impl ClassExpression {
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn name(&self) -> Option<P<Node>> {
         self.class_like_base.name
     }
@@ -1501,52 +841,20 @@ impl ClassExpression {
         self.class_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.class_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn heritage_clauses(&self) -> Option<P<NodeList>> {
         self.class_like_base.heritage_clauses.get()
-    }
-    #[inline]
-    pub fn set_heritage_clauses(&self, value: Option<P<NodeList>>) {
-        self.class_like_base.heritage_clauses.set(value);
     }
     #[inline]
     pub fn members(&self) -> P<NodeList> {
         self.class_like_base.members
     }
     #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.class_like_base.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.class_like_base.exportable_base.local_symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.class_like_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.class_like_base.modifiers_base.modifiers.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.class_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.class_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.class_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.class_like_base.locals_container_base.next_container.set(value);
     }
 }
 
@@ -1571,10 +879,10 @@ impl HeritageClause {
 }
 
 pub struct InterfaceDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
-    pub modifiers_base: ModifiersBase,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
+    modifiers_base: ModifiersBase,
     pub name: P<Node>,
     pub type_parameters: Option<P<NodeList>>,
     pub heritage_clauses: Option<P<NodeList>>,
@@ -1599,46 +907,22 @@ impl InterfaceDeclaration {
         self.members
     }
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct TypeAliasDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
-    pub modifiers_base: ModifiersBase,
-    pub locals_container_base: LocalsContainerBase,
-    pub name: P<Node>,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
+    modifiers_base: ModifiersBase,
+    locals_container_base: LocalsContainerBase,
+    name: P<Node>,
     pub type_parameters: OwnedCell<Option<P<NodeList>>>,
     pub type_: OwnedCell<Option<P<Node>>>,
 }
@@ -1653,70 +937,22 @@ impl TypeAliasDeclaration {
         self.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.type_parameters.set(value);
-    }
-    #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.type_.get()
-    }
-    #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
     }
     #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
     }
 }
 
 pub struct EnumMember {
-    pub declaration_base: DeclarationBase,
-    pub named_member_base: NamedMemberBase,
+    declaration_base: DeclarationBase,
+    named_member_base: NamedMemberBase,
     pub initializer: Option<P<Node>>,
 }
 
@@ -1726,36 +962,24 @@ impl EnumMember {
         self.initializer
     }
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn name(&self) -> P<Node> {
         self.named_member_base.name
     }
     #[inline]
-    pub fn postfix_token(&self) -> Option<P<Node>> {
+    pub(crate) fn postfix_token(&self) -> Option<P<Node>> {
         self.named_member_base.postfix_token
     }
     #[inline]
-    pub fn modifiers(&self) -> Option<P<ModifierList>> {
-        self.named_member_base.modifiers_base.modifiers.get()
-    }
-    #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.named_member_base.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct EnumDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
-    pub modifiers_base: ModifiersBase,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
+    modifiers_base: ModifiersBase,
     pub name: P<Node>,
     pub members: P<NodeList>,
 }
@@ -1770,41 +994,17 @@ impl EnumDeclaration {
         self.members
     }
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct ModuleBlock {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub statements: P<NodeList>,
 }
 
@@ -1813,57 +1013,27 @@ impl ModuleBlock {
     pub fn statements(&self) -> P<NodeList> {
         self.statements
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct NotEmittedStatement {
-    pub flow_node_base: FlowNodeBase,
-}
-
-impl NotEmittedStatement {
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
+    flow_node_base: FlowNodeBase,
 }
 
 pub struct NotEmittedTypeElement {
-    pub declaration_base: DeclarationBase,
-}
-
-impl NotEmittedTypeElement {
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
+    declaration_base: DeclarationBase,
 }
 
 pub struct ImportDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub modifiers_base: ModifiersBase,
-    pub declaration_base: DeclarationBase,
+    flow_node_base: FlowNodeBase,
+    modifiers_base: ModifiersBase,
+    declaration_base: DeclarationBase,
     pub import_clause: Option<P<Node>>,
     pub module_specifier: P<Node>,
 }
 
 /// The rare tail of `ImportDeclaration` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct ImportDeclarationRare {
-    pub attributes: Option<P<Node>>,
+pub(crate) struct ImportDeclarationRare {
+    attributes: Option<P<Node>>,
 }
 
 impl NodeRareTail for ImportDeclaration {
@@ -1884,33 +1054,17 @@ impl ImportDeclaration {
         rare_tail(self)?.attributes
     }
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
     }
 }
 
 pub struct ExternalModuleReference {
-    pub expression: P<Node>,
+    pub(crate) expression: P<Node>,
 }
 
 impl ExternalModuleReference {
@@ -1921,31 +1075,15 @@ impl ExternalModuleReference {
 }
 
 pub struct NamespaceImport {
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
-    pub name: P<Node>,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
+    name: P<Node>,
 }
 
 impl NamespaceImport {
     #[inline]
     pub fn name(&self) -> P<Node> {
         self.name
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
     }
 }
 
@@ -1961,12 +1099,12 @@ impl NamedImports {
 }
 
 pub struct ExportAssignment {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
     pub is_export_equals: bool,
-    pub type_: OwnedCell<Option<P<Node>>>,
-    pub expression: OwnedCell<P<Node>>,
+    pub(crate) type_: OwnedCell<Option<P<Node>>>,
+    pub(crate) expression: OwnedCell<P<Node>>,
 }
 
 impl ExportAssignment {
@@ -1979,48 +1117,24 @@ impl ExportAssignment {
         self.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
-    }
-    #[inline]
     pub fn expression(&self) -> P<Node> {
         self.expression.get()
-    }
-    #[inline]
-    pub fn set_expression(&self, value: P<Node>) {
-        self.expression.set(value);
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
     }
     #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct NamespaceExportDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
-    pub name: P<Node>,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
+    name: P<Node>,
 }
 
 impl NamespaceExportDeclaration {
@@ -2029,48 +1143,24 @@ impl NamespaceExportDeclaration {
         self.name
     }
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct NamespaceExport {
-    pub declaration_base: DeclarationBase,
-    pub name: P<Node>,
+    declaration_base: DeclarationBase,
+    name: P<Node>,
 }
 
 impl NamespaceExport {
     #[inline]
     pub fn name(&self) -> P<Node> {
         self.name
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
     }
 }
 
@@ -2086,8 +1176,8 @@ impl NamedExports {
 }
 
 pub struct ExportSpecifier {
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
     pub is_type_only: bool,
     pub property_name: Option<P<Node>>,
     pub name: P<Node>,
@@ -2106,157 +1196,53 @@ impl ExportSpecifier {
     pub fn name(&self) -> P<Node> {
         self.name
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
 }
 
 pub struct CallSignatureDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub function_like_base: FunctionLikeBase,
+    declaration_base: DeclarationBase,
+    function_like_base: FunctionLikeBase,
 }
 
 impl CallSignatureDeclaration {
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn type_parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.type_parameters.get()
-    }
-    #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
     }
     #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
     }
     #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
-    }
-    #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
-    }
-    #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
-    pub fn full_signature(&self) -> Option<P<Node>> {
-        self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
 }
 
 pub struct ConstructSignatureDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub function_like_base: FunctionLikeBase,
+    declaration_base: DeclarationBase,
+    function_like_base: FunctionLikeBase,
 }
 
 impl ConstructSignatureDeclaration {
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn type_parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.type_parameters.get()
-    }
-    #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
     }
     #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
     }
     #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
-    }
-    #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
-    }
-    #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
-    pub fn full_signature(&self) -> Option<P<Node>> {
-        self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
 }
 
 pub struct ConstructorDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
     pub function_like_base: FunctionLikeBase,
-    pub body_base: BodyBase,
+    body_base: BodyBase,
     pub return_flow_node: OwnedCell<Option<P<FlowNode>>>,
 }
 
@@ -2270,19 +1256,11 @@ impl ConstructorDeclaration {
         self.return_flow_node.set(value);
     }
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -2290,90 +1268,38 @@ impl ConstructorDeclaration {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
-    }
-    #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
     }
     #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
-    pub fn full_signature(&self) -> Option<P<Node>> {
+    pub(crate) fn full_signature(&self) -> Option<P<Node>> {
         self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
-    }
-    #[inline]
-    pub fn asterisk_token(&self) -> Option<P<Node>> {
-        self.body_base.asterisk_token
     }
     #[inline]
     pub fn body(&self) -> Option<P<Node>> {
         self.body_base.body
-    }
-    #[inline]
-    pub fn end_flow_node(&self) -> Option<P<FlowNode>> {
-        self.body_base.end_flow_node.get()
-    }
-    #[inline]
-    pub fn set_end_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.body_base.end_flow_node.set(value);
     }
 }
 
 pub struct GetAccessorDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub named_member_base: NamedMemberBase,
-    pub function_like_base: FunctionLikeBase,
-    pub body_base: BodyBase,
-    pub flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    named_member_base: NamedMemberBase,
+    function_like_base: FunctionLikeBase,
+    body_base: BodyBase,
+    flow_node_base: FlowNodeBase,
 }
 
 impl GetAccessorDeclaration {
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn name(&self) -> P<Node> {
         self.named_member_base.name
     }
     #[inline]
-    pub fn postfix_token(&self) -> Option<P<Node>> {
+    pub(crate) fn postfix_token(&self) -> Option<P<Node>> {
         self.named_member_base.postfix_token
     }
     #[inline]
@@ -2381,7 +1307,7 @@ impl GetAccessorDeclaration {
         self.named_member_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.named_member_base.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -2389,98 +1315,38 @@ impl GetAccessorDeclaration {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
-    }
-    #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
     }
     #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
     pub fn full_signature(&self) -> Option<P<Node>> {
         self.function_like_base.full_signature.get()
     }
     #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
-    }
-    #[inline]
-    pub fn asterisk_token(&self) -> Option<P<Node>> {
-        self.body_base.asterisk_token
-    }
-    #[inline]
     pub fn body(&self) -> Option<P<Node>> {
         self.body_base.body
-    }
-    #[inline]
-    pub fn end_flow_node(&self) -> Option<P<FlowNode>> {
-        self.body_base.end_flow_node.get()
-    }
-    #[inline]
-    pub fn set_end_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.body_base.end_flow_node.set(value);
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
     }
 }
 
 pub struct SetAccessorDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub named_member_base: NamedMemberBase,
-    pub function_like_base: FunctionLikeBase,
-    pub body_base: BodyBase,
-    pub flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    named_member_base: NamedMemberBase,
+    function_like_base: FunctionLikeBase,
+    body_base: BodyBase,
+    flow_node_base: FlowNodeBase,
 }
 
 impl SetAccessorDeclaration {
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
     #[inline]
     pub fn name(&self) -> P<Node> {
         self.named_member_base.name
     }
     #[inline]
-    pub fn postfix_token(&self) -> Option<P<Node>> {
+    pub(crate) fn postfix_token(&self) -> Option<P<Node>> {
         self.named_member_base.postfix_token
     }
     #[inline]
@@ -2488,7 +1354,7 @@ impl SetAccessorDeclaration {
         self.named_member_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.named_member_base.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -2496,164 +1362,56 @@ impl SetAccessorDeclaration {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
-    }
-    #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
     }
     #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
     pub fn full_signature(&self) -> Option<P<Node>> {
         self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
-    }
-    #[inline]
-    pub fn asterisk_token(&self) -> Option<P<Node>> {
-        self.body_base.asterisk_token
     }
     #[inline]
     pub fn body(&self) -> Option<P<Node>> {
         self.body_base.body
     }
-    #[inline]
-    pub fn end_flow_node(&self) -> Option<P<FlowNode>> {
-        self.body_base.end_flow_node.get()
-    }
-    #[inline]
-    pub fn set_end_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.body_base.end_flow_node.set(value);
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct IndexSignatureDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
     pub function_like_base: FunctionLikeBase,
 }
 
 impl IndexSignatureDeclaration {
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
-    }
-    #[inline]
-    pub fn type_parameters(&self) -> Option<P<NodeList>> {
-        self.function_like_base.type_parameters.get()
-    }
-    #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
     }
     #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
     }
     #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
-    }
-    #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
-    }
-    #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
-    pub fn full_signature(&self) -> Option<P<Node>> {
-        self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
 }
 
 pub struct MethodSignatureDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub named_member_base: NamedMemberBase,
-    pub function_like_base: FunctionLikeBase,
+    declaration_base: DeclarationBase,
+    named_member_base: NamedMemberBase,
+    function_like_base: FunctionLikeBase,
 }
 
 impl MethodSignatureDeclaration {
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn name(&self) -> P<Node> {
         self.named_member_base.name
     }
@@ -2666,7 +1424,7 @@ impl MethodSignatureDeclaration {
         self.named_member_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.named_member_base.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -2674,68 +1432,24 @@ impl MethodSignatureDeclaration {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
     }
     #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
-    }
-    #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
-    }
-    #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
-    pub fn full_signature(&self) -> Option<P<Node>> {
-        self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
 }
 
 pub struct MethodDeclaration {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub named_member_base: NamedMemberBase,
-    pub function_like_base: FunctionLikeBase,
+    function_like_base: FunctionLikeBase,
     pub body_base: BodyBase,
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
 }
 
 impl MethodDeclaration {
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
     #[inline]
     pub fn name(&self) -> P<Node> {
         self.named_member_base.name
@@ -2749,7 +1463,7 @@ impl MethodDeclaration {
         self.named_member_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.named_member_base.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -2757,48 +1471,16 @@ impl MethodDeclaration {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
-    }
-    #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
     }
     #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
     pub fn full_signature(&self) -> Option<P<Node>> {
         self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
     #[inline]
     pub fn asterisk_token(&self) -> Option<P<Node>> {
@@ -2808,33 +1490,17 @@ impl MethodDeclaration {
     pub fn body(&self) -> Option<P<Node>> {
         self.body_base.body
     }
-    #[inline]
-    pub fn end_flow_node(&self) -> Option<P<FlowNode>> {
-        self.body_base.end_flow_node.get()
-    }
-    #[inline]
-    pub fn set_end_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.body_base.end_flow_node.set(value);
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct PropertySignatureDeclaration {
     pub declaration_base: DeclarationBase,
-    pub named_member_base: NamedMemberBase,
+    named_member_base: NamedMemberBase,
     pub type_: OwnedCell<Option<P<Node>>>,
 }
 
 /// The rare tail of `PropertySignatureDeclaration` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct PropertySignatureDeclarationRare {
-    pub initializer: Option<P<Node>>,
+pub(crate) struct PropertySignatureDeclarationRare {
+    initializer: Option<P<Node>>,
 }
 
 impl NodeRareTail for PropertySignatureDeclaration {
@@ -2847,20 +1513,8 @@ impl PropertySignatureDeclaration {
         self.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
-    }
-    #[inline]
     pub fn initializer(&self) -> Option<P<Node>> {
         rare_tail(self)?.initializer
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
     }
     #[inline]
     pub fn name(&self) -> P<Node> {
@@ -2875,16 +1529,16 @@ impl PropertySignatureDeclaration {
         self.named_member_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.named_member_base.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct PropertyDeclaration {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub named_member_base: NamedMemberBase,
-    pub type_: OwnedCell<Option<P<Node>>>,
-    pub initializer: OwnedCell<Option<P<Node>>>,
+    pub(crate) type_: OwnedCell<Option<P<Node>>>,
+    pub(crate) initializer: OwnedCell<Option<P<Node>>>,
 }
 
 impl PropertyDeclaration {
@@ -2893,24 +1547,8 @@ impl PropertyDeclaration {
         self.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
-    }
-    #[inline]
     pub fn initializer(&self) -> Option<P<Node>> {
         self.initializer.get()
-    }
-    #[inline]
-    pub fn set_initializer(&self, value: Option<P<Node>>) {
-        self.initializer.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
     }
     #[inline]
     pub fn name(&self) -> P<Node> {
@@ -2925,30 +1563,19 @@ impl PropertyDeclaration {
         self.named_member_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.named_member_base.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct SemicolonClassElement {
-    pub declaration_base: DeclarationBase,
-}
-
-impl SemicolonClassElement {
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
+    declaration_base: DeclarationBase,
 }
 
 pub struct ClassStaticBlockDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
-    pub locals_container_base: LocalsContainerBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
+    locals_container_base: LocalsContainerBase,
     pub body: P<Node>,
     pub return_flow_node: OwnedCell<Option<P<FlowNode>>>,
 }
@@ -2967,54 +1594,19 @@ impl ClassStaticBlockDeclaration {
         self.return_flow_node.set(value);
     }
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
-    }
 }
 
-pub struct OmittedExpression;
+struct OmittedExpression;
 
 pub struct KeywordExpression {
-    pub flow_node_base: FlowNodeBase,
-}
-
-impl KeywordExpression {
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
+    flow_node_base: FlowNodeBase,
 }
 
 pub struct StringLiteral {
@@ -3029,10 +1621,6 @@ impl StringLiteral {
     #[inline]
     pub fn token_flags(&self) -> TokenFlags {
         self.literal_like_node_base.token_flags.get()
-    }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.literal_like_node_base.token_flags.set(value);
     }
 }
 
@@ -3049,14 +1637,10 @@ impl NumericLiteral {
     pub fn token_flags(&self) -> TokenFlags {
         self.literal_like_node_base.token_flags.get()
     }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.literal_like_node_base.token_flags.set(value);
-    }
 }
 
 pub struct BigIntLiteral {
-    pub literal_like_node_base: LiteralLikeNodeBase,
+    literal_like_node_base: LiteralLikeNodeBase,
 }
 
 impl BigIntLiteral {
@@ -3068,14 +1652,10 @@ impl BigIntLiteral {
     pub fn token_flags(&self) -> TokenFlags {
         self.literal_like_node_base.token_flags.get()
     }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.literal_like_node_base.token_flags.set(value);
-    }
 }
 
 pub struct RegularExpressionLiteral {
-    pub literal_like_node_base: LiteralLikeNodeBase,
+    literal_like_node_base: LiteralLikeNodeBase,
 }
 
 impl RegularExpressionLiteral {
@@ -3087,22 +1667,14 @@ impl RegularExpressionLiteral {
     pub fn token_flags(&self) -> TokenFlags {
         self.literal_like_node_base.token_flags.get()
     }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.literal_like_node_base.token_flags.set(value);
-    }
 }
 
 pub struct NoSubstitutionTemplateLiteral {
-    pub template_literal_like_node_base: TemplateLiteralLikeNodeBase,
-    pub declaration_base: DeclarationBase,
+    template_literal_like_node_base: TemplateLiteralLikeNodeBase,
+    declaration_base: DeclarationBase,
 }
 
 impl NoSubstitutionTemplateLiteral {
-    #[inline]
-    pub fn raw_text(&self) -> &'static str {
-        self.template_literal_like_node_base.raw_text
-    }
     #[inline]
     pub fn template_flags(&self) -> TokenFlags {
         self.template_literal_like_node_base.template_flags
@@ -3111,27 +1683,11 @@ impl NoSubstitutionTemplateLiteral {
     pub fn text(&self) -> &'static str {
         self.template_literal_like_node_base.literal_like_node_base.text.as_str()
     }
-    #[inline]
-    pub fn token_flags(&self) -> TokenFlags {
-        self.template_literal_like_node_base.literal_like_node_base.token_flags.get()
-    }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.template_literal_like_node_base.literal_like_node_base.token_flags.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
 }
 
 pub struct BinaryExpression {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
     pub left: P<Node>,
     pub type_: OwnedCell<Option<P<Node>>>,
     pub operator_token: P<Node>,
@@ -3148,10 +1704,6 @@ impl BinaryExpression {
         self.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
-    }
-    #[inline]
     pub fn operator_token(&self) -> P<Node> {
         self.operator_token
     }
@@ -3160,23 +1712,11 @@ impl BinaryExpression {
         self.right.get()
     }
     #[inline]
-    pub fn set_right(&self, value: P<Node>) {
-        self.right.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
@@ -3230,11 +1770,11 @@ impl YieldExpression {
 }
 
 pub struct ArrowFunction {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
     pub function_like_base: FunctionLikeBase,
-    pub body_base: BodyBase,
-    pub flow_node_base: FlowNodeBase,
+    body_base: BodyBase,
+    flow_node_base: FlowNodeBase,
     pub equals_greater_than_token: Option<P<Node>>,
 }
 
@@ -3244,19 +1784,11 @@ impl ArrowFunction {
         self.equals_greater_than_token
     }
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -3264,48 +1796,16 @@ impl ArrowFunction {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
-    }
-    #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
     }
     #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
     pub fn full_signature(&self) -> Option<P<Node>> {
         self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
     #[inline]
     pub fn asterisk_token(&self) -> Option<P<Node>> {
@@ -3315,32 +1815,16 @@ impl ArrowFunction {
     pub fn body(&self) -> Option<P<Node>> {
         self.body_base.body
     }
-    #[inline]
-    pub fn end_flow_node(&self) -> Option<P<FlowNode>> {
-        self.body_base.end_flow_node.get()
-    }
-    #[inline]
-    pub fn set_end_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.body_base.end_flow_node.set(value);
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct FunctionExpression {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
-    pub function_like_base: FunctionLikeBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
+    function_like_base: FunctionLikeBase,
     pub body_base: BodyBase,
-    pub flow_node_base: FlowNodeBase,
-    pub name: Option<P<Node>>,
-    pub return_flow_node: OwnedCell<Option<P<FlowNode>>>,
+    flow_node_base: FlowNodeBase,
+    name: Option<P<Node>>,
+    return_flow_node: OwnedCell<Option<P<FlowNode>>>,
 }
 
 impl FunctionExpression {
@@ -3357,19 +1841,11 @@ impl FunctionExpression {
         self.return_flow_node.set(value);
     }
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -3377,48 +1853,16 @@ impl FunctionExpression {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
-    }
-    #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
     }
     #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
     pub fn full_signature(&self) -> Option<P<Node>> {
         self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
     #[inline]
     pub fn asterisk_token(&self) -> Option<P<Node>> {
@@ -3427,22 +1871,6 @@ impl FunctionExpression {
     #[inline]
     pub fn body(&self) -> Option<P<Node>> {
         self.body_base.body
-    }
-    #[inline]
-    pub fn end_flow_node(&self) -> Option<P<FlowNode>> {
-        self.body_base.end_flow_node.get()
-    }
-    #[inline]
-    pub fn set_end_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.body_base.end_flow_node.set(value);
-    }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
     }
 }
 
@@ -3480,9 +1908,9 @@ impl SatisfiesExpression {
 
 pub struct ConditionalExpression {
     pub condition: P<Node>,
-    pub question_token: P<Node>,
+    pub(crate) question_token: P<Node>,
     pub when_true: P<Node>,
-    pub colon_token: P<Node>,
+    colon_token: P<Node>,
     pub when_false: P<Node>,
 }
 
@@ -3510,14 +1938,14 @@ impl ConditionalExpression {
 }
 
 pub struct PropertyAccessExpression {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub expression: P<Node>,
     pub name: P<Node>,
 }
 
 /// The rare tail of `PropertyAccessExpression` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct PropertyAccessExpressionRare {
-    pub question_dot_token: Option<P<Node>>,
+pub(crate) struct PropertyAccessExpressionRare {
+    question_dot_token: Option<P<Node>>,
 }
 
 impl NodeRareTail for PropertyAccessExpression {
@@ -3537,25 +1965,17 @@ impl PropertyAccessExpression {
     pub fn name(&self) -> P<Node> {
         self.name
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct ElementAccessExpression {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub expression: P<Node>,
     pub argument_expression: P<Node>,
 }
 
 /// The rare tail of `ElementAccessExpression` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct ElementAccessExpressionRare {
-    pub question_dot_token: Option<P<Node>>,
+pub(crate) struct ElementAccessExpressionRare {
+    question_dot_token: Option<P<Node>>,
 }
 
 impl NodeRareTail for ElementAccessExpression {
@@ -3575,26 +1995,18 @@ impl ElementAccessExpression {
     pub fn argument_expression(&self) -> P<Node> {
         self.argument_expression
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct CallExpression {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub expression: P<Node>,
     pub arguments: P<NodeList>,
 }
 
 /// The rare tail of `CallExpression` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct CallExpressionRare {
-    pub question_dot_token: Option<P<Node>>,
-    pub type_arguments: Option<P<NodeList>>,
+pub(crate) struct CallExpressionRare {
+    question_dot_token: Option<P<Node>>,
+    type_arguments: Option<P<NodeList>>,
 }
 
 impl NodeRareTail for CallExpression {
@@ -3618,14 +2030,6 @@ impl CallExpression {
     pub fn arguments(&self) -> P<NodeList> {
         self.arguments
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
 }
 
 pub struct NewExpression {
@@ -3634,8 +2038,8 @@ pub struct NewExpression {
 }
 
 /// The rare tail of `NewExpression` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct NewExpressionRare {
-    pub type_arguments: Option<P<NodeList>>,
+pub(crate) struct NewExpressionRare {
+    type_arguments: Option<P<NodeList>>,
 }
 
 impl NodeRareTail for NewExpression {
@@ -3658,7 +2062,7 @@ impl NewExpression {
 }
 
 pub struct MetaProperty {
-    pub flow_node_base: FlowNodeBase,
+    flow_node_base: FlowNodeBase,
     pub keyword_token: Kind,
     pub name: P<Node>,
 }
@@ -3672,18 +2076,10 @@ impl MetaProperty {
     pub fn name(&self) -> P<Node> {
         self.name
     }
-    #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
 }
 
 pub struct NonNullExpression {
-    pub expression: P<Node>,
+    pub(crate) expression: P<Node>,
 }
 
 impl NonNullExpression {
@@ -3739,7 +2135,7 @@ impl TemplateSpan {
 pub struct TaggedTemplateExpression {
     pub tag: P<Node>,
     pub question_dot_token: Option<P<Node>>,
-    pub type_arguments: Option<P<NodeList>>,
+    pub(crate) type_arguments: Option<P<NodeList>>,
     pub template: P<Node>,
 }
 
@@ -3771,10 +2167,6 @@ impl ParenthesizedExpression {
     pub fn expression(&self) -> P<Node> {
         self.expression.get()
     }
-    #[inline]
-    pub fn set_expression(&self, value: P<Node>) {
-        self.expression.set(value);
-    }
 }
 
 pub struct ArrayLiteralExpression {
@@ -3794,7 +2186,7 @@ impl ArrayLiteralExpression {
 }
 
 pub struct ObjectLiteralExpression {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub properties: P<NodeList>,
     pub multi_line: bool,
 }
@@ -3808,18 +2200,10 @@ impl ObjectLiteralExpression {
     pub fn multi_line(&self) -> bool {
         self.multi_line
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
 }
 
 pub struct SpreadAssignment {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub expression: P<Node>,
 }
 
@@ -3828,20 +2212,12 @@ impl SpreadAssignment {
     pub fn expression(&self) -> P<Node> {
         self.expression
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
 }
 
 pub struct PropertyAssignment {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub named_member_base: NamedMemberBase,
-    pub type_: OwnedCell<Option<P<Node>>>,
+    pub(crate) type_: OwnedCell<Option<P<Node>>>,
     pub initializer: OwnedCell<P<Node>>,
 }
 
@@ -3851,24 +2227,8 @@ impl PropertyAssignment {
         self.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
-    }
-    #[inline]
     pub fn initializer(&self) -> P<Node> {
         self.initializer.get()
-    }
-    #[inline]
-    pub fn set_initializer(&self, value: P<Node>) {
-        self.initializer.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
     }
     #[inline]
     pub fn name(&self) -> P<Node> {
@@ -3883,15 +2243,15 @@ impl PropertyAssignment {
         self.named_member_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.named_member_base.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct ShorthandPropertyAssignment {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub named_member_base: NamedMemberBase,
-    pub type_: OwnedCell<Option<P<Node>>>,
+    pub(crate) type_: OwnedCell<Option<P<Node>>>,
     pub equals_token: Option<P<Node>>,
     pub object_assignment_initializer: OwnedCell<Option<P<Node>>>,
 }
@@ -3902,28 +2262,12 @@ impl ShorthandPropertyAssignment {
         self.type_.get()
     }
     #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.type_.set(value);
-    }
-    #[inline]
     pub fn equals_token(&self) -> Option<P<Node>> {
         self.equals_token
     }
     #[inline]
     pub fn object_assignment_initializer(&self) -> Option<P<Node>> {
         self.object_assignment_initializer.get()
-    }
-    #[inline]
-    pub fn set_object_assignment_initializer(&self, value: Option<P<Node>>) {
-        self.object_assignment_initializer.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
     }
     #[inline]
     pub fn name(&self) -> P<Node> {
@@ -3938,13 +2282,13 @@ impl ShorthandPropertyAssignment {
         self.named_member_base.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.named_member_base.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct DeleteExpression {
-    pub expression: P<Node>,
+    pub(crate) expression: P<Node>,
 }
 
 impl DeleteExpression {
@@ -3966,7 +2310,7 @@ impl TypeOfExpression {
 }
 
 pub struct VoidExpression {
-    pub expression: P<Node>,
+    pub(crate) expression: P<Node>,
 }
 
 impl VoidExpression {
@@ -4028,7 +2372,7 @@ impl IntersectionTypeNode {
 }
 
 pub struct ConditionalTypeNode {
-    pub locals_container_base: LocalsContainerBase,
+    locals_container_base: LocalsContainerBase,
     pub check_type: P<Node>,
     pub extends_type: P<Node>,
     pub true_type: P<Node>,
@@ -4051,22 +2395,6 @@ impl ConditionalTypeNode {
     #[inline]
     pub fn false_type(&self) -> P<Node> {
         self.false_type
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
     }
 }
 
@@ -4125,7 +2453,7 @@ impl IndexedAccessTypeNode {
 }
 
 pub struct TypeReferenceNode {
-    pub node_with_type_arguments_base: NodeWithTypeArgumentsBase,
+    node_with_type_arguments_base: NodeWithTypeArgumentsBase,
     pub type_name: P<Node>,
 }
 
@@ -4154,10 +2482,6 @@ impl ExpressionWithTypeArguments {
     pub fn type_arguments(&self) -> Option<P<NodeList>> {
         self.type_arguments.get()
     }
-    #[inline]
-    pub fn set_type_arguments(&self, value: Option<P<NodeList>>) {
-        self.type_arguments.set(value);
-    }
 }
 
 pub struct LiteralTypeNode {
@@ -4171,7 +2495,7 @@ impl LiteralTypeNode {
     }
 }
 
-pub struct ThisTypeNode;
+struct ThisTypeNode;
 
 pub struct TypePredicateNode {
     pub asserts_modifier: Option<P<Node>>,
@@ -4213,7 +2537,7 @@ impl ImportAttribute {
 pub struct ImportAttributes {
     pub token: Kind,
     pub attributes: P<NodeList>,
-    pub multi_line: bool,
+    multi_line: bool,
 }
 
 impl ImportAttributes {
@@ -4232,7 +2556,7 @@ impl ImportAttributes {
 }
 
 pub struct TypeQueryNode {
-    pub node_with_type_arguments_base: NodeWithTypeArgumentsBase,
+    node_with_type_arguments_base: NodeWithTypeArgumentsBase,
     pub expr_name: P<Node>,
 }
 
@@ -4248,8 +2572,8 @@ impl TypeQueryNode {
 }
 
 pub struct MappedTypeNode {
-    pub declaration_base: DeclarationBase,
-    pub locals_container_base: LocalsContainerBase,
+    declaration_base: DeclarationBase,
+    locals_container_base: LocalsContainerBase,
     pub readonly_token: Option<P<Node>>,
     pub type_parameter: P<Node>,
     pub name_type: Option<P<Node>>,
@@ -4283,34 +2607,10 @@ impl MappedTypeNode {
     pub fn members(&self) -> Option<P<NodeList>> {
         self.members
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
-    }
 }
 
 pub struct TypeLiteralNode {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub members: P<NodeList>,
 }
 
@@ -4319,18 +2619,10 @@ impl TypeLiteralNode {
     pub fn members(&self) -> P<NodeList> {
         self.members
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
 }
 
 pub struct TupleTypeNode {
-    pub elements: P<NodeList>,
+    pub(crate) elements: P<NodeList>,
 }
 
 impl TupleTypeNode {
@@ -4341,9 +2633,9 @@ impl TupleTypeNode {
 }
 
 pub struct NamedTupleMember {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub dot_dot_dot_token: Option<P<Node>>,
-    pub name: P<Node>,
+    name: P<Node>,
     pub question_token: Option<P<Node>>,
     pub type_: P<Node>,
 }
@@ -4365,18 +2657,10 @@ impl NamedTupleMember {
     pub fn type_(&self) -> P<Node> {
         self.type_
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
 }
 
 pub struct OptionalTypeNode {
-    pub type_: P<Node>,
+    pub(crate) type_: P<Node>,
 }
 
 impl OptionalTypeNode {
@@ -4387,7 +2671,7 @@ impl OptionalTypeNode {
 }
 
 pub struct RestTypeNode {
-    pub type_: P<Node>,
+    pub(crate) type_: P<Node>,
 }
 
 impl RestTypeNode {
@@ -4409,26 +2693,14 @@ impl ParenthesizedTypeNode {
 }
 
 pub struct FunctionTypeNode {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
-    pub function_like_base: FunctionLikeBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
+    function_like_base: FunctionLikeBase,
 }
 
 impl FunctionTypeNode {
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn modifiers(&self) -> Option<P<ModifierList>> {
-        self.modifiers_base.modifiers.get()
-    }
-    #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -4436,72 +2708,28 @@ impl FunctionTypeNode {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
     }
     #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
-    }
-    #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
-    }
-    #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
-    pub fn full_signature(&self) -> Option<P<Node>> {
-        self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
 }
 
 pub struct ConstructorTypeNode {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
-    pub function_like_base: FunctionLikeBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
+    function_like_base: FunctionLikeBase,
 }
 
 impl ConstructorTypeNode {
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
     #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
     #[inline]
@@ -4509,53 +2737,17 @@ impl ConstructorTypeNode {
         self.function_like_base.type_parameters.get()
     }
     #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
-    }
-    #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
-    }
-    #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
     }
     #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
     }
-    #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
-    pub fn full_signature(&self) -> Option<P<Node>> {
-        self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
-    }
 }
 
 pub struct TemplateHead {
-    pub template_literal_like_node_base: TemplateLiteralLikeNodeBase,
+    template_literal_like_node_base: TemplateLiteralLikeNodeBase,
 }
 
 impl TemplateHead {
@@ -4571,18 +2763,10 @@ impl TemplateHead {
     pub fn text(&self) -> &'static str {
         self.template_literal_like_node_base.literal_like_node_base.text.as_str()
     }
-    #[inline]
-    pub fn token_flags(&self) -> TokenFlags {
-        self.template_literal_like_node_base.literal_like_node_base.token_flags.get()
-    }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.template_literal_like_node_base.literal_like_node_base.token_flags.set(value);
-    }
 }
 
 pub struct TemplateMiddle {
-    pub template_literal_like_node_base: TemplateLiteralLikeNodeBase,
+    template_literal_like_node_base: TemplateLiteralLikeNodeBase,
 }
 
 impl TemplateMiddle {
@@ -4598,18 +2782,10 @@ impl TemplateMiddle {
     pub fn text(&self) -> &'static str {
         self.template_literal_like_node_base.literal_like_node_base.text.as_str()
     }
-    #[inline]
-    pub fn token_flags(&self) -> TokenFlags {
-        self.template_literal_like_node_base.literal_like_node_base.token_flags.get()
-    }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.template_literal_like_node_base.literal_like_node_base.token_flags.set(value);
-    }
 }
 
 pub struct TemplateTail {
-    pub template_literal_like_node_base: TemplateLiteralLikeNodeBase,
+    template_literal_like_node_base: TemplateLiteralLikeNodeBase,
 }
 
 impl TemplateTail {
@@ -4624,14 +2800,6 @@ impl TemplateTail {
     #[inline]
     pub fn text(&self) -> &'static str {
         self.template_literal_like_node_base.literal_like_node_base.text.as_str()
-    }
-    #[inline]
-    pub fn token_flags(&self) -> TokenFlags {
-        self.template_literal_like_node_base.literal_like_node_base.token_flags.get()
-    }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.template_literal_like_node_base.literal_like_node_base.token_flags.set(value);
     }
 }
 
@@ -4652,7 +2820,7 @@ impl TemplateLiteralTypeNode {
 }
 
 pub struct TemplateLiteralTypeSpan {
-    pub type_: P<Node>,
+    pub(crate) type_: P<Node>,
     pub literal: P<Node>,
 }
 
@@ -4675,7 +2843,7 @@ pub struct SyntheticExpression {
 
 impl SyntheticExpression {
     #[inline]
-    pub fn type_(&self) -> &'static dyn Any {
+    fn type_(&self) -> &'static dyn Any {
         self.type_
     }
     #[inline]
@@ -4721,22 +2889,14 @@ impl JsxElement {
 }
 
 pub struct JsxAttributes {
-    pub declaration_base: DeclarationBase,
-    pub properties: P<NodeList>,
+    declaration_base: DeclarationBase,
+    pub(crate) properties: P<NodeList>,
 }
 
 impl JsxAttributes {
     #[inline]
     pub fn properties(&self) -> P<NodeList> {
         self.properties
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
     }
 }
 
@@ -4758,7 +2918,7 @@ impl JsxNamespacedName {
 
 pub struct JsxOpeningElement {
     pub tag_name: P<Node>,
-    pub type_arguments: Option<P<NodeList>>,
+    pub(crate) type_arguments: Option<P<NodeList>>,
     pub attributes: P<Node>,
 }
 
@@ -4779,7 +2939,7 @@ impl JsxOpeningElement {
 
 pub struct JsxSelfClosingElement {
     pub tag_name: P<Node>,
-    pub type_arguments: Option<P<NodeList>>,
+    pub(crate) type_arguments: Option<P<NodeList>>,
     pub attributes: P<Node>,
 }
 
@@ -4819,12 +2979,12 @@ impl JsxFragment {
     }
 }
 
-pub struct JsxOpeningFragment;
+struct JsxOpeningFragment;
 
-pub struct JsxClosingFragment;
+struct JsxClosingFragment;
 
 pub struct JsxAttribute {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub name: P<Node>,
     pub initializer: Option<P<Node>>,
 }
@@ -4838,18 +2998,10 @@ impl JsxAttribute {
     pub fn initializer(&self) -> Option<P<Node>> {
         self.initializer
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
 }
 
 pub struct JsxSpreadAttribute {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub expression: P<Node>,
 }
 
@@ -4858,18 +3010,10 @@ impl JsxSpreadAttribute {
     pub fn expression(&self) -> P<Node> {
         self.expression
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
 }
 
 pub struct JsxClosingElement {
-    pub tag_name: P<Node>,
+    pub(crate) tag_name: P<Node>,
 }
 
 impl JsxClosingElement {
@@ -4896,7 +3040,7 @@ impl JsxExpression {
 }
 
 pub struct JsxText {
-    pub literal_like_node_base: LiteralLikeNodeBase,
+    literal_like_node_base: LiteralLikeNodeBase,
     pub contains_only_trivia_white_spaces: bool,
 }
 
@@ -4908,14 +3052,6 @@ impl JsxText {
     #[inline]
     pub fn text(&self) -> &'static str {
         self.literal_like_node_base.text.as_str()
-    }
-    #[inline]
-    pub fn token_flags(&self) -> TokenFlags {
-        self.literal_like_node_base.token_flags.get()
-    }
-    #[inline]
-    pub fn set_token_flags(&self, value: TokenFlags) {
-        self.literal_like_node_base.token_flags.set(value);
     }
 }
 
@@ -4979,7 +3115,7 @@ impl JSDocNullableType {
     }
 }
 
-pub struct JSDocAllType;
+struct JSDocAllType;
 
 pub struct JSDocVariadicType {
     pub type_: P<Node>,
@@ -5004,7 +3140,7 @@ impl JSDocOptionalType {
 }
 
 pub struct JSDocTypeTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub type_expression: P<Node>,
 }
 
@@ -5024,7 +3160,7 @@ impl JSDocTypeTag {
 }
 
 pub struct JSDocUnknownTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
 }
 
 impl JSDocUnknownTag {
@@ -5039,7 +3175,7 @@ impl JSDocUnknownTag {
 }
 
 pub struct JSDocTemplateTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub constraint: Option<P<Node>>,
     pub type_parameters: P<NodeList>,
 }
@@ -5064,8 +3200,8 @@ impl JSDocTemplateTag {
 }
 
 pub struct JSDocReturnTag {
-    pub jsdoc_tag_base: JSDocTagBase,
-    pub type_expression: Option<P<Node>>,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
+    pub(crate) type_expression: Option<P<Node>>,
 }
 
 impl JSDocReturnTag {
@@ -5084,7 +3220,7 @@ impl JSDocReturnTag {
 }
 
 pub struct JSDocPublicTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
 }
 
 impl JSDocPublicTag {
@@ -5099,7 +3235,7 @@ impl JSDocPublicTag {
 }
 
 pub struct JSDocPrivateTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
 }
 
 impl JSDocPrivateTag {
@@ -5114,7 +3250,7 @@ impl JSDocPrivateTag {
 }
 
 pub struct JSDocProtectedTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
 }
 
 impl JSDocProtectedTag {
@@ -5129,7 +3265,7 @@ impl JSDocProtectedTag {
 }
 
 pub struct JSDocReadonlyTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
 }
 
 impl JSDocReadonlyTag {
@@ -5144,7 +3280,7 @@ impl JSDocReadonlyTag {
 }
 
 pub struct JSDocOverrideTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
 }
 
 impl JSDocOverrideTag {
@@ -5159,7 +3295,7 @@ impl JSDocOverrideTag {
 }
 
 pub struct JSDocDeprecatedTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
 }
 
 impl JSDocDeprecatedTag {
@@ -5174,7 +3310,7 @@ impl JSDocDeprecatedTag {
 }
 
 pub struct JSDocSeeTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub name_expression: Option<P<Node>>,
 }
 
@@ -5194,7 +3330,7 @@ impl JSDocSeeTag {
 }
 
 pub struct JSDocImplementsTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub class_name: P<Node>,
 }
 
@@ -5214,7 +3350,7 @@ impl JSDocImplementsTag {
 }
 
 pub struct JSDocAugmentsTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub class_name: P<Node>,
 }
 
@@ -5234,7 +3370,7 @@ impl JSDocAugmentsTag {
 }
 
 pub struct JSDocSatisfiesTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub type_expression: P<Node>,
 }
 
@@ -5254,7 +3390,7 @@ impl JSDocSatisfiesTag {
 }
 
 pub struct JSDocThrowsTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub type_expression: Option<P<Node>>,
 }
 
@@ -5274,7 +3410,7 @@ impl JSDocThrowsTag {
 }
 
 pub struct JSDocThisTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub type_expression: P<Node>,
 }
 
@@ -5294,7 +3430,7 @@ impl JSDocThisTag {
 }
 
 pub struct JSDocImportTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub import_clause: Option<P<Node>>,
     pub module_specifier: P<Node>,
     pub attributes: Option<P<Node>>,
@@ -5324,9 +3460,9 @@ impl JSDocImportTag {
 }
 
 pub struct JSDocCallbackTag {
-    pub jsdoc_tag_base: JSDocTagBase,
-    pub type_expression: P<Node>,
-    pub name: Option<P<Node>>,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
+    pub(crate) type_expression: P<Node>,
+    name: Option<P<Node>>,
 }
 
 impl JSDocCallbackTag {
@@ -5349,7 +3485,7 @@ impl JSDocCallbackTag {
 }
 
 pub struct JSDocOverloadTag {
-    pub jsdoc_tag_base: JSDocTagBase,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
     pub type_expression: P<Node>,
 }
 
@@ -5369,9 +3505,9 @@ impl JSDocOverloadTag {
 }
 
 pub struct JSDocTypedefTag {
-    pub jsdoc_tag_base: JSDocTagBase,
-    pub type_expression: Option<P<Node>>,
-    pub name: Option<P<Node>>,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
+    pub(crate) type_expression: Option<P<Node>>,
+    name: Option<P<Node>>,
 }
 
 impl JSDocTypedefTag {
@@ -5394,71 +3530,27 @@ impl JSDocTypedefTag {
 }
 
 pub struct JSDocSignature {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub function_like_base: FunctionLikeBase,
 }
 
 impl JSDocSignature {
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn type_parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.type_parameters.get()
-    }
-    #[inline]
-    pub fn set_type_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.type_parameters.set(value);
     }
     #[inline]
     pub fn parameters(&self) -> Option<P<NodeList>> {
         self.function_like_base.parameters.get()
     }
     #[inline]
-    pub fn set_parameters(&self, value: Option<P<NodeList>>) {
-        self.function_like_base.parameters.set(value);
-    }
-    #[inline]
     pub fn type_(&self) -> Option<P<Node>> {
         self.function_like_base.type_.get()
-    }
-    #[inline]
-    pub fn set_type(&self, value: Option<P<Node>>) {
-        self.function_like_base.type_.set(value);
-    }
-    #[inline]
-    pub fn full_signature(&self) -> Option<P<Node>> {
-        self.function_like_base.full_signature.get()
-    }
-    #[inline]
-    pub fn set_full_signature(&self, value: Option<P<Node>>) {
-        self.function_like_base.full_signature.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.function_like_base.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.function_like_base.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.function_like_base.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.function_like_base.locals_container_base.next_container.set(value);
     }
 }
 
 pub struct JSDocNameReference {
-    pub name: P<Node>,
+    name: P<Node>,
 }
 
 impl JSDocNameReference {
@@ -5469,14 +3561,14 @@ impl JSDocNameReference {
 }
 
 pub struct ModuleDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
-    pub modifiers_base: ModifiersBase,
-    pub locals_container_base: LocalsContainerBase,
-    pub body_base: BodyBase,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
+    modifiers_base: ModifiersBase,
+    locals_container_base: LocalsContainerBase,
+    body_base: BodyBase,
     pub keyword: Kind,
-    pub name: P<Node>,
+    name: P<Node>,
     pub attributes: Option<P<Node>>,
 }
 
@@ -5494,76 +3586,24 @@ impl ModuleDeclaration {
         self.attributes
     }
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
-    }
-    #[inline]
-    pub fn locals(&self) -> Option<P<SymbolTable>> {
-        self.locals_container_base.locals.get()
-    }
-    #[inline]
-    pub fn set_locals(&self, value: Option<P<SymbolTable>>) {
-        self.locals_container_base.locals.set(value);
-    }
-    #[inline]
-    pub fn next_container(&self) -> Option<P<Node>> {
-        self.locals_container_base.next_container.get()
-    }
-    #[inline]
-    pub fn set_next_container(&self, value: Option<P<Node>>) {
-        self.locals_container_base.next_container.set(value);
-    }
-    #[inline]
-    pub fn asterisk_token(&self) -> Option<P<Node>> {
-        self.body_base.asterisk_token
     }
     #[inline]
     pub fn body(&self) -> Option<P<Node>> {
         self.body_base.body
     }
-    #[inline]
-    pub fn end_flow_node(&self) -> Option<P<FlowNode>> {
-        self.body_base.end_flow_node.get()
-    }
-    #[inline]
-    pub fn set_end_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.body_base.end_flow_node.set(value);
-    }
 }
 
 pub struct ImportEqualsDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
-    pub modifiers_base: ModifiersBase,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
+    modifiers_base: ModifiersBase,
     pub is_type_only: bool,
     pub name: P<Node>,
     pub module_reference: P<Node>,
@@ -5583,43 +3623,19 @@ impl ImportEqualsDeclaration {
         self.module_reference
     }
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct ExportDeclaration {
-    pub flow_node_base: FlowNodeBase,
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
+    flow_node_base: FlowNodeBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
     pub is_type_only: bool,
     pub export_clause: Option<P<Node>>,
     pub module_specifier: Option<P<Node>>,
@@ -5644,33 +3660,17 @@ impl ExportDeclaration {
         self.attributes
     }
     #[inline]
-    pub fn flow_node(&self) -> Option<P<FlowNode>> {
-        self.flow_node_base.flow_node.get()
-    }
-    #[inline]
-    pub fn set_flow_node(&self, value: Option<P<FlowNode>>) {
-        self.flow_node_base.flow_node.set(value);
-    }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
 
 pub struct ImportTypeNode {
-    pub node_with_type_arguments_base: NodeWithTypeArgumentsBase,
+    node_with_type_arguments_base: NodeWithTypeArgumentsBase,
     pub is_type_of: bool,
     pub argument: P<Node>,
     pub attributes: Option<P<Node>>,
@@ -5701,8 +3701,8 @@ impl ImportTypeNode {
 }
 
 pub struct ImportClause {
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
     pub phase_modifier: OwnedCell<Kind>,
     pub name: Option<P<Node>>,
     pub named_bindings: Option<P<Node>>,
@@ -5714,10 +3714,6 @@ impl ImportClause {
         self.phase_modifier.get()
     }
     #[inline]
-    pub fn set_phase_modifier(&self, value: Kind) {
-        self.phase_modifier.set(value);
-    }
-    #[inline]
     pub fn name(&self) -> Option<P<Node>> {
         self.name
     }
@@ -5725,34 +3721,18 @@ impl ImportClause {
     pub fn named_bindings(&self) -> Option<P<Node>> {
         self.named_bindings
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
 }
 
 pub struct ImportSpecifier {
-    pub declaration_base: DeclarationBase,
-    pub exportable_base: ExportableBase,
+    declaration_base: DeclarationBase,
+    exportable_base: ExportableBase,
     pub is_type_only: bool,
-    pub name: P<Node>,
+    name: P<Node>,
 }
 
 /// The rare tail of `ImportSpecifier` (`NodeAllocRare`): allocated only when one of these is set.
-pub struct ImportSpecifierRare {
-    pub property_name: Option<P<Node>>,
+pub(crate) struct ImportSpecifierRare {
+    property_name: Option<P<Node>>,
 }
 
 impl NodeRareTail for ImportSpecifier {
@@ -5772,26 +3752,10 @@ impl ImportSpecifier {
     pub fn name(&self) -> P<Node> {
         self.name
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
-    pub fn local_symbol(&self) -> Option<P<Symbol>> {
-        self.exportable_base.local_symbol.get()
-    }
-    #[inline]
-    pub fn set_local_symbol(&self, value: Option<P<Symbol>>) {
-        self.exportable_base.local_symbol.set(value);
-    }
 }
 
 pub struct JSDocText {
-    pub jsdoc_comment_base: JSDocCommentBase,
+    jsdoc_comment_base: JSDocCommentBase,
 }
 
 impl JSDocText {
@@ -5802,8 +3766,8 @@ impl JSDocText {
 }
 
 pub struct JSDocLink {
-    pub jsdoc_comment_base: JSDocCommentBase,
-    pub name: Option<P<Node>>,
+    jsdoc_comment_base: JSDocCommentBase,
+    name: Option<P<Node>>,
 }
 
 impl JSDocLink {
@@ -5818,8 +3782,8 @@ impl JSDocLink {
 }
 
 pub struct JSDocLinkPlain {
-    pub jsdoc_comment_base: JSDocCommentBase,
-    pub name: Option<P<Node>>,
+    jsdoc_comment_base: JSDocCommentBase,
+    name: Option<P<Node>>,
 }
 
 impl JSDocLinkPlain {
@@ -5834,8 +3798,8 @@ impl JSDocLinkPlain {
 }
 
 pub struct JSDocLinkCode {
-    pub jsdoc_comment_base: JSDocCommentBase,
-    pub name: Option<P<Node>>,
+    jsdoc_comment_base: JSDocCommentBase,
+    name: Option<P<Node>>,
 }
 
 impl JSDocLinkCode {
@@ -5850,8 +3814,8 @@ impl JSDocLinkCode {
 }
 
 pub struct TypeParameterDeclaration {
-    pub declaration_base: DeclarationBase,
-    pub modifiers_base: ModifiersBase,
+    declaration_base: DeclarationBase,
+    modifiers_base: ModifiersBase,
     pub name: P<Node>,
     pub constraint: Option<P<Node>>,
     pub expression: Option<P<Node>>,
@@ -5876,19 +3840,11 @@ impl TypeParameterDeclaration {
         self.default_type
     }
     #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
-    #[inline]
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         self.modifiers_base.modifiers.get()
     }
     #[inline]
-    pub fn set_modifiers(&self, value: Option<P<ModifierList>>) {
+    fn set_modifiers(&self, value: Option<P<ModifierList>>) {
         self.modifiers_base.modifiers.set(value);
     }
 }
@@ -5910,7 +3866,7 @@ impl SyntheticReferenceExpression {
 }
 
 pub struct JSDocTypeLiteral {
-    pub declaration_base: DeclarationBase,
+    declaration_base: DeclarationBase,
     pub jsdoc_property_tags: &'static [P<Node>],
     pub is_array_type: bool,
 }
@@ -5924,19 +3880,11 @@ impl JSDocTypeLiteral {
     pub fn is_array_type(&self) -> bool {
         self.is_array_type
     }
-    #[inline]
-    pub fn symbol(&self) -> Option<P<Symbol>> {
-        self.declaration_base.symbol.get()
-    }
-    #[inline]
-    pub fn set_symbol(&self, value: Option<P<Symbol>>) {
-        self.declaration_base.symbol.set(value);
-    }
 }
 
 pub struct JSDocParameterOrPropertyTag {
-    pub jsdoc_tag_base: JSDocTagBase,
-    pub name: P<Node>,
+    pub(crate) jsdoc_tag_base: JSDocTagBase,
+    pub(crate) name: P<Node>,
     pub is_bracketed: bool,
     pub type_expression: Option<P<Node>>,
     pub is_name_first: bool,
@@ -7241,15 +5189,6 @@ impl Node {
         self.payload()
     }
     #[inline]
-    pub fn as_empty_statement(&self) -> &'static EmptyStatement {
-        assert!(
-            self.data_tag() == NodeDataTag::EmptyStatement,
-            "as_empty_statement called on {:?}",
-            self.kind()
-        );
-        self.payload()
-    }
-    #[inline]
     pub fn as_if_statement(&self) -> &'static IfStatement {
         assert!(
             self.data_tag() == NodeDataTag::IfStatement,
@@ -7380,15 +5319,6 @@ impl Node {
         assert!(
             self.data_tag() == NodeDataTag::CatchClause,
             "as_catch_clause called on {:?}",
-            self.kind()
-        );
-        self.payload()
-    }
-    #[inline]
-    pub fn as_debugger_statement(&self) -> &'static DebuggerStatement {
-        assert!(
-            self.data_tag() == NodeDataTag::DebuggerStatement,
-            "as_debugger_statement called on {:?}",
             self.kind()
         );
         self.payload()
@@ -7556,24 +5486,6 @@ impl Node {
         assert!(
             self.data_tag() == NodeDataTag::ModuleBlock,
             "as_module_block called on {:?}",
-            self.kind()
-        );
-        self.payload()
-    }
-    #[inline]
-    pub fn as_not_emitted_statement(&self) -> &'static NotEmittedStatement {
-        assert!(
-            self.data_tag() == NodeDataTag::NotEmittedStatement,
-            "as_not_emitted_statement called on {:?}",
-            self.kind()
-        );
-        self.payload()
-    }
-    #[inline]
-    pub fn as_not_emitted_type_element(&self) -> &'static NotEmittedTypeElement {
-        assert!(
-            self.data_tag() == NodeDataTag::NotEmittedTypeElement,
-            "as_not_emitted_type_element called on {:?}",
             self.kind()
         );
         self.payload()
@@ -7750,15 +5662,6 @@ impl Node {
         self.payload()
     }
     #[inline]
-    pub fn as_semicolon_class_element(&self) -> &'static SemicolonClassElement {
-        assert!(
-            self.data_tag() == NodeDataTag::SemicolonClassElement,
-            "as_semicolon_class_element called on {:?}",
-            self.kind()
-        );
-        self.payload()
-    }
-    #[inline]
     pub fn as_class_static_block_declaration(&self) -> &'static ClassStaticBlockDeclaration {
         assert!(
             self.data_tag() == NodeDataTag::ClassStaticBlockDeclaration,
@@ -7766,15 +5669,6 @@ impl Node {
             self.kind()
         );
         self.payload()
-    }
-    #[inline]
-    pub fn as_omitted_expression(&self) -> &'static OmittedExpression {
-        assert!(
-            self.data_tag() == NodeDataTag::OmittedExpression,
-            "as_omitted_expression called on {:?}",
-            self.kind()
-        );
-        &OmittedExpression
     }
     #[inline]
     pub fn as_keyword_expression(&self) -> &'static KeywordExpression {
@@ -8200,15 +6094,6 @@ impl Node {
         self.payload()
     }
     #[inline]
-    pub fn as_this_type_node(&self) -> &'static ThisTypeNode {
-        assert!(
-            self.data_tag() == NodeDataTag::ThisTypeNode,
-            "as_this_type_node called on {:?}",
-            self.kind()
-        );
-        &ThisTypeNode
-    }
-    #[inline]
     pub fn as_type_predicate_node(&self) -> &'static TypePredicateNode {
         assert!(
             self.data_tag() == NodeDataTag::TypePredicateNode,
@@ -8443,24 +6328,6 @@ impl Node {
         self.payload()
     }
     #[inline]
-    pub fn as_jsx_opening_fragment(&self) -> &'static JsxOpeningFragment {
-        assert!(
-            self.data_tag() == NodeDataTag::JsxOpeningFragment,
-            "as_jsx_opening_fragment called on {:?}",
-            self.kind()
-        );
-        &JsxOpeningFragment
-    }
-    #[inline]
-    pub fn as_jsx_closing_fragment(&self) -> &'static JsxClosingFragment {
-        assert!(
-            self.data_tag() == NodeDataTag::JsxClosingFragment,
-            "as_jsx_closing_fragment called on {:?}",
-            self.kind()
-        );
-        &JsxClosingFragment
-    }
-    #[inline]
     pub fn as_jsx_attribute(&self) -> &'static JsxAttribute {
         assert!(
             self.data_tag() == NodeDataTag::JsxAttribute,
@@ -8541,15 +6408,6 @@ impl Node {
             self.kind()
         );
         self.payload()
-    }
-    #[inline]
-    pub fn as_jsdoc_all_type(&self) -> &'static JSDocAllType {
-        assert!(
-            self.data_tag() == NodeDataTag::JSDocAllType,
-            "as_jsdoc_all_type called on {:?}",
-            self.kind()
-        );
-        &JSDocAllType
     }
     #[inline]
     pub fn as_jsdoc_variadic_type(&self) -> &'static JSDocVariadicType {
@@ -8831,7 +6689,7 @@ impl Node {
         self.payload()
     }
     #[inline]
-    pub fn as_jsdoc_text(&self) -> &'static JSDocText {
+    pub(crate) fn as_jsdoc_text(&self) -> &'static JSDocText {
         assert!(
             self.data_tag() == NodeDataTag::JSDocText,
             "as_jsdoc_text called on {:?}",
@@ -11073,7 +8931,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_qualified_name(&self, node: P<Node>, left: P<Node>, right: P<Node>) -> P<Node> {
+    fn update_qualified_name(&self, node: P<Node>, left: P<Node>, right: P<Node>) -> P<Node> {
         let data = node.as_qualified_name();
         if left != data.left() || right != data.right() {
             return update_node(self.new_qualified_name(left, right), node, &self.hooks);
@@ -11097,7 +8955,7 @@ impl NodeFactory {
         self.new_node(Kind::Decorator, Decorator { expression })
     }
 
-    pub fn update_decorator(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
+    fn update_decorator(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
         let data = node.as_decorator();
         if expression != data.expression() {
             return update_node(self.new_decorator(expression), node, &self.hooks);
@@ -11317,7 +9175,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_break_statement(&self, node: P<Node>, label: Option<P<Node>>) -> P<Node> {
+    fn update_break_statement(&self, node: P<Node>, label: Option<P<Node>>) -> P<Node> {
         let data = node.as_break_statement();
         if label != data.label() {
             return update_node(self.new_break_statement(label), node, &self.hooks);
@@ -11335,7 +9193,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_continue_statement(&self, node: P<Node>, label: Option<P<Node>>) -> P<Node> {
+    fn update_continue_statement(&self, node: P<Node>, label: Option<P<Node>>) -> P<Node> {
         let data = node.as_continue_statement();
         if label != data.label() {
             return update_node(self.new_continue_statement(label), node, &self.hooks);
@@ -11426,7 +9284,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_case_block(&self, node: P<Node>, clauses: P<NodeList>) -> P<Node> {
+    fn update_case_block(&self, node: P<Node>, clauses: P<NodeList>) -> P<Node> {
         let data = node.as_case_block();
         if clauses != data.clauses() {
             return update_node(self.new_case_block(clauses), node, &self.hooks);
@@ -11481,7 +9339,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_throw_statement(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
+    fn update_throw_statement(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
         let data = node.as_throw_statement();
         if expression != data.expression() {
             return update_node(self.new_throw_statement(expression), node, &self.hooks);
@@ -11763,7 +9621,7 @@ impl NodeFactory {
         self.new_node(kind, BindingPattern { elements })
     }
 
-    pub fn update_binding_pattern(&self, node: P<Node>, elements: P<NodeList>) -> P<Node> {
+    fn update_binding_pattern(&self, node: P<Node>, elements: P<NodeList>) -> P<Node> {
         let data = node.as_binding_pattern();
         if elements != data.elements() {
             return update_node(self.new_binding_pattern(node.kind(), elements), node, &self.hooks);
@@ -11905,7 +9763,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_missing_declaration(
+    fn update_missing_declaration(
         &self,
         node: P<Node>,
         modifiers: Option<P<ModifierList>>,
@@ -12484,7 +10342,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_namespace_import(&self, node: P<Node>, name: P<Node>) -> P<Node> {
+    fn update_namespace_import(&self, node: P<Node>, name: P<Node>) -> P<Node> {
         let data = node.as_namespace_import();
         if name != data.name() {
             return update_node(self.new_namespace_import(name), node, &self.hooks);
@@ -12563,7 +10421,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_namespace_export_declaration(
+    fn update_namespace_export_declaration(
         &self,
         node: P<Node>,
         modifiers: Option<P<ModifierList>>,
@@ -12590,7 +10448,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_namespace_export(&self, node: P<Node>, name: P<Node>) -> P<Node> {
+    fn update_namespace_export(&self, node: P<Node>, name: P<Node>) -> P<Node> {
         let data = node.as_namespace_export();
         if name != data.name() {
             return update_node(self.new_namespace_export(name), node, &self.hooks);
@@ -12628,7 +10486,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_export_specifier(
+    fn update_export_specifier(
         &self,
         node: P<Node>,
         is_type_only: bool,
@@ -13303,7 +11161,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_class_static_block_declaration(
+    fn update_class_static_block_declaration(
         &self,
         node: P<Node>,
         modifiers: Option<P<ModifierList>>,
@@ -13994,12 +11852,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_meta_property(
-        &self,
-        node: P<Node>,
-        keyword_token: Kind,
-        name: P<Node>,
-    ) -> P<Node> {
+    fn update_meta_property(&self, node: P<Node>, keyword_token: Kind, name: P<Node>) -> P<Node> {
         let data = node.as_meta_property();
         if keyword_token != data.keyword_token() || name != data.name() {
             return update_node(self.new_meta_property(keyword_token, name), node, &self.hooks);
@@ -14042,7 +11895,7 @@ impl NodeFactory {
         self.new_node(Kind::TemplateExpression, TemplateExpression { head, template_spans })
     }
 
-    pub fn update_template_expression(
+    fn update_template_expression(
         &self,
         node: P<Node>,
         head: P<Node>,
@@ -14063,7 +11916,7 @@ impl NodeFactory {
         self.new_node(Kind::TemplateSpan, TemplateSpan { expression, literal })
     }
 
-    pub fn update_template_span(
+    fn update_template_span(
         &self,
         node: P<Node>,
         expression: P<Node>,
@@ -14326,7 +12179,7 @@ impl NodeFactory {
         self.new_node(Kind::DeleteExpression, DeleteExpression { expression })
     }
 
-    pub fn update_delete_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
+    fn update_delete_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
         let data = node.as_delete_expression();
         if expression != data.expression() {
             return update_node(self.new_delete_expression(expression), node, &self.hooks);
@@ -14338,7 +12191,7 @@ impl NodeFactory {
         self.new_node(Kind::TypeOfExpression, TypeOfExpression { expression })
     }
 
-    pub fn update_type_of_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
+    fn update_type_of_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
         let data = node.as_type_of_expression();
         if expression != data.expression() {
             return update_node(self.new_type_of_expression(expression), node, &self.hooks);
@@ -14350,7 +12203,7 @@ impl NodeFactory {
         self.new_node(Kind::VoidExpression, VoidExpression { expression })
     }
 
-    pub fn update_void_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
+    fn update_void_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
         let data = node.as_void_expression();
         if expression != data.expression() {
             return update_node(self.new_void_expression(expression), node, &self.hooks);
@@ -14362,7 +12215,7 @@ impl NodeFactory {
         self.new_node(Kind::AwaitExpression, AwaitExpression { expression })
     }
 
-    pub fn update_await_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
+    fn update_await_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
         let data = node.as_await_expression();
         if expression != data.expression() {
             return update_node(self.new_await_expression(expression), node, &self.hooks);
@@ -14435,7 +12288,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_intersection_type_node(&self, node: P<Node>, types: P<NodeList>) -> P<Node> {
+    fn update_intersection_type_node(&self, node: P<Node>, types: P<NodeList>) -> P<Node> {
         let data = node.as_intersection_type_node();
         if types != data.types() {
             return update_node(self.new_intersection_type_node(types), node, &self.hooks);
@@ -14513,7 +12366,7 @@ impl NodeFactory {
         self.new_node(Kind::InferType, InferTypeNode { type_parameter })
     }
 
-    pub fn update_infer_type_node(&self, node: P<Node>, type_parameter: P<Node>) -> P<Node> {
+    fn update_infer_type_node(&self, node: P<Node>, type_parameter: P<Node>) -> P<Node> {
         let data = node.as_infer_type_node();
         if type_parameter != data.type_parameter() {
             return update_node(self.new_infer_type_node(type_parameter), node, &self.hooks);
@@ -14525,7 +12378,7 @@ impl NodeFactory {
         self.new_node(Kind::ArrayType, ArrayTypeNode { element_type })
     }
 
-    pub fn update_array_type_node(&self, node: P<Node>, element_type: P<Node>) -> P<Node> {
+    fn update_array_type_node(&self, node: P<Node>, element_type: P<Node>) -> P<Node> {
         let data = node.as_array_type_node();
         if element_type != data.element_type() {
             return update_node(self.new_array_type_node(element_type), node, &self.hooks);
@@ -14673,7 +12526,7 @@ impl NodeFactory {
         self.new_node(Kind::ImportAttribute, ImportAttribute { name, value })
     }
 
-    pub fn update_import_attribute(
+    fn update_import_attribute(
         &self,
         node: P<Node>,
         name: Option<P<Node>>,
@@ -14695,7 +12548,7 @@ impl NodeFactory {
         self.new_node(Kind::ImportAttributes, ImportAttributes { token, attributes, multi_line })
     }
 
-    pub fn update_import_attributes(
+    fn update_import_attributes(
         &self,
         node: P<Node>,
         token: Kind,
@@ -14830,7 +12683,7 @@ impl NodeFactory {
         self.new_node(Kind::TupleType, TupleTypeNode { elements })
     }
 
-    pub fn update_tuple_type_node(&self, node: P<Node>, elements: P<NodeList>) -> P<Node> {
+    fn update_tuple_type_node(&self, node: P<Node>, elements: P<NodeList>) -> P<Node> {
         let data = node.as_tuple_type_node();
         if elements != data.elements() {
             return update_node(self.new_tuple_type_node(elements), node, &self.hooks);
@@ -14857,7 +12710,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_named_tuple_member(
+    fn update_named_tuple_member(
         &self,
         node: P<Node>,
         dot_dot_dot_token: Option<P<Node>>,
@@ -14884,7 +12737,7 @@ impl NodeFactory {
         self.new_node(Kind::OptionalType, OptionalTypeNode { type_: type_node })
     }
 
-    pub fn update_optional_type_node(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
+    fn update_optional_type_node(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
         let data = node.as_optional_type_node();
         if type_node != data.type_() {
             return update_node(self.new_optional_type_node(type_node), node, &self.hooks);
@@ -14896,7 +12749,7 @@ impl NodeFactory {
         self.new_node(Kind::RestType, RestTypeNode { type_: type_node })
     }
 
-    pub fn update_rest_type_node(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
+    fn update_rest_type_node(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
         let data = node.as_rest_type_node();
         if type_node != data.type_() {
             return update_node(self.new_rest_type_node(type_node), node, &self.hooks);
@@ -14908,7 +12761,7 @@ impl NodeFactory {
         self.new_node(Kind::ParenthesizedType, ParenthesizedTypeNode { type_: type_node })
     }
 
-    pub fn update_parenthesized_type_node(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
+    fn update_parenthesized_type_node(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
         let data = node.as_parenthesized_type_node();
         if type_node != data.type_() {
             return update_node(self.new_parenthesized_type_node(type_node), node, &self.hooks);
@@ -15085,7 +12938,7 @@ impl NodeFactory {
         self.new_node(Kind::TemplateLiteralType, TemplateLiteralTypeNode { head, template_spans })
     }
 
-    pub fn update_template_literal_type_node(
+    fn update_template_literal_type_node(
         &self,
         node: P<Node>,
         head: P<Node>,
@@ -15109,7 +12962,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_template_literal_type_span(
+    fn update_template_literal_type_span(
         &self,
         node: P<Node>,
         type_node: P<Node>,
@@ -15138,7 +12991,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_synthetic_expression(
+    fn update_synthetic_expression(
         &self,
         node: P<Node>,
         type_node: &'static dyn Any,
@@ -15190,7 +13043,7 @@ impl NodeFactory {
         self.new_node(Kind::JsxElement, JsxElement { opening_element, children, closing_element })
     }
 
-    pub fn update_jsx_element(
+    fn update_jsx_element(
         &self,
         node: P<Node>,
         opening_element: P<Node>,
@@ -15221,7 +13074,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsx_attributes(&self, node: P<Node>, properties: P<NodeList>) -> P<Node> {
+    fn update_jsx_attributes(&self, node: P<Node>, properties: P<NodeList>) -> P<Node> {
         let data = node.as_jsx_attributes();
         if properties != data.properties() {
             return update_node(self.new_jsx_attributes(properties), node, &self.hooks);
@@ -15233,7 +13086,7 @@ impl NodeFactory {
         self.new_node(Kind::JsxNamespacedName, JsxNamespacedName { namespace, name })
     }
 
-    pub fn update_jsx_namespaced_name(
+    fn update_jsx_namespaced_name(
         &self,
         node: P<Node>,
         namespace: P<Node>,
@@ -15324,7 +13177,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsx_fragment(
+    fn update_jsx_fragment(
         &self,
         node: P<Node>,
         opening_fragment: P<Node>,
@@ -15364,7 +13217,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsx_attribute(
+    fn update_jsx_attribute(
         &self,
         node: P<Node>,
         name: P<Node>,
@@ -15387,7 +13240,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsx_spread_attribute(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
+    fn update_jsx_spread_attribute(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
         let data = node.as_jsx_spread_attribute();
         if expression != data.expression() {
             return update_node(self.new_jsx_spread_attribute(expression), node, &self.hooks);
@@ -15399,7 +13252,7 @@ impl NodeFactory {
         self.new_node(Kind::JsxClosingElement, JsxClosingElement { tag_name })
     }
 
-    pub fn update_jsx_closing_element(&self, node: P<Node>, tag_name: P<Node>) -> P<Node> {
+    fn update_jsx_closing_element(&self, node: P<Node>, tag_name: P<Node>) -> P<Node> {
         let data = node.as_jsx_closing_element();
         if tag_name != data.tag_name() {
             return update_node(self.new_jsx_closing_element(tag_name), node, &self.hooks);
@@ -15415,7 +13268,7 @@ impl NodeFactory {
         self.new_node(Kind::JsxExpression, JsxExpression { dot_dot_dot_token, expression })
     }
 
-    pub fn update_jsx_expression(
+    fn update_jsx_expression(
         &self,
         node: P<Node>,
         dot_dot_dot_token: Option<P<Node>>,
@@ -15454,7 +13307,7 @@ impl NodeFactory {
         self.new_node(Kind::SyntaxList, SyntaxList { children })
     }
 
-    pub fn update_syntax_list(&self, node: P<Node>, children: &'static [P<Node>]) -> P<Node> {
+    fn update_syntax_list(&self, node: P<Node>, children: &'static [P<Node>]) -> P<Node> {
         let data = node.as_syntax_list();
         if !same_slice(children, data.children()) {
             return update_node(self.new_syntax_list(children), node, &self.hooks);
@@ -15466,7 +13319,7 @@ impl NodeFactory {
         self.new_node(Kind::JSDoc, JSDoc { comment, tags })
     }
 
-    pub fn update_jsdoc(
+    fn update_jsdoc(
         &self,
         node: P<Node>,
         comment: P<NodeList>,
@@ -15483,7 +13336,7 @@ impl NodeFactory {
         self.new_node(Kind::JSDocTypeExpression, JSDocTypeExpression { type_: type_node })
     }
 
-    pub fn update_jsdoc_type_expression(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
+    fn update_jsdoc_type_expression(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
         let data = node.as_jsdoc_type_expression();
         if type_node != data.type_() {
             return update_node(self.new_jsdoc_type_expression(type_node), node, &self.hooks);
@@ -15495,7 +13348,7 @@ impl NodeFactory {
         self.new_node(Kind::JSDocNonNullableType, JSDocNonNullableType { type_: type_node })
     }
 
-    pub fn update_jsdoc_non_nullable_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
+    fn update_jsdoc_non_nullable_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
         let data = node.as_jsdoc_non_nullable_type();
         if type_node != data.type_() {
             return update_node(self.new_jsdoc_non_nullable_type(type_node), node, &self.hooks);
@@ -15507,7 +13360,7 @@ impl NodeFactory {
         self.new_node(Kind::JSDocNullableType, JSDocNullableType { type_: type_node })
     }
 
-    pub fn update_jsdoc_nullable_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
+    fn update_jsdoc_nullable_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
         let data = node.as_jsdoc_nullable_type();
         if type_node != data.type_() {
             return update_node(self.new_jsdoc_nullable_type(type_node), node, &self.hooks);
@@ -15523,7 +13376,7 @@ impl NodeFactory {
         self.new_node(Kind::JSDocVariadicType, JSDocVariadicType { type_: type_node })
     }
 
-    pub fn update_jsdoc_variadic_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
+    fn update_jsdoc_variadic_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
         let data = node.as_jsdoc_variadic_type();
         if type_node != data.type_() {
             return update_node(self.new_jsdoc_variadic_type(type_node), node, &self.hooks);
@@ -15535,7 +13388,7 @@ impl NodeFactory {
         self.new_node(Kind::JSDocOptionalType, JSDocOptionalType { type_: type_node })
     }
 
-    pub fn update_jsdoc_optional_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
+    fn update_jsdoc_optional_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
         let data = node.as_jsdoc_optional_type();
         if type_node != data.type_() {
             return update_node(self.new_jsdoc_optional_type(type_node), node, &self.hooks);
@@ -15555,7 +13408,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_type_tag(
+    fn update_jsdoc_type_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15587,7 +13440,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_unknown_tag(
+    fn update_jsdoc_unknown_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15617,7 +13470,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_template_tag(
+    fn update_jsdoc_template_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15652,7 +13505,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_return_tag(
+    fn update_jsdoc_return_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15680,7 +13533,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_public_tag(
+    fn update_jsdoc_public_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15704,7 +13557,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_private_tag(
+    fn update_jsdoc_private_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15728,7 +13581,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_protected_tag(
+    fn update_jsdoc_protected_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15752,7 +13605,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_readonly_tag(
+    fn update_jsdoc_readonly_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15776,7 +13629,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_override_tag(
+    fn update_jsdoc_override_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15800,7 +13653,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_deprecated_tag(
+    fn update_jsdoc_deprecated_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15829,7 +13682,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_see_tag(
+    fn update_jsdoc_see_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15862,7 +13715,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_implements_tag(
+    fn update_jsdoc_implements_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15895,7 +13748,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_augments_tag(
+    fn update_jsdoc_augments_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15931,7 +13784,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_satisfies_tag(
+    fn update_jsdoc_satisfies_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15964,7 +13817,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_throws_tag(
+    fn update_jsdoc_throws_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -15997,7 +13850,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_this_tag(
+    fn update_jsdoc_this_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -16037,7 +13890,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_import_tag(
+    fn update_jsdoc_import_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -16085,7 +13938,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_callback_tag(
+    fn update_jsdoc_callback_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -16123,7 +13976,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_overload_tag(
+    fn update_jsdoc_overload_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -16161,7 +14014,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_typedef_tag(
+    fn update_jsdoc_typedef_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -16233,7 +14086,7 @@ impl NodeFactory {
         self.new_node(Kind::JSDocNameReference, JSDocNameReference { name })
     }
 
-    pub fn update_jsdoc_name_reference(&self, node: P<Node>, name: P<Node>) -> P<Node> {
+    fn update_jsdoc_name_reference(&self, node: P<Node>, name: P<Node>) -> P<Node> {
         let data = node.as_jsdoc_name_reference();
         if name != data.name() {
             return update_node(self.new_jsdoc_name_reference(name), node, &self.hooks);
@@ -16548,7 +14401,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_link(
+    fn update_jsdoc_link(
         &self,
         node: P<Node>,
         name: Option<P<Node>>,
@@ -16573,7 +14426,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_link_plain(
+    fn update_jsdoc_link_plain(
         &self,
         node: P<Node>,
         name: Option<P<Node>>,
@@ -16598,7 +14451,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_link_code(
+    fn update_jsdoc_link_code(
         &self,
         node: P<Node>,
         name: Option<P<Node>>,
@@ -16674,7 +14527,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_synthetic_reference_expression(
+    fn update_synthetic_reference_expression(
         &self,
         node: P<Node>,
         expression: P<Node>,
@@ -16706,7 +14559,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_type_literal(
+    fn update_jsdoc_type_literal(
         &self,
         node: P<Node>,
         jsdoc_property_tags: &'static [P<Node>],
@@ -16751,7 +14604,7 @@ impl NodeFactory {
         )
     }
 
-    pub fn update_jsdoc_parameter_or_property_tag(
+    pub(crate) fn update_jsdoc_parameter_or_property_tag(
         &self,
         node: P<Node>,
         tag_name: P<Node>,
@@ -16792,25 +14645,25 @@ impl Token {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_token(node.kind()), node, &f.hooks)
     }
 }
 
 impl PrivateIdentifier {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_private_identifier(self.text()), node, &f.hooks)
     }
 }
 
 impl QualifiedName {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.left()) || v(self.right())
     }
 }
 
 impl QualifiedName {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let left_ = required_child(v.visit_node_hooked(Some(self.left())), self.left());
         let right_ = required_child(v.visit_node_hooked(Some(self.right())), self.right());
         v.factory.update_qualified_name(node, left_, right_)
@@ -16818,19 +14671,19 @@ impl QualifiedName {
 }
 
 impl QualifiedName {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_qualified_name(self.left(), self.right()), node, &f.hooks)
     }
 }
 
 impl ComputedPropertyName {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl ComputedPropertyName {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_computed_property_name(node, expression_)
@@ -16838,19 +14691,19 @@ impl ComputedPropertyName {
 }
 
 impl ComputedPropertyName {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_computed_property_name(self.expression()), node, &f.hooks)
     }
 }
 
 impl Decorator {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl Decorator {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_decorator(node, expression_)
@@ -16858,7 +14711,7 @@ impl Decorator {
 }
 
 impl Decorator {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_decorator(self.expression()), node, &f.hooks)
     }
 }
@@ -16868,19 +14721,19 @@ impl EmptyStatement {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_empty_statement(), node, &f.hooks)
     }
 }
 
 impl IfStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || v(self.then_statement()) || visit(v, self.else_statement())
     }
 }
 
 impl IfStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let then_statement_ = required_child(
@@ -16893,7 +14746,7 @@ impl IfStatement {
 }
 
 impl IfStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_if_statement(self.expression(), self.then_statement(), self.else_statement()),
             node,
@@ -16903,13 +14756,13 @@ impl IfStatement {
 }
 
 impl DoStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.statement()) || v(self.expression())
     }
 }
 
 impl DoStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let statement_ =
             required_child(v.visit_iteration_body_hooked(Some(self.statement())), self.statement());
         let expression_ =
@@ -16919,19 +14772,19 @@ impl DoStatement {
 }
 
 impl DoStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_do_statement(self.statement(), self.expression()), node, &f.hooks)
     }
 }
 
 impl WhileStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || v(self.statement())
     }
 }
 
 impl WhileStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let statement_ =
@@ -16941,13 +14794,13 @@ impl WhileStatement {
 }
 
 impl WhileStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_while_statement(self.expression(), self.statement()), node, &f.hooks)
     }
 }
 
 impl ForStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.initializer())
             || visit(v, self.condition())
             || visit(v, self.incrementor())
@@ -16956,7 +14809,7 @@ impl ForStatement {
 }
 
 impl ForStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let initializer_ = v.visit_node_hooked(self.initializer());
         let condition_ = v.visit_node_hooked(self.condition());
         let incrementor_ = v.visit_node_hooked(self.incrementor());
@@ -16967,7 +14820,7 @@ impl ForStatement {
 }
 
 impl ForStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_for_statement(
                 self.initializer(),
@@ -16982,7 +14835,7 @@ impl ForStatement {
 }
 
 impl ForInOrOfStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.await_modifier())
             || v(self.initializer())
             || v(self.expression())
@@ -16991,7 +14844,7 @@ impl ForInOrOfStatement {
 }
 
 impl ForInOrOfStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let await_modifier_ = v.visit_node_hooked(self.await_modifier());
         let initializer_ =
             required_child(v.visit_node_hooked(Some(self.initializer())), self.initializer());
@@ -17010,7 +14863,7 @@ impl ForInOrOfStatement {
 }
 
 impl ForInOrOfStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_for_in_or_of_statement(
                 node.kind(),
@@ -17026,70 +14879,70 @@ impl ForInOrOfStatement {
 }
 
 impl BreakStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.label())
     }
 }
 
 impl BreakStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let label_ = v.visit_node_hooked(self.label());
         v.factory.update_break_statement(node, label_)
     }
 }
 
 impl BreakStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_break_statement(self.label()), node, &f.hooks)
     }
 }
 
 impl ContinueStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.label())
     }
 }
 
 impl ContinueStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let label_ = v.visit_node_hooked(self.label());
         v.factory.update_continue_statement(node, label_)
     }
 }
 
 impl ContinueStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_continue_statement(self.label()), node, &f.hooks)
     }
 }
 
 impl ReturnStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.expression())
     }
 }
 
 impl ReturnStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ = v.visit_node_hooked(self.expression());
         v.factory.update_return_statement(node, expression_)
     }
 }
 
 impl ReturnStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_return_statement(self.expression()), node, &f.hooks)
     }
 }
 
 impl WithStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || v(self.statement())
     }
 }
 
 impl WithStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let statement_ = required_child(
@@ -17101,19 +14954,19 @@ impl WithStatement {
 }
 
 impl WithStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_with_statement(self.expression(), self.statement()), node, &f.hooks)
     }
 }
 
 impl SwitchStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || v(self.case_block())
     }
 }
 
 impl SwitchStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let case_block_ =
@@ -17123,38 +14976,38 @@ impl SwitchStatement {
 }
 
 impl SwitchStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_switch_statement(self.expression(), self.case_block()), node, &f.hooks)
     }
 }
 
 impl CaseBlock {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.clauses()))
     }
 }
 
 impl CaseBlock {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let clauses_ = required_child(v.visit_nodes_hooked(Some(self.clauses())), self.clauses());
         v.factory.update_case_block(node, clauses_)
     }
 }
 
 impl CaseBlock {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_case_block(self.clauses()), node, &f.hooks)
     }
 }
 
 impl CaseOrDefaultClause {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.expression()) || visit_node_list(v, Some(self.statements()))
     }
 }
 
 impl CaseOrDefaultClause {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ = v.visit_node_hooked(self.expression());
         let statements_ =
             required_child(v.visit_nodes_hooked(Some(self.statements())), self.statements());
@@ -17163,7 +15016,7 @@ impl CaseOrDefaultClause {
 }
 
 impl CaseOrDefaultClause {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_case_or_default_clause(node.kind(), self.expression(), self.statements()),
             node,
@@ -17173,13 +15026,13 @@ impl CaseOrDefaultClause {
 }
 
 impl ThrowStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl ThrowStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_throw_statement(node, expression_)
@@ -17187,19 +15040,19 @@ impl ThrowStatement {
 }
 
 impl ThrowStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_throw_statement(self.expression()), node, &f.hooks)
     }
 }
 
 impl TryStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.try_block()) || visit(v, self.catch_clause()) || visit(v, self.finally_block())
     }
 }
 
 impl TryStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let try_block_ =
             required_child(v.visit_node_hooked(Some(self.try_block())), self.try_block());
         let catch_clause_ = v.visit_node_hooked(self.catch_clause());
@@ -17209,7 +15062,7 @@ impl TryStatement {
 }
 
 impl TryStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_try_statement(self.try_block(), self.catch_clause(), self.finally_block()),
             node,
@@ -17219,13 +15072,13 @@ impl TryStatement {
 }
 
 impl CatchClause {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.variable_declaration()) || v(self.block())
     }
 }
 
 impl CatchClause {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let variable_declaration_ = v.visit_node_hooked(self.variable_declaration());
         let block_ = required_child(v.visit_node_hooked(Some(self.block())), self.block());
         v.factory.update_catch_clause(node, variable_declaration_, block_)
@@ -17233,7 +15086,7 @@ impl CatchClause {
 }
 
 impl CatchClause {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_catch_clause(self.variable_declaration(), self.block()), node, &f.hooks)
     }
 }
@@ -17243,19 +15096,19 @@ impl DebuggerStatement {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_debugger_statement(), node, &f.hooks)
     }
 }
 
 impl LabeledStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.label()) || v(self.statement())
     }
 }
 
 impl LabeledStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let label_ = required_child(v.visit_node_hooked(Some(self.label())), self.label());
         let statement_ = required_child(
             v.visit_embedded_statement_hooked(Some(self.statement())),
@@ -17266,19 +15119,19 @@ impl LabeledStatement {
 }
 
 impl LabeledStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_labeled_statement(self.label(), self.statement()), node, &f.hooks)
     }
 }
 
 impl ExpressionStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl ExpressionStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_expression_statement(node, expression_)
@@ -17286,19 +15139,19 @@ impl ExpressionStatement {
 }
 
 impl ExpressionStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_expression_statement(self.expression()), node, &f.hooks)
     }
 }
 
 impl Block {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.statements()))
     }
 }
 
 impl Block {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let statements_ =
             required_child(v.visit_nodes_hooked(Some(self.statements())), self.statements());
         v.factory.update_block(node, statements_, self.multi_line())
@@ -17306,19 +15159,19 @@ impl Block {
 }
 
 impl Block {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_block(self.statements(), self.multi_line()), node, &f.hooks)
     }
 }
 
 impl VariableStatement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers()) || v(self.declaration_list())
     }
 }
 
 impl VariableStatement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let declaration_list_ = required_child(
             v.visit_node_hooked(Some(self.declaration_list())),
@@ -17329,7 +15182,7 @@ impl VariableStatement {
 }
 
 impl VariableStatement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_variable_statement(self.modifiers(), self.declaration_list()),
             node,
@@ -17339,7 +15192,7 @@ impl VariableStatement {
 }
 
 impl VariableDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.name())
             || visit(v, self.exclamation_token())
             || visit(v, self.type_())
@@ -17348,7 +15201,7 @@ impl VariableDeclaration {
 }
 
 impl VariableDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let exclamation_token_ = v.visit_node_hooked(self.exclamation_token());
         let type_node_ = v.visit_node_hooked(self.type_());
@@ -17364,7 +15217,7 @@ impl VariableDeclaration {
 }
 
 impl VariableDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_variable_declaration(
                 self.name(),
@@ -17379,13 +15232,13 @@ impl VariableDeclaration {
 }
 
 impl VariableDeclarationList {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.declarations()))
     }
 }
 
 impl VariableDeclarationList {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let declarations_ =
             required_child(v.visit_nodes_hooked(Some(self.declarations())), self.declarations());
         v.factory.update_variable_declaration_list(node, declarations_, node.flags.get())
@@ -17393,7 +15246,7 @@ impl VariableDeclarationList {
 }
 
 impl VariableDeclarationList {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_variable_declaration_list(self.declarations(), node.flags.get()),
             node,
@@ -17403,13 +15256,13 @@ impl VariableDeclarationList {
 }
 
 impl BindingPattern {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.elements()))
     }
 }
 
 impl BindingPattern {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let elements_ =
             required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_binding_pattern(node, elements_)
@@ -17417,13 +15270,13 @@ impl BindingPattern {
 }
 
 impl BindingPattern {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_binding_pattern(node.kind(), self.elements()), node, &f.hooks)
     }
 }
 
 impl ParameterDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit(v, self.dot_dot_dot_token())
             || v(self.name())
@@ -17434,7 +15287,7 @@ impl ParameterDeclaration {
 }
 
 impl ParameterDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let dot_dot_dot_token_ = v.visit_node_hooked(self.dot_dot_dot_token());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
@@ -17454,7 +15307,7 @@ impl ParameterDeclaration {
 }
 
 impl ParameterDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_parameter_declaration(
                 self.modifiers(),
@@ -17471,7 +15324,7 @@ impl ParameterDeclaration {
 }
 
 impl BindingElement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.dot_dot_dot_token())
             || visit(v, self.property_name())
             || visit(v, self.name())
@@ -17480,7 +15333,7 @@ impl BindingElement {
 }
 
 impl BindingElement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let dot_dot_dot_token_ = v.visit_node_hooked(self.dot_dot_dot_token());
         let property_name_ = v.visit_node_hooked(self.property_name());
         let name_ = v.visit_node_hooked(self.name());
@@ -17496,7 +15349,7 @@ impl BindingElement {
 }
 
 impl BindingElement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_binding_element(
                 self.dot_dot_dot_token(),
@@ -17511,26 +15364,26 @@ impl BindingElement {
 }
 
 impl MissingDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
     }
 }
 
 impl MissingDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         v.factory.update_missing_declaration(node, modifiers_)
     }
 }
 
 impl MissingDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_missing_declaration(self.modifiers()), node, &f.hooks)
     }
 }
 
 impl FunctionDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit(v, self.asterisk_token())
             || visit(v, self.name())
@@ -17543,7 +15396,7 @@ impl FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let asterisk_token_ = v.visit_node_hooked(self.asterisk_token());
         let name_ = v.visit_node_hooked(self.name());
@@ -17567,7 +15420,7 @@ impl FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_function_declaration(
                 self.modifiers(),
@@ -17586,7 +15439,7 @@ impl FunctionDeclaration {
 }
 
 impl ClassDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit(v, self.name())
             || visit_node_list(v, self.type_parameters())
@@ -17596,7 +15449,7 @@ impl ClassDeclaration {
 }
 
 impl ClassDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = v.visit_node_hooked(self.name());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
@@ -17614,7 +15467,7 @@ impl ClassDeclaration {
 }
 
 impl ClassDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_class_declaration(
                 self.modifiers(),
@@ -17630,7 +15483,7 @@ impl ClassDeclaration {
 }
 
 impl ClassExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit(v, self.name())
             || visit_node_list(v, self.type_parameters())
@@ -17640,7 +15493,7 @@ impl ClassExpression {
 }
 
 impl ClassExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = v.visit_node_hooked(self.name());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
@@ -17658,7 +15511,7 @@ impl ClassExpression {
 }
 
 impl ClassExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_class_expression(
                 self.modifiers(),
@@ -17674,26 +15527,26 @@ impl ClassExpression {
 }
 
 impl HeritageClause {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.types()))
     }
 }
 
 impl HeritageClause {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let types_ = required_child(v.visit_nodes_hooked(Some(self.types())), self.types());
         v.factory.update_heritage_clause(node, self.token(), types_)
     }
 }
 
 impl HeritageClause {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_heritage_clause(self.token(), self.types()), node, &f.hooks)
     }
 }
 
 impl InterfaceDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit_node_list(v, self.type_parameters())
@@ -17703,7 +15556,7 @@ impl InterfaceDeclaration {
 }
 
 impl InterfaceDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
@@ -17721,7 +15574,7 @@ impl InterfaceDeclaration {
 }
 
 impl InterfaceDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_interface_declaration(
                 self.modifiers(),
@@ -17737,7 +15590,7 @@ impl InterfaceDeclaration {
 }
 
 impl TypeAliasDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit_node_list(v, self.type_parameters())
@@ -17746,7 +15599,7 @@ impl TypeAliasDeclaration {
 }
 
 impl TypeAliasDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
@@ -17762,7 +15615,7 @@ impl TypeAliasDeclaration {
 }
 
 impl TypeAliasDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         let updated = match node.kind() {
             Kind::TypeAliasDeclaration => f.new_type_alias_declaration(
                 self.modifiers(),
@@ -17783,13 +15636,13 @@ impl TypeAliasDeclaration {
 }
 
 impl EnumMember {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.name()) || visit(v, self.initializer())
     }
 }
 
 impl EnumMember {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let initializer_ = v.visit_node_hooked(self.initializer());
         v.factory.update_enum_member(node, name_, initializer_)
@@ -17797,13 +15650,13 @@ impl EnumMember {
 }
 
 impl EnumMember {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_enum_member(self.name(), self.initializer()), node, &f.hooks)
     }
 }
 
 impl EnumDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit_node_list(v, Some(self.members()))
@@ -17811,7 +15664,7 @@ impl EnumDeclaration {
 }
 
 impl EnumDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let members_ = required_child(v.visit_nodes_hooked(Some(self.members())), self.members());
@@ -17820,7 +15673,7 @@ impl EnumDeclaration {
 }
 
 impl EnumDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_enum_declaration(self.modifiers(), self.name(), self.members()),
             node,
@@ -17830,13 +15683,13 @@ impl EnumDeclaration {
 }
 
 impl ModuleBlock {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.statements()))
     }
 }
 
 impl ModuleBlock {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let statements_ =
             required_child(v.visit_nodes_hooked(Some(self.statements())), self.statements());
         v.factory.update_module_block(node, statements_)
@@ -17844,7 +15697,7 @@ impl ModuleBlock {
 }
 
 impl ModuleBlock {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_module_block(self.statements()), node, &f.hooks)
     }
 }
@@ -17854,7 +15707,7 @@ impl NotEmittedStatement {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_not_emitted_statement(), node, &f.hooks)
     }
 }
@@ -17864,13 +15717,13 @@ impl NotEmittedTypeElement {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_not_emitted_type_element(), node, &f.hooks)
     }
 }
 
 impl ImportDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit(v, self.import_clause())
             || v(self.module_specifier())
@@ -17879,7 +15732,7 @@ impl ImportDeclaration {
 }
 
 impl ImportDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let import_clause_ = v.visit_node_hooked(self.import_clause());
         let module_specifier_ = required_child(
@@ -17898,7 +15751,7 @@ impl ImportDeclaration {
 }
 
 impl ImportDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         let updated = match node.kind() {
             Kind::ImportDeclaration => f.new_import_declaration(
                 self.modifiers(),
@@ -17919,13 +15772,13 @@ impl ImportDeclaration {
 }
 
 impl ExternalModuleReference {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl ExternalModuleReference {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_external_module_reference(node, expression_)
@@ -17933,38 +15786,38 @@ impl ExternalModuleReference {
 }
 
 impl ExternalModuleReference {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_external_module_reference(self.expression()), node, &f.hooks)
     }
 }
 
 impl NamespaceImport {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.name())
     }
 }
 
 impl NamespaceImport {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         v.factory.update_namespace_import(node, name_)
     }
 }
 
 impl NamespaceImport {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_namespace_import(self.name()), node, &f.hooks)
     }
 }
 
 impl NamedImports {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.elements()))
     }
 }
 
 impl NamedImports {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let elements_ =
             required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_named_imports(node, elements_)
@@ -17972,19 +15825,19 @@ impl NamedImports {
 }
 
 impl NamedImports {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_named_imports(self.elements()), node, &f.hooks)
     }
 }
 
 impl ExportAssignment {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers()) || visit(v, self.type_()) || v(self.expression())
     }
 }
 
 impl ExportAssignment {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let type_node_ = v.visit_node_hooked(self.type_());
         let expression_ =
@@ -18000,7 +15853,7 @@ impl ExportAssignment {
 }
 
 impl ExportAssignment {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_export_assignment(
                 self.modifiers(),
@@ -18015,13 +15868,13 @@ impl ExportAssignment {
 }
 
 impl NamespaceExportDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers()) || v(self.name())
     }
 }
 
 impl NamespaceExportDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         v.factory.update_namespace_export_declaration(node, modifiers_, name_)
@@ -18029,7 +15882,7 @@ impl NamespaceExportDeclaration {
 }
 
 impl NamespaceExportDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_namespace_export_declaration(self.modifiers(), self.name()),
             node,
@@ -18039,32 +15892,32 @@ impl NamespaceExportDeclaration {
 }
 
 impl NamespaceExport {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.name())
     }
 }
 
 impl NamespaceExport {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         v.factory.update_namespace_export(node, name_)
     }
 }
 
 impl NamespaceExport {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_namespace_export(self.name()), node, &f.hooks)
     }
 }
 
 impl NamedExports {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.elements()))
     }
 }
 
 impl NamedExports {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let elements_ =
             required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_named_exports(node, elements_)
@@ -18072,19 +15925,19 @@ impl NamedExports {
 }
 
 impl NamedExports {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_named_exports(self.elements()), node, &f.hooks)
     }
 }
 
 impl ExportSpecifier {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.property_name()) || v(self.name())
     }
 }
 
 impl ExportSpecifier {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let property_name_ = v.visit_node_hooked(self.property_name());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         v.factory.update_export_specifier(node, self.is_type_only(), property_name_, name_)
@@ -18092,7 +15945,7 @@ impl ExportSpecifier {
 }
 
 impl ExportSpecifier {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_export_specifier(self.is_type_only(), self.property_name(), self.name()),
             node,
@@ -18102,7 +15955,7 @@ impl ExportSpecifier {
 }
 
 impl CallSignatureDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, self.type_parameters())
             || visit_node_list(v, self.parameters())
             || visit(v, self.type_())
@@ -18110,7 +15963,7 @@ impl CallSignatureDeclaration {
 }
 
 impl CallSignatureDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_nodes_hooked(self.parameters());
         let type_node_ = v.visit_node_hooked(self.type_());
@@ -18119,7 +15972,7 @@ impl CallSignatureDeclaration {
 }
 
 impl CallSignatureDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_call_signature_declaration(
                 self.type_parameters(),
@@ -18133,7 +15986,7 @@ impl CallSignatureDeclaration {
 }
 
 impl ConstructSignatureDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, self.type_parameters())
             || visit_node_list(v, self.parameters())
             || visit(v, self.type_())
@@ -18141,7 +15994,7 @@ impl ConstructSignatureDeclaration {
 }
 
 impl ConstructSignatureDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_nodes_hooked(self.parameters());
         let type_node_ = v.visit_node_hooked(self.type_());
@@ -18155,7 +16008,7 @@ impl ConstructSignatureDeclaration {
 }
 
 impl ConstructSignatureDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_construct_signature_declaration(
                 self.type_parameters(),
@@ -18169,7 +16022,7 @@ impl ConstructSignatureDeclaration {
 }
 
 impl ConstructorDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit_node_list(v, self.type_parameters())
             || visit_node_list(v, self.parameters())
@@ -18180,7 +16033,7 @@ impl ConstructorDeclaration {
 }
 
 impl ConstructorDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_parameters_hooked(self.parameters());
@@ -18200,7 +16053,7 @@ impl ConstructorDeclaration {
 }
 
 impl ConstructorDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_constructor_declaration(
                 self.modifiers(),
@@ -18217,7 +16070,7 @@ impl ConstructorDeclaration {
 }
 
 impl GetAccessorDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit_node_list(v, self.type_parameters())
@@ -18229,7 +16082,7 @@ impl GetAccessorDeclaration {
 }
 
 impl GetAccessorDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
@@ -18251,7 +16104,7 @@ impl GetAccessorDeclaration {
 }
 
 impl GetAccessorDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_get_accessor_declaration(
                 self.modifiers(),
@@ -18269,7 +16122,7 @@ impl GetAccessorDeclaration {
 }
 
 impl SetAccessorDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit_node_list(v, self.type_parameters())
@@ -18281,7 +16134,7 @@ impl SetAccessorDeclaration {
 }
 
 impl SetAccessorDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
@@ -18303,7 +16156,7 @@ impl SetAccessorDeclaration {
 }
 
 impl SetAccessorDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_set_accessor_declaration(
                 self.modifiers(),
@@ -18321,7 +16174,7 @@ impl SetAccessorDeclaration {
 }
 
 impl IndexSignatureDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit_node_list(v, self.parameters())
             || visit(v, self.type_())
@@ -18329,7 +16182,7 @@ impl IndexSignatureDeclaration {
 }
 
 impl IndexSignatureDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let parameters_ = v.visit_nodes_hooked(self.parameters());
         let type_node_ = v.visit_node_hooked(self.type_());
@@ -18338,7 +16191,7 @@ impl IndexSignatureDeclaration {
 }
 
 impl IndexSignatureDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_index_signature_declaration(self.modifiers(), self.parameters(), self.type_()),
             node,
@@ -18348,7 +16201,7 @@ impl IndexSignatureDeclaration {
 }
 
 impl MethodSignatureDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit(v, self.postfix_token())
@@ -18359,7 +16212,7 @@ impl MethodSignatureDeclaration {
 }
 
 impl MethodSignatureDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let postfix_token_ = v.visit_node_hooked(self.postfix_token());
@@ -18379,7 +16232,7 @@ impl MethodSignatureDeclaration {
 }
 
 impl MethodSignatureDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_method_signature_declaration(
                 self.modifiers(),
@@ -18396,7 +16249,7 @@ impl MethodSignatureDeclaration {
 }
 
 impl MethodDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit(v, self.asterisk_token())
             || v(self.name())
@@ -18410,7 +16263,7 @@ impl MethodDeclaration {
 }
 
 impl MethodDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let asterisk_token_ = v.visit_node_hooked(self.asterisk_token());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
@@ -18436,7 +16289,7 @@ impl MethodDeclaration {
 }
 
 impl MethodDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_method_declaration(
                 self.modifiers(),
@@ -18456,7 +16309,7 @@ impl MethodDeclaration {
 }
 
 impl PropertySignatureDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit(v, self.postfix_token())
@@ -18466,7 +16319,7 @@ impl PropertySignatureDeclaration {
 }
 
 impl PropertySignatureDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let postfix_token_ = v.visit_node_hooked(self.postfix_token());
@@ -18484,7 +16337,7 @@ impl PropertySignatureDeclaration {
 }
 
 impl PropertySignatureDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_property_signature_declaration(
                 self.modifiers(),
@@ -18500,7 +16353,7 @@ impl PropertySignatureDeclaration {
 }
 
 impl PropertyDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit(v, self.postfix_token())
@@ -18510,7 +16363,7 @@ impl PropertyDeclaration {
 }
 
 impl PropertyDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let postfix_token_ = v.visit_node_hooked(self.postfix_token());
@@ -18528,7 +16381,7 @@ impl PropertyDeclaration {
 }
 
 impl PropertyDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_property_declaration(
                 self.modifiers(),
@@ -18548,19 +16401,19 @@ impl SemicolonClassElement {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_semicolon_class_element(), node, &f.hooks)
     }
 }
 
 impl ClassStaticBlockDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers()) || v(self.body())
     }
 }
 
 impl ClassStaticBlockDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let body_ = required_child(v.visit_node_hooked(Some(self.body())), self.body());
         v.factory.update_class_static_block_declaration(node, modifiers_, body_)
@@ -18568,7 +16421,7 @@ impl ClassStaticBlockDeclaration {
 }
 
 impl ClassStaticBlockDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_class_static_block_declaration(self.modifiers(), self.body()),
             node,
@@ -18582,7 +16435,7 @@ impl OmittedExpression {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_omitted_expression(), node, &f.hooks)
     }
 }
@@ -18592,31 +16445,31 @@ impl KeywordExpression {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_keyword_expression(node.kind()), node, &f.hooks)
     }
 }
 
 impl StringLiteral {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_string_literal(self.text(), self.token_flags()), node, &f.hooks)
     }
 }
 
 impl NumericLiteral {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_numeric_literal(self.text(), self.token_flags()), node, &f.hooks)
     }
 }
 
 impl BigIntLiteral {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_big_int_literal(self.text(), self.token_flags()), node, &f.hooks)
     }
 }
 
 impl RegularExpressionLiteral {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_regular_expression_literal(self.text(), self.token_flags()),
             node,
@@ -18626,7 +16479,7 @@ impl RegularExpressionLiteral {
 }
 
 impl NoSubstitutionTemplateLiteral {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_no_substitution_template_literal(self.text(), self.template_flags()),
             node,
@@ -18636,7 +16489,7 @@ impl NoSubstitutionTemplateLiteral {
 }
 
 impl BinaryExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.left())
             || visit(v, self.type_())
@@ -18646,7 +16499,7 @@ impl BinaryExpression {
 }
 
 impl BinaryExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let left_ = required_child(v.visit_node_hooked(Some(self.left())), self.left());
         let type_node_ = v.visit_node_hooked(self.type_());
@@ -18665,7 +16518,7 @@ impl BinaryExpression {
 }
 
 impl BinaryExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_binary_expression(
                 self.modifiers(),
@@ -18681,51 +16534,51 @@ impl BinaryExpression {
 }
 
 impl PrefixUnaryExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.operand())
     }
 }
 
 impl PrefixUnaryExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let operand_ = required_child(v.visit_node_hooked(Some(self.operand())), self.operand());
         v.factory.update_prefix_unary_expression(node, self.operator(), operand_)
     }
 }
 
 impl PrefixUnaryExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_prefix_unary_expression(self.operator(), self.operand()), node, &f.hooks)
     }
 }
 
 impl PostfixUnaryExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.operand())
     }
 }
 
 impl PostfixUnaryExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let operand_ = required_child(v.visit_node_hooked(Some(self.operand())), self.operand());
         v.factory.update_postfix_unary_expression(node, operand_, self.operator())
     }
 }
 
 impl PostfixUnaryExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_postfix_unary_expression(self.operand(), self.operator()), node, &f.hooks)
     }
 }
 
 impl YieldExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.asterisk_token()) || visit(v, self.expression())
     }
 }
 
 impl YieldExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let asterisk_token_ = v.visit_node_hooked(self.asterisk_token());
         let expression_ = v.visit_node_hooked(self.expression());
         v.factory.update_yield_expression(node, asterisk_token_, expression_)
@@ -18733,13 +16586,13 @@ impl YieldExpression {
 }
 
 impl YieldExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_yield_expression(self.asterisk_token(), self.expression()), node, &f.hooks)
     }
 }
 
 impl ArrowFunction {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit_node_list(v, self.type_parameters())
             || visit_node_list(v, self.parameters())
@@ -18751,7 +16604,7 @@ impl ArrowFunction {
 }
 
 impl ArrowFunction {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_parameters_hooked(self.parameters());
@@ -18773,7 +16626,7 @@ impl ArrowFunction {
 }
 
 impl ArrowFunction {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_arrow_function(
                 self.modifiers(),
@@ -18791,7 +16644,7 @@ impl ArrowFunction {
 }
 
 impl FunctionExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit(v, self.asterisk_token())
             || visit(v, self.name())
@@ -18804,7 +16657,7 @@ impl FunctionExpression {
 }
 
 impl FunctionExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let asterisk_token_ = v.visit_node_hooked(self.asterisk_token());
         let name_ = v.visit_node_hooked(self.name());
@@ -18828,7 +16681,7 @@ impl FunctionExpression {
 }
 
 impl FunctionExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_function_expression(
                 self.modifiers(),
@@ -18847,13 +16700,13 @@ impl FunctionExpression {
 }
 
 impl AsExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || v(self.type_())
     }
 }
 
 impl AsExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
@@ -18862,19 +16715,19 @@ impl AsExpression {
 }
 
 impl AsExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_as_expression(self.expression(), self.type_()), node, &f.hooks)
     }
 }
 
 impl SatisfiesExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || v(self.type_())
     }
 }
 
 impl SatisfiesExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
@@ -18883,13 +16736,13 @@ impl SatisfiesExpression {
 }
 
 impl SatisfiesExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_satisfies_expression(self.expression(), self.type_()), node, &f.hooks)
     }
 }
 
 impl ConditionalExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.condition())
             || v(self.question_token())
             || v(self.when_true())
@@ -18899,7 +16752,7 @@ impl ConditionalExpression {
 }
 
 impl ConditionalExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let condition_ =
             required_child(v.visit_node_hooked(Some(self.condition())), self.condition());
         let question_token_ =
@@ -18922,7 +16775,7 @@ impl ConditionalExpression {
 }
 
 impl ConditionalExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_conditional_expression(
                 self.condition(),
@@ -18938,13 +16791,13 @@ impl ConditionalExpression {
 }
 
 impl PropertyAccessExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || visit(v, self.question_dot_token()) || v(self.name())
     }
 }
 
 impl PropertyAccessExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let question_dot_token_ = v.visit_node_hooked(self.question_dot_token());
@@ -18960,7 +16813,7 @@ impl PropertyAccessExpression {
 }
 
 impl PropertyAccessExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_property_access_expression(
                 self.expression(),
@@ -18975,13 +16828,13 @@ impl PropertyAccessExpression {
 }
 
 impl ElementAccessExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || visit(v, self.question_dot_token()) || v(self.argument_expression())
     }
 }
 
 impl ElementAccessExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let question_dot_token_ = v.visit_node_hooked(self.question_dot_token());
@@ -19000,7 +16853,7 @@ impl ElementAccessExpression {
 }
 
 impl ElementAccessExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_element_access_expression(
                 self.expression(),
@@ -19015,7 +16868,7 @@ impl ElementAccessExpression {
 }
 
 impl CallExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
             || visit(v, self.question_dot_token())
             || visit_node_list(v, self.type_arguments())
@@ -19024,7 +16877,7 @@ impl CallExpression {
 }
 
 impl CallExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let question_dot_token_ = v.visit_node_hooked(self.question_dot_token());
@@ -19043,7 +16896,7 @@ impl CallExpression {
 }
 
 impl CallExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_call_expression(
                 self.expression(),
@@ -19059,7 +16912,7 @@ impl CallExpression {
 }
 
 impl NewExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
             || visit_node_list(v, self.type_arguments())
             || visit_node_list(v, self.arguments())
@@ -19067,7 +16920,7 @@ impl NewExpression {
 }
 
 impl NewExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
@@ -19077,7 +16930,7 @@ impl NewExpression {
 }
 
 impl NewExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_new_expression(self.expression(), self.type_arguments(), self.arguments()),
             node,
@@ -19087,32 +16940,32 @@ impl NewExpression {
 }
 
 impl MetaProperty {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.name())
     }
 }
 
 impl MetaProperty {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         v.factory.update_meta_property(node, self.keyword_token(), name_)
     }
 }
 
 impl MetaProperty {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_meta_property(self.keyword_token(), self.name()), node, &f.hooks)
     }
 }
 
 impl NonNullExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl NonNullExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_non_null_expression(node, expression_, node.flags.get())
@@ -19120,19 +16973,19 @@ impl NonNullExpression {
 }
 
 impl NonNullExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_non_null_expression(self.expression(), node.flags.get()), node, &f.hooks)
     }
 }
 
 impl SpreadElement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl SpreadElement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_spread_element(node, expression_)
@@ -19140,19 +16993,19 @@ impl SpreadElement {
 }
 
 impl SpreadElement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_spread_element(self.expression()), node, &f.hooks)
     }
 }
 
 impl TemplateExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.head()) || visit_node_list(v, Some(self.template_spans()))
     }
 }
 
 impl TemplateExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let head_ = required_child(v.visit_node_hooked(Some(self.head())), self.head());
         let template_spans_ = required_child(
             v.visit_nodes_hooked(Some(self.template_spans())),
@@ -19163,19 +17016,19 @@ impl TemplateExpression {
 }
 
 impl TemplateExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_template_expression(self.head(), self.template_spans()), node, &f.hooks)
     }
 }
 
 impl TemplateSpan {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || v(self.literal())
     }
 }
 
 impl TemplateSpan {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let literal_ = required_child(v.visit_node_hooked(Some(self.literal())), self.literal());
@@ -19184,13 +17037,13 @@ impl TemplateSpan {
 }
 
 impl TemplateSpan {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_template_span(self.expression(), self.literal()), node, &f.hooks)
     }
 }
 
 impl TaggedTemplateExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag())
             || visit(v, self.question_dot_token())
             || visit_node_list(v, self.type_arguments())
@@ -19199,7 +17052,7 @@ impl TaggedTemplateExpression {
 }
 
 impl TaggedTemplateExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_ = required_child(v.visit_node_hooked(Some(self.tag())), self.tag());
         let question_dot_token_ = v.visit_node_hooked(self.question_dot_token());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
@@ -19216,7 +17069,7 @@ impl TaggedTemplateExpression {
 }
 
 impl TaggedTemplateExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_tagged_template_expression(
                 self.tag(),
@@ -19232,13 +17085,13 @@ impl TaggedTemplateExpression {
 }
 
 impl ParenthesizedExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl ParenthesizedExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_parenthesized_expression(node, expression_)
@@ -19246,19 +17099,19 @@ impl ParenthesizedExpression {
 }
 
 impl ParenthesizedExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_parenthesized_expression(self.expression()), node, &f.hooks)
     }
 }
 
 impl ArrayLiteralExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.elements()))
     }
 }
 
 impl ArrayLiteralExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let elements_ =
             required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_array_literal_expression(node, elements_, self.multi_line())
@@ -19266,7 +17119,7 @@ impl ArrayLiteralExpression {
 }
 
 impl ArrayLiteralExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_array_literal_expression(self.elements(), self.multi_line()),
             node,
@@ -19276,13 +17129,13 @@ impl ArrayLiteralExpression {
 }
 
 impl ObjectLiteralExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.properties()))
     }
 }
 
 impl ObjectLiteralExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let properties_ =
             required_child(v.visit_nodes_hooked(Some(self.properties())), self.properties());
         v.factory.update_object_literal_expression(node, properties_, self.multi_line())
@@ -19290,7 +17143,7 @@ impl ObjectLiteralExpression {
 }
 
 impl ObjectLiteralExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_object_literal_expression(self.properties(), self.multi_line()),
             node,
@@ -19300,13 +17153,13 @@ impl ObjectLiteralExpression {
 }
 
 impl SpreadAssignment {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl SpreadAssignment {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_spread_assignment(node, expression_)
@@ -19314,13 +17167,13 @@ impl SpreadAssignment {
 }
 
 impl SpreadAssignment {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_spread_assignment(self.expression()), node, &f.hooks)
     }
 }
 
 impl PropertyAssignment {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit(v, self.postfix_token())
@@ -19330,7 +17183,7 @@ impl PropertyAssignment {
 }
 
 impl PropertyAssignment {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let postfix_token_ = v.visit_node_hooked(self.postfix_token());
@@ -19349,7 +17202,7 @@ impl PropertyAssignment {
 }
 
 impl PropertyAssignment {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_property_assignment(
                 self.modifiers(),
@@ -19365,7 +17218,7 @@ impl PropertyAssignment {
 }
 
 impl ShorthandPropertyAssignment {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit(v, self.postfix_token())
@@ -19376,7 +17229,7 @@ impl ShorthandPropertyAssignment {
 }
 
 impl ShorthandPropertyAssignment {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let postfix_token_ = v.visit_node_hooked(self.postfix_token());
@@ -19397,7 +17250,7 @@ impl ShorthandPropertyAssignment {
 }
 
 impl ShorthandPropertyAssignment {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_shorthand_property_assignment(
                 self.modifiers(),
@@ -19414,13 +17267,13 @@ impl ShorthandPropertyAssignment {
 }
 
 impl DeleteExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl DeleteExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_delete_expression(node, expression_)
@@ -19428,19 +17281,19 @@ impl DeleteExpression {
 }
 
 impl DeleteExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_delete_expression(self.expression()), node, &f.hooks)
     }
 }
 
 impl TypeOfExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl TypeOfExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_type_of_expression(node, expression_)
@@ -19448,19 +17301,19 @@ impl TypeOfExpression {
 }
 
 impl TypeOfExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_type_of_expression(self.expression()), node, &f.hooks)
     }
 }
 
 impl VoidExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl VoidExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_void_expression(node, expression_)
@@ -19468,19 +17321,19 @@ impl VoidExpression {
 }
 
 impl VoidExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_void_expression(self.expression()), node, &f.hooks)
     }
 }
 
 impl AwaitExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl AwaitExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_await_expression(node, expression_)
@@ -19488,19 +17341,19 @@ impl AwaitExpression {
 }
 
 impl AwaitExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_await_expression(self.expression()), node, &f.hooks)
     }
 }
 
 impl TypeAssertion {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_()) || v(self.expression())
     }
 }
 
 impl TypeAssertion {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
@@ -19509,7 +17362,7 @@ impl TypeAssertion {
 }
 
 impl TypeAssertion {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_type_assertion(self.type_(), self.expression()), node, &f.hooks)
     }
 }
@@ -19519,51 +17372,51 @@ impl KeywordTypeNode {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_keyword_type_node(node.kind()), node, &f.hooks)
     }
 }
 
 impl UnionTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.types()))
     }
 }
 
 impl UnionTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let types_ = required_child(v.visit_nodes_hooked(Some(self.types())), self.types());
         v.factory.update_union_type_node(node, types_)
     }
 }
 
 impl UnionTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_union_type_node(self.types()), node, &f.hooks)
     }
 }
 
 impl IntersectionTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.types()))
     }
 }
 
 impl IntersectionTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let types_ = required_child(v.visit_nodes_hooked(Some(self.types())), self.types());
         v.factory.update_intersection_type_node(node, types_)
     }
 }
 
 impl IntersectionTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_intersection_type_node(self.types()), node, &f.hooks)
     }
 }
 
 impl ConditionalTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.check_type())
             || v(self.extends_type())
             || v(self.true_type())
@@ -19572,7 +17425,7 @@ impl ConditionalTypeNode {
 }
 
 impl ConditionalTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let check_type_ =
             required_child(v.visit_node_hooked(Some(self.check_type())), self.check_type());
         let extends_type_ =
@@ -19592,7 +17445,7 @@ impl ConditionalTypeNode {
 }
 
 impl ConditionalTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_conditional_type_node(
                 self.check_type(),
@@ -19607,32 +17460,32 @@ impl ConditionalTypeNode {
 }
 
 impl TypeOperatorNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_())
     }
 }
 
 impl TypeOperatorNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_type_operator_node(node, self.operator(), type_node_)
     }
 }
 
 impl TypeOperatorNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_type_operator_node(self.operator(), self.type_()), node, &f.hooks)
     }
 }
 
 impl InferTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_parameter())
     }
 }
 
 impl InferTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_parameter_ =
             required_child(v.visit_node_hooked(Some(self.type_parameter())), self.type_parameter());
         v.factory.update_infer_type_node(node, type_parameter_)
@@ -19640,19 +17493,19 @@ impl InferTypeNode {
 }
 
 impl InferTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_infer_type_node(self.type_parameter()), node, &f.hooks)
     }
 }
 
 impl ArrayTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.element_type())
     }
 }
 
 impl ArrayTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let element_type_ =
             required_child(v.visit_node_hooked(Some(self.element_type())), self.element_type());
         v.factory.update_array_type_node(node, element_type_)
@@ -19660,19 +17513,19 @@ impl ArrayTypeNode {
 }
 
 impl ArrayTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_array_type_node(self.element_type()), node, &f.hooks)
     }
 }
 
 impl IndexedAccessTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.object_type()) || v(self.index_type())
     }
 }
 
 impl IndexedAccessTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let object_type_ =
             required_child(v.visit_node_hooked(Some(self.object_type())), self.object_type());
         let index_type_ =
@@ -19682,7 +17535,7 @@ impl IndexedAccessTypeNode {
 }
 
 impl IndexedAccessTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_indexed_access_type_node(self.object_type(), self.index_type()),
             node,
@@ -19692,13 +17545,13 @@ impl IndexedAccessTypeNode {
 }
 
 impl TypeReferenceNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_name()) || visit_node_list(v, self.type_arguments())
     }
 }
 
 impl TypeReferenceNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_name_ =
             required_child(v.visit_node_hooked(Some(self.type_name())), self.type_name());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
@@ -19707,7 +17560,7 @@ impl TypeReferenceNode {
 }
 
 impl TypeReferenceNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_type_reference_node(self.type_name(), self.type_arguments()),
             node,
@@ -19717,13 +17570,13 @@ impl TypeReferenceNode {
 }
 
 impl ExpressionWithTypeArguments {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || visit_node_list(v, self.type_arguments())
     }
 }
 
 impl ExpressionWithTypeArguments {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
@@ -19732,7 +17585,7 @@ impl ExpressionWithTypeArguments {
 }
 
 impl ExpressionWithTypeArguments {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_expression_with_type_arguments(self.expression(), self.type_arguments()),
             node,
@@ -19742,20 +17595,20 @@ impl ExpressionWithTypeArguments {
 }
 
 impl LiteralTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.literal())
     }
 }
 
 impl LiteralTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let literal_ = required_child(v.visit_node_hooked(Some(self.literal())), self.literal());
         v.factory.update_literal_type_node(node, literal_)
     }
 }
 
 impl LiteralTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_literal_type_node(self.literal()), node, &f.hooks)
     }
 }
@@ -19765,19 +17618,19 @@ impl ThisTypeNode {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_this_type_node(), node, &f.hooks)
     }
 }
 
 impl TypePredicateNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.asserts_modifier()) || v(self.parameter_name()) || visit(v, self.type_())
     }
 }
 
 impl TypePredicateNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let asserts_modifier_ = v.visit_node_hooked(self.asserts_modifier());
         let parameter_name_ =
             required_child(v.visit_node_hooked(Some(self.parameter_name())), self.parameter_name());
@@ -19787,7 +17640,7 @@ impl TypePredicateNode {
 }
 
 impl TypePredicateNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_type_predicate_node(self.asserts_modifier(), self.parameter_name(), self.type_()),
             node,
@@ -19797,13 +17650,13 @@ impl TypePredicateNode {
 }
 
 impl ImportAttribute {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.name()) || v(self.value())
     }
 }
 
 impl ImportAttribute {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = v.visit_node_hooked(self.name());
         let value_ = required_child(v.visit_node_hooked(Some(self.value())), self.value());
         v.factory.update_import_attribute(node, name_, value_)
@@ -19811,19 +17664,19 @@ impl ImportAttribute {
 }
 
 impl ImportAttribute {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_import_attribute(self.name(), self.value()), node, &f.hooks)
     }
 }
 
 impl ImportAttributes {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.attributes()))
     }
 }
 
 impl ImportAttributes {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let attributes_ =
             required_child(v.visit_nodes_hooked(Some(self.attributes())), self.attributes());
         v.factory.update_import_attributes(node, self.token(), attributes_, self.multi_line())
@@ -19831,7 +17684,7 @@ impl ImportAttributes {
 }
 
 impl ImportAttributes {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_import_attributes(self.token(), self.attributes(), self.multi_line()),
             node,
@@ -19841,13 +17694,13 @@ impl ImportAttributes {
 }
 
 impl TypeQueryNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expr_name()) || visit_node_list(v, self.type_arguments())
     }
 }
 
 impl TypeQueryNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expr_name_ =
             required_child(v.visit_node_hooked(Some(self.expr_name())), self.expr_name());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
@@ -19856,13 +17709,13 @@ impl TypeQueryNode {
 }
 
 impl TypeQueryNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_type_query_node(self.expr_name(), self.type_arguments()), node, &f.hooks)
     }
 }
 
 impl MappedTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.readonly_token())
             || v(self.type_parameter())
             || visit(v, self.name_type())
@@ -19873,7 +17726,7 @@ impl MappedTypeNode {
 }
 
 impl MappedTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let readonly_token_ = v.visit_node_hooked(self.readonly_token());
         let type_parameter_ =
             required_child(v.visit_node_hooked(Some(self.type_parameter())), self.type_parameter());
@@ -19894,7 +17747,7 @@ impl MappedTypeNode {
 }
 
 impl MappedTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_mapped_type_node(
                 self.readonly_token(),
@@ -19911,32 +17764,32 @@ impl MappedTypeNode {
 }
 
 impl TypeLiteralNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.members()))
     }
 }
 
 impl TypeLiteralNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let members_ = required_child(v.visit_nodes_hooked(Some(self.members())), self.members());
         v.factory.update_type_literal_node(node, members_)
     }
 }
 
 impl TypeLiteralNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_type_literal_node(self.members()), node, &f.hooks)
     }
 }
 
 impl TupleTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.elements()))
     }
 }
 
 impl TupleTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let elements_ =
             required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_tuple_type_node(node, elements_)
@@ -19944,13 +17797,13 @@ impl TupleTypeNode {
 }
 
 impl TupleTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_tuple_type_node(self.elements()), node, &f.hooks)
     }
 }
 
 impl NamedTupleMember {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.dot_dot_dot_token())
             || v(self.name())
             || visit(v, self.question_token())
@@ -19959,7 +17812,7 @@ impl NamedTupleMember {
 }
 
 impl NamedTupleMember {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let dot_dot_dot_token_ = v.visit_node_hooked(self.dot_dot_dot_token());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let question_token_ = v.visit_node_hooked(self.question_token());
@@ -19975,7 +17828,7 @@ impl NamedTupleMember {
 }
 
 impl NamedTupleMember {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_named_tuple_member(
                 self.dot_dot_dot_token(),
@@ -19990,64 +17843,64 @@ impl NamedTupleMember {
 }
 
 impl OptionalTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_())
     }
 }
 
 impl OptionalTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_optional_type_node(node, type_node_)
     }
 }
 
 impl OptionalTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_optional_type_node(self.type_()), node, &f.hooks)
     }
 }
 
 impl RestTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_())
     }
 }
 
 impl RestTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_rest_type_node(node, type_node_)
     }
 }
 
 impl RestTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_rest_type_node(self.type_()), node, &f.hooks)
     }
 }
 
 impl ParenthesizedTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_())
     }
 }
 
 impl ParenthesizedTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_parenthesized_type_node(node, type_node_)
     }
 }
 
 impl ParenthesizedTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_parenthesized_type_node(self.type_()), node, &f.hooks)
     }
 }
 
 impl FunctionTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, self.type_parameters())
             || visit_node_list(v, self.parameters())
             || visit(v, self.type_())
@@ -20055,7 +17908,7 @@ impl FunctionTypeNode {
 }
 
 impl FunctionTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_nodes_hooked(self.parameters());
         let type_node_ = v.visit_node_hooked(self.type_());
@@ -20064,7 +17917,7 @@ impl FunctionTypeNode {
 }
 
 impl FunctionTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_function_type_node(self.type_parameters(), self.parameters(), self.type_()),
             node,
@@ -20074,7 +17927,7 @@ impl FunctionTypeNode {
 }
 
 impl ConstructorTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit_node_list(v, self.type_parameters())
             || visit_node_list(v, self.parameters())
@@ -20083,7 +17936,7 @@ impl ConstructorTypeNode {
 }
 
 impl ConstructorTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_nodes_hooked(self.parameters());
@@ -20099,7 +17952,7 @@ impl ConstructorTypeNode {
 }
 
 impl ConstructorTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_constructor_type_node(
                 self.modifiers(),
@@ -20114,7 +17967,7 @@ impl ConstructorTypeNode {
 }
 
 impl TemplateHead {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_template_head(self.text(), self.raw_text(), self.template_flags()),
             node,
@@ -20124,7 +17977,7 @@ impl TemplateHead {
 }
 
 impl TemplateMiddle {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_template_middle(self.text(), self.raw_text(), self.template_flags()),
             node,
@@ -20134,7 +17987,7 @@ impl TemplateMiddle {
 }
 
 impl TemplateTail {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_template_tail(self.text(), self.raw_text(), self.template_flags()),
             node,
@@ -20144,13 +17997,13 @@ impl TemplateTail {
 }
 
 impl TemplateLiteralTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.head()) || visit_node_list(v, Some(self.template_spans()))
     }
 }
 
 impl TemplateLiteralTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let head_ = required_child(v.visit_node_hooked(Some(self.head())), self.head());
         let template_spans_ = required_child(
             v.visit_nodes_hooked(Some(self.template_spans())),
@@ -20161,7 +18014,7 @@ impl TemplateLiteralTypeNode {
 }
 
 impl TemplateLiteralTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_template_literal_type_node(self.head(), self.template_spans()),
             node,
@@ -20171,13 +18024,13 @@ impl TemplateLiteralTypeNode {
 }
 
 impl TemplateLiteralTypeSpan {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_()) || v(self.literal())
     }
 }
 
 impl TemplateLiteralTypeSpan {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         let literal_ = required_child(v.visit_node_hooked(Some(self.literal())), self.literal());
         v.factory.update_template_literal_type_span(node, type_node_, literal_)
@@ -20185,19 +18038,19 @@ impl TemplateLiteralTypeSpan {
 }
 
 impl TemplateLiteralTypeSpan {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_template_literal_type_span(self.type_(), self.literal()), node, &f.hooks)
     }
 }
 
 impl SyntheticExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.tuple_name_source())
     }
 }
 
 impl SyntheticExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tuple_name_source_ = v.visit_node_hooked(self.tuple_name_source());
         v.factory.update_synthetic_expression(
             node,
@@ -20209,7 +18062,7 @@ impl SyntheticExpression {
 }
 
 impl SyntheticExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_synthetic_expression(self.type_(), self.is_spread(), self.tuple_name_source()),
             node,
@@ -20219,13 +18072,13 @@ impl SyntheticExpression {
 }
 
 impl PartiallyEmittedExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl PartiallyEmittedExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_partially_emitted_expression(node, expression_)
@@ -20233,13 +18086,13 @@ impl PartiallyEmittedExpression {
 }
 
 impl PartiallyEmittedExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_partially_emitted_expression(self.expression()), node, &f.hooks)
     }
 }
 
 impl JsxElement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.opening_element())
             || visit_node_list(v, Some(self.children()))
             || v(self.closing_element())
@@ -20247,7 +18100,7 @@ impl JsxElement {
 }
 
 impl JsxElement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let opening_element_ = required_child(
             v.visit_node_hooked(Some(self.opening_element())),
             self.opening_element(),
@@ -20263,7 +18116,7 @@ impl JsxElement {
 }
 
 impl JsxElement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsx_element(self.opening_element(), self.children(), self.closing_element()),
             node,
@@ -20273,13 +18126,13 @@ impl JsxElement {
 }
 
 impl JsxAttributes {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.properties()))
     }
 }
 
 impl JsxAttributes {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let properties_ =
             required_child(v.visit_nodes_hooked(Some(self.properties())), self.properties());
         v.factory.update_jsx_attributes(node, properties_)
@@ -20287,19 +18140,19 @@ impl JsxAttributes {
 }
 
 impl JsxAttributes {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsx_attributes(self.properties()), node, &f.hooks)
     }
 }
 
 impl JsxNamespacedName {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.namespace()) || v(self.name())
     }
 }
 
 impl JsxNamespacedName {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let namespace_ =
             required_child(v.visit_node_hooked(Some(self.namespace())), self.namespace());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
@@ -20308,19 +18161,19 @@ impl JsxNamespacedName {
 }
 
 impl JsxNamespacedName {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsx_namespaced_name(self.namespace(), self.name()), node, &f.hooks)
     }
 }
 
 impl JsxOpeningElement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit_node_list(v, self.type_arguments()) || v(self.attributes())
     }
 }
 
 impl JsxOpeningElement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
         let attributes_ =
@@ -20330,7 +18183,7 @@ impl JsxOpeningElement {
 }
 
 impl JsxOpeningElement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsx_opening_element(self.tag_name(), self.type_arguments(), self.attributes()),
             node,
@@ -20340,13 +18193,13 @@ impl JsxOpeningElement {
 }
 
 impl JsxSelfClosingElement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit_node_list(v, self.type_arguments()) || v(self.attributes())
     }
 }
 
 impl JsxSelfClosingElement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
         let attributes_ =
@@ -20356,7 +18209,7 @@ impl JsxSelfClosingElement {
 }
 
 impl JsxSelfClosingElement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsx_self_closing_element(
                 self.tag_name(),
@@ -20370,7 +18223,7 @@ impl JsxSelfClosingElement {
 }
 
 impl JsxFragment {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.opening_fragment())
             || visit_node_list(v, Some(self.children()))
             || v(self.closing_fragment())
@@ -20378,7 +18231,7 @@ impl JsxFragment {
 }
 
 impl JsxFragment {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let opening_fragment_ = required_child(
             v.visit_node_hooked(Some(self.opening_fragment())),
             self.opening_fragment(),
@@ -20394,7 +18247,7 @@ impl JsxFragment {
 }
 
 impl JsxFragment {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsx_fragment(self.opening_fragment(), self.children(), self.closing_fragment()),
             node,
@@ -20408,7 +18261,7 @@ impl JsxOpeningFragment {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsx_opening_fragment(), node, &f.hooks)
     }
 }
@@ -20418,19 +18271,19 @@ impl JsxClosingFragment {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsx_closing_fragment(), node, &f.hooks)
     }
 }
 
 impl JsxAttribute {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.name()) || visit(v, self.initializer())
     }
 }
 
 impl JsxAttribute {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let initializer_ = v.visit_node_hooked(self.initializer());
         v.factory.update_jsx_attribute(node, name_, initializer_)
@@ -20438,19 +18291,19 @@ impl JsxAttribute {
 }
 
 impl JsxAttribute {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsx_attribute(self.name(), self.initializer()), node, &f.hooks)
     }
 }
 
 impl JsxSpreadAttribute {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression())
     }
 }
 
 impl JsxSpreadAttribute {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_jsx_spread_attribute(node, expression_)
@@ -20458,38 +18311,38 @@ impl JsxSpreadAttribute {
 }
 
 impl JsxSpreadAttribute {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsx_spread_attribute(self.expression()), node, &f.hooks)
     }
 }
 
 impl JsxClosingElement {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name())
     }
 }
 
 impl JsxClosingElement {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         v.factory.update_jsx_closing_element(node, tag_name_)
     }
 }
 
 impl JsxClosingElement {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsx_closing_element(self.tag_name()), node, &f.hooks)
     }
 }
 
 impl JsxExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.dot_dot_dot_token()) || visit(v, self.expression())
     }
 }
 
 impl JsxExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let dot_dot_dot_token_ = v.visit_node_hooked(self.dot_dot_dot_token());
         let expression_ = v.visit_node_hooked(self.expression());
         v.factory.update_jsx_expression(node, dot_dot_dot_token_, expression_)
@@ -20497,7 +18350,7 @@ impl JsxExpression {
 }
 
 impl JsxExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsx_expression(self.dot_dot_dot_token(), self.expression()),
             node,
@@ -20507,7 +18360,7 @@ impl JsxExpression {
 }
 
 impl JsxText {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsx_text(self.text(), self.contains_only_trivia_white_spaces()),
             node,
@@ -20517,13 +18370,13 @@ impl JsxText {
 }
 
 impl SyntaxList {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_nodes(v, self.children())
     }
 }
 
 impl SyntaxList {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let children = same_map_nodes(self.children(), |n| {
             v.visit_node_hooked(Some(n)).expect("visitor removed a raw list element")
         });
@@ -20532,19 +18385,19 @@ impl SyntaxList {
 }
 
 impl SyntaxList {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_syntax_list(self.children()), node, &f.hooks)
     }
 }
 
 impl JSDoc {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, Some(self.comment())) || visit_node_list(v, self.tags())
     }
 }
 
 impl JSDoc {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let comment_ = required_child(v.visit_nodes_hooked(Some(self.comment())), self.comment());
         let tags_ = v.visit_nodes_hooked(self.tags());
         v.factory.update_jsdoc(node, comment_, tags_)
@@ -20552,64 +18405,64 @@ impl JSDoc {
 }
 
 impl JSDoc {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc(self.comment(), self.tags()), node, &f.hooks)
     }
 }
 
 impl JSDocTypeExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_())
     }
 }
 
 impl JSDocTypeExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_jsdoc_type_expression(node, type_node_)
     }
 }
 
 impl JSDocTypeExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_type_expression(self.type_()), node, &f.hooks)
     }
 }
 
 impl JSDocNonNullableType {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_())
     }
 }
 
 impl JSDocNonNullableType {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_jsdoc_non_nullable_type(node, type_node_)
     }
 }
 
 impl JSDocNonNullableType {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_non_nullable_type(self.type_()), node, &f.hooks)
     }
 }
 
 impl JSDocNullableType {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_())
     }
 }
 
 impl JSDocNullableType {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_jsdoc_nullable_type(node, type_node_)
     }
 }
 
 impl JSDocNullableType {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_nullable_type(self.type_()), node, &f.hooks)
     }
 }
@@ -20619,57 +18472,57 @@ impl JSDocAllType {
         clippy::unused_self,
         reason = "Empty node data uses the same cloning interface as nodes with stored fields."
     )]
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_all_type(), node, &f.hooks)
     }
 }
 
 impl JSDocVariadicType {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_())
     }
 }
 
 impl JSDocVariadicType {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_jsdoc_variadic_type(node, type_node_)
     }
 }
 
 impl JSDocVariadicType {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_variadic_type(self.type_()), node, &f.hooks)
     }
 }
 
 impl JSDocOptionalType {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.type_())
     }
 }
 
 impl JSDocOptionalType {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_jsdoc_optional_type(node, type_node_)
     }
 }
 
 impl JSDocOptionalType {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_optional_type(self.type_()), node, &f.hooks)
     }
 }
 
 impl JSDocTypeTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || v(self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocTypeTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_expression_ = required_child(
             v.visit_node_hooked(Some(self.type_expression())),
@@ -20681,7 +18534,7 @@ impl JSDocTypeTag {
 }
 
 impl JSDocTypeTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_type_tag(self.tag_name(), self.type_expression(), self.comment()),
             node,
@@ -20691,13 +18544,13 @@ impl JSDocTypeTag {
 }
 
 impl JSDocUnknownTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocUnknownTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_unknown_tag(node, tag_name_, comment_)
@@ -20705,13 +18558,13 @@ impl JSDocUnknownTag {
 }
 
 impl JSDocUnknownTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_unknown_tag(self.tag_name(), self.comment()), node, &f.hooks)
     }
 }
 
 impl JSDocTemplateTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name())
             || visit(v, self.constraint())
             || visit_node_list(v, Some(self.type_parameters()))
@@ -20720,7 +18573,7 @@ impl JSDocTemplateTag {
 }
 
 impl JSDocTemplateTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let constraint_ = v.visit_node_hooked(self.constraint());
         let type_parameters_ = required_child(
@@ -20739,7 +18592,7 @@ impl JSDocTemplateTag {
 }
 
 impl JSDocTemplateTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_template_tag(
                 self.tag_name(),
@@ -20754,13 +18607,13 @@ impl JSDocTemplateTag {
 }
 
 impl JSDocReturnTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit(v, self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocReturnTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_expression_ = v.visit_node_hooked(self.type_expression());
         let comment_ = v.visit_nodes_hooked(self.comment());
@@ -20769,7 +18622,7 @@ impl JSDocReturnTag {
 }
 
 impl JSDocReturnTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_return_tag(self.tag_name(), self.type_expression(), self.comment()),
             node,
@@ -20779,13 +18632,13 @@ impl JSDocReturnTag {
 }
 
 impl JSDocPublicTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocPublicTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_public_tag(node, tag_name_, comment_)
@@ -20793,19 +18646,19 @@ impl JSDocPublicTag {
 }
 
 impl JSDocPublicTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_public_tag(self.tag_name(), self.comment()), node, &f.hooks)
     }
 }
 
 impl JSDocPrivateTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocPrivateTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_private_tag(node, tag_name_, comment_)
@@ -20813,19 +18666,19 @@ impl JSDocPrivateTag {
 }
 
 impl JSDocPrivateTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_private_tag(self.tag_name(), self.comment()), node, &f.hooks)
     }
 }
 
 impl JSDocProtectedTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocProtectedTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_protected_tag(node, tag_name_, comment_)
@@ -20833,19 +18686,19 @@ impl JSDocProtectedTag {
 }
 
 impl JSDocProtectedTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_protected_tag(self.tag_name(), self.comment()), node, &f.hooks)
     }
 }
 
 impl JSDocReadonlyTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocReadonlyTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_readonly_tag(node, tag_name_, comment_)
@@ -20853,19 +18706,19 @@ impl JSDocReadonlyTag {
 }
 
 impl JSDocReadonlyTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_readonly_tag(self.tag_name(), self.comment()), node, &f.hooks)
     }
 }
 
 impl JSDocOverrideTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocOverrideTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_override_tag(node, tag_name_, comment_)
@@ -20873,19 +18726,19 @@ impl JSDocOverrideTag {
 }
 
 impl JSDocOverrideTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_override_tag(self.tag_name(), self.comment()), node, &f.hooks)
     }
 }
 
 impl JSDocDeprecatedTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocDeprecatedTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_deprecated_tag(node, tag_name_, comment_)
@@ -20893,19 +18746,19 @@ impl JSDocDeprecatedTag {
 }
 
 impl JSDocDeprecatedTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_deprecated_tag(self.tag_name(), self.comment()), node, &f.hooks)
     }
 }
 
 impl JSDocSeeTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit(v, self.name_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocSeeTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let name_expression_ = v.visit_node_hooked(self.name_expression());
         let comment_ = v.visit_nodes_hooked(self.comment());
@@ -20914,7 +18767,7 @@ impl JSDocSeeTag {
 }
 
 impl JSDocSeeTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_see_tag(self.tag_name(), self.name_expression(), self.comment()),
             node,
@@ -20924,13 +18777,13 @@ impl JSDocSeeTag {
 }
 
 impl JSDocImplementsTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || v(self.class_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocImplementsTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let class_name_ =
             required_child(v.visit_node_hooked(Some(self.class_name())), self.class_name());
@@ -20940,7 +18793,7 @@ impl JSDocImplementsTag {
 }
 
 impl JSDocImplementsTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_implements_tag(self.tag_name(), self.class_name(), self.comment()),
             node,
@@ -20950,13 +18803,13 @@ impl JSDocImplementsTag {
 }
 
 impl JSDocAugmentsTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || v(self.class_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocAugmentsTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let class_name_ =
             required_child(v.visit_node_hooked(Some(self.class_name())), self.class_name());
@@ -20966,7 +18819,7 @@ impl JSDocAugmentsTag {
 }
 
 impl JSDocAugmentsTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_augments_tag(self.tag_name(), self.class_name(), self.comment()),
             node,
@@ -20976,13 +18829,13 @@ impl JSDocAugmentsTag {
 }
 
 impl JSDocSatisfiesTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || v(self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocSatisfiesTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_expression_ = required_child(
             v.visit_node_hooked(Some(self.type_expression())),
@@ -20994,7 +18847,7 @@ impl JSDocSatisfiesTag {
 }
 
 impl JSDocSatisfiesTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_satisfies_tag(self.tag_name(), self.type_expression(), self.comment()),
             node,
@@ -21004,13 +18857,13 @@ impl JSDocSatisfiesTag {
 }
 
 impl JSDocThrowsTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || visit(v, self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocThrowsTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_expression_ = v.visit_node_hooked(self.type_expression());
         let comment_ = v.visit_nodes_hooked(self.comment());
@@ -21019,7 +18872,7 @@ impl JSDocThrowsTag {
 }
 
 impl JSDocThrowsTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_throws_tag(self.tag_name(), self.type_expression(), self.comment()),
             node,
@@ -21029,13 +18882,13 @@ impl JSDocThrowsTag {
 }
 
 impl JSDocThisTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || v(self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocThisTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_expression_ = required_child(
             v.visit_node_hooked(Some(self.type_expression())),
@@ -21047,7 +18900,7 @@ impl JSDocThisTag {
 }
 
 impl JSDocThisTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_this_tag(self.tag_name(), self.type_expression(), self.comment()),
             node,
@@ -21057,7 +18910,7 @@ impl JSDocThisTag {
 }
 
 impl JSDocImportTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name())
             || visit(v, self.import_clause())
             || v(self.module_specifier())
@@ -21067,7 +18920,7 @@ impl JSDocImportTag {
 }
 
 impl JSDocImportTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let import_clause_ = v.visit_node_hooked(self.import_clause());
         let module_specifier_ = required_child(
@@ -21088,7 +18941,7 @@ impl JSDocImportTag {
 }
 
 impl JSDocImportTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_import_tag(
                 self.tag_name(),
@@ -21104,7 +18957,7 @@ impl JSDocImportTag {
 }
 
 impl JSDocCallbackTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name())
             || v(self.type_expression())
             || visit(v, self.name())
@@ -21113,7 +18966,7 @@ impl JSDocCallbackTag {
 }
 
 impl JSDocCallbackTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_expression_ = required_child(
             v.visit_node_hooked(Some(self.type_expression())),
@@ -21126,7 +18979,7 @@ impl JSDocCallbackTag {
 }
 
 impl JSDocCallbackTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_callback_tag(
                 self.tag_name(),
@@ -21141,13 +18994,13 @@ impl JSDocCallbackTag {
 }
 
 impl JSDocOverloadTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name()) || v(self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocOverloadTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_expression_ = required_child(
             v.visit_node_hooked(Some(self.type_expression())),
@@ -21159,7 +19012,7 @@ impl JSDocOverloadTag {
 }
 
 impl JSDocOverloadTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_overload_tag(self.tag_name(), self.type_expression(), self.comment()),
             node,
@@ -21169,7 +19022,7 @@ impl JSDocOverloadTag {
 }
 
 impl JSDocTypedefTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.tag_name())
             || visit(v, self.type_expression())
             || visit(v, self.name())
@@ -21178,7 +19031,7 @@ impl JSDocTypedefTag {
 }
 
 impl JSDocTypedefTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_expression_ = v.visit_node_hooked(self.type_expression());
         let name_ = v.visit_node_hooked(self.name());
@@ -21188,7 +19041,7 @@ impl JSDocTypedefTag {
 }
 
 impl JSDocTypedefTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_typedef_tag(
                 self.tag_name(),
@@ -21203,7 +19056,7 @@ impl JSDocTypedefTag {
 }
 
 impl JSDocSignature {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_node_list(v, self.type_parameters())
             || visit_node_list(v, self.parameters())
             || visit(v, self.type_())
@@ -21211,7 +19064,7 @@ impl JSDocSignature {
 }
 
 impl JSDocSignature {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_nodes_hooked(self.parameters());
         let type_node_ = v.visit_node_hooked(self.type_());
@@ -21220,7 +19073,7 @@ impl JSDocSignature {
 }
 
 impl JSDocSignature {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_signature(self.type_parameters(), self.parameters(), self.type_()),
             node,
@@ -21230,26 +19083,26 @@ impl JSDocSignature {
 }
 
 impl JSDocNameReference {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.name())
     }
 }
 
 impl JSDocNameReference {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         v.factory.update_jsdoc_name_reference(node, name_)
     }
 }
 
 impl JSDocNameReference {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_name_reference(self.name()), node, &f.hooks)
     }
 }
 
 impl ModuleDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit(v, self.attributes())
@@ -21258,7 +19111,7 @@ impl ModuleDeclaration {
 }
 
 impl ModuleDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let attributes_ = v.visit_node_hooked(self.attributes());
@@ -21275,7 +19128,7 @@ impl ModuleDeclaration {
 }
 
 impl ModuleDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_module_declaration(
                 self.modifiers(),
@@ -21291,13 +19144,13 @@ impl ModuleDeclaration {
 }
 
 impl ImportEqualsDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers()) || v(self.name()) || v(self.module_reference())
     }
 }
 
 impl ImportEqualsDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let module_reference_ = required_child(
@@ -21315,7 +19168,7 @@ impl ImportEqualsDeclaration {
 }
 
 impl ImportEqualsDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_import_equals_declaration(
                 self.modifiers(),
@@ -21330,7 +19183,7 @@ impl ImportEqualsDeclaration {
 }
 
 impl ExportDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || visit(v, self.export_clause())
             || visit(v, self.module_specifier())
@@ -21339,7 +19192,7 @@ impl ExportDeclaration {
 }
 
 impl ExportDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let export_clause_ = v.visit_node_hooked(self.export_clause());
         let module_specifier_ = v.visit_node_hooked(self.module_specifier());
@@ -21356,7 +19209,7 @@ impl ExportDeclaration {
 }
 
 impl ExportDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_export_declaration(
                 self.modifiers(),
@@ -21372,7 +19225,7 @@ impl ExportDeclaration {
 }
 
 impl ImportTypeNode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.argument())
             || visit(v, self.attributes())
             || visit(v, self.qualifier())
@@ -21381,7 +19234,7 @@ impl ImportTypeNode {
 }
 
 impl ImportTypeNode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let argument_ = required_child(v.visit_node_hooked(Some(self.argument())), self.argument());
         let attributes_ = v.visit_node_hooked(self.attributes());
         let qualifier_ = v.visit_node_hooked(self.qualifier());
@@ -21398,7 +19251,7 @@ impl ImportTypeNode {
 }
 
 impl ImportTypeNode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_import_type_node(
                 self.is_type_of(),
@@ -21414,13 +19267,13 @@ impl ImportTypeNode {
 }
 
 impl ImportClause {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.name()) || visit(v, self.named_bindings())
     }
 }
 
 impl ImportClause {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = v.visit_node_hooked(self.name());
         let named_bindings_ = v.visit_node_hooked(self.named_bindings());
         v.factory.update_import_clause(node, self.phase_modifier(), name_, named_bindings_)
@@ -21428,7 +19281,7 @@ impl ImportClause {
 }
 
 impl ImportClause {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_import_clause(self.phase_modifier(), self.name(), self.named_bindings()),
             node,
@@ -21438,13 +19291,13 @@ impl ImportClause {
 }
 
 impl ImportSpecifier {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.property_name()) || v(self.name())
     }
 }
 
 impl ImportSpecifier {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let property_name_ = v.visit_node_hooked(self.property_name());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         v.factory.update_import_specifier(node, self.is_type_only(), property_name_, name_)
@@ -21452,7 +19305,7 @@ impl ImportSpecifier {
 }
 
 impl ImportSpecifier {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_import_specifier(self.is_type_only(), self.property_name(), self.name()),
             node,
@@ -21462,70 +19315,70 @@ impl ImportSpecifier {
 }
 
 impl JSDocText {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_text(self.text()), node, &f.hooks)
     }
 }
 
 impl JSDocLink {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.name())
     }
 }
 
 impl JSDocLink {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = v.visit_node_hooked(self.name());
         v.factory.update_jsdoc_link(node, name_, self.text())
     }
 }
 
 impl JSDocLink {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_link(self.name(), self.text()), node, &f.hooks)
     }
 }
 
 impl JSDocLinkPlain {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.name())
     }
 }
 
 impl JSDocLinkPlain {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = v.visit_node_hooked(self.name());
         v.factory.update_jsdoc_link_plain(node, name_, self.text())
     }
 }
 
 impl JSDocLinkPlain {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_link_plain(self.name(), self.text()), node, &f.hooks)
     }
 }
 
 impl JSDocLinkCode {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit(v, self.name())
     }
 }
 
 impl JSDocLinkCode {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let name_ = v.visit_node_hooked(self.name());
         v.factory.update_jsdoc_link_code(node, name_, self.text())
     }
 }
 
 impl JSDocLinkCode {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_link_code(self.name(), self.text()), node, &f.hooks)
     }
 }
 
 impl TypeParameterDeclaration {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_modifiers(v, self.modifiers())
             || v(self.name())
             || visit(v, self.constraint())
@@ -21535,7 +19388,7 @@ impl TypeParameterDeclaration {
 }
 
 impl TypeParameterDeclaration {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let constraint_ = v.visit_node_hooked(self.constraint());
@@ -21553,7 +19406,7 @@ impl TypeParameterDeclaration {
 }
 
 impl TypeParameterDeclaration {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_type_parameter_declaration(
                 self.modifiers(),
@@ -21569,13 +19422,13 @@ impl TypeParameterDeclaration {
 }
 
 impl SyntheticReferenceExpression {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         v(self.expression()) || v(self.this_arg())
     }
 }
 
 impl SyntheticReferenceExpression {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ =
             required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let this_arg_ = required_child(v.visit_node_hooked(Some(self.this_arg())), self.this_arg());
@@ -21584,7 +19437,7 @@ impl SyntheticReferenceExpression {
 }
 
 impl SyntheticReferenceExpression {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_synthetic_reference_expression(self.expression(), self.this_arg()),
             node,
@@ -21594,13 +19447,13 @@ impl SyntheticReferenceExpression {
 }
 
 impl JSDocTypeLiteral {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         visit_nodes(v, self.jsdoc_property_tags())
     }
 }
 
 impl JSDocTypeLiteral {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let jsdoc_property_tags = same_map_nodes(self.jsdoc_property_tags(), |n| {
             v.visit_node_hooked(Some(n)).expect("visitor removed a raw list element")
         });
@@ -21609,7 +19462,7 @@ impl JSDocTypeLiteral {
 }
 
 impl JSDocTypeLiteral {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_type_literal(self.jsdoc_property_tags(), self.is_array_type()),
             node,
@@ -21619,19 +19472,19 @@ impl JSDocTypeLiteral {
 }
 
 impl JSDocParameterOrPropertyTag {
-    pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
+    fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         for_each_child_jsdoc_parameter_or_property_tag(self, v)
     }
 }
 
 impl JSDocParameterOrPropertyTag {
-    pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+    fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         visit_each_child_jsdoc_parameter_or_property_tag(self, node, v)
     }
 }
 
 impl JSDocParameterOrPropertyTag {
-    pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
+    fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(
             f.new_jsdoc_parameter_or_property_tag(
                 node.kind(),
@@ -21649,180 +19502,6 @@ impl JSDocParameterOrPropertyTag {
 }
 
 // ── is_* predicates ──────────────────────────────────────────────────────
-
-pub fn is_token(node: P<Node>) -> bool {
-    matches!(
-        node.kind(),
-        Kind::Unknown
-            | Kind::EndOfFile
-            | Kind::SingleLineCommentTrivia
-            | Kind::MultiLineCommentTrivia
-            | Kind::NewLineTrivia
-            | Kind::WhitespaceTrivia
-            | Kind::ConflictMarkerTrivia
-            | Kind::NonTextFileMarkerTrivia
-            | Kind::NumericLiteral
-            | Kind::BigIntLiteral
-            | Kind::StringLiteral
-            | Kind::JsxText
-            | Kind::JsxTextAllWhiteSpaces
-            | Kind::RegularExpressionLiteral
-            | Kind::NoSubstitutionTemplateLiteral
-            | Kind::TemplateHead
-            | Kind::TemplateMiddle
-            | Kind::TemplateTail
-            | Kind::OpenBraceToken
-            | Kind::CloseBraceToken
-            | Kind::OpenParenToken
-            | Kind::CloseParenToken
-            | Kind::OpenBracketToken
-            | Kind::CloseBracketToken
-            | Kind::DotToken
-            | Kind::DotDotDotToken
-            | Kind::SemicolonToken
-            | Kind::CommaToken
-            | Kind::QuestionDotToken
-            | Kind::LessThanToken
-            | Kind::LessThanSlashToken
-            | Kind::GreaterThanToken
-            | Kind::LessThanEqualsToken
-            | Kind::GreaterThanEqualsToken
-            | Kind::EqualsEqualsToken
-            | Kind::ExclamationEqualsToken
-            | Kind::EqualsEqualsEqualsToken
-            | Kind::ExclamationEqualsEqualsToken
-            | Kind::EqualsGreaterThanToken
-            | Kind::PlusToken
-            | Kind::MinusToken
-            | Kind::AsteriskToken
-            | Kind::AsteriskAsteriskToken
-            | Kind::SlashToken
-            | Kind::PercentToken
-            | Kind::PlusPlusToken
-            | Kind::MinusMinusToken
-            | Kind::LessThanLessThanToken
-            | Kind::GreaterThanGreaterThanToken
-            | Kind::GreaterThanGreaterThanGreaterThanToken
-            | Kind::AmpersandToken
-            | Kind::BarToken
-            | Kind::CaretToken
-            | Kind::ExclamationToken
-            | Kind::TildeToken
-            | Kind::AmpersandAmpersandToken
-            | Kind::BarBarToken
-            | Kind::QuestionToken
-            | Kind::ColonToken
-            | Kind::AtToken
-            | Kind::QuestionQuestionToken
-            | Kind::BacktickToken
-            | Kind::HashToken
-            | Kind::EqualsToken
-            | Kind::PlusEqualsToken
-            | Kind::MinusEqualsToken
-            | Kind::AsteriskEqualsToken
-            | Kind::AsteriskAsteriskEqualsToken
-            | Kind::SlashEqualsToken
-            | Kind::PercentEqualsToken
-            | Kind::LessThanLessThanEqualsToken
-            | Kind::GreaterThanGreaterThanEqualsToken
-            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
-            | Kind::AmpersandEqualsToken
-            | Kind::BarEqualsToken
-            | Kind::BarBarEqualsToken
-            | Kind::AmpersandAmpersandEqualsToken
-            | Kind::QuestionQuestionEqualsToken
-            | Kind::CaretEqualsToken
-            | Kind::Identifier
-            | Kind::PrivateIdentifier
-            | Kind::JSDocCommentTextToken
-            | Kind::BreakKeyword
-            | Kind::CaseKeyword
-            | Kind::CatchKeyword
-            | Kind::ClassKeyword
-            | Kind::ConstKeyword
-            | Kind::ContinueKeyword
-            | Kind::DebuggerKeyword
-            | Kind::DefaultKeyword
-            | Kind::DeleteKeyword
-            | Kind::DoKeyword
-            | Kind::ElseKeyword
-            | Kind::EnumKeyword
-            | Kind::ExportKeyword
-            | Kind::ExtendsKeyword
-            | Kind::FalseKeyword
-            | Kind::FinallyKeyword
-            | Kind::ForKeyword
-            | Kind::FunctionKeyword
-            | Kind::IfKeyword
-            | Kind::ImportKeyword
-            | Kind::InKeyword
-            | Kind::InstanceOfKeyword
-            | Kind::NewKeyword
-            | Kind::NullKeyword
-            | Kind::ReturnKeyword
-            | Kind::SuperKeyword
-            | Kind::SwitchKeyword
-            | Kind::ThisKeyword
-            | Kind::ThrowKeyword
-            | Kind::TrueKeyword
-            | Kind::TryKeyword
-            | Kind::TypeOfKeyword
-            | Kind::VarKeyword
-            | Kind::VoidKeyword
-            | Kind::WhileKeyword
-            | Kind::WithKeyword
-            | Kind::ImplementsKeyword
-            | Kind::InterfaceKeyword
-            | Kind::LetKeyword
-            | Kind::PackageKeyword
-            | Kind::PrivateKeyword
-            | Kind::ProtectedKeyword
-            | Kind::PublicKeyword
-            | Kind::StaticKeyword
-            | Kind::YieldKeyword
-            | Kind::AbstractKeyword
-            | Kind::AccessorKeyword
-            | Kind::AsKeyword
-            | Kind::AssertsKeyword
-            | Kind::AssertKeyword
-            | Kind::AnyKeyword
-            | Kind::AsyncKeyword
-            | Kind::AwaitKeyword
-            | Kind::BooleanKeyword
-            | Kind::ConstructorKeyword
-            | Kind::DeclareKeyword
-            | Kind::GetKeyword
-            | Kind::ImmediateKeyword
-            | Kind::InferKeyword
-            | Kind::IntrinsicKeyword
-            | Kind::IsKeyword
-            | Kind::KeyOfKeyword
-            | Kind::ModuleKeyword
-            | Kind::NamespaceKeyword
-            | Kind::NeverKeyword
-            | Kind::OutKeyword
-            | Kind::ReadonlyKeyword
-            | Kind::RequireKeyword
-            | Kind::NumberKeyword
-            | Kind::ObjectKeyword
-            | Kind::SatisfiesKeyword
-            | Kind::SetKeyword
-            | Kind::StringKeyword
-            | Kind::SymbolKeyword
-            | Kind::TypeKeyword
-            | Kind::UndefinedKeyword
-            | Kind::UniqueKeyword
-            | Kind::UnknownKeyword
-            | Kind::UsingKeyword
-            | Kind::FromKeyword
-            | Kind::GlobalKeyword
-            | Kind::BigIntKeyword
-            | Kind::OverrideKeyword
-            | Kind::OfKeyword
-            | Kind::DeferKeyword
-            | Kind::SourceKeyword
-    )
-}
 
 pub fn is_identifier(node: P<Node>) -> bool {
     node.kind() == Kind::Identifier
@@ -21852,14 +19531,6 @@ pub fn is_if_statement(node: P<Node>) -> bool {
     node.kind() == Kind::IfStatement
 }
 
-pub fn is_do_statement(node: P<Node>) -> bool {
-    node.kind() == Kind::DoStatement
-}
-
-pub fn is_while_statement(node: P<Node>) -> bool {
-    node.kind() == Kind::WhileStatement
-}
-
 pub fn is_for_statement(node: P<Node>) -> bool {
     node.kind() == Kind::ForStatement
 }
@@ -21872,28 +19543,12 @@ pub fn is_for_of_statement(node: P<Node>) -> bool {
     node.kind() == Kind::ForOfStatement
 }
 
-pub fn is_break_statement(node: P<Node>) -> bool {
-    node.kind() == Kind::BreakStatement
-}
-
-pub fn is_continue_statement(node: P<Node>) -> bool {
-    node.kind() == Kind::ContinueStatement
-}
-
 pub fn is_return_statement(node: P<Node>) -> bool {
     node.kind() == Kind::ReturnStatement
 }
 
-pub fn is_with_statement(node: P<Node>) -> bool {
-    node.kind() == Kind::WithStatement
-}
-
 pub fn is_switch_statement(node: P<Node>) -> bool {
     node.kind() == Kind::SwitchStatement
-}
-
-pub fn is_case_block(node: P<Node>) -> bool {
-    node.kind() == Kind::CaseBlock
 }
 
 pub fn is_case_clause(node: P<Node>) -> bool {
@@ -21914,10 +19569,6 @@ pub fn is_try_statement(node: P<Node>) -> bool {
 
 pub fn is_catch_clause(node: P<Node>) -> bool {
     node.kind() == Kind::CatchClause
-}
-
-pub fn is_debugger_statement(node: P<Node>) -> bool {
-    node.kind() == Kind::DebuggerStatement
 }
 
 pub fn is_labeled_statement(node: P<Node>) -> bool {
@@ -21958,10 +19609,6 @@ pub fn is_parameter_declaration(node: P<Node>) -> bool {
 
 pub fn is_binding_element(node: P<Node>) -> bool {
     node.kind() == Kind::BindingElement
-}
-
-pub fn is_missing_declaration(node: P<Node>) -> bool {
-    node.kind() == Kind::MissingDeclaration
 }
 
 pub fn is_function_declaration(node: P<Node>) -> bool {
@@ -22006,10 +19653,6 @@ pub fn is_module_block(node: P<Node>) -> bool {
 
 pub fn is_not_emitted_statement(node: P<Node>) -> bool {
     node.kind() == Kind::NotEmittedStatement
-}
-
-pub fn is_not_emitted_type_element(node: P<Node>) -> bool {
-    node.kind() == Kind::NotEmittedTypeElement
 }
 
 pub fn is_import_declaration(node: P<Node>) -> bool {
@@ -22092,28 +19735,12 @@ pub fn is_property_declaration(node: P<Node>) -> bool {
     node.kind() == Kind::PropertyDeclaration
 }
 
-pub fn is_semicolon_class_element(node: P<Node>) -> bool {
-    node.kind() == Kind::SemicolonClassElement
-}
-
 pub fn is_class_static_block_declaration(node: P<Node>) -> bool {
     node.kind() == Kind::ClassStaticBlockDeclaration
 }
 
 pub fn is_omitted_expression(node: P<Node>) -> bool {
     node.kind() == Kind::OmittedExpression
-}
-
-pub fn is_keyword_expression(node: P<Node>) -> bool {
-    matches!(
-        node.kind(),
-        Kind::NullKeyword
-            | Kind::TrueKeyword
-            | Kind::FalseKeyword
-            | Kind::ThisKeyword
-            | Kind::SuperKeyword
-            | Kind::ImportKeyword
-    )
 }
 
 pub fn is_string_literal(node: P<Node>) -> bool {
@@ -22160,7 +19787,7 @@ pub fn is_function_expression(node: P<Node>) -> bool {
     node.kind() == Kind::FunctionExpression
 }
 
-pub fn is_as_expression(node: P<Node>) -> bool {
+pub(crate) fn is_as_expression(node: P<Node>) -> bool {
     node.kind() == Kind::AsExpression
 }
 
@@ -22236,10 +19863,6 @@ pub fn is_shorthand_property_assignment(node: P<Node>) -> bool {
     node.kind() == Kind::ShorthandPropertyAssignment
 }
 
-pub fn is_delete_expression(node: P<Node>) -> bool {
-    node.kind() == Kind::DeleteExpression
-}
-
 pub fn is_type_of_expression(node: P<Node>) -> bool {
     node.kind() == Kind::TypeOfExpression
 }
@@ -22250,28 +19873,6 @@ pub fn is_void_expression(node: P<Node>) -> bool {
 
 pub fn is_await_expression(node: P<Node>) -> bool {
     node.kind() == Kind::AwaitExpression
-}
-
-pub fn is_type_assertion(node: P<Node>) -> bool {
-    node.kind() == Kind::TypeAssertionExpression
-}
-
-pub fn is_keyword_type_node(node: P<Node>) -> bool {
-    matches!(
-        node.kind(),
-        Kind::AnyKeyword
-            | Kind::BigIntKeyword
-            | Kind::BooleanKeyword
-            | Kind::IntrinsicKeyword
-            | Kind::NeverKeyword
-            | Kind::NumberKeyword
-            | Kind::ObjectKeyword
-            | Kind::StringKeyword
-            | Kind::SymbolKeyword
-            | Kind::UndefinedKeyword
-            | Kind::UnknownKeyword
-            | Kind::VoidKeyword
-    )
 }
 
 pub fn is_union_type_node(node: P<Node>) -> bool {
@@ -22292,10 +19893,6 @@ pub fn is_type_operator_node(node: P<Node>) -> bool {
 
 pub fn is_infer_type_node(node: P<Node>) -> bool {
     node.kind() == Kind::InferType
-}
-
-pub fn is_array_type_node(node: P<Node>) -> bool {
-    node.kind() == Kind::ArrayType
 }
 
 pub fn is_indexed_access_type_node(node: P<Node>) -> bool {
@@ -22320,10 +19917,6 @@ pub fn is_this_type_node(node: P<Node>) -> bool {
 
 pub fn is_type_predicate_node(node: P<Node>) -> bool {
     node.kind() == Kind::TypePredicate
-}
-
-pub fn is_import_attribute(node: P<Node>) -> bool {
-    node.kind() == Kind::ImportAttribute
 }
 
 pub fn is_import_attributes(node: P<Node>) -> bool {
@@ -22374,16 +19967,8 @@ pub fn is_template_head(node: P<Node>) -> bool {
     node.kind() == Kind::TemplateHead
 }
 
-pub fn is_template_middle(node: P<Node>) -> bool {
-    node.kind() == Kind::TemplateMiddle
-}
-
 pub fn is_template_tail(node: P<Node>) -> bool {
     node.kind() == Kind::TemplateTail
-}
-
-pub fn is_template_literal_type_node(node: P<Node>) -> bool {
-    node.kind() == Kind::TemplateLiteralType
 }
 
 pub fn is_template_literal_type_span(node: P<Node>) -> bool {
@@ -22426,10 +20011,6 @@ pub fn is_jsx_opening_fragment(node: P<Node>) -> bool {
     node.kind() == Kind::JsxOpeningFragment
 }
 
-pub fn is_jsx_closing_fragment(node: P<Node>) -> bool {
-    node.kind() == Kind::JsxClosingFragment
-}
-
 pub fn is_jsx_attribute(node: P<Node>) -> bool {
     node.kind() == Kind::JsxAttribute
 }
@@ -22470,24 +20051,8 @@ pub fn is_jsdoc_nullable_type(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocNullableType
 }
 
-pub fn is_jsdoc_all_type(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocAllType
-}
-
-pub fn is_jsdoc_variadic_type(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocVariadicType
-}
-
-pub fn is_jsdoc_optional_type(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocOptionalType
-}
-
 pub fn is_jsdoc_type_tag(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocTypeTag
-}
-
-pub fn is_jsdoc_unknown_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocUnknownTag
 }
 
 pub fn is_jsdoc_template_tag(node: P<Node>) -> bool {
@@ -22498,32 +20063,8 @@ pub fn is_jsdoc_return_tag(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocReturnTag
 }
 
-pub fn is_jsdoc_public_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocPublicTag
-}
-
-pub fn is_jsdoc_private_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocPrivateTag
-}
-
-pub fn is_jsdoc_protected_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocProtectedTag
-}
-
-pub fn is_jsdoc_readonly_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocReadonlyTag
-}
-
-pub fn is_jsdoc_override_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocOverrideTag
-}
-
-pub fn is_jsdoc_deprecated_tag(node: P<Node>) -> bool {
+pub(crate) fn is_jsdoc_deprecated_tag(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocDeprecatedTag
-}
-
-pub fn is_jsdoc_see_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocSeeTag
 }
 
 pub fn is_jsdoc_implements_tag(node: P<Node>) -> bool {
@@ -22538,24 +20079,12 @@ pub fn is_jsdoc_satisfies_tag(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocSatisfiesTag
 }
 
-pub fn is_jsdoc_throws_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocThrowsTag
-}
-
-pub fn is_jsdoc_this_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocThisTag
-}
-
 pub fn is_jsdoc_import_tag(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocImportTag
 }
 
 pub fn is_jsdoc_callback_tag(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocCallbackTag
-}
-
-pub fn is_jsdoc_overload_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocOverloadTag
 }
 
 pub fn is_jsdoc_typedef_tag(node: P<Node>) -> bool {
@@ -22566,7 +20095,7 @@ pub fn is_jsdoc_signature(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocSignature
 }
 
-pub fn is_jsdoc_name_reference(node: P<Node>) -> bool {
+pub(crate) fn is_jsdoc_name_reference(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocNameReference
 }
 
@@ -22598,22 +20127,6 @@ pub fn is_import_specifier(node: P<Node>) -> bool {
     node.kind() == Kind::ImportSpecifier
 }
 
-pub fn is_jsdoc_text(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocText
-}
-
-pub fn is_jsdoc_link(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocLink
-}
-
-pub fn is_jsdoc_link_plain(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocLinkPlain
-}
-
-pub fn is_jsdoc_link_code(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocLinkCode
-}
-
 pub fn is_type_parameter_declaration(node: P<Node>) -> bool {
     node.kind() == Kind::TypeParameter
 }
@@ -22630,29 +20143,10 @@ pub fn is_jsdoc_parameter_tag(node: P<Node>) -> bool {
     node.kind() == Kind::JSDocParameterTag
 }
 
-pub fn is_jsdoc_property_tag(node: P<Node>) -> bool {
-    node.kind() == Kind::JSDocPropertyTag
-}
-
 // ── Kind alias guards ────────────────────────────────────────────────────
-
-pub fn is_trivia_kind(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::SingleLineCommentTrivia
-            | Kind::MultiLineCommentTrivia
-            | Kind::NewLineTrivia
-            | Kind::WhitespaceTrivia
-            | Kind::ConflictMarkerTrivia
-    )
-}
 
 pub fn is_literal_kind(kind: Kind) -> bool {
     kind >= Kind::FIRST_LITERAL_TOKEN && kind <= Kind::LAST_LITERAL_TOKEN
-}
-
-pub fn is_pseudo_literal_kind(kind: Kind) -> bool {
-    matches!(kind, Kind::TemplateHead | Kind::TemplateMiddle | Kind::TemplateTail)
 }
 
 pub fn is_punctuation_kind(kind: Kind) -> bool {
@@ -22684,386 +20178,14 @@ pub fn is_modifier_kind(kind: Kind) -> bool {
     )
 }
 
-pub fn is_keyword_type_kind(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::AnyKeyword
-            | Kind::BigIntKeyword
-            | Kind::BooleanKeyword
-            | Kind::IntrinsicKeyword
-            | Kind::NeverKeyword
-            | Kind::NumberKeyword
-            | Kind::ObjectKeyword
-            | Kind::StringKeyword
-            | Kind::SymbolKeyword
-            | Kind::UndefinedKeyword
-            | Kind::UnknownKeyword
-            | Kind::VoidKeyword
-    )
-}
-
-pub fn is_keyword_expression_kind(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::NullKeyword
-            | Kind::TrueKeyword
-            | Kind::FalseKeyword
-            | Kind::ThisKeyword
-            | Kind::SuperKeyword
-            | Kind::ImportKeyword
-    )
-}
-
 pub fn is_token_kind(kind: Kind) -> bool {
     kind >= Kind::FIRST_TOKEN && kind <= Kind::LAST_TOKEN
-}
-
-pub fn is_jsx_token_kind(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::LessThanSlashToken
-            | Kind::EndOfFile
-            | Kind::ConflictMarkerTrivia
-            | Kind::JsxText
-            | Kind::JsxTextAllWhiteSpaces
-            | Kind::OpenBraceToken
-            | Kind::LessThanToken
-    )
-}
-
-pub fn is_jsdoc_node_kind(kind: Kind) -> bool {
-    kind >= Kind::FIRST_JSDOC_NODE && kind <= Kind::LAST_JSDOC_NODE
-}
-
-pub fn is_import_phase_modifier_kind(kind: Kind) -> bool {
-    matches!(kind, Kind::TypeKeyword | Kind::DeferKeyword | Kind::SourceKeyword)
-}
-
-pub fn is_postfix_unary_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::PlusPlusToken | Kind::MinusMinusToken)
-}
-
-pub fn is_prefix_unary_operator(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::PlusToken
-            | Kind::MinusToken
-            | Kind::TildeToken
-            | Kind::ExclamationToken
-            | Kind::PlusPlusToken
-            | Kind::MinusMinusToken
-    )
 }
 
 pub fn is_assignment_operator(kind: Kind) -> bool {
     matches!(
         kind,
         Kind::EqualsToken
-            | Kind::PlusEqualsToken
-            | Kind::MinusEqualsToken
-            | Kind::AsteriskAsteriskEqualsToken
-            | Kind::AsteriskEqualsToken
-            | Kind::SlashEqualsToken
-            | Kind::PercentEqualsToken
-            | Kind::AmpersandEqualsToken
-            | Kind::BarEqualsToken
-            | Kind::CaretEqualsToken
-            | Kind::LessThanLessThanEqualsToken
-            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
-            | Kind::GreaterThanGreaterThanEqualsToken
-            | Kind::BarBarEqualsToken
-            | Kind::AmpersandAmpersandEqualsToken
-            | Kind::QuestionQuestionEqualsToken
-    )
-}
-
-pub fn is_binary_operator(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::QuestionQuestionToken
-            | Kind::AsteriskAsteriskToken
-            | Kind::AsteriskToken
-            | Kind::SlashToken
-            | Kind::PercentToken
-            | Kind::PlusToken
-            | Kind::MinusToken
-            | Kind::LessThanLessThanToken
-            | Kind::GreaterThanGreaterThanToken
-            | Kind::GreaterThanGreaterThanGreaterThanToken
-            | Kind::LessThanToken
-            | Kind::LessThanEqualsToken
-            | Kind::GreaterThanToken
-            | Kind::GreaterThanEqualsToken
-            | Kind::InstanceOfKeyword
-            | Kind::InKeyword
-            | Kind::EqualsEqualsToken
-            | Kind::EqualsEqualsEqualsToken
-            | Kind::ExclamationEqualsEqualsToken
-            | Kind::ExclamationEqualsToken
-            | Kind::AmpersandToken
-            | Kind::BarToken
-            | Kind::CaretToken
-            | Kind::AmpersandAmpersandToken
-            | Kind::BarBarToken
-            | Kind::EqualsToken
-            | Kind::PlusEqualsToken
-            | Kind::MinusEqualsToken
-            | Kind::AsteriskAsteriskEqualsToken
-            | Kind::AsteriskEqualsToken
-            | Kind::SlashEqualsToken
-            | Kind::PercentEqualsToken
-            | Kind::AmpersandEqualsToken
-            | Kind::BarEqualsToken
-            | Kind::CaretEqualsToken
-            | Kind::LessThanLessThanEqualsToken
-            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
-            | Kind::GreaterThanGreaterThanEqualsToken
-            | Kind::BarBarEqualsToken
-            | Kind::AmpersandAmpersandEqualsToken
-            | Kind::QuestionQuestionEqualsToken
-            | Kind::CommaToken
-    )
-}
-
-pub fn is_exponentiation_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::AsteriskAsteriskToken)
-}
-
-pub fn is_multiplicative_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken)
-}
-
-pub fn is_multiplicative_operator_or_higher(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken
-    )
-}
-
-pub fn is_additive_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::PlusToken | Kind::MinusToken)
-}
-
-pub fn is_additive_operator_or_higher(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::AsteriskAsteriskToken
-            | Kind::AsteriskToken
-            | Kind::SlashToken
-            | Kind::PercentToken
-            | Kind::PlusToken
-            | Kind::MinusToken
-    )
-}
-
-pub fn is_shift_operator(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::LessThanLessThanToken
-            | Kind::GreaterThanGreaterThanToken
-            | Kind::GreaterThanGreaterThanGreaterThanToken
-    )
-}
-
-pub fn is_shift_operator_or_higher(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::AsteriskAsteriskToken
-            | Kind::AsteriskToken
-            | Kind::SlashToken
-            | Kind::PercentToken
-            | Kind::PlusToken
-            | Kind::MinusToken
-            | Kind::LessThanLessThanToken
-            | Kind::GreaterThanGreaterThanToken
-            | Kind::GreaterThanGreaterThanGreaterThanToken
-    )
-}
-
-pub fn is_relational_operator(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::LessThanToken
-            | Kind::LessThanEqualsToken
-            | Kind::GreaterThanToken
-            | Kind::GreaterThanEqualsToken
-            | Kind::InstanceOfKeyword
-            | Kind::InKeyword
-    )
-}
-
-pub fn is_relational_operator_or_higher(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::AsteriskAsteriskToken
-            | Kind::AsteriskToken
-            | Kind::SlashToken
-            | Kind::PercentToken
-            | Kind::PlusToken
-            | Kind::MinusToken
-            | Kind::LessThanLessThanToken
-            | Kind::GreaterThanGreaterThanToken
-            | Kind::GreaterThanGreaterThanGreaterThanToken
-            | Kind::LessThanToken
-            | Kind::LessThanEqualsToken
-            | Kind::GreaterThanToken
-            | Kind::GreaterThanEqualsToken
-            | Kind::InstanceOfKeyword
-            | Kind::InKeyword
-    )
-}
-
-pub fn is_equality_operator(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::EqualsEqualsToken
-            | Kind::EqualsEqualsEqualsToken
-            | Kind::ExclamationEqualsEqualsToken
-            | Kind::ExclamationEqualsToken
-    )
-}
-
-pub fn is_equality_operator_or_higher(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::AsteriskAsteriskToken
-            | Kind::AsteriskToken
-            | Kind::SlashToken
-            | Kind::PercentToken
-            | Kind::PlusToken
-            | Kind::MinusToken
-            | Kind::LessThanLessThanToken
-            | Kind::GreaterThanGreaterThanToken
-            | Kind::GreaterThanGreaterThanGreaterThanToken
-            | Kind::LessThanToken
-            | Kind::LessThanEqualsToken
-            | Kind::GreaterThanToken
-            | Kind::GreaterThanEqualsToken
-            | Kind::InstanceOfKeyword
-            | Kind::InKeyword
-            | Kind::EqualsEqualsToken
-            | Kind::EqualsEqualsEqualsToken
-            | Kind::ExclamationEqualsEqualsToken
-            | Kind::ExclamationEqualsToken
-    )
-}
-
-pub fn is_bitwise_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::AmpersandToken | Kind::BarToken | Kind::CaretToken)
-}
-
-pub fn is_bitwise_operator_or_higher(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::AsteriskAsteriskToken
-            | Kind::AsteriskToken
-            | Kind::SlashToken
-            | Kind::PercentToken
-            | Kind::PlusToken
-            | Kind::MinusToken
-            | Kind::LessThanLessThanToken
-            | Kind::GreaterThanGreaterThanToken
-            | Kind::GreaterThanGreaterThanGreaterThanToken
-            | Kind::LessThanToken
-            | Kind::LessThanEqualsToken
-            | Kind::GreaterThanToken
-            | Kind::GreaterThanEqualsToken
-            | Kind::InstanceOfKeyword
-            | Kind::InKeyword
-            | Kind::EqualsEqualsToken
-            | Kind::EqualsEqualsEqualsToken
-            | Kind::ExclamationEqualsEqualsToken
-            | Kind::ExclamationEqualsToken
-            | Kind::AmpersandToken
-            | Kind::BarToken
-            | Kind::CaretToken
-    )
-}
-
-pub fn is_logical_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::AmpersandAmpersandToken | Kind::BarBarToken)
-}
-
-pub fn is_logical_operator_or_higher(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::AsteriskAsteriskToken
-            | Kind::AsteriskToken
-            | Kind::SlashToken
-            | Kind::PercentToken
-            | Kind::PlusToken
-            | Kind::MinusToken
-            | Kind::LessThanLessThanToken
-            | Kind::GreaterThanGreaterThanToken
-            | Kind::GreaterThanGreaterThanGreaterThanToken
-            | Kind::LessThanToken
-            | Kind::LessThanEqualsToken
-            | Kind::GreaterThanToken
-            | Kind::GreaterThanEqualsToken
-            | Kind::InstanceOfKeyword
-            | Kind::InKeyword
-            | Kind::EqualsEqualsToken
-            | Kind::EqualsEqualsEqualsToken
-            | Kind::ExclamationEqualsEqualsToken
-            | Kind::ExclamationEqualsToken
-            | Kind::AmpersandToken
-            | Kind::BarToken
-            | Kind::CaretToken
-            | Kind::AmpersandAmpersandToken
-            | Kind::BarBarToken
-    )
-}
-
-pub fn is_compound_assignment_operator(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::PlusEqualsToken
-            | Kind::MinusEqualsToken
-            | Kind::AsteriskAsteriskEqualsToken
-            | Kind::AsteriskEqualsToken
-            | Kind::SlashEqualsToken
-            | Kind::PercentEqualsToken
-            | Kind::AmpersandEqualsToken
-            | Kind::BarEqualsToken
-            | Kind::CaretEqualsToken
-            | Kind::LessThanLessThanEqualsToken
-            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
-            | Kind::GreaterThanGreaterThanEqualsToken
-            | Kind::BarBarEqualsToken
-            | Kind::AmpersandAmpersandEqualsToken
-            | Kind::QuestionQuestionEqualsToken
-    )
-}
-
-pub fn is_assignment_operator_or_higher(kind: Kind) -> bool {
-    matches!(
-        kind,
-        Kind::QuestionQuestionToken
-            | Kind::AsteriskAsteriskToken
-            | Kind::AsteriskToken
-            | Kind::SlashToken
-            | Kind::PercentToken
-            | Kind::PlusToken
-            | Kind::MinusToken
-            | Kind::LessThanLessThanToken
-            | Kind::GreaterThanGreaterThanToken
-            | Kind::GreaterThanGreaterThanGreaterThanToken
-            | Kind::LessThanToken
-            | Kind::LessThanEqualsToken
-            | Kind::GreaterThanToken
-            | Kind::GreaterThanEqualsToken
-            | Kind::InstanceOfKeyword
-            | Kind::InKeyword
-            | Kind::EqualsEqualsToken
-            | Kind::EqualsEqualsEqualsToken
-            | Kind::ExclamationEqualsEqualsToken
-            | Kind::ExclamationEqualsToken
-            | Kind::AmpersandToken
-            | Kind::BarToken
-            | Kind::CaretToken
-            | Kind::AmpersandAmpersandToken
-            | Kind::BarBarToken
-            | Kind::EqualsToken
             | Kind::PlusEqualsToken
             | Kind::MinusEqualsToken
             | Kind::AsteriskAsteriskEqualsToken

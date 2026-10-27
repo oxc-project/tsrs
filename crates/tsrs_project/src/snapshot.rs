@@ -10,7 +10,7 @@ use tsrs_core::context::Context;
 use tsrs_core::tspath::Path;
 use tsrs_core::{CompilerOptions, P, ProjectReference};
 use tsrs_ls::autoimport::{self, ProjectID, RegistryCloneHost};
-use tsrs_ls::lsconv::{self, Converters, LSPLineMap};
+use tsrs_ls::lsconv::{self, Converters};
 use tsrs_ls::lsutil::UserPreferences;
 use tsrs_ls::sourcemap::ECMALineInfo;
 use tsrs_lsproto as lsproto;
@@ -442,11 +442,6 @@ impl Snapshot {
         self.fs.get_file(file_name)
     }
 
-    // snapshot.go:218
-    pub fn lsp_line_map(&self, file_name: &str) -> Option<Arc<LSPLineMap>> {
-        self.fs.get_file(file_name).map(|file| file.lsp_line_map())
-    }
-
     // snapshot.go:236
     pub fn user_preferences(&self) -> &UserPreferences {
         &self.user_preferences
@@ -455,10 +450,6 @@ impl Snapshot {
     // snapshot.go:248
     pub fn id(&self) -> u64 {
         self.id
-    }
-
-    pub fn parent_id(&self) -> u64 {
-        self.parent_id
     }
 
     // snapshot.go:252
@@ -478,16 +469,10 @@ impl Snapshot {
 
     // snapshot.go:275
     // FileSystem returns the filesystem backing this snapshot.
-    pub fn file_system(&self) -> &dyn FS {
-        &*self.fs.fs
-    }
 
     // snapshot.go:281
     // HasFileSystemOverride reports whether this snapshot uses an API-supplied
     // filesystem instead of the session host filesystem.
-    pub fn has_file_system_override(&self) -> bool {
-        self.file_system_override
-    }
 
     // snapshot.go:309
     pub fn fs(&self) -> Arc<dyn FS> {
@@ -496,16 +481,6 @@ impl Snapshot {
             Arc::<SnapshotFS>::clone(&self.fs),
             Arc::clone(&self.host.to_path),
         ))
-    }
-
-    // snapshot.go:313
-    pub fn get_current_directory(&self) -> &str {
-        self.host.get_current_directory()
-    }
-
-    // snapshot.go:317
-    pub fn content_mapper_extensions(&self) -> Vec<String> {
-        self.content_mapper_watch_state().0
     }
 
     // snapshot.go:431
@@ -708,7 +683,6 @@ impl Snapshot {
             Arc::clone(&store.options),
             &custom_config_file_name,
             Arc::clone(&store.parse_cache),
-            Arc::clone(&store.content_mapped_parse_cache),
             Arc::clone(&store.extended_config_cache),
             client,
         );
@@ -1153,10 +1127,6 @@ impl Snapshot {
 
     pub fn read_file(&self, file_name: &str) -> Option<String> {
         tsrs_ls::Host::read_file(self, file_name)
-    }
-
-    pub fn get_ecma_line_info(&self, file_name: &str) -> Option<Arc<ECMALineInfo>> {
-        tsrs_ls::Host::get_ecma_line_info(self, file_name)
     }
 
     pub fn auto_import_registry(&self) -> Option<Arc<autoimport::Registry>> {

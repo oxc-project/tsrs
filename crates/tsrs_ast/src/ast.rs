@@ -313,10 +313,6 @@ impl NodeFactory {
         self.text_count.get()
     }
 
-    pub fn as_node_factory(&self) -> &NodeFactory {
-        self
-    }
-
     /// Whether this factory allocates in the scratch region (see `NodeFactory::scratch`).
     #[inline]
     pub fn is_scratch(&self) -> bool {
@@ -698,10 +694,6 @@ impl Node {
     }
 
     #[inline]
-    pub fn as_node(&self) -> P<Node> {
-        self.as_p()
-    }
-    #[inline]
     pub fn pos(&self) -> TextPos {
         self.loc.get().pos()
     }
@@ -770,10 +762,6 @@ impl Node {
 
     pub fn kind_string(&self) -> String {
         format!("{:?}", self.kind())
-    }
-
-    pub fn kind_value(&self) -> i16 {
-        self.kind() as i16
     }
 
     pub fn decorators(&self) -> Vec<P<Node>> {
@@ -2221,15 +2209,6 @@ pub struct ContentMapperSourceFileInfo {
 }
 
 impl SourceFile {
-    // ContentMapperParseOptions returns the parse options used to acquire this file from the mapped parse cache.
-    // ast.go:2636
-    pub fn content_mapper_parse_options(&self) -> SourceFileParseOptions {
-        match self.content_mapper_info.get() {
-            None => SourceFileParseOptions::default(),
-            Some(info) => info.parse_options.clone(),
-        }
-    }
-
     // SetContentMapperInfo initializes all content-mapper metadata before the source file is published.
     // ast.go:2644
     pub fn set_content_mapper_info(&self, info: ContentMapperSourceFileInfo) {
@@ -2542,18 +2521,14 @@ impl SourceFile {
     pub fn uses_uri_style_node_core_modules(&self) -> Tristate {
         self.uses_uri_style_node_core_modules.get()
     }
-    pub fn identifier_count(&self) -> usize {
-        self.identifier_count.get()
-    }
+
     pub fn module_augmentations(&self) -> &'static [P<Node>] {
         self.module_augmentations.get()
     }
     pub fn ambient_module_names(&self) -> &'static [&'static str] {
         self.ambient_module_names.get()
     }
-    pub fn comment_directives(&self) -> &'static [CommentDirective] {
-        self.comment_directives.get()
-    }
+
     pub(crate) fn reparsed_clones(&self) -> &'static [P<Node>] {
         self.reparsed_clones.get()
     }
@@ -2572,12 +2547,7 @@ impl SourceFile {
     pub fn check_js_directive(&self) -> Option<P<CheckJsDirective>> {
         self.check_js_directive.get()
     }
-    pub fn node_count(&self) -> usize {
-        self.node_count.get()
-    }
-    pub fn text_count(&self) -> usize {
-        self.text_count.get()
-    }
+
     pub fn common_js_module_indicator(&self) -> Option<P<Node>> {
         self.common_js_module_indicator.get()
     }
@@ -2601,9 +2571,6 @@ impl SourceFile {
     }
     pub fn statements(&self) -> P<NodeList> {
         self.statements
-    }
-    pub fn end_of_file_token(&self) -> P<Node> {
-        self.end_of_file_token
     }
 }
 
@@ -2940,22 +2907,6 @@ impl CommentRange {
     }
 }
 
-impl NodeFactory {
-    #[expect(
-        clippy::unused_self,
-        reason = "The factory keeps the same instance API for node construction, hooks and arena lifecycle operations."
-    )]
-    pub fn new_comment_range(
-        &self,
-        kind: Kind,
-        pos: u32,
-        end: u32,
-        has_trailing_new_line: bool,
-    ) -> CommentRange {
-        CommentRange { text_range: TextRange::new(pos, end), kind, has_trailing_new_line }
-    }
-}
-
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct FileReference {
     pub text_range: TextRange,
@@ -2991,14 +2942,6 @@ pub struct Pragma {
 
 pub type PragmaKindFlags = u8;
 
-pub const PRAGMA_KIND_TRIPLE_SLASH_XML: PragmaKindFlags = 1 << 0;
-pub const PRAGMA_KIND_SINGLE_LINE: PragmaKindFlags = 1 << 1;
-pub const PRAGMA_KIND_MULTI_LINE: PragmaKindFlags = 1 << 2;
-pub const PRAGMA_KIND_FLAGS_NONE: PragmaKindFlags = 0;
-pub const PRAGMA_KIND_ALL: PragmaKindFlags =
-    PRAGMA_KIND_TRIPLE_SLASH_XML | PRAGMA_KIND_SINGLE_LINE | PRAGMA_KIND_MULTI_LINE;
-pub const PRAGMA_KIND_DEFAULT: PragmaKindFlags = PRAGMA_KIND_ALL;
-
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct PragmaArgumentSpecification {
     name: &'static str,
@@ -3010,12 +2953,6 @@ pub struct PragmaArgumentSpecification {
 pub struct PragmaSpecification {
     args: &'static [PragmaArgumentSpecification],
     kind: PragmaKindFlags,
-}
-
-impl PragmaSpecification {
-    pub fn is_triple_slash(&self) -> bool {
-        (self.kind & PRAGMA_KIND_TRIPLE_SLASH_XML) > 0
-    }
 }
 
 // Hand-written visitor implementations for nodes with runtime-dependent

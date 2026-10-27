@@ -119,15 +119,15 @@ enum Compiled {
     Unsupported(String),
 }
 
-pub struct CompilationResult {
-    pub diagnostics: Vec<P<Diagnostic>>,
-    pub options: &'static CompilerOptions,
-    pub program: &'static compiler::Program,
-    pub harness_options: HarnessOptions,
-    pub host: Arc<dyn CompilerHost>,
-    pub tsconfig: Option<P<ParsedCommandLine>>,
+pub(crate) struct CompilationResult {
+    pub(crate) diagnostics: Vec<P<Diagnostic>>,
+    options: &'static CompilerOptions,
+    pub(crate) program: &'static compiler::Program,
+    harness_options: HarnessOptions,
+    pub(crate) host: Arc<dyn CompilerHost>,
+    pub(crate) tsconfig: Option<P<ParsedCommandLine>>,
     // The emit outputs, only under `--baselines js` (docs/EMIT.md section 8).
-    pub emit: Option<crate::emit_harness::EmitOutputs>,
+    pub(crate) emit: Option<crate::emit_harness::EmitOutputs>,
 }
 
 /// Dev metric for the option sweep (docs/EMIT.md section 13, wave E12): `TSRS_TEST_DTS_ONLY=1` with
@@ -135,11 +135,7 @@ pub struct CompilationResult {
 /// compares only the `.d.ts` outputs with the `.d.ts` sections of the reference `.js` baseline
 /// (`compiler_runner::extract_dts_block`). Not a gate: forcing the option can change diagnostics. Write the
 /// results elsewhere (`TSRS_TEST_RESULTS=...`).
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub fn dts_only_mode() -> bool {
+pub(crate) fn dts_only_mode() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| std::env::var("TSRS_TEST_DTS_ONLY").as_deref() == Ok("1"))
 }
@@ -431,7 +427,7 @@ fn compile_files_with_host(
 }
 
 // newCompilerTest + verifyDiagnostics
-pub fn run(item: &TestItem, table: &OptionTable) -> Outcome {
+pub(crate) fn run(item: &TestItem, table: &OptionTable) -> Outcome {
     let content = compiler_runner::read_test_file(&item.path);
     let named_configuration =
         match compiler_runner::find_configuration(&content, table, &item.config) {
@@ -688,7 +684,7 @@ fn verify_source_maps(result: &CompilationResult) -> Option<compiler_runner::Sou
     Some(compiler_runner::SourceMapBaselines { js_map, sourcemap })
 }
 
-pub fn convert_diagnostics(diagnostics: &[P<Diagnostic>]) -> Vec<Diag> {
+pub(crate) fn convert_diagnostics(diagnostics: &[P<Diagnostic>]) -> Vec<Diag> {
     let mut files: FxHashMap<P<SourceFile>, Rc<FileLike>> = FxHashMap::default();
     diagnostics.iter().map(|d| convert(*d, &mut files)).collect()
 }

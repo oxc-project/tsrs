@@ -14,42 +14,42 @@ use crate::api::{Api, Result, SourceAst};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Issue {
-    pub kind: String,
-    pub config: String,
-    pub file: String,
-    pub start: i64,
-    pub end: i64,
-    pub message: String,
+    kind: String,
+    config: String,
+    file: String,
+    start: i64,
+    end: i64,
+    message: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Assertion {
-    pub config: String,
-    pub file: String,
-    pub line: usize,
-    pub expected: String,
-    pub actual: String,
-    pub matched: bool,
+    config: String,
+    file: String,
+    line: usize,
+    expected: String,
+    actual: String,
+    matched: bool,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CompilerOutcome {
-    pub issues: Vec<Issue>,
-    pub assertions: Vec<Assertion>,
-    pub source_files: Vec<String>,
-    pub loaded_file_count: usize,
-    pub error: Option<String>,
+    pub(crate) issues: Vec<Issue>,
+    pub(crate) assertions: Vec<Assertion>,
+    pub(crate) source_files: Vec<String>,
+    pub(crate) loaded_file_count: usize,
+    pub(crate) error: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PackageResult {
-    pub package: String,
-    pub tsgo: CompilerOutcome,
-    pub tsrs: CompilerOutcome,
-    pub package_issues: Vec<String>,
+    pub(crate) package: String,
+    pub(crate) tsgo: CompilerOutcome,
+    pub(crate) tsrs: CompilerOutcome,
+    pub(crate) package_issues: Vec<String>,
 }
 
-pub fn check_package(
+pub(crate) fn check_package(
     dt: &Path,
     package: &str,
     tsgo: &Path,

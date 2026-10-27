@@ -80,22 +80,22 @@ pub fn root_length(p: &str) -> usize {
 // "/a/b/" -> ("/", "a/b"), "c:/a" -> ("c:/", "a"). It borrows the path when that is already normal (the resolver
 // probes combined, normalized paths), copying only one with a backslash, a "." or ".." segment or a doubled
 // separator.
-pub struct SplitPath<'a> {
+pub(crate) struct SplitPath<'a> {
     normalized: Cow<'a, str>,
     root_length: usize,
 }
 
 impl SplitPath<'_> {
-    pub fn root(&self) -> &str {
+    pub(crate) fn root(&self) -> &str {
         &self.normalized[..self.root_length]
     }
 
-    pub fn rest(&self) -> &str {
+    pub(crate) fn rest(&self) -> &str {
         tspath::remove_trailing_directory_separator(&self.normalized[self.root_length..])
     }
 }
 
-pub fn split_path(p: &str) -> SplitPath<'_> {
+pub(crate) fn split_path(p: &str) -> SplitPath<'_> {
     let normalized = tspath::normalize_path_cow(p);
     let root_length = root_length(&normalized);
     SplitPath { normalized, root_length }

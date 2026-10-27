@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use std::sync::Arc;
 
 use crate::component::ComponentHandler;
@@ -20,23 +25,23 @@ use crate::verbatim::{ModuleVerbatimHandler, VerbatimHandler};
 
 // registry.go:10
 pub const TRANSFORMING_MAPPER: &str = "compiler-test-mapper";
-pub const VERBATIM_MAPPER: &str = "verbatim-mapper";
-pub const MODULE_VERBATIM_MAPPER: &str = "module-verbatim-mapper";
-pub const DYNAMIC_VERBATIM_MAPPER: &str = "dynamic-verbatim-mapper";
-pub const DIAGNOSTIC_CODE_COLLISION_MAPPER: &str = "diagnostic-code-collision-mapper";
-pub const FAILING_MAPPER: &str = "failing-mapper";
-pub const SYNTHESIZING_MAPPER: &str = "synthesizing-mapper";
-pub const COMPONENT_MAPPER: &str = "component-mapper";
-pub const DUPLICATE_MAPPER: &str = "duplicate-mapper";
-pub const LISP_MAPPER: &str = "lisp-mapper";
-pub const SUPPLEMENTAL_MAPPER: &str = "supplemental-mapper";
-pub const SUPPLEMENTAL_DIAGNOSTICS_MAPPER: &str = "supplemental-diagnostics-mapper";
-pub const SUPPLEMENTAL_GLOBALS_MAPPER: &str = "supplemental-globals-mapper";
-pub const SUPPLEMENTAL_MODULE_MAPPER: &str = "supplemental-module-mapper";
-pub const PREFIXED_SUPPLEMENTAL_MAPPER: &str = "prefixed-supplemental-mapper";
-pub const UNMAPPED_FOLDING_MAPPER: &str = "unmapped-folding-mapper";
-pub const HOISTING_MAPPER: &str = "hoisting-mapper";
-pub const DUPLICATE_PROJECTION_MAPPER: &str = "duplicate-projection-mapper";
+const VERBATIM_MAPPER: &str = "verbatim-mapper";
+const MODULE_VERBATIM_MAPPER: &str = "module-verbatim-mapper";
+pub(crate) const DYNAMIC_VERBATIM_MAPPER: &str = "dynamic-verbatim-mapper";
+const DIAGNOSTIC_CODE_COLLISION_MAPPER: &str = "diagnostic-code-collision-mapper";
+const FAILING_MAPPER: &str = "failing-mapper";
+const SYNTHESIZING_MAPPER: &str = "synthesizing-mapper";
+const COMPONENT_MAPPER: &str = "component-mapper";
+const DUPLICATE_MAPPER: &str = "duplicate-mapper";
+const LISP_MAPPER: &str = "lisp-mapper";
+const SUPPLEMENTAL_MAPPER: &str = "supplemental-mapper";
+const SUPPLEMENTAL_DIAGNOSTICS_MAPPER: &str = "supplemental-diagnostics-mapper";
+const SUPPLEMENTAL_GLOBALS_MAPPER: &str = "supplemental-globals-mapper";
+const SUPPLEMENTAL_MODULE_MAPPER: &str = "supplemental-module-mapper";
+const PREFIXED_SUPPLEMENTAL_MAPPER: &str = "prefixed-supplemental-mapper";
+const UNMAPPED_FOLDING_MAPPER: &str = "unmapped-folding-mapper";
+const HOISTING_MAPPER: &str = "hoisting-mapper";
+const DUPLICATE_PROJECTION_MAPPER: &str = "duplicate-projection-mapper";
 
 // registry.go:31
 type HandlerConstructor = fn(Option<Arc<ProjectLifecycle>>) -> Arc<dyn TestHandler>;
@@ -64,7 +69,7 @@ static MAPPER_HANDLERS: [(&str, HandlerConstructor); 18] = [
 ];
 
 // registry.go:54
-pub fn handler_for_mapper(
+pub(crate) fn handler_for_mapper(
     command: &[String],
     lifecycle: Option<Arc<ProjectLifecycle>>,
 ) -> Result<Arc<dyn TestHandler>, String> {

@@ -87,13 +87,6 @@ impl NodeFactory {
     pub fn deep_clone_reparse(&self, node: Option<P<Node>>) -> Option<P<Node>> {
         self.reparse_cloner().clone_node(node)
     }
-
-    pub fn deep_clone_reparse_modifiers(
-        &self,
-        modifiers: Option<P<ModifierList>>,
-    ) -> Option<P<ModifierList>> {
-        self.reparse_cloner().clone_modifiers(modifiers)
-    }
 }
 
 /// `NodeFactory::reparse_cloner`: one deep-clone visitor, reused for every reparse clone of a file.

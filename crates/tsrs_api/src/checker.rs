@@ -57,7 +57,11 @@ impl Drop for CheckerSnapshotState {
 }
 
 /// Core entry point. `None` only for methods this lane does not recognize.
-pub fn handle(session: &Session, method: &str, params: &Value) -> Option<ApiResult<Response>> {
+pub(crate) fn handle(
+    session: &Session,
+    method: &str,
+    params: &Value,
+) -> Option<ApiResult<Response>> {
     let host = SessionHost { session };
     let result = dispatch::handle(&host, method, params)?;
     Some(result.map_err(to_api_error).and_then(|response| match response {
@@ -73,7 +77,7 @@ pub fn handle(session: &Session, method: &str, params: &Value) -> Option<ApiResu
 }
 
 /// Go `newFileSymbolResponse`, for core handlers that return a binder symbol from an ordinary cached AST.
-pub fn file_symbol_response(session: &Session, symbol: P<Symbol>) -> ApiResult<Value> {
+pub(crate) fn file_symbol_response(session: &Session, symbol: P<Symbol>) -> ApiResult<Value> {
     setup::file_symbol_response(&SessionHost { session }, symbol).map_err(to_api_error)
 }
 

@@ -640,7 +640,7 @@ pub fn is_call_or_new_expression(node: P<Node>) -> bool {
 }
 
 // Go `slices.BinarySearchFunc`: the leftmost insertion index and whether the target was found.
-pub(crate) fn binary_search_func<T: Copy, U: Copy>(
+fn binary_search_func<T: Copy, U: Copy>(
     items: &[T],
     target: U,
     mut cmp: impl FnMut(T, U) -> std::cmp::Ordering,
@@ -681,10 +681,6 @@ pub fn has_decorators(node: P<Node>) -> bool {
 pub struct HasFileNameImpl {
     file_name: String,
     path: tsrs_core::tspath::Path,
-}
-
-pub fn new_has_file_name(file_name: &str, path: tsrs_core::tspath::Path) -> HasFileNameImpl {
-    HasFileNameImpl { file_name: file_name.to_string(), path }
 }
 
 impl HasFileName for HasFileNameImpl {
@@ -1408,10 +1404,6 @@ fn is_proto_setter(node: P<Node>) -> bool {
     (is_identifier(node) || is_string_literal(node)) && node.text() == "__proto__"
 }
 
-pub fn is_string_literal_like_type(node: P<Node>) -> bool {
-    node.kind() == Kind::LiteralType && is_string_literal_like(node.as_literal_type_node().literal)
-}
-
 // Go `res := node.Clone(f); res.Kind = ast.KindImportDeclaration` (declarations transformTopLevelDeclaration, for a
 // JSImportDeclaration): `Node::kind` is immutable in Rust, so the clone is created with the target kind directly.
 pub fn clone_as_import_declaration(node: P<Node>, f: &NodeFactory) -> P<Node> {
@@ -1444,20 +1436,6 @@ pub fn is_external_module_indicator(node: P<Node>) -> bool {
 }
 
 // Language-service-only utilities (added for tsrs_ls; the batch port skipped them).
-
-// utilities.go:89
-pub fn find_last_visible_node(nodes: &[P<Node>]) -> Option<P<Node>> {
-    let mut from_end = 1;
-    while from_end <= nodes.len()
-        && nodes[nodes.len() - from_end].flags().intersects(NodeFlags::Reparsed)
-    {
-        from_end += 1;
-    }
-    if from_end <= nodes.len() {
-        return Some(nodes[nodes.len() - from_end]);
-    }
-    None
-}
 
 // utilities.go:687
 pub fn is_statement_but_not_declaration(node: P<Node>) -> bool {

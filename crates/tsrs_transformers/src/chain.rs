@@ -43,7 +43,7 @@ pub type TransformerFactory = fn(opt: &TransformOptions) -> Option<P<Transformer
 // Chains transforms in left-to-right order, running them one at a time in order (as opposed to interleaved at each node)
 // - the resulting combined transform only operates on SourceFile nodes
 // chain.go:38. Go returns a closure; callers invoke the result immediately (`chain(&[a, b])(opt)`).
-pub fn chain(
+pub(crate) fn chain(
     transforms: &[TransformerFactory],
 ) -> Box<dyn Fn(&TransformOptions) -> Option<P<Transformer>>> {
     if transforms.len() < 2 {

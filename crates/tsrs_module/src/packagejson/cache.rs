@@ -188,10 +188,6 @@ impl InfoCacheEntry {
     pub fn get_contents(&self) -> Option<P<PackageJson>> {
         self.contents
     }
-
-    pub fn get_directory(&self) -> &'static str {
-        self.package_directory
-    }
 }
 
 // WithPackageDirectory returns an entry whose PackageDirectory matches the
@@ -205,7 +201,10 @@ impl InfoCacheEntry {
 // candidate against PackageDirectory, so we must return a corrected
 // shallow copy when they diverge.
 // See https://github.com/microsoft/TypeScript/pull/50740.
-pub fn with_package_directory(p: P<InfoCacheEntry>, package_directory: &str) -> P<InfoCacheEntry> {
+pub(crate) fn with_package_directory(
+    p: P<InfoCacheEntry>,
+    package_directory: &str,
+) -> P<InfoCacheEntry> {
     if p.package_directory == package_directory {
         return p;
     }
@@ -226,7 +225,10 @@ pub struct InfoCache {
     entries_region: Arc<OnceLock<tsrs_core::arena::Region>>,
 }
 
-pub fn new_info_cache(current_directory: &str, use_case_sensitive_file_names: bool) -> InfoCache {
+pub(crate) fn new_info_cache(
+    current_directory: &str,
+    use_case_sensitive_file_names: bool,
+) -> InfoCache {
     InfoCache {
         cache: SyncMap::default(),
         current_directory: current_directory.to_string(),

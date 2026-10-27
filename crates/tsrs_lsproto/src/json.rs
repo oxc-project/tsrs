@@ -117,10 +117,6 @@ impl JsonError {
         self.within(&index.to_string())
     }
 
-    pub fn is(&self, code: ErrorCode) -> bool {
-        self.codes.contains(&code)
-    }
-
     fn json_pointer(&self) -> String {
         let mut s = String::new();
         for token in self.pointer.iter().rev() {
@@ -184,7 +180,7 @@ pub(crate) fn is_null(v: &Value) -> bool {
 }
 
 // jsontext.Kind of a value: 'n', 't', 'f', '"', '0', '{', '['.
-pub fn kind(v: &Value) -> u8 {
+pub(crate) fn kind(v: &Value) -> u8 {
     match v {
         Value::Null => b'n',
         Value::Bool(true) => b't',

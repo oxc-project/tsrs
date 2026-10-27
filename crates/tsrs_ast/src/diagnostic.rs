@@ -561,19 +561,6 @@ impl DiagnosticsCollection {
         diagnostic
     }
 
-    pub fn lookup(&mut self, diagnostic: P<Diagnostic>) -> Option<P<Diagnostic>> {
-        let diagnostics = if let Some(file) = diagnostic.file() {
-            self.get_diagnostics_for_file_locked(file)
-        } else {
-            self.get_global_diagnostics_locked()
-        };
-        let (i, ok) = crate::binary_search_func(&diagnostics, diagnostic, compare_diagnostics);
-        if ok {
-            return Some(diagnostics[i]);
-        }
-        None
-    }
-
     pub fn get_global_diagnostics(&mut self) -> Vec<P<Diagnostic>> {
         self.get_global_diagnostics_locked()
     }

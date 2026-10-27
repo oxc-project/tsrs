@@ -25,7 +25,7 @@ use crate::change;
 use crate::lsconv::Converters;
 use crate::lsutil::{self, FormatCodeSettings, UserPreferences};
 
-pub type IdToSymbol = P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>;
+pub(crate) type IdToSymbol = P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>;
 
 // import_adder.go:24
 pub trait ImportAdder {
@@ -466,7 +466,7 @@ impl ImportAdderImpl {
 }
 
 // import_adder.go:382
-pub fn type_to_auto_importable_type_node(
+pub(crate) fn type_to_auto_importable_type_node(
     c: &mut Checker,
     import_adder: Option<&mut (dyn ImportAdder + 'static)>,
     t: P<Type>,
@@ -512,7 +512,7 @@ fn import_symbols(import_adder: &mut dyn ImportAdder, symbols: &[P<Symbol>]) {
 // TryGetAutoImportableReferenceFromTypeNode converts import type references in a type node
 // to simple type references and returns the transformed type node and the symbols that need
 // to be imported.
-pub fn try_get_auto_importable_reference_from_type_node(
+pub(crate) fn try_get_auto_importable_reference_from_type_node(
     import_type_node: Option<P<Node>>,
     id_to_symbol: IdToSymbol,
 ) -> (Option<P<Node>>, Vec<P<Symbol>>) {

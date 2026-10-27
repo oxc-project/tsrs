@@ -7,7 +7,6 @@ pub mod interfaces;
 pub mod map;
 mod mapbuilder;
 pub mod syncmap;
-mod util;
 
 pub use r#box::*;
 pub use cloneablemap::*;
@@ -15,4 +14,3 @@ pub use interfaces::*;
 pub use map::*;
 pub use mapbuilder::*;
 pub use syncmap::*;
-pub use util::*;

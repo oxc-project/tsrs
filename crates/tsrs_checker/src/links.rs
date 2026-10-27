@@ -280,18 +280,6 @@ impl<K: 'static, V: KeyedLinks + 'static> KeyedLinkStore<K, V> {
         }
     }
 
-    /// Shared graph: an empty store that reads through to `self` (frozen).
-    #[must_use]
-    pub fn fork(&'static self) -> Self {
-        KeyedLinkStore {
-            slots: hashbrown::HashTable::new(),
-            chunks: Vec::new(),
-            len: 0,
-            key: std::marker::PhantomData,
-            parent: Some(self),
-        }
-    }
-
     #[inline]
     pub fn has(&self, key: P<K>) -> bool {
         self.try_get(key).is_some()

@@ -42,12 +42,6 @@ pub struct ID {
 
 // jsonrpc.go:38
 // NewID creates an ID from an IntegerOrString value.
-pub fn new_id(raw_value: &IntegerOrString) -> ID {
-    if let Some(s) = &raw_value.string {
-        return ID { str: s.clone(), int: 0 };
-    }
-    ID { str: String::new(), int: raw_value.integer.unwrap() }
-}
 
 // jsonrpc.go:46
 // NewIDString creates a string ID.
@@ -68,20 +62,6 @@ impl ID {
             return self.str.clone();
         }
         self.int.to_string()
-    }
-
-    // jsonrpc.go:77
-    pub fn try_int(&self) -> Option<i32> {
-        if !self.str.is_empty() {
-            return None;
-        }
-        Some(self.int)
-    }
-
-    // jsonrpc.go:84
-    pub fn must_int(&self) -> i32 {
-        assert!(self.str.is_empty(), "ID is not an integer");
-        self.int
     }
 }
 
@@ -209,33 +189,15 @@ pub struct Message {
 impl Message {
     // jsonrpc.go:149
     // Kind returns the kind of message this is.
-    pub fn kind(&self) -> MessageKind {
-        if self.id.is_some() && self.method.is_empty() {
-            return MessageKind::Response;
-        }
-        if self.id.is_none() {
-            return MessageKind::Notification;
-        }
-        MessageKind::Request
-    }
 
     // jsonrpc.go:160
     // IsRequest returns true if this message is a request (has ID and method).
-    pub fn is_request(&self) -> bool {
-        self.id.is_some() && !self.method.is_empty()
-    }
 
     // jsonrpc.go:165
     // IsNotification returns true if this message is a notification (has method but no ID).
-    pub fn is_notification(&self) -> bool {
-        self.id.is_none() && !self.method.is_empty()
-    }
 
     // jsonrpc.go:170
     // IsResponse returns true if this message is a response (has ID but no method).
-    pub fn is_response(&self) -> bool {
-        self.id.is_some() && self.method.is_empty()
-    }
 }
 
 impl Json for Message {

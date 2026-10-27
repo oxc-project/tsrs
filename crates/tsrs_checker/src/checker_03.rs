@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use std::collections::hash_map::Entry;
 
 use rustc_hash::FxHashMap;
@@ -1666,14 +1671,14 @@ impl Checker {
 }
 
 // checker.go:5352
-pub fn is_instantiated_module(node: P<Node>, preserve_const_enums: bool) -> bool {
+fn is_instantiated_module(node: P<Node>, preserve_const_enums: bool) -> bool {
     let module_state = get_module_instance_state(node);
     module_state == ModuleInstanceState::Instantiated
         || preserve_const_enums && module_state == ModuleInstanceState::ConstEnumOnly
 }
 
 // checker.go:5357
-pub fn get_first_non_ambient_class_or_function_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
+fn get_first_non_ambient_class_or_function_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
     if let Some(result) = symbol.declarations().iter().find_map(|&declaration| {
         if (is_class_declaration(declaration)
             || is_function_declaration(declaration) && node_is_present(declaration.body()))
@@ -1929,7 +1934,7 @@ impl Checker {
 }
 
 // checker.go:5530
-pub fn has_type_json_import_attribute(node: P<Node>) -> bool {
+fn has_type_json_import_attribute(node: P<Node>) -> bool {
     let attributes = node.as_import_declaration().attributes();
     attributes.is_some_and(|attributes| {
         attributes.as_import_attributes().attributes.nodes().iter().any(|&attr| {
@@ -2275,7 +2280,7 @@ impl Checker {
 }
 
 // checker.go:5740
-pub fn is_contained_by_namespace(node: P<Node>) -> bool {
+pub(crate) fn is_contained_by_namespace(node: P<Node>) -> bool {
     let mut container = node.parent().unwrap();
     if !is_source_file(container) {
         container = container.parent().unwrap();
@@ -2486,7 +2491,7 @@ impl Checker {
 }
 
 // checker.go:5846
-pub fn get_verbatim_module_syntax_error_message(node: P<Node>) -> &'static Message {
+pub(crate) fn get_verbatim_module_syntax_error_message(node: P<Node>) -> &'static Message {
     let source_file = get_source_file_of_node(node).unwrap();
     let file_name = source_file.file_name();
 
@@ -2601,7 +2606,7 @@ impl Checker {
 }
 
 // checker.go:5921
-pub fn is_not_overload(node: P<Node>) -> bool {
+fn is_not_overload(node: P<Node>) -> bool {
     !is_function_declaration(node) && !is_method_declaration(node) || node.body().is_some()
 }
 

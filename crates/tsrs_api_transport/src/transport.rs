@@ -3,7 +3,7 @@
 // MessagePack + SyncConn by default, JSON-RPC + AsyncConn with `--async`.
 
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::{Arc, OnceLock};
 
 use crate::conn_async::AsyncConn;
@@ -56,8 +56,8 @@ mod pipe_os {
 
 /// One accepted bidirectional stream.
 pub struct Stream {
-    pub reader: Box<dyn Read + Send>,
-    pub writer: Box<dyn Write + Send>,
+    reader: Box<dyn Read + Send>,
+    writer: Box<dyn Write + Send>,
     /// Shuts the stream down so a blocked reader wakes (sockets). None for stdio.
     pub closer: Option<Box<dyn Fn() + Send + Sync>>,
 }
@@ -95,18 +95,6 @@ impl PipeListener {
 
     pub fn accept(&self) -> std::io::Result<Stream> {
         self.inner.accept()
-    }
-}
-
-/// ipc.GeneratePipePath: `<tmpdir>/<name>` on Unix, `\\.\pipe\<name>` on Windows.
-pub fn generate_pipe_path(name: &str) -> PathBuf {
-    #[cfg(windows)]
-    {
-        PathBuf::from(format!(r"\\.\pipe\{name}"))
-    }
-    #[cfg(not(windows))]
-    {
-        std::env::temp_dir().join(name)
     }
 }
 
@@ -213,13 +201,6 @@ impl Connection {
         match self {
             Connection::Sync(c) => c.caller(),
             Connection::Async(c) => c.caller(),
-        }
-    }
-
-    pub fn cancellation(&self) -> CancellationToken {
-        match self {
-            Connection::Sync(c) => c.cancellation(),
-            Connection::Async(c) => c.cancellation(),
         }
     }
 

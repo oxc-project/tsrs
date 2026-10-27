@@ -52,7 +52,7 @@ impl<K, V> LinkStore<K, V> {
 
 const LINK_PAGE_SHIFT: u64 = 8;
 pub const LINK_PAGE_SIZE: usize = 1 << LINK_PAGE_SHIFT;
-pub const LINK_PAGE_MASK: u64 = LINK_PAGE_SIZE as u64 - 1;
+const LINK_PAGE_MASK: u64 = LINK_PAGE_SIZE as u64 - 1;
 const MAX_PAGE_COUNT: u64 = 65536;
 
 // Implements a sparse-array-like structure for storing elements keyed by dense uint64 keys. Pages hold

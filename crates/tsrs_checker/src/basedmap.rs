@@ -29,11 +29,6 @@ impl<M: Default, K> Based<M, K> {
     pub(crate) fn over(base: &'static Based<M, K>) -> Self {
         Based { own: M::default(), base: Some(&base.own), removed: FxHashSet::default() }
     }
-
-    #[inline]
-    pub fn base(&self) -> Option<&'static M> {
-        self.base
-    }
 }
 
 impl<K: PackedKey, V: Copy> Based<PackedMap<K, V>> {
@@ -48,11 +43,6 @@ impl<K: PackedKey, V: Copy> Based<PackedMap<K, V>> {
     #[inline]
     pub(crate) fn insert(&mut self, key: K, value: V) -> Option<V> {
         self.own.insert(key, value)
-    }
-
-    /// The base's values, then the fork's own.
-    pub fn values(&self) -> impl Iterator<Item = V> + '_ {
-        self.base.into_iter().flat_map(super::packedmap::PackedMap::values).chain(self.own.values())
     }
 }
 
@@ -101,10 +91,5 @@ impl<K: Hash + Eq + Clone, V> Based<FxHashMap<K, V>, K> {
             self.removed.insert(key.clone());
         }
         self.own.remove(key)
-    }
-
-    /// The fork's own values (heap census: what this checker holds).
-    pub fn values(&self) -> impl Iterator<Item = &V> + '_ {
-        self.own.values()
     }
 }

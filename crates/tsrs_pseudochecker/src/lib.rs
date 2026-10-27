@@ -5,6 +5,10 @@
 
 mod checker;
 mod lookup;
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "The root re-exports the public types; helper functions and singleton values stay crate-private."
+)]
 mod type_;
 
 pub use checker::*;

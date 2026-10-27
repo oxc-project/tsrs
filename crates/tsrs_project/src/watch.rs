@@ -7,9 +7,9 @@ use tsrs_core::tspath::{self, ComparePathsOptions, Path};
 use tsrs_ls::lsconv;
 use tsrs_lsproto as lsproto;
 
-pub const MIN_WATCH_LOCATION_DEPTH: usize = 2;
+pub(crate) const MIN_WATCH_LOCATION_DEPTH: usize = 2;
 
-pub const ALL_WATCH_KINDS: lsproto::WatchKind = lsproto::WatchKind(1 | 2 | 4);
+pub(crate) const ALL_WATCH_KINDS: lsproto::WatchKind = lsproto::WatchKind(1 | 2 | 4);
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 struct FileSystemWatcherKey {
@@ -37,7 +37,7 @@ struct WatchRegistryState {
 }
 
 // watch.go:43
-pub fn new_watch_registry() -> WatchRegistry {
+pub(crate) fn new_watch_registry() -> WatchRegistry {
     WatchRegistry {
         mu: Mutex::new(WatchRegistryState {
             entries: FxHashMap::default(),
@@ -183,7 +183,7 @@ struct WatchedFilesState {
 }
 
 // watch.go:174
-pub fn new_watched_files<T: Default>(
+pub(crate) fn new_watched_files<T: Default>(
     name: String,
     watch_kind: lsproto::WatchKind,
     has_relative_pattern_capability: bool,
@@ -328,20 +328,6 @@ impl<T> WatchedFiles<T> {
             outside_workspace_watchers: st.outside_workspace_watchers.clone(),
             ignored_paths: st.ignored.clone(),
         }
-    }
-
-    // watch.go:273
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    // watch.go:277
-    pub fn watch_kind(&self) -> lsproto::WatchKind {
-        self.watch_kind
-    }
-
-    pub fn input(&self) -> &T {
-        &self.input
     }
 
     // watch.go:281
@@ -497,7 +483,7 @@ pub fn create_resolution_lookup_glob_mapper(
 }
 
 // watch.go:380
-pub fn get_typings_locations_globs(
+pub(crate) fn get_typings_locations_globs(
     typings_files: &[String],
     typings_location: &str,
     workspace_directory: &str,
@@ -552,7 +538,7 @@ pub fn get_typings_locations_globs(
 }
 
 // watch.go:424
-pub fn get_path_components_for_watching(path: &str, current_directory: &str) -> Vec<String> {
+pub(crate) fn get_path_components_for_watching(path: &str, current_directory: &str) -> Vec<String> {
     let components = tspath::get_path_components(path, current_directory);
     let root_length = perceived_os_root_length_for_watching(&components);
     if root_length <= 1 {
@@ -593,7 +579,7 @@ fn perceived_os_root_length_for_watching(path_components: &[String]) -> usize {
 }
 
 // watch.go:458
-pub fn get_recursive_glob_pattern(directory: &str) -> String {
+pub(crate) fn get_recursive_glob_pattern(directory: &str) -> String {
     format!("{}/{}", tspath::remove_trailing_directory_separator(directory), "**/*")
 }
 

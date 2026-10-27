@@ -5,7 +5,6 @@ use std::thread;
 use tsrs_contentmapper::Spawner;
 use tsrs_ipc::{self as ipc, Conn, Handler, ReadWriteCloser};
 
-use crate::dynamic_verbatim::ProjectLifecycle;
 use crate::protocol::StaticProjectHandler;
 use crate::registry::{DYNAMIC_VERBATIM_MAPPER, handler_for_mapper};
 use crate::transforming::Handler as transformingHandler;
@@ -26,19 +25,10 @@ pub fn serve(rwc: ReadWriteCloser) -> Result<(), ipc::Error> {
 // NewSpawner returns an in-process spawner for the test mapper implementations.
 // spawner.go:18
 pub fn new_spawner() -> Arc<dyn Spawner> {
-    Arc::new(SpawnerImpl { lifecycle: None })
+    Arc::new(SpawnerImpl)
 }
 
-// NewSpawnerWithProjectLifecycle returns an in-process spawner that records project protocol calls.
-// spawner.go:23
-pub fn new_spawner_with_project_lifecycle(lifecycle: Arc<ProjectLifecycle>) -> Arc<dyn Spawner> {
-    Arc::new(SpawnerImpl { lifecycle: Some(lifecycle) })
-}
-
-// spawner.go:27
-struct SpawnerImpl {
-    lifecycle: Option<Arc<ProjectLifecycle>>,
-}
+struct SpawnerImpl;
 
 impl Spawner for SpawnerImpl {
     // spawner.go:31 (Go's net.Pipe is tsrs_ipc's socket pair.)
@@ -48,7 +38,7 @@ impl Spawner for SpawnerImpl {
         _dir: &str,
         _stderr: Option<Box<dyn Write + Send>>,
     ) -> Result<ReadWriteCloser, String> {
-        let handler = handler_for_mapper(command, self.lifecycle.clone())?;
+        let handler = handler_for_mapper(command, None)?;
         let handler: Arc<dyn Handler> = if command[0] == DYNAMIC_VERBATIM_MAPPER {
             handler
         } else {

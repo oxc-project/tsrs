@@ -1,9 +1,9 @@
 pub mod api;
-pub mod context;
+pub(crate) mod context;
 pub mod indent;
 pub mod rule;
-pub mod rulecontext;
-pub mod rules;
+pub(crate) mod rulecontext;
+pub(crate) mod rules;
 pub mod rulesmap;
 pub mod scanner;
 pub mod span;

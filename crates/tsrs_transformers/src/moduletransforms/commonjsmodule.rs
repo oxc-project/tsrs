@@ -4,7 +4,11 @@ use super::*;
 // commonjsmodule_3.rs (986–1339), commonjsmodule_4.rs (1340–end).
 
 // commonjsmodule.go:15
-pub struct CommonJSModuleTransformer {
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) struct CommonJSModuleTransformer {
     pub(crate) base: Transformer,
     top_level_visitor: OnceCell<NodeVisitor>, // visits statements at top level of a module
     top_level_nested_visitor: OnceCell<NodeVisitor>, // visits nested statements at top level of a module

@@ -17,7 +17,7 @@ use crate::snapshotfs::FileHandleSource;
 pub type Hash128 = u128;
 
 // Go `xxh3.HashString128`.
-pub fn hash_string_128(s: &str) -> Hash128 {
+pub(crate) fn hash_string_128(s: &str) -> Hash128 {
     xxhash_rust::xxh3::xxh3_128(s.as_bytes())
 }
 
@@ -86,7 +86,7 @@ pub struct CachedFile {
 }
 
 // overlayfs.go:82
-pub fn new_cached_file(file_name: String, content: String) -> CachedFile {
+pub(crate) fn new_cached_file(file_name: String, content: String) -> CachedFile {
     let hash = hash_string_128(&content);
     CachedFile {
         base: FileBase::new(file_name, content, hash),
@@ -394,7 +394,7 @@ impl LayeredFileSystem for OverlayFS {
 }
 
 // overlayfs.go:226
-pub fn layer_overlay_file_system(
+pub(crate) fn layer_overlay_file_system(
     file_system: &FsRef,
     overlays: OverlayMap,
     position_encoding: lsproto::PositionEncodingKind,

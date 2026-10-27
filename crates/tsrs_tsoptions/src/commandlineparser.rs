@@ -305,7 +305,7 @@ impl CommandLineParser {
     }
 }
 
-pub fn try_read_file(
+pub(crate) fn try_read_file(
     file_name: &str,
     read_file: impl FnOnce(&str) -> Option<String>,
     mut errors: Vec<P<Diagnostic>>,
@@ -563,7 +563,7 @@ pub fn parse_list_type_option(
     }
 }
 
-pub fn convert_json_option_of_enum_type(
+pub(crate) fn convert_json_option_of_enum_type(
     opt: &'static CommandLineOption,
     value: &str,
     value_expression: Option<P<Node>>,

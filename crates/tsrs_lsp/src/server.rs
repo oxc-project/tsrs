@@ -398,7 +398,7 @@ impl ResponseChan {
 static DEFAULT_CLIENT_CAPABILITIES: LazyLock<Arc<lsproto::ResolvedClientCapabilities>> =
     LazyLock::new(|| Arc::new(lsproto::ResolvedClientCapabilities::default()));
 
-pub type AsyncWorkImpl = Box<dyn FnOnce() -> Result<(), Error> + Send>;
+type AsyncWorkImpl = Box<dyn FnOnce() -> Result<(), Error> + Send>;
 
 impl Server {
     // The server's lifecycle context (Go `s.backgroundCtx`, set by Run).
@@ -2080,7 +2080,6 @@ impl Server {
             client: Some(client),
             npm_executor: Some(npm_executor),
             parse_cache: self.parse_cache.clone(),
-            content_mapped_parse_cache: None,
         });
         let _ = self.session.set(Arc::clone(&session));
 
@@ -3539,10 +3538,10 @@ fn supported_code_action_kinds() -> Vec<lsproto::CodeActionKind> {
 }
 
 // server.go:1103: `userFacingRequestFailedError` (a string error type that unwraps to ErrorCodeRequestFailed).
-pub const USER_FACING_REQUEST_FAILED_ERROR: ErrorTag =
+const USER_FACING_REQUEST_FAILED_ERROR: ErrorTag =
     ErrorTag::Sentinel("userFacingRequestFailedError");
 
-pub fn user_facing_request_failed_error(message: impl Into<String>) -> Error {
+fn user_facing_request_failed_error(message: impl Into<String>) -> Error {
     Error {
         message: message.into(),
         tags: vec![USER_FACING_REQUEST_FAILED_ERROR, ErrorTag::Code(ErrorCode::REQUEST_FAILED)],
@@ -3588,13 +3587,13 @@ fn content_mapper_fallback_response(method: Method, err: &Error) -> Option<lspro
 // handlerMap maps LSP method to a handler function. The handler function executes any work that must be done synchronously
 // before other requests/notifications can be processed, and returns any additional work as a function to be executed
 // asynchronously after the synchronous work is complete.
-pub type HandlerFunc = Box<
+type HandlerFunc = Box<
     dyn Fn(&Arc<Server>, &Context, &Arc<RequestMessage>) -> Result<Option<AsyncWorkImpl>, Error>
         + Send
         + Sync,
 >;
 
-pub struct HandlerMap(FxHashMap<Method, HandlerFunc>);
+struct HandlerMap(FxHashMap<Method, HandlerFunc>);
 
 // server.go:1229
 fn handlers() -> &'static HandlerMap {
@@ -4100,7 +4099,7 @@ impl tsrs_ls::CrossProjectOrchestrator for CrossProjectOrchestratorImpl {
 
 // The handlers of out-of-scope features (content mappers, API sessions attached to the server, runGC and the profiling
 // commands) answer with this error.
-pub fn not_yet_ported(method: Method) -> Error {
+fn not_yet_ported(method: Method) -> Error {
     Error::wrap_code(ErrorCode::METHOD_NOT_FOUND, Error::new(format!("{method} is not ported yet")))
 }
 
@@ -4401,7 +4400,7 @@ fn go_type_name(v: &lsproto::Value) -> &'static str {
 }
 
 // Go `time.Duration.String()`.
-pub fn go_duration_string(d: Duration) -> String {
+fn go_duration_string(d: Duration) -> String {
     fn frac(v: u64, prec: u32) -> String {
         let pow = 10u64.pow(prec);
         let int = v / pow;

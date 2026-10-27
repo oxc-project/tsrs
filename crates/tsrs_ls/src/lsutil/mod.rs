@@ -1,6 +1,6 @@
-pub mod asi;
-pub mod children;
-pub mod completednode;
+pub(crate) mod asi;
+pub(crate) mod children;
+pub(crate) mod completednode;
 pub mod formatcodeoptions;
 pub mod organizeimports;
 pub mod symbol_display;

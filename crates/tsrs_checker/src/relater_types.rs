@@ -71,19 +71,6 @@ bitflags! {
     }
 }
 
-/// Go `args []any` of a stored diagnostic are kept pre-formatted (`diagnostics::stringify_args`).
-#[derive(Clone, Debug)]
-pub struct DiagnosticAndArguments {
-    pub message: &'static Message,
-    pub arguments: Vec<String>,
-}
-
-#[derive(Default)]
-pub struct ErrorOutputContainer {
-    pub errors: RefCell<Vec<P<Diagnostic>>>,
-    pub skip_logging: Cell<bool>,
-}
-
 /// Go `type ErrorReporter func(message *diagnostics.Message, args ...any)`, with the checker passed back.
 pub(crate) type ErrorReporter<'a> =
     &'a mut dyn FnMut(&mut Checker, &'static Message, &[&dyn Display]);

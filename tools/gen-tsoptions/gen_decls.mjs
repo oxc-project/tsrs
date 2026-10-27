@@ -13,6 +13,8 @@ const moved = new Set(
 );
 const tristate = (s) =>
     ({ "core.TSUnknown": "Tristate::Unknown", "core.TSTrue": "Tristate::True", "core.TSFalse": "Tristate::False" })[s];
+const shared = new Set(["TSC_BUILD_OPTION", "COMMON_OPTIONS_WITH_BUILD", "OPTIONS_FOR_COMPILER"]);
+const visibility = (name) => shared.has(scream(name)) ? "pub(crate) " : "";
 function defaultValue(s) {
     if (s === "true" || s === "false") return `Bool(${s})`;
     if (s === "nil") return "None";
@@ -90,13 +92,13 @@ main(() => {
     for (const m of go.matchAll(/^var (\w+) = CommandLineOption\{\n(.*?)\n\}/gms)) {
         if (selected && !selected.has(m[1])) continue;
         out.push(
-            `${/^[A-Z]/.test(m[1]) ? "pub" : "pub(crate)"} static ${scream(m[1])}: CommandLineOption = ${literal(m[2], 0)};\n`,
+            `${visibility(m[1])}static ${scream(m[1])}: CommandLineOption = ${literal(m[2], 0)};\n`,
         );
     }
     for (const m of go.matchAll(/^var (\w+) = \[\]\*CommandLineOption\{\n(.*?)\n\}\n/gms)) {
         if (selected && !selected.has(m[1])) continue;
         const name = scream(m[1]),
-            vis = /^[A-Z]/.test(m[1]) ? "pub" : "pub(crate)",
+            vis = visibility(m[1]),
             items = [];
         let cur = null;
         for (const line of m[2].split("\n")) {
@@ -114,7 +116,7 @@ main(() => {
             arr = `${name}_ITEMS`;
         let li = 0;
         out.push(
-            `static ${arr}: [CommandLineOption; ${lits.length}] = [\n${lits.map(([, b]) => `    ${literal(b, 4)},\n`).join("")}];\n\n${vis} static ${name}: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {\n    vec![\n${items.map(([k, v]) => `        &${k === "ref" ? scream(v) : `${arr}[${li++}]`},\n`).join("")}    ]\n});\n`,
+            `static ${arr}: [CommandLineOption; ${lits.length}] = [\n${lits.map(([, b]) => `    ${literal(b, 4)},\n`).join("")}];\n\n${vis}static ${name}: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {\n    vec![\n${items.map(([k, v]) => `        &${k === "ref" ? scream(v) : `${arr}[${li++}]`},\n`).join("")}    ]\n});\n`,
         );
     }
     const start = target.indexOf("// BEGIN GENERATED\n") + "// BEGIN GENERATED\n".length,

@@ -147,44 +147,6 @@ impl Checker {
         symbols_to_array(Some(self.get_exports_of_module(symbol)))
     }
 
-    // services.go:136
-    pub fn for_each_export_and_property_of_module(
-        &mut self,
-        module_symbol: P<Symbol>,
-        mut cb: impl FnMut(&mut Checker, P<Symbol>, &str),
-    ) {
-        for (key, exported_symbol) in self.get_exports_of_module(module_symbol).entries() {
-            if !is_reserved_member_name(key) {
-                cb(self, exported_symbol, key);
-            }
-        }
-
-        let export_equals =
-            self.resolve_external_module_symbol(module_symbol, false /*dontResolveAlias*/);
-        if export_equals == module_symbol {
-            return;
-        }
-
-        let type_of_symbol = self.get_type_of_symbol(export_equals);
-        if !self.should_treat_properties_of_external_module_as_exports(type_of_symbol) {
-            return;
-        }
-
-        // forEachPropertyOfType
-        let reduced_type = self.get_reduced_apparent_type(type_of_symbol);
-        if !reduced_type.flags().intersects(TypeFlags::StructuredType) {
-            return;
-        }
-        let members = self.resolve_structured_type_members(reduced_type).members();
-        if let Some(members) = members {
-            for (name, symbol) in members.entries() {
-                if self.is_named_member(symbol, name) {
-                    cb(self, symbol, name);
-                }
-            }
-        }
-    }
-
     // services.go:165
     pub fn is_valid_property_access_exported(
         &mut self,
@@ -345,11 +307,6 @@ impl Checker {
     // services.go:261
     pub fn get_call_signatures(&mut self, t: P<Type>) -> &'static [P<Signature>] {
         self.get_signatures_of_type(t, SignatureKind::Call)
-    }
-
-    // services.go:265
-    pub fn get_construct_signatures(&mut self, t: P<Type>) -> &'static [P<Signature>] {
-        self.get_signatures_of_type(t, SignatureKind::Construct)
     }
 
     // services.go:269

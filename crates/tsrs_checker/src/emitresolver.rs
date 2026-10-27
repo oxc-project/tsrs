@@ -10,7 +10,10 @@ use tsrs_ast::*;
 //   type EmitResolver (emitresolver.go:34)
 
 // emitresolver.go:45
-pub fn new_emit_resolver(checker: &Checker, emit_context: P<EmitContext>) -> P<EmitResolver> {
+pub(crate) fn new_emit_resolver(
+    checker: &Checker,
+    emit_context: P<EmitContext>,
+) -> P<EmitResolver> {
     // Go also wires `isValueAliasDeclaration` / `aliasMarkingVisitor` (method values of the `...Worker` methods, which
     // Rust calls directly) and `checkerMu` (dropped: the caller serializes checker access, see nodebuilder_types.rs).
     P::new_in(
@@ -235,7 +238,7 @@ impl EmitResolver {
 }
 
 // emitresolver.go:249
-pub fn is_common_js_module_exports(node: P<Node>) -> bool {
+fn is_common_js_module_exports(node: P<Node>) -> bool {
     if ast::is_binary_expression(node)
         && let Some(parent) = node.parent()
         && ast::is_expression_statement(parent)
@@ -345,7 +348,7 @@ impl EmitResolver {
 }
 
 // emitresolver.go:311
-pub fn get_meaning_of_entity_name_reference(entity_name: P<Node>) -> SymbolFlags {
+pub(crate) fn get_meaning_of_entity_name_reference(entity_name: P<Node>) -> SymbolFlags {
     let parent = entity_name.parent().unwrap();
     // get symbol of the first identifier of the entityName
     if parent.kind() == Kind::TypeQuery
@@ -465,7 +468,7 @@ impl EmitResolver {
 }
 
 // emitresolver.go:382
-pub fn noop_add_visible_alias(declaration: P<Node>, aliasing_statement: P<Node>) {
+fn noop_add_visible_alias(declaration: P<Node>, aliasing_statement: P<Node>) {
     let _ = (declaration, aliasing_statement);
 }
 
@@ -914,30 +917,10 @@ impl EmitResolver {
             should_compute_alias_to_mark_visible,
         )
     }
-
-    // emitresolver.go:685
-    pub fn is_symbol_accessible_exported(
-        &self,
-        c: &mut Checker,
-        symbol: Option<P<Symbol>>,
-        enclosing_declaration: Option<P<Node>>,
-        meaning: SymbolFlags,
-        should_compute_alias_to_mark_visible: bool,
-    ) -> SymbolAccessibilityResult {
-        // TODO: Split into locking and non-locking API methods - only current usage is the symbol tracker, which is non-locking,
-        // as all tracker calls happen within a CreateX call below, which already holds a lock
-        self.is_symbol_accessible(
-            c,
-            symbol,
-            enclosing_declaration,
-            meaning,
-            should_compute_alias_to_mark_visible,
-        )
-    }
 }
 
 // emitresolver.go:693
-pub fn is_const_enum_or_const_enum_only_module(s: P<Symbol>) -> bool {
+pub(crate) fn is_const_enum_or_const_enum_only_module(s: P<Symbol>) -> bool {
     is_const_enum_symbol(s) || s.flags().intersects(SymbolFlags::ConstEnumOnlyModule)
 }
 

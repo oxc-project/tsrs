@@ -17,7 +17,7 @@ use super::export::ModuleID;
 use super::registry::RegistryCloneHost;
 
 // util.go:23
-pub fn try_get_module_id_and_file_name_of_module_symbol(
+pub(crate) fn try_get_module_id_and_file_name_of_module_symbol(
     symbol: P<Symbol>,
 ) -> Option<(ModuleID, String)> {
     if !symbol.is_external_module() {
@@ -36,7 +36,7 @@ pub fn try_get_module_id_and_file_name_of_module_symbol(
 
 // Go `unicode.IsLower`. Go's table is the Ll category; Rust's `char::is_lowercase` is the Lowercase property
 // (Ll plus Other_Lowercase), which differs only for a few modifier letters and symbols.
-pub fn go_unicode_is_lower(r: Rune) -> bool {
+fn go_unicode_is_lower(r: Rune) -> bool {
     if (0..0x80).contains(&r) {
         return (b'a' as Rune..=b'z' as Rune).contains(&r);
     }
@@ -82,7 +82,10 @@ pub fn word_indices(s: &str) -> Vec<usize> {
 }
 
 // util.go:87
-pub fn get_package_names_in_node_modules(node_modules_dir: &str, fs: &dyn FS) -> Set<String> {
+pub(crate) fn get_package_names_in_node_modules(
+    node_modules_dir: &str,
+    fs: &dyn FS,
+) -> Set<String> {
     let mut package_names = Set::new();
     assert!(
         tspath::get_base_file_name(node_modules_dir) == "node_modules",
@@ -120,7 +123,7 @@ pub fn get_package_names_in_node_modules(node_modules_dir: &str, fs: &dyn FS) ->
 }
 
 // util.go:118
-pub fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -> String {
+pub(crate) fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -> String {
     if let Some(result) = symbol.declarations().iter().find_map(|&d| {
         // "export default" in this case. See `ExportAssignment`for more details.
         if ast::is_export_assignment(d) {
@@ -161,7 +164,7 @@ pub fn get_default_like_export_name_from_declaration(symbol: P<Symbol>) -> Strin
 }
 
 // util.go:146
-pub fn get_resolved_package_names(ctx: &Context, program: &'static Program) -> Set<String> {
+pub(crate) fn get_resolved_package_names(ctx: &Context, program: &'static Program) -> Set<String> {
     let raw_names = program.resolved_package_names();
     let unresolved_package_names = program.unresolved_package_names();
 
@@ -214,8 +217,7 @@ pub fn get_resolved_package_names(ctx: &Context, program: &'static Program) -> S
 // from a program's project references to the provided map.
 // This is used during node_modules bucket building to redirect extraction
 // from output files to source files when the output is from a project reference.
-#[expect(clippy::implicit_hasher, reason = "Public for the integration tests.")]
-pub fn add_project_reference_output_mappings(
+pub(crate) fn add_project_reference_output_mappings(
     program: &'static Program,
     result: &mut FxHashMap<Path, String>,
 ) {
@@ -241,13 +243,13 @@ pub fn add_project_reference_output_mappings(
 // util.go:203
 // Go's pool hands out up to GOMAXPROCS checkers to the extraction goroutines; extraction runs sequentially here,
 // so the pool holds the one checker the first request creates.
-pub struct CheckerPoolImpl {
+pub(crate) struct CheckerPoolImpl {
     program: &'static dyn checker::Program,
     checker: Option<Box<Checker>>,
     created: usize,
 }
 
-pub fn create_checker_pool(program: &'static dyn checker::Program) -> CheckerPoolImpl {
+pub(crate) fn create_checker_pool(program: &'static dyn checker::Program) -> CheckerPoolImpl {
     CheckerPoolImpl { program, checker: None, created: 0 }
 }
 
@@ -268,7 +270,7 @@ impl CheckerPoolImpl {
 // util.go:240
 // addPackageJsonDependencies adds all dependencies and peerDependencies from a package.json
 // to the given set, canonicalizing @types package names to their base names.
-pub fn add_package_json_dependencies(contents: &PackageJson, deps: &mut Set<String>) {
+pub(crate) fn add_package_json_dependencies(contents: &PackageJson, deps: &mut Set<String>) {
     contents.range_dependencies(|name, _, field| {
         if name.is_empty() || name == "@types/" || name.as_bytes()[0] == b'.' {
             // Edge cases that could make us blow up probably
@@ -374,7 +376,7 @@ impl ResolutionHost for ResolutionHostImpl {
 // util.go:333
 // The resolver borrows its host for its whole life; the host lives in the
 // current arena, which is the registry update's scratch region (registry.go `Clone`), like the resolver.
-pub fn get_module_resolver(
+pub(crate) fn get_module_resolver(
     host: &'static dyn RegistryCloneHost,
     realpath: PathFunc,
 ) -> DefaultResolver<'static> {

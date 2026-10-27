@@ -44,7 +44,6 @@ pub use checkerpool::*;
 pub use configfileregistry::*;
 pub use project::*;
 pub use projectcollection::*;
-pub use projectcollectionbuilder::ProjectCollectionBuilder;
 pub use session::*;
 pub use snapshot::*;
 pub use snapshothost::*;

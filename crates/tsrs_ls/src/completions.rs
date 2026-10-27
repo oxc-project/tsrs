@@ -22,12 +22,12 @@ use crate::utilities::{
 
 pub use crate::completions_2::*;
 pub use crate::completions_3::*;
-pub use crate::completions_4::*;
+pub(crate) use crate::completions_4::*;
 
 // completions.go:35 (Go compares with `errors.Is`; `is_err_needs_auto_imports` compares the message)
-pub const ERR_NEEDS_AUTO_IMPORTS: &str = "completion list needs auto imports";
+const ERR_NEEDS_AUTO_IMPORTS: &str = "completion list needs auto imports";
 
-pub fn err_needs_auto_imports() -> lsproto::Error {
+pub(crate) fn err_needs_auto_imports() -> lsproto::Error {
     lsproto::Error::new(ERR_NEEDS_AUTO_IMPORTS)
 }
 
@@ -38,7 +38,7 @@ pub fn is_err_needs_auto_imports(err: &lsproto::Error) -> bool {
 // Go keeps the formatter settings as values of the request `context.Context` (`format.WithFormatCodeSettings`).
 // The format package takes a `format::FormatContext` (format/api.rs); it travels as a value of the request
 // context so that every Go `ctx` keeps carrying it.
-pub fn with_format_code_settings(
+fn with_format_code_settings(
     ctx: &Context,
     options: FormatCodeSettings,
     new_line: &str,
@@ -47,7 +47,7 @@ pub fn with_format_code_settings(
     ctx.with_value(format::with_format_code_settings(&base, options, new_line))
 }
 
-pub fn format_context(ctx: &Context) -> FormatContext {
+pub(crate) fn format_context(ctx: &Context) -> FormatContext {
     ctx.value::<FormatContext>().cloned().unwrap_or_default()
 }
 
@@ -217,7 +217,7 @@ fn ensure_item_data(
 }
 
 // completions.go:139
-pub fn supplemental_file_index(file: P<SourceFile>) -> Option<usize> {
+pub(crate) fn supplemental_file_index(file: P<SourceFile>) -> Option<usize> {
     let canonical = file.canonical_source_file()?;
     if let Some(i) =
         canonical.supplemental_source_files().iter().position(|&supplemental| supplemental == file)
@@ -228,7 +228,7 @@ pub fn supplemental_file_index(file: P<SourceFile>) -> Option<usize> {
 }
 
 // completions.go:152
-pub fn source_file_for_supplemental_file_index(
+pub(crate) fn source_file_for_supplemental_file_index(
     file: P<SourceFile>,
     index: Option<i32>,
 ) -> Option<P<SourceFile>> {
@@ -242,7 +242,7 @@ pub fn source_file_for_supplemental_file_index(
 
 // *completionDataData | *completionDataKeyword | *completionDataJSDocTagName | *completionDataJSDocTag | *completionDataJSDocParameterName
 // completions.go:164
-pub enum CompletionData {
+pub(crate) enum CompletionData {
     Data(Box<CompletionDataData>),
     Keyword(CompletionDataKeyword),
     JSDocTagName,
@@ -251,7 +251,7 @@ pub enum CompletionData {
 }
 
 // completions.go:166 (Go's isInSnippetScope field is never read)
-pub struct CompletionDataData {
+pub(crate) struct CompletionDataData {
     pub(crate) symbols: Vec<P<Symbol>>,
     pub(crate) auto_imports: Vec<autoimport::FixAndExport>,
     pub(crate) completion_kind: CompletionKind,
@@ -310,13 +310,13 @@ impl CompletionDataData {
 }
 
 // completions.go:195
-pub struct CompletionDataKeyword {
+pub(crate) struct CompletionDataKeyword {
     pub(crate) keyword_completions: Vec<CompletionItem>,
     is_new_identifier_location: bool,
 }
 
 // completions.go:204
-pub struct CompletionDataJSDocParameterName {
+pub(crate) struct CompletionDataJSDocParameterName {
     tag: P<Node>,
 }
 
@@ -387,40 +387,39 @@ pub const COMPLETION_TRIGGER_CHARACTERS: [&str; 10] =
 
 // All commit characters, valid when `isNewIdentifierLocation` is false.
 // completions.go:262
-pub const ALL_COMMIT_CHARACTERS: [&str; 3] = [".", ",", ";"];
+pub(crate) const ALL_COMMIT_CHARACTERS: [&str; 3] = [".", ",", ";"];
 
 // Commit characters valid at expression positions where we could be inside a parameter list.
 // completions.go:265
-pub const NO_COMMA_COMMIT_CHARACTERS: [&str; 2] = [".", ";"];
+pub(crate) const NO_COMMA_COMMIT_CHARACTERS: [&str; 2] = [".", ";"];
 
 // completions.go:267
-pub const EMPTY_COMMIT_CHARACTERS: [&str; 0] = [];
+pub(crate) const EMPTY_COMMIT_CHARACTERS: [&str; 0] = [];
 
-pub fn strings(values: &[&str]) -> Vec<String> {
+pub(crate) fn strings(values: &[&str]) -> Vec<String> {
     values.iter().map(std::string::ToString::to_string).collect()
 }
 
 // completions.go:269 (`type SortText string`)
-pub type SortText = String;
+pub(crate) type SortText = String;
 
 // completions.go:272
-pub const SORT_TEXT_LOCAL_DECLARATION_PRIORITY: &str = "10";
-pub const SORT_TEXT_LOCATION_PRIORITY: &str = "11";
-pub const SORT_TEXT_OPTIONAL_MEMBER: &str = "12";
-pub const SORT_TEXT_MEMBER_DECLARED_BY_SPREAD_ASSIGNMENT: &str = "13";
-pub const SORT_TEXT_SUGGESTED_CLASS_MEMBERS: &str = "14";
-pub const SORT_TEXT_GLOBALS_OR_KEYWORDS: &str = "15";
-pub const SORT_TEXT_AUTO_IMPORT_SUGGESTIONS: &str = "16";
-pub const SORT_TEXT_CLASS_MEMBER_SNIPPETS: &str = "17";
-pub const SORT_TEXT_JAVASCRIPT_IDENTIFIERS: &str = "18";
+const SORT_TEXT_LOCAL_DECLARATION_PRIORITY: &str = "10";
+pub(crate) const SORT_TEXT_LOCATION_PRIORITY: &str = "11";
+const SORT_TEXT_OPTIONAL_MEMBER: &str = "12";
+const SORT_TEXT_MEMBER_DECLARED_BY_SPREAD_ASSIGNMENT: &str = "13";
+const SORT_TEXT_SUGGESTED_CLASS_MEMBERS: &str = "14";
+pub(crate) const SORT_TEXT_GLOBALS_OR_KEYWORDS: &str = "15";
+pub(crate) const SORT_TEXT_AUTO_IMPORT_SUGGESTIONS: &str = "16";
+pub(crate) const SORT_TEXT_JAVASCRIPT_IDENTIFIERS: &str = "18";
 
 // completions.go:283
-pub fn deprecate_sort_text(original: &str) -> SortText {
+pub(crate) fn deprecate_sort_text(original: &str) -> SortText {
     format!("z{original}")
 }
 
 // completions.go:287
-pub fn object_literal_property_sort_text(
+fn object_literal_property_sort_text(
     preset_sort_text: &str,
     symbol_display_name: &str,
 ) -> SortText {
@@ -428,7 +427,7 @@ pub fn object_literal_property_sort_text(
 }
 
 // completions.go:291
-pub fn sort_below(original: &str) -> SortText {
+pub(crate) fn sort_below(original: &str) -> SortText {
     format!("{original}1")
 }
 
@@ -539,23 +538,24 @@ pub struct SymbolOriginInfoComputedPropertyName {
 // generate for an auto-import.
 // completions.go:352
 // Completions that require `this.` insertion text.
-pub const COMPLETION_SOURCE_THIS_PROPERTY: &str = "ThisProperty/";
+pub(crate) const COMPLETION_SOURCE_THIS_PROPERTY: &str = "ThisProperty/";
 // Auto-import that comes attached to a class member snippet.
-pub const COMPLETION_SOURCE_CLASS_MEMBER_SNIPPET: &str = "ClassMemberSnippet/";
+pub(crate) const COMPLETION_SOURCE_CLASS_MEMBER_SNIPPET: &str = "ClassMemberSnippet/";
 // A type-only import that needs to be promoted in order to be used at the completion location.
-pub const COMPLETION_SOURCE_TYPE_ONLY_ALIAS: &str = "TypeOnlyAlias/";
+pub(crate) const COMPLETION_SOURCE_TYPE_ONLY_ALIAS: &str = "TypeOnlyAlias/";
 // Auto-import that comes attached to an object literal method snippet.
-pub const COMPLETION_SOURCE_OBJECT_LITERAL_METHOD_SNIPPET: &str = "ObjectLiteralMethodSnippet/";
+pub(crate) const COMPLETION_SOURCE_OBJECT_LITERAL_METHOD_SNIPPET: &str =
+    "ObjectLiteralMethodSnippet/";
 // Case completions for switch statements.
-pub const COMPLETION_SOURCE_SWITCH_CASES: &str = "SwitchCases/";
+pub(crate) const COMPLETION_SOURCE_SWITCH_CASES: &str = "SwitchCases/";
 // Completions for an object literal expression.
-pub const COMPLETION_SOURCE_OBJECT_LITERAL_MEMBER_WITH_COMMA: &str =
+pub(crate) const COMPLETION_SOURCE_OBJECT_LITERAL_MEMBER_WITH_COMMA: &str =
     "ObjectLiteralMemberWithComma/";
 
 // Value is set to false for global variables or completions from external module exports,
 // true otherwise.
 // completions.go:371 (Go map; insertion order here)
-pub type UniqueNamesMap = tsrs_core::collections::OrderedMap<String, bool>;
+pub(crate) type UniqueNamesMap = tsrs_core::collections::OrderedMap<String, bool>;
 
 // completions.go:376
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -2516,12 +2516,12 @@ impl GetCompletionDataState {
 }
 
 // Go `core.CheckEachDefined`: the slices hold non-nil pointers by construction, so there is nothing to check.
-pub fn check_each_defined<'a, T>(s: &'a [T], _msg: &str) -> &'a [T] {
+fn check_each_defined<'a, T>(s: &'a [T], _msg: &str) -> &'a [T] {
     s
 }
 
 // completions.go:1802
-pub fn keyword_completion_data(
+fn keyword_completion_data(
     keyword_filters: KeywordCompletionFilters,
     filter_out_ts_only_keywords: bool,
     is_new_identifier_location: bool,
@@ -2533,7 +2533,7 @@ pub fn keyword_completion_data(
 }
 
 // completions.go:1813
-pub fn get_default_commit_characters(is_new_identifier_location: bool) -> Vec<String> {
+pub(crate) fn get_default_commit_characters(is_new_identifier_location: bool) -> Vec<String> {
     if is_new_identifier_location {
         return Vec::new();
     }

@@ -37,11 +37,6 @@ impl Checker {
         self.any_type
     }
 
-    // exports.go:36
-    pub fn get_error_type(&self) -> P<Type> {
-        self.error_type
-    }
-
     // exports.go:40
     pub fn get_never_type(&self) -> P<Type> {
         self.never_type
@@ -165,14 +160,6 @@ impl Checker {
         self.get_target_symbol(symbol)
     }
 
-    // exports.go:131
-    pub fn get_type_only_alias_declaration_exported(
-        &mut self,
-        symbol: P<Symbol>,
-    ) -> Option<P<Node>> {
-        self.get_type_only_alias_declaration(symbol)
-    }
-
     // exports.go:135
     pub fn resolve_external_module_name_exported(
         &mut self,
@@ -185,14 +172,6 @@ impl Checker {
             true, /*ignoreErrors*/
             import_attributes_type,
         )
-    }
-
-    // exports.go:139
-    pub fn resolve_external_module_symbol_exported(
-        &mut self,
-        module_symbol: P<Symbol>,
-    ) -> P<Symbol> {
-        self.resolve_external_module_symbol(module_symbol, false /*dontResolveAlias*/)
     }
 
     // exports.go:143
@@ -309,15 +288,6 @@ impl Checker {
         type_parameter: P<Type>,
     ) -> Option<P<Type>> {
         self.get_default_from_type_parameter(type_parameter)
-    }
-
-    // exports.go:219
-    pub fn get_effective_declaration_flags_exported(
-        &mut self,
-        n: P<Node>,
-        flags_to_check: ModifierFlags,
-    ) -> ModifierFlags {
-        self.get_effective_declaration_flags(n, flags_to_check)
     }
 
     // exports.go:223
@@ -522,15 +492,6 @@ impl Checker {
         self.get_index_info_of_type(t, key_type)
     }
 
-    // exports.go:354
-    pub fn get_index_type_of_type_exported(
-        &mut self,
-        t: P<Type>,
-        key_type: P<Type>,
-    ) -> Option<P<Type>> {
-        self.get_index_type_of_type(t, key_type)
-    }
-
     // exports.go:358
     pub fn get_index_infos_of_type_exported(&mut self, t: P<Type>) -> &'static [P<IndexInfo>] {
         self.get_index_infos_of_type(t)
@@ -556,11 +517,6 @@ impl Checker {
             is_java_script_implicit_any,
         )
         .into_owned()
-    }
-
-    // exports.go:370
-    pub fn get_min_type_argument_count_exported(type_parameters: &[P<Type>]) -> usize {
-        Self::get_min_type_argument_count(type_parameters)
     }
 
     // exports.go:374

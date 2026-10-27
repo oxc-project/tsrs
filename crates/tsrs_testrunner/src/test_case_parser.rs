@@ -13,7 +13,7 @@ use crate::harnessutil;
 static LINE_DELIMITER: LazyLock<Regex> = LazyLock::new(|| Regex::new("\r?\n").unwrap());
 
 // Regex for parsing options in the format "@Alpha: Value of any sort"
-pub static OPTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+static OPTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?m)^/{2}[\t\n\x0C\r ]*@([0-9A-Za-z_]+)[\t\n\x0C\r ]*:[\t\n\x0C\r ]*([^\r\n]*)")
         .unwrap()
 });
@@ -88,13 +88,13 @@ pub struct ParseTestFilesOptions {
     // If true, allows test content to appear before the first @Filename directive.
     // In this case, an implicit first file is created using the fileName parameter.
     // This matches the behavior of the TypeScript fourslash test harness.
-    pub allow_implicit_first_file: bool,
+    allow_implicit_first_file: bool,
 }
 
 // Given a test file containing // @FileName and // @symlink directives,
 // return an array of named units of code to be added to an existing compiler instance,
 // along with a map of symlinks and the current directory.
-pub fn parse_test_files_and_symlinks<T>(
+fn parse_test_files_and_symlinks<T>(
     code: &str,
     file_name: &str,
     parse_file: impl FnMut(&str, &str, &FxHashMap<String, String>) -> T,
@@ -107,7 +107,7 @@ pub fn parse_test_files_and_symlinks<T>(
     )
 }
 
-pub fn parse_test_files_and_symlinks_with_options<T>(
+fn parse_test_files_and_symlinks_with_options<T>(
     code: &str,
     file_name: &str,
     mut parse_file: impl FnMut(&str, &str, &FxHashMap<String, String>) -> T,

@@ -30,15 +30,6 @@ pub fn new_parse_cache_key(
     ParseCacheKey { source_file_parse_options: options, hash, script_kind }
 }
 
-// ContentMappedParseCacheKey identifies the complete output bundle for one mapped input. Hash folds the
-// original content, mapper transform identity, and diagnostic locale together.
-// (Content mappers are not ported: the type exists for the cache's signature; no entry is ever created.)
-#[derive(Clone, PartialEq, Eq, Hash, Debug, Default)]
-pub struct ContentMappedParseCacheKey {
-    source_file_parse_options: SourceFileParseOptions,
-    hash: Hash128,
-}
-
 // parsecache.go:55
 // parseCacheKeyForFile reconstructs the ordinary parse-cache key for a source file held by a program.
 pub fn parse_cache_key_for_file(file: P<SourceFile>) -> ParseCacheKey {
@@ -47,7 +38,7 @@ pub fn parse_cache_key_for_file(file: P<SourceFile>) -> ParseCacheKey {
 
 // parsecache.go:64
 // parseCacheKeyForDuplicate reconstructs an ordinary parse-cache key for a deduplicated source file.
-pub fn parse_cache_key_for_duplicate(file: &DuplicateSourceFile) -> ParseCacheKey {
+pub(crate) fn parse_cache_key_for_duplicate(file: &DuplicateSourceFile) -> ParseCacheKey {
     new_parse_cache_key(file.parse_options.clone(), file.hash, file.script_kind)
 }
 
@@ -168,24 +159,4 @@ pub fn new_parse_cache(options: RefCountCacheOptions) -> ParseCache {
 // what it used after binding.
 fn file_region_first_chunk(text_len: usize) -> usize {
     text_len.saturating_mul(10).saturating_add(4 << 10).min(64 << 20)
-}
-
-// Content mappers are not ported (docs/LSP.md): the canonical/supplemental bundle type is reduced to the
-// canonical file, and nothing ever acquires from this cache.
-pub struct ContentMappedParseCache {
-    // One reference owns the canonical file and all supplemental files as a bundle. Callers ref and
-    // deref the canonical file only.
-    pub ref_count_cache: RefCountCache<ContentMappedParseCacheKey, P<SourceFile>, ()>,
-}
-
-// parsecache.go:92
-pub fn new_content_mapped_parse_cache(options: RefCountCacheOptions) -> ContentMappedParseCache {
-    ContentMappedParseCache {
-        ref_count_cache: new_ref_count_cache(
-            options,
-            |_: &ContentMappedParseCacheKey, (): ()| -> P<SourceFile> {
-                panic!("content-mapped source files must be produced with AcquireOrError")
-            },
-        ),
-    }
 }

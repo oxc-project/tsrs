@@ -42,10 +42,6 @@ impl PositionMap {
         PositionMap { ascii_only: entries.is_empty(), entries }
     }
 
-    pub fn is_ascii_only(&self) -> bool {
-        self.ascii_only
-    }
-
     /// Go `UTF8ToUTF16`.
     pub(crate) fn utf8_to_utf16(&self, utf8_offset: i64) -> i64 {
         if self.ascii_only {
@@ -56,17 +52,5 @@ impl PositionMap {
             return utf8_offset;
         }
         utf8_offset - self.entries[lo - 1].delta
-    }
-
-    /// Go `UTF16ToUTF8`.
-    pub fn utf16_to_utf8(&self, utf16_offset: i64) -> i64 {
-        if self.ascii_only {
-            return utf16_offset;
-        }
-        let lo = self.entries.partition_point(|e| e.utf8_pos - e.delta <= utf16_offset);
-        if lo == 0 {
-            return utf16_offset;
-        }
-        utf16_offset + self.entries[lo - 1].delta
     }
 }

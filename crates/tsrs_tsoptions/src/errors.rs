@@ -10,7 +10,7 @@ use crate::commandlineparser::CommandLineParser;
 use crate::diagnostics::AlternateModeDiagnostics;
 use crate::tsconfigparsing::{CommandLineOptionNameMap, command_line_options_to_map};
 
-pub fn create_diagnostic_for_invalid_enum_type(
+pub(crate) fn create_diagnostic_for_invalid_enum_type(
     opt: &CommandLineOption,
     source_file: Option<P<SourceFile>>,
     node: Option<P<Node>>,
@@ -34,7 +34,7 @@ fn format_enum_type_keys(opt: &CommandLineOption, keys: Vec<&str>) -> String {
     format!("'{}'", keys.join("', '"))
 }
 
-pub fn get_compiler_option_value_type_string(option: &CommandLineOption) -> String {
+pub(crate) fn get_compiler_option_value_type_string(option: &CommandLineOption) -> String {
     match option.kind {
         CommandLineOptionKind::ListOrElement => {
             format!(
@@ -73,7 +73,7 @@ impl CommandLineParser {
 // createUnknownOptionError creates a diagnostic for an unknown option. If
 // unknownDidYouMeanDiagnostic and optionsNameMap are provided, it also checks
 // for a spelling suggestion and emits a "did you mean" diagnostic instead.
-pub fn create_unknown_option_error(
+pub(crate) fn create_unknown_option_error(
     unknown_option: &str,
     unknown_option_diagnostic: &'static Message,
     unknown_option_error_text: &str,                   // optional
@@ -143,7 +143,7 @@ pub fn create_diagnostic_for_node_in_source_file(
     )
 }
 
-pub fn create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
+pub(crate) fn create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
     source_file: Option<P<SourceFile>>,
     node: Option<P<Node>>,
     message: &'static Message,
@@ -155,7 +155,7 @@ pub fn create_diagnostic_for_node_in_source_file_or_compiler_diagnostic(
     new_compiler_diagnostic(message, args)
 }
 
-pub fn extra_key_diagnostics(s: &str) -> Option<&'static Message> {
+pub(crate) fn extra_key_diagnostics(s: &str) -> Option<&'static Message> {
     match s {
         "compilerOptions" => Some(&diagnostics::UNKNOWN_COMPILER_OPTION_0),
         "typeAcquisition" => Some(&diagnostics::UNKNOWN_TYPE_ACQUISITION_OPTION_0),
@@ -164,7 +164,7 @@ pub fn extra_key_diagnostics(s: &str) -> Option<&'static Message> {
     }
 }
 
-pub fn extra_key_did_you_mean_diagnostics(s: &str) -> Option<&'static Message> {
+pub(crate) fn extra_key_did_you_mean_diagnostics(s: &str) -> Option<&'static Message> {
     match s {
         "compilerOptions" => Some(&diagnostics::UNKNOWN_COMPILER_OPTION_0_DID_YOU_MEAN_1),
         "typeAcquisition" => Some(&diagnostics::UNKNOWN_TYPE_ACQUISITION_OPTION_0_DID_YOU_MEAN_1),

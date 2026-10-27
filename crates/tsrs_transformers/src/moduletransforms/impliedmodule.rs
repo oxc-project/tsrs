@@ -1,10 +1,9 @@
 use super::*;
 
 // impliedmodule.go:10
-pub struct ImpliedModuleTransformer {
+struct ImpliedModuleTransformer {
     base: Transformer,
     opts: TransformOptions,
-    pub resolver: ReferenceResolverRef,
     get_emit_module_format_of_file: Rc<dyn Fn(P<SourceFile>) -> ModuleKind>,
     cjs_transformer: Cell<Option<P<Transformer>>>,
     esm_transformer: Cell<Option<P<Transformer>>>,
@@ -19,7 +18,6 @@ pub fn new_implied_module_transformer(opts: &TransformOptions) -> Option<P<Trans
     let tx = P::new(ImpliedModuleTransformer {
         base: Transformer::default(),
         opts: opts.clone(),
-        resolver: opts.resolver,
         get_emit_module_format_of_file: Rc::clone(&opts.get_emit_module_format_of_file),
         cjs_transformer: Cell::new(None),
         esm_transformer: Cell::new(None),

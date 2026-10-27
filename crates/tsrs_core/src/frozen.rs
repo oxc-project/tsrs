@@ -106,16 +106,6 @@ impl<T> FrozenCell<T> {
     pub fn replace(&self, value: T) -> T {
         std::mem::replace(&mut *self.borrow_mut(), value)
     }
-
-    #[inline]
-    pub fn get_mut(&mut self) -> &mut T {
-        self.value.get_mut()
-    }
-
-    #[inline]
-    pub fn into_inner(self) -> T {
-        self.value.into_inner()
-    }
 }
 
 impl<T: Default> Default for FrozenCell<T> {
@@ -211,13 +201,6 @@ impl<T: Copy> OwnedCell<T> {
     }
 
     #[inline]
-    pub fn replace(&self, value: T) -> T {
-        let old = self.get();
-        self.set(value);
-        old
-    }
-
-    #[inline]
     pub fn get(&self) -> T {
         self.0.get()
     }
@@ -238,61 +221,6 @@ impl<T: Copy + fmt::Debug> fmt::Debug for OwnedCell<T> {
     }
 }
 
-/// `OwnedCell<&'static [T]>` in 12 bytes with 4-byte alignment (a `SliceCell`), so a struct can pack it with
-/// 4-byte fields. `get` returns exactly the slice last `set` (same pointer and length).
-pub struct OwnedSliceCell<T: 'static>(crate::ptr::SliceCell<T>);
-
-impl<T> Default for OwnedSliceCell<T> {
-    fn default() -> Self {
-        OwnedSliceCell::new(&[])
-    }
-}
-
-impl<T> OwnedSliceCell<T> {
-    #[inline]
-    fn new(value: &'static [T]) -> OwnedSliceCell<T> {
-        OwnedSliceCell(crate::ptr::SliceCell::new(value))
-    }
-
-    #[inline]
-    pub fn get(&self) -> &'static [T] {
-        self.0.get()
-    }
-
-    #[inline]
-    pub fn set(&self, value: &'static [T]) {
-        crate::ptr::shared_check::assert_not_shared(self, "OwnedSliceCell");
-        self.0.set(value);
-    }
-}
-
-/// `OwnedCell<&'static str>` in 8 bytes (a `PackedStr`); `get` returns the text last `set`.
-pub struct OwnedStrCell(Cell<crate::ptr::PackedStr>);
-
-impl OwnedStrCell {
-    #[inline]
-    fn new(value: &'static str) -> OwnedStrCell {
-        OwnedStrCell(Cell::new(crate::ptr::PackedStr::new(value)))
-    }
-
-    #[inline]
-    pub fn get(&self) -> &'static str {
-        self.0.get().as_str()
-    }
-
-    #[inline]
-    pub fn set(&self, value: &'static str) {
-        crate::ptr::shared_check::assert_not_shared(self, "OwnedStrCell");
-        self.0.set(crate::ptr::PackedStr::new(value));
-    }
-}
-
-impl Default for OwnedStrCell {
-    fn default() -> Self {
-        OwnedStrCell::new("")
-    }
-}
-
 /// `OwnedCell<&'static str>` in 8 bytes with two tag bits for the owner (`tags` / `set_tags`; `set` keeps
 /// them): the address in the low 48 bits, the length in the next 14, the tags in the top 2.
 ///
@@ -309,23 +237,6 @@ impl OwnedTaggedStrCell {
     #[inline]
     pub fn new(value: &'static str) -> OwnedTaggedStrCell {
         OwnedTaggedStrCell(Cell::new(Self::pack(value)))
-    }
-
-    /// Reserved zero word for an owner whose string is stored in another object. A valid
-    /// `&str` has a non-null data pointer, even when it is empty, so `pack` cannot produce zero.
-    /// The owner must resolve the marker before calling `get`, `set`, `tags` or `set_tags`.
-    ///
-    /// # Safety
-    /// The caller must keep the marker behind accessors that resolve it before using the
-    /// ordinary string methods. In particular, `get` on the marker is invalid in release builds.
-    #[inline]
-    pub unsafe fn shared_marker() -> OwnedTaggedStrCell {
-        OwnedTaggedStrCell(Cell::new(0))
-    }
-
-    #[inline]
-    pub fn is_shared_marker(&self) -> bool {
-        self.0.get() == 0
     }
 
     #[inline]
@@ -396,41 +307,5 @@ impl OwnedTaggedStrCell {
 impl Default for OwnedTaggedStrCell {
     fn default() -> Self {
         OwnedTaggedStrCell::new("")
-    }
-}
-
-/// `OwnedCell<&'static [T]>` for slices of handles in arena objects: a `SliceCell` (12 bytes, 4-aligned), or
-/// with compressed pointers, where a struct of handles packs tighter, a `ThinSliceCell` (8 bytes).
-///
-/// `get` returns exactly the slice last `set`.
-pub struct OwnedPSliceCell<T: 'static>(
-    #[cfg(not(compressed_ptrs))] crate::ptr::SliceCell<T>,
-    #[cfg(compressed_ptrs)] crate::ptr::ThinSliceCell<T>,
-);
-
-impl<T> Default for OwnedPSliceCell<T> {
-    fn default() -> Self {
-        OwnedPSliceCell::new(&[])
-    }
-}
-
-impl<T> OwnedPSliceCell<T> {
-    #[inline]
-    fn new(value: &'static [T]) -> OwnedPSliceCell<T> {
-        #[cfg(not(compressed_ptrs))]
-        return OwnedPSliceCell(crate::ptr::SliceCell::new(value));
-        #[cfg(compressed_ptrs)]
-        return OwnedPSliceCell(crate::ptr::ThinSliceCell::new(value));
-    }
-
-    #[inline]
-    pub fn get(&self) -> &'static [T] {
-        self.0.get()
-    }
-
-    #[inline]
-    pub fn set(&self, value: &'static [T]) {
-        crate::ptr::shared_check::assert_not_shared(self, "OwnedPSliceCell");
-        self.0.set(value);
     }
 }

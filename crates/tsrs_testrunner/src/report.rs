@@ -12,11 +12,11 @@ use crate::pool::TestResult;
 #[derive(Clone)]
 pub struct Entry {
     pub class: Class,
-    pub ms: u64,
-    pub diff: String,
-    pub panic: String,
-    pub loc: String,
-    pub skip: String,
+    ms: u64,
+    diff: String,
+    panic: String,
+    loc: String,
+    skip: String,
     // `.types` / `.symbols`: (class, first difference), when they were compared.
     pub types: Option<(Class, String)>,
     pub symbols: Option<(Class, String)>,
@@ -96,13 +96,13 @@ fn suite_of(id: &str) -> &str {
     id.split('/').next().unwrap_or("")
 }
 
-pub type Totals = BTreeMap<String, BTreeMap<Class, usize>>;
+type Totals = BTreeMap<String, BTreeMap<Class, usize>>;
 
-pub fn totals(summary: &Summary) -> Totals {
+fn totals(summary: &Summary) -> Totals {
     totals_by(summary, |e| Some(e.class))
 }
 
-pub fn totals_by(summary: &Summary, class_of: impl Fn(&Entry) -> Option<Class>) -> Totals {
+fn totals_by(summary: &Summary, class_of: impl Fn(&Entry) -> Option<Class>) -> Totals {
     let mut t: Totals = BTreeMap::new();
     for (id, e) in summary {
         let Some(class) = class_of(e) else { continue };
@@ -275,7 +275,7 @@ fn enclosing_fn(loc: &str) -> Option<String> {
     None
 }
 
-pub fn crash_key(e: &Entry) -> String {
+fn crash_key(e: &Entry) -> String {
     let short_loc = e.loc.split("/crates/").last().unwrap_or(&e.loc).to_string();
     let short_loc =
         if e.loc.contains("/crates/") { format!("crates/{short_loc}") } else { short_loc };

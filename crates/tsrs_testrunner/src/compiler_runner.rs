@@ -10,7 +10,7 @@ use crate::harnessutil::{self, NamedTestConfiguration, OptionTable, TestConfigur
 use crate::test_case_parser::{self, TestCaseContent, TestUnit};
 
 // Posix-style path to sources under test
-pub const SRC_FOLDER: &str = "/.src";
+pub(crate) const SRC_FOLDER: &str = "/.src";
 
 pub const SUITES: [&str; 2] = ["compiler", "conformance"];
 
@@ -20,7 +20,7 @@ static REFERENCES_REGEX: LazyLock<Regex> =
 
 static COMPILER_BASELINE_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.tsx?$").unwrap());
 
-pub static SKIPPED_TESTS: &[&str] = &[
+static SKIPPED_TESTS: &[&str] = &[
     // Tests that depended on typescript.d.ts in built.
     "APILibCheck.ts",
     "APISample_Watch.ts",
@@ -74,25 +74,25 @@ pub fn repo_root() -> PathBuf {
         .unwrap_or_else(|_| Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))
 }
 
-pub fn testdata_path() -> PathBuf {
+pub(crate) fn testdata_path() -> PathBuf {
     match std::env::var_os("TSRS_TESTDATA") {
         Some(p) => PathBuf::from(p),
         None => repo_root().join("ts-ref/tsc/testdata"),
     }
 }
 
-pub fn reference_baseline_path(suite: &str, name: &str) -> PathBuf {
+fn reference_baseline_path(suite: &str, name: &str) -> PathBuf {
     testdata_path().join("baselines/reference").join(suite).join(format!("{name}.errors.txt"))
 }
 
-pub fn read_reference_baseline(suite: &str, name: &str) -> Option<String> {
+pub(crate) fn read_reference_baseline(suite: &str, name: &str) -> Option<String> {
     std::fs::read(reference_baseline_path(suite, name))
         .ok()
         .map(|b| tsrs_core::utf8::from_utf8_lossy(&b).into_owned())
 }
 
 // The reference `.types` / `.symbols` baseline (`ext` = "types" | "symbols").
-pub fn read_reference_extra_baseline(suite: &str, name: &str, ext: &str) -> Option<String> {
+pub(crate) fn read_reference_extra_baseline(suite: &str, name: &str, ext: &str) -> Option<String> {
     let path =
         testdata_path().join("baselines/reference").join(suite).join(format!("{name}.{ext}"));
     let text = std::fs::read(path).ok().map(|b| tsrs_core::utf8::from_utf8_lossy(&b).into_owned());
@@ -105,7 +105,7 @@ pub fn read_reference_extra_baseline(suite: &str, name: &str, ext: &str) -> Opti
 
 // The `.d.ts` outputs of a `.js` baseline (DoJSEmitBaseline writes them as the last run of `//// [name]` sections
 // before `//// [DtsFileErrors]` / `!!!! File`), for the TSRS_TEST_DTS_ONLY metric.
-pub fn extract_dts_block(text: &str) -> String {
+fn extract_dts_block(text: &str) -> String {
     let mut text = text;
     text = (["\r\n\r\n//// [DtsFileErrors]", "\r\n\r\n!!!! File "]).into_iter().fold(
         text,
@@ -153,7 +153,7 @@ pub fn enumerate_test_files(suite: &str) -> Vec<String> {
 }
 
 // vfs internal.decodeBytes: UTF-16 with BOM is decoded, a UTF-8 BOM is dropped.
-pub fn decode_bytes(b: &[u8]) -> String {
+fn decode_bytes(b: &[u8]) -> String {
     if b.len() >= 2 && (b[0..2] == [0xFF, 0xFE] || b[0..2] == [0xFE, 0xFF]) {
         let le = b[0] == 0xFF;
         let units: Vec<u16> = b[2..]
@@ -194,7 +194,7 @@ impl TestItem {
     }
 }
 
-pub fn configured_name(basename: &str, config_name: &str) -> String {
+fn configured_name(basename: &str, config_name: &str) -> String {
     if !config_name.is_empty() {
         let extname = tspath::get_any_extension_from_path(basename, &[], false);
         let extensionless = &basename[..basename.len() - extname.len()];
@@ -207,7 +207,7 @@ pub fn baseline_stem(configured_name: &str) -> String {
     crate::tsbaseline::TS_EXTENSION.replace(configured_name, "").into_owned()
 }
 
-pub fn get_configurations(
+fn get_configurations(
     content: &str,
     table: &OptionTable,
 ) -> Result<Vec<NamedTestConfiguration>, String> {
@@ -256,7 +256,7 @@ pub fn find_configuration(
 }
 
 // What running one variant produced.
-pub enum Outcome {
+pub(crate) enum Outcome {
     // The generated error baseline text (baseline.NoContent when there were no diagnostics), and the
     // `.types`/`.symbols` baselines when they were requested and the test does not set @noTypesAndSymbols.
     // The third element is the `.js` baseline when `--baselines js` asked for it and the test emits (Go
@@ -276,15 +276,15 @@ pub enum Outcome {
 
 // The generated `.js.map` (Go DoSourcemapBaseline) and `.sourcemap.txt` (DoSourcemapRecordBaseline) baselines; `None`
 // when Go writes no baseline, `Err` for a panic or a `t.Fatal`.
-pub struct SourceMapBaselines {
-    pub js_map: Option<Result<String, String>>,
-    pub sourcemap: Option<Result<String, String>>,
+pub(crate) struct SourceMapBaselines {
+    pub(crate) js_map: Option<Result<String, String>>,
+    pub(crate) sourcemap: Option<Result<String, String>>,
 }
 
 // The generated `.types` and `.symbols` baselines; `Err` holds the panic message of a walk that panicked.
-pub struct TypesAndSymbols {
-    pub types: Result<String, String>,
-    pub symbols: Result<String, String>,
+pub(crate) struct TypesAndSymbols {
+    pub(crate) types: Result<String, String>,
+    pub(crate) symbols: Result<String, String>,
 }
 
 fn create_harness_test_file(unit: &TestUnit, current_directory: &str) -> TestFile {

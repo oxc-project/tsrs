@@ -6,7 +6,7 @@ use crate::scanner::{
     decode_rune, is_identifier_part_ex, is_identifier_start, skip_trivia, text_to_keyword,
 };
 
-pub fn token_is_identifier_or_keyword(token: Kind) -> bool {
+pub(crate) fn token_is_identifier_or_keyword(token: Kind) -> bool {
     token >= Kind::Identifier
 }
 

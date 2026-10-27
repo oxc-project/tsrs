@@ -84,22 +84,8 @@ fn new_emit_context_in(scratch: bool) -> P<EmitContext> {
 }
 
 // Go pools emit contexts; the release function resets the context like Go's does before returning it to the pool.
-pub fn get_emit_context() -> (P<EmitContext>, impl FnOnce()) {
-    let c = new_emit_context();
-    (c, move || c.reset())
-}
-
-/// `get_emit_context` with `new_scratch_emit_context`.
-pub fn get_scratch_emit_context() -> (P<EmitContext>, impl FnOnce()) {
-    let c = new_scratch_emit_context();
-    (c, move || c.reset())
-}
 
 impl EmitContext {
-    pub fn new() -> P<EmitContext> {
-        new_emit_context()
-    }
-
     // Go returns the context to a pool; tsrs allocates a new one per use (in the never-freed arena, or in the thread's
     // scratch region for the scratch variants, freed with the region), so `reset` also releases the tables' memory
     // instead of keeping their capacity.
@@ -253,11 +239,6 @@ impl EmitContext {
     // Adds a hoisted function declaration to the current VariableEnvironment
     //
     // NOTE: This is the equivalent of `transformContext.hoistFunctionDeclaration` in Strada.
-    pub fn add_hoisted_function_declaration(&self, node: P<Node>) {
-        self.set_emit_flags(node, EmitFlags::CustomPrologue);
-        let scope = Rc::clone(self.var_scope_stack.borrow().peek());
-        scope.borrow_mut().functions.push(node);
-    }
 
     // Starts a new LexicalEnvironment used to track block-scoped `let`, `const`, and `using` declarations.
     //
@@ -288,44 +269,6 @@ impl EmitContext {
             statements.push(var_statement);
         }
         statements
-    }
-
-    // Invokes c.EndLexicalEnvironment() and merges the results into `statements`
-    pub fn end_and_merge_lexical_environment_list(
-        &self,
-        statements: Option<P<NodeList>>,
-    ) -> Option<P<NodeList>> {
-        let nodes: &[P<Node>] = match statements {
-            Some(statements) => statements.nodes(),
-            None => &[],
-        };
-
-        let (result, changed) = self.end_and_merge_lexical_environment_worker(nodes);
-        if changed {
-            let list = self.factory.new_node_list(result);
-            // Go reads `statements.Loc` here, which panics when `statements` is nil.
-            list.loc.set(statements.unwrap().loc.get());
-            return Some(list);
-        }
-
-        statements
-    }
-
-    // Invokes c.EndLexicalEnvironment() and merges the results into `statements`
-    pub fn end_and_merge_lexical_environment(&self, statements: &[P<Node>]) -> Vec<P<Node>> {
-        let (result, _) = self.end_and_merge_lexical_environment_worker(statements);
-        result
-    }
-
-    // Invokes c.EndLexicalEnvironment() and merges the results into `statements`
-    //
-    // Go's unexported `endAndMergeLexicalEnvironment` (renamed: collides with the exported method after snake-casing).
-    fn end_and_merge_lexical_environment_worker(
-        &self,
-        statements: &[P<Node>],
-    ) -> (Vec<P<Node>>, bool) {
-        let declarations = self.end_lexical_environment();
-        self.merge_environment_worker(statements, &declarations)
     }
 
     // Adds a `let` declaration to the current LexicalEnvironment.
@@ -805,15 +748,6 @@ impl EmitContext {
     }
 
     // Sets the range for a token of a node when emitting source maps.
-    pub fn set_token_source_map_range(&self, node: P<Node>, kind: Kind, loc: TextRange) {
-        let mut emit_nodes = self.emit_nodes.borrow_mut();
-        let emit_node = emit_nodes.entry(node).or_default();
-        emit_node
-            .rare_mut()
-            .token_source_map_ranges
-            .get_or_insert_with(FxHashMap::default)
-            .insert(kind, loc);
-    }
 
     pub fn assigned_name(&self, node: P<Node>) -> Option<P<Node>> {
         self.assigned_name.borrow().get(&node).copied()
@@ -1297,7 +1231,7 @@ pub struct AutoGenerateOptions {
 
 static NEXT_AUTO_GENERATE_ID: AtomicU32 = AtomicU32::new(0);
 
-pub fn next_auto_generate_id() -> AutoGenerateId {
+pub(crate) fn next_auto_generate_id() -> AutoGenerateId {
     AutoGenerateId(NEXT_AUTO_GENERATE_ID.fetch_add(1, Ordering::SeqCst) + 1)
 }
 

@@ -96,7 +96,7 @@ pub fn get_file_emit_kind(options: &CompilerOptions) -> FileEmitKind {
 }
 
 // snapshot.go:82
-pub fn get_pending_emit_kind_with_options(
+pub(crate) fn get_pending_emit_kind_with_options(
     options: &CompilerOptions,
     old_options: &CompilerOptions,
 ) -> FileEmitKind {
@@ -106,7 +106,10 @@ pub fn get_pending_emit_kind_with_options(
 }
 
 // snapshot.go:88
-pub fn get_pending_emit_kind(emit_kind: FileEmitKind, old_emit_kind: FileEmitKind) -> FileEmitKind {
+pub(crate) fn get_pending_emit_kind(
+    emit_kind: FileEmitKind,
+    old_emit_kind: FileEmitKind,
+) -> FileEmitKind {
     if old_emit_kind == emit_kind {
         return FileEmitKind::None;
     }
@@ -312,7 +315,7 @@ impl BuildInfoDiagnosticWithFileName {
 // repopulateDiagnosticChain recomputes a diagnostic chain entry that depends on
 // program state which may have changed between incremental builds.
 // snapshot.go:189
-pub fn repopulate_diagnostic_chain(
+pub(crate) fn repopulate_diagnostic_chain(
     b: &BuildInfoDiagnosticWithFileName,
     p: &'static CompilerProgram,
     file: Option<P<SourceFile>>,
@@ -554,7 +557,7 @@ impl Snapshot {
 }
 
 // snapshot.go:397
-pub fn get_text_handling_source_map_for_signature<'a>(
+pub(crate) fn get_text_handling_source_map_for_signature<'a>(
     text: &'a str,
     data: &WriteFileData,
 ) -> &'a str {

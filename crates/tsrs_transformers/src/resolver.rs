@@ -415,22 +415,4 @@ impl ReferenceResolverRef {
             ReferenceResolverRef::Plain(r) => r.get_referenced_value_declarations(&mut (), node),
         }
     }
-
-    pub fn get_element_access_expression_name(self, expression: P<Node>) -> String {
-        match self {
-            ReferenceResolverRef::Emit(r) => r.get_element_access_expression_name(expression),
-            ReferenceResolverRef::Plain(r) => {
-                r.get_element_access_expression_name(&mut (), Some(expression))
-            }
-        }
-    }
-
-    pub fn get_referenced_member_value_declaration(self, node: P<Node>) -> Option<P<Node>> {
-        match self {
-            ReferenceResolverRef::Emit(r) => r.get_referenced_member_value_declaration(node),
-            ReferenceResolverRef::Plain(r) => {
-                r.get_referenced_member_value_declaration(&mut (), node)
-            }
-        }
-    }
 }

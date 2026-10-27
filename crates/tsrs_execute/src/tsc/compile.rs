@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 use std::io::Write;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -50,7 +55,7 @@ pub trait System: Sync {
 }
 
 /// Uses the command's clock only when compilation statistics were requested.
-pub struct DiagnosticTimer<'a> {
+pub(crate) struct DiagnosticTimer<'a> {
     sys: &'a dyn System,
     start: Option<Instant>,
 }
@@ -83,7 +88,7 @@ fn new_content_mapper_logger(sys: &'static dyn System) -> Option<contentmapper::
 // Close it when the compilation session ends.
 // compile.go:89 (Go binds the host to the command's context, which closes it when the process ends; the callers
 // close it explicitly instead. The locale is the option's text: tsrs does not canonicalize BCP 47 tags.)
-pub fn new_content_mapper_host(
+pub(crate) fn new_content_mapper_host(
     sys: &'static dyn System,
     options: &CompilerOptions,
 ) -> Option<Arc<dyn contentmapper::Host>> {
@@ -204,7 +209,7 @@ pub type MTimesCache = std::sync::Arc<
 >;
 
 // emit.go:21 GetTraceWithWriterFromSys
-pub fn get_trace_with_writer_from_sys(
+pub(crate) fn get_trace_with_writer_from_sys(
     w: SyncWriter,
     is_sys_writer: bool,
     testing: Option<&'static dyn CommandLineTesting>,
@@ -243,7 +248,7 @@ pub struct CompileTimes {
     pub(crate) changes_compute_time: Duration,
 }
 
-pub struct CompileAndEmitResult {
+pub(crate) struct CompileAndEmitResult {
     pub(crate) diagnostics: Vec<P<Diagnostic>>,
     pub(crate) emit_skipped: bool,
     // Go `EmitResult.EmittedFiles`.

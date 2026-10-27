@@ -653,7 +653,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:2234
-pub fn has_type_annotation(declaration: Option<P<Node>>) -> bool {
+fn has_type_annotation(declaration: Option<P<Node>>) -> bool {
     if declaration.is_none() || declaration.unwrap().type_node().is_none() {
         return false;
     }
@@ -992,7 +992,11 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:2456
-pub fn classify_property_name(
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn classify_property_name(
     name: &str,
     string_named: bool,
     is_method: bool,
@@ -1660,7 +1664,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:2842
-pub fn get_type_alias_for_type_literal(c: &mut Checker, t: P<Type>) -> Option<P<Symbol>> {
+fn get_type_alias_for_type_literal(c: &mut Checker, t: P<Type>) -> Option<P<Symbol>> {
     if let Some(symbol) = t.symbol()
         && symbol.flags().intersects(SymbolFlags::TypeLiteral)
         && !symbol.declarations().is_empty()

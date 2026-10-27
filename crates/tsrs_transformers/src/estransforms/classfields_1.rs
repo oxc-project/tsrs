@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 // Port of estransforms/classfields.go, part 1 (Go lines 1-1888: types, transformer, constructor and the functions up
 // to `visitInNewClassLexicalEnvironment`). Part 2 is classfields_2.rs.
 
@@ -81,14 +86,14 @@ pub struct ClassLexicalEnvironment {
 
 // classfields.go:82
 // classLexicalEnv is a linked list of class lexical environments.
-pub struct ClassLexicalEnv {
+pub(crate) struct ClassLexicalEnv {
     pub(crate) previous: Option<P<ClassLexicalEnv>>,
     pub(crate) data: Cell<Option<P<ClassLexicalEnvironment>>>,
     pub(crate) private_env: Cell<Option<P<PrivateEnvironment>>>,
 }
 
 // classfields.go:88
-pub struct ClassFieldsTransformer {
+pub(crate) struct ClassFieldsTransformer {
     base: Transformer,
     pub(crate) compiler_options: P<CompilerOptions>,
     resolver: ReferenceResolverRef,
@@ -139,7 +144,7 @@ pub struct ClassFieldsTransformer {
 }
 
 // classfields.go:140
-pub fn new_class_fields_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
+pub(crate) fn new_class_fields_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     let language_version = opts.compiler_options.get_emit_script_target();
     let use_define_for_class_fields = opts.compiler_options.get_use_define_for_class_fields();
 

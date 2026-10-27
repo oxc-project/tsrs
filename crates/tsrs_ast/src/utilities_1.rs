@@ -295,17 +295,6 @@ pub fn is_destructuring_assignment(node: P<Node>) -> bool {
     false
 }
 
-// utilities.go:140
-pub fn is_object_binding_or_assignment_element(node: P<Node>) -> bool {
-    matches!(
-        node.kind(),
-        Kind::BindingElement
-            | Kind::PropertyAssignment
-            | Kind::ShorthandPropertyAssignment
-            | Kind::SpreadAssignment
-    )
-}
-
 // utilities.go:151
 pub fn is_array_binding_or_assignment_element(node: P<Node>) -> bool {
     match node.kind() {
@@ -1130,29 +1119,6 @@ pub fn find_ancestor(
         node = n.parent();
     }
     None
-}
-
-pub fn find_many_ancestors(
-    node: impl Into<Option<P<Node>>>,
-    callbacks: &mut [&mut dyn FnMut(P<Node>) -> bool],
-) -> Vec<Option<P<Node>>> {
-    let mut node = node.into();
-    let mut ancestors: Vec<Option<P<Node>>> = vec![None; callbacks.len()];
-    let mut found = 0;
-    while let Some(n) = node {
-        for (i, callback) in callbacks.iter_mut().enumerate() {
-            if ancestors[i].is_none() && callback(n) {
-                ancestors[i] = Some(n);
-                found += 1;
-                if found == ancestors.len() {
-                    return ancestors;
-                }
-                break;
-            }
-        }
-        node = n.parent();
-    }
-    ancestors
 }
 
 // Walks up the parents of a node to find the ancestor that matches the kind

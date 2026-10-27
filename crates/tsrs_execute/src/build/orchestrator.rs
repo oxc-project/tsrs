@@ -188,11 +188,6 @@ impl Orchestrator {
 
     // orchestrator.go:155
     // Only Go tests call it (graph_test.go), and those are not ported.
-    pub fn upstream(&self, config_name: &str) -> Vec<String> {
-        let task = self.get_task(&self.to_path(config_name));
-        let upstream = task.up_stream.lock().unwrap();
-        upstream.iter().map(|t| t.task.config.clone()).collect()
-    }
 
     // orchestrator.go:171
     pub(crate) fn get_task(&self, path: &Path) -> P<BuildTask> {

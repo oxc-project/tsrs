@@ -67,7 +67,7 @@ fn parse_number_int(value: &CompilerOptionsValue) -> Option<i64> {
     }
 }
 
-pub struct ProjectReferenceParseResult {
+pub(crate) struct ProjectReferenceParseResult {
     pub(crate) reference: ProjectReference,
     pub(crate) has_path: bool,
     pub(crate) path_valid: bool,
@@ -75,7 +75,9 @@ pub struct ProjectReferenceParseResult {
     pub(crate) circular_valid: bool,
 }
 
-pub fn parse_project_reference(json: &CompilerOptionsValue) -> Option<ProjectReferenceParseResult> {
+pub(crate) fn parse_project_reference(
+    json: &CompilerOptionsValue,
+) -> Option<ProjectReferenceParseResult> {
     if let CompilerOptionsValue::Object(v) = json {
         let mut result = ProjectReferenceParseResult {
             reference: ProjectReference::default(),
@@ -103,7 +105,9 @@ pub fn parse_project_reference(json: &CompilerOptionsValue) -> Option<ProjectRef
     None
 }
 
-pub fn parse_content_mapper(value: &CompilerOptionsValue) -> (Option<Mapper>, Vec<P<Diagnostic>>) {
+pub(crate) fn parse_content_mapper(
+    value: &CompilerOptionsValue,
+) -> (Option<Mapper>, Vec<P<Diagnostic>>) {
     let CompilerOptionsValue::Object(v) = value else {
         return (None, Vec::new());
     };
@@ -203,7 +207,7 @@ fn parse_string_array_strict(value: &CompilerOptionsValue) -> Option<Vec<String>
     Some(result)
 }
 
-pub fn parse_json_to_string_key(
+pub(crate) fn parse_json_to_string_key(
     json: &CompilerOptionsValue,
 ) -> OrderedMap<String, CompilerOptionsValue> {
     let mut result = OrderedMap::with_capacity_and_hasher(6, rustc_hash::FxBuildHasher);
@@ -580,7 +584,7 @@ float_or_int32_to_flag!(
 float_or_int32_to_flag!(float_or_int32_to_script_target, ScriptTarget, TARGET_OPTION_MAP);
 float_or_int32_to_flag!(float_or_int32_to_new_line_kind, NewLineKind, NEW_LINE_OPTION_MAP);
 
-pub fn parse_type_acquisition(
+pub(crate) fn parse_type_acquisition(
     key: &str,
     value: &CompilerOptionsValue,
     all_options: &mut TypeAcquisition,
@@ -977,7 +981,7 @@ pub fn for_each_compiler_option_value(
 // with optional awareness of explicitly set null values in the raw JSON.
 // Fields in the source options will overwrite the corresponding fields in the target options,
 // including when they are explicitly set to null in the raw configuration (if rawSource is provided).
-pub fn merge_compiler_options(
+pub(crate) fn merge_compiler_options(
     target_options: &mut CompilerOptions,
     source_options: Option<&CompilerOptions>,
     raw_source: Option<&CompilerOptionsValue>,
@@ -1016,7 +1020,7 @@ pub fn merge_compiler_options(
     for_each_compiler_options_field!(merge_fields);
 }
 
-pub fn convert_to_options_with_absolute_paths(
+pub(crate) fn convert_to_options_with_absolute_paths(
     mut options_base: OrderedMap<String, CompilerOptionsValue>,
     option_map: &CommandLineOptionNameMap,
     cwd: &str,

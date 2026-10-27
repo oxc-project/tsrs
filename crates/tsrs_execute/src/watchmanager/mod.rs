@@ -416,14 +416,6 @@ impl WatchManager {
         state.watched_dirs.keys().any(|dir| tspath::contains_path(dir, path, opts))
     }
 
-    /// The watched directories and whether each is recursive (diagnostics and tests).
-    pub fn watched_dirs(state: &WatchState) -> Vec<(String, bool)> {
-        let mut dirs: Vec<(String, bool)> =
-            state.watched_dirs.iter().map(|(d, w)| (d.clone(), w.recursive)).collect();
-        dirs.sort();
-        dirs
-    }
-
     /// Go `RunLoop`: runs `do_cycle` whenever events were signaled, until `stop` (Go: the context is cancelled).
     pub(crate) fn run_loop(&self, mut do_cycle: impl FnMut()) {
         loop {
@@ -446,15 +438,6 @@ impl WatchManager {
             }
             do_cycle();
         }
-    }
-
-    /// Ends `run_loop` (Go: cancelling the context).
-    pub fn stop(&self) {
-        *self.stopped.lock().unwrap_or_else(std::sync::PoisonError::into_inner) = true;
-        // Under `do_cycle`'s lock: `run_loop` checks `stopped` and starts waiting while it holds it, so the notification
-        // cannot fall between the two.
-        let _pending = self.do_cycle.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
-        self.do_cycle_cv.notify_all();
     }
 }
 

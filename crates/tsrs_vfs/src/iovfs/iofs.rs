@@ -27,7 +27,8 @@ pub trait WritableFS: IoFS {
 //
 // From does not actually handle case-insensitivity; ensure the passed in [fs.FS]
 // respects case-insensitive file names if needed. Consider using [vfstest.FromMap] for testing.
-pub fn from<T: IoFS>(fsys: T, use_case_sensitive_file_names: bool) -> IoVFS<T> {
+#[expect(clippy::redundant_pub_crate, reason = "Re-exported within the crate for vfstest.")]
+pub(crate) fn from<T: IoFS>(fsys: T, use_case_sensitive_file_names: bool) -> IoVFS<T> {
     IoVFS {
         common: Common { root_for: SubRoots { fsys }, is_reparse_point: None },
         use_case_sensitive_file_names,

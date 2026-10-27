@@ -110,7 +110,7 @@ impl<T: Send + 'static> DynamicQueue<T> {
 // Waits on `cond` until `ready(&state)` holds or `ctx` is canceled (Go: a select on a channel and `ctx.Done()`).
 // `wake` must lock the mutex and notify `cond`; it runs (on its own thread) when the context is canceled while
 // waiting, so the waiter observes the cancellation without polling.
-pub fn wait_until<'a, S>(
+pub(crate) fn wait_until<'a, S>(
     ctx: &Context,
     cond: &Condvar,
     mut guard: MutexGuard<'a, S>,

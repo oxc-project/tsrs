@@ -33,11 +33,6 @@ impl PseudoChecker {
         self.type_from_accessor(accessor)
     }
 
-    // lookup.go:30
-    pub fn get_type_of_expression(&self, node: P<Node>) -> Option<P<PseudoType>> {
-        self.type_from_expression(node)
-    }
-
     // lookup.go:34
     pub fn get_type_of_declaration(&self, node: P<Node>) -> Option<P<PseudoType>> {
         match node.kind() {

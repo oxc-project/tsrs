@@ -1,4 +1,3 @@
-use rustc_hash::FxHashSet;
 use tsrs_ast::{
     self as ast, CheckFlags, FindAncestorResult, Kind, ModifierFlags, Node, NodeFlags, Symbol,
     SymbolFlags,
@@ -116,60 +115,8 @@ impl ScriptElementKindModifier {
     pub(crate) const None: ScriptElementKindModifier = ScriptElementKindModifier::empty();
 }
 
-// symbol_display.go:108
-const SCRIPT_ELEMENT_KIND_MODIFIER_NAMES: &[(ScriptElementKindModifier, &str)] = &[
-    (ScriptElementKindModifier::Public, "public"),
-    (ScriptElementKindModifier::Private, "private"),
-    (ScriptElementKindModifier::Protected, "protected"),
-    (ScriptElementKindModifier::Exported, "export"),
-    (ScriptElementKindModifier::Ambient, "declare"),
-    (ScriptElementKindModifier::Static, "static"),
-    (ScriptElementKindModifier::Abstract, "abstract"),
-    (ScriptElementKindModifier::Optional, "optional"),
-    (ScriptElementKindModifier::Deprecated, "deprecated"),
-    (ScriptElementKindModifier::Dts, ".d.ts"),
-    (ScriptElementKindModifier::Ts, ".ts"),
-    (ScriptElementKindModifier::Tsx, ".tsx"),
-    (ScriptElementKindModifier::Js, ".js"),
-    (ScriptElementKindModifier::Jsx, ".jsx"),
-    (ScriptElementKindModifier::Json, ".json"),
-    (ScriptElementKindModifier::Dmts, ".d.mts"),
-    (ScriptElementKindModifier::Mts, ".mts"),
-    (ScriptElementKindModifier::Mjs, ".mjs"),
-    (ScriptElementKindModifier::Dcts, ".d.cts"),
-    (ScriptElementKindModifier::Cts, ".cts"),
-    (ScriptElementKindModifier::Cjs, ".cjs"),
-];
-
-impl ScriptElementKindModifier {
-    // symbol_display.go:135
-    pub fn strings(self) -> FxHashSet<&'static str> {
-        let mut result = FxHashSet::default();
-        result.extend(
-            SCRIPT_ELEMENT_KIND_MODIFIER_NAMES
-                .iter()
-                .filter_map(|&(flag, name)| if self.intersects(flag) { Some(name) } else { None }),
-        );
-        result
-    }
-}
-
-// symbol_display.go:145
-pub const FILE_EXTENSION_KIND_MODIFIERS: ScriptElementKindModifier = ScriptElementKindModifier::Dts
-    .union(ScriptElementKindModifier::Ts)
-    .union(ScriptElementKindModifier::Tsx)
-    .union(ScriptElementKindModifier::Js)
-    .union(ScriptElementKindModifier::Jsx)
-    .union(ScriptElementKindModifier::Json)
-    .union(ScriptElementKindModifier::Dmts)
-    .union(ScriptElementKindModifier::Mts)
-    .union(ScriptElementKindModifier::Mjs)
-    .union(ScriptElementKindModifier::Dcts)
-    .union(ScriptElementKindModifier::Cts)
-    .union(ScriptElementKindModifier::Cjs);
-
 // symbol_display.go:159
-pub fn get_symbol_kind(
+pub(crate) fn get_symbol_kind(
     type_checker: Option<&mut Checker>,
     symbol: P<Symbol>,
     location: P<Node>,
@@ -385,7 +332,7 @@ fn is_local_variable_or_function(symbol: P<Symbol>) -> bool {
 }
 
 // symbol_display.go:350
-pub fn get_symbol_modifiers(
+pub(crate) fn get_symbol_modifiers(
     mut type_checker: Option<&mut Checker>,
     symbol: Option<P<Symbol>>,
 ) -> ScriptElementKindModifier {

@@ -143,10 +143,6 @@ impl DocumentUri {
             Some(Self(format!("{scheme}:{path}")))
         }
     }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
 }
 
 impl Deref for DocumentUri {
@@ -450,7 +446,7 @@ fn unescape(s: &str, mode: Encoding) -> Result<String, String> {
 }
 
 // Go `strconv.Quote` (as `%q` formats a string or byte slice).
-pub fn go_quote(b: &[u8]) -> String {
+pub(crate) fn go_quote(b: &[u8]) -> String {
     tsrs_core::gocompat::quote(b, tsrs_core::gocompat::QuoteStyle::Lsp)
 }
 
@@ -555,7 +551,7 @@ impl IsZero for Method {
 }
 
 // The process-lifetime string for `s` (Go converts a decoded string to a named string type).
-pub fn intern(s: &str) -> &'static str {
+pub(crate) fn intern(s: &str) -> &'static str {
     static TABLE: OnceLock<Mutex<FxHashSet<&'static str>>> = OnceLock::new();
 
     if s.is_empty() {
@@ -571,32 +567,32 @@ pub fn intern(s: &str) -> &'static str {
 }
 
 // lsp.go:87
-pub fn err_not_object(k: u8) -> String {
+pub(crate) fn err_not_object(k: u8) -> String {
     format!("expected object start, but encountered {}", kind_string(k))
 }
 
 // lsp.go:91
-pub fn err_null(field: &str) -> String {
+pub(crate) fn err_null(field: &str) -> String {
     format!("null value is not allowed for field {}", go_quote(field.as_bytes()))
 }
 
 // lsp.go:95
-pub fn err_missing(props: &[&str]) -> String {
+pub(crate) fn err_missing(props: &[&str]) -> String {
     format!("missing required properties: {}", props.join(", "))
 }
 
 // lsp.go:99
-pub fn err_invalid_kind(type_name: &str, got: u8) -> String {
+pub(crate) fn err_invalid_kind(type_name: &str, got: u8) -> String {
     format!("invalid {}: got {}", type_name, kind_string(got))
 }
 
 // lsp.go:103
-pub fn err_invalid_value(type_name: &str, data: &Value) -> String {
+pub(crate) fn err_invalid_value(type_name: &str, data: &Value) -> String {
     format!("invalid {}: {}", type_name, tsrs_core::json::marshal(data).unwrap_or_default())
 }
 
 // lsp.go:107
-pub fn err_literal_mismatch(type_name: &str, expected: &str, got: &Value) -> String {
+pub(crate) fn err_literal_mismatch(type_name: &str, expected: &str, got: &Value) -> String {
     format!(
         "expected {} value {}, got {}",
         type_name,
@@ -606,27 +602,21 @@ pub fn err_literal_mismatch(type_name: &str, expected: &str, got: &Value) -> Str
 }
 
 // lsp.go:111
-pub fn assert_only_one(message: &str, count: usize) {
+pub(crate) fn assert_only_one(message: &str, count: usize) {
     assert!(count == 1, "{}", message);
 }
 
 // lsp.go:117
-pub fn assert_at_most_one(message: &str, count: usize) {
+pub(crate) fn assert_at_most_one(message: &str, count: usize) {
     assert!(count <= 1, "{}", message);
 }
 
 // lsp.go:131: the value of a top-level field of a JSON object; None if `data` is not an object or has
 // no such field. (Go's jsonKeyCheck compares raw key tokens; decoded keys are compared directly.)
-pub fn json_object_raw_field<'a>(data: &'a Value, field: &str) -> Option<&'a Value> {
-    let Value::Object(members) = data else {
-        return None;
-    };
-    members.get(field)
-}
 
 // lsp.go:161: the index in `keys` of the first top-level key of the object (in document order) that is
 // one of `keys`.
-pub fn json_object_has_key(data: &Value, keys: &[&str]) -> Option<usize> {
+pub(crate) fn json_object_has_key(data: &Value, keys: &[&str]) -> Option<usize> {
     let Value::Object(members) = data else {
         return None;
     };

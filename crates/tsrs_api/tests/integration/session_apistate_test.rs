@@ -38,7 +38,6 @@ fn setup_in(
         logger: None,
         npm_executor: None,
         parse_cache: None,
-        content_mapped_parse_cache: None,
     });
     (project_session, fs)
 }

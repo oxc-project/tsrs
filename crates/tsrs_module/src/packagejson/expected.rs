@@ -186,7 +186,7 @@ impl<T: ExpectedValue> Expected<T> {
         T::expected_json_type()
     }
 
-    pub(crate) fn actual_json_type(&self) -> &'static str {
+    fn actual_json_type(&self) -> &'static str {
         self.actual_json_type
     }
 }

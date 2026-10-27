@@ -60,12 +60,6 @@ impl<K: 'static, V: 'static> Default for GoMap<K, V> {
 }
 
 impl<K: Eq + Hash + Clone + 'static, V: Clone + 'static> GoMap<K, V> {
-    #[inline]
-    pub fn new_empty() -> Self {
-        let m = GoMap::default();
-        m.make();
-        m
-    }
     /// Go `m = make(map[K]V)`.
     #[inline]
     pub(crate) fn make(&self) {
@@ -98,10 +92,7 @@ impl<K: Eq + Hash + Clone + 'static, V: Clone + 'static> GoMap<K, V> {
         let m = self.0.get()?;
         tsrs_core::sharedgraph::with_ref(&m, |m| m.get(key).cloned())
     }
-    #[inline]
-    pub fn has(&self, key: &K) -> bool {
-        self.0.get().is_some_and(|m| tsrs_core::sharedgraph::with_ref(&m, |m| m.contains_key(key)))
-    }
+
     /// Go `m[k] = v`. Creates the map if it is nil (Go would panic; faithful code always `make`s first).
     #[inline]
     pub(crate) fn set(&self, key: K, value: V) {
@@ -113,46 +104,7 @@ impl<K: Eq + Hash + Clone + 'static, V: Clone + 'static> GoMap<K, V> {
         };
         m.borrow_mut().insert(key, value);
     }
-    #[inline]
-    pub fn delete(&self, key: &K) {
-        if let Some(m) = self.for_write() {
-            m.borrow_mut().remove(key);
-        }
-    }
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.0.get().map_or(0, |m| tsrs_core::sharedgraph::with_ref(&m, FxHashMap::len))
-    }
 
-    pub fn is_empty(&self) -> bool {
-        self.0.get().is_none_or(|m| tsrs_core::sharedgraph::with_ref(&m, FxHashMap::is_empty))
-    }
-    #[inline]
-    pub fn clear(&self) {
-        if let Some(m) = self.for_write() {
-            m.borrow_mut().clear();
-        }
-    }
-    /// Go `clear(m)` for a map that is cleared after every use (a pooled scratch map). Clearing touches every
-    /// bucket, so a table that one large use grew would make every later small use pay for its capacity; such
-    /// a table is reallocated at the size of its last use instead. Unobservable: the map is empty either way.
-    #[inline]
-    pub fn clear_scratch(&self) {
-        if let Some(m) = self.for_write() {
-            let mut m = m.borrow_mut();
-            let len = m.len();
-            if m.capacity() > 64 && m.capacity() > 4 * len {
-                *m = FxHashMap::with_capacity_and_hasher(len, rustc_hash::FxBuildHasher);
-            } else {
-                m.clear();
-            }
-        }
-    }
-    /// The shared table (Go map value), for aliasing assignments `a.m = b.m`.
-    #[inline]
-    pub fn get_ref(&self) -> Option<P<RefCell<FxHashMap<K, V>>>> {
-        self.0.get()
-    }
     #[inline]
     pub(crate) fn set_ref(&self, m: Option<P<RefCell<FxHashMap<K, V>>>>) {
         self.0.set(m);
@@ -162,15 +114,6 @@ impl<K: Eq + Hash + Clone + 'static, V: Clone + 'static> GoMap<K, V> {
     pub(crate) fn assign(&self, m: FxHashMap<K, V>) {
         let scratch = tsrs_core::arena::scratch_contains(std::ptr::from_ref::<Self>(self) as usize);
         self.0.set(Some(P::new_in(scratch, RefCell::new(m))));
-    }
-    /// Snapshot of the entries (Go `for k, v := range m`).
-    #[inline]
-    pub fn entries(&self) -> Vec<(K, V)> {
-        self.0.get().map_or_else(Vec::new, |m| {
-            tsrs_core::sharedgraph::with_ref(&m, |m| {
-                m.iter().map(|(k, v)| (k.clone(), v.clone())).collect()
-            })
-        })
     }
 }
 
@@ -610,7 +553,6 @@ pub struct TypeAliasLinks {
     pub(crate) declared_type: Cell<Option<P<Type>>>,
     pub(crate) type_parameters: Cell<&'static [P<Type>]>, // Type parameters of type alias (undefined if non-generic)
     pub(crate) instantiations: GoPackedMap<CacheHashKey, P<Type>>, // Instantiations of generic type alias (undefined if non-generic)
-    pub is_constructor_declared_property: Cell<bool>,
 }
 
 // Links for declared types (type parameters, class types, interface types, enums)
@@ -1659,10 +1601,6 @@ impl Type {
     // Casts for embedded struct types. `as_*` panics where Go would return nil; `try_as_*` mirrors Go's nil result.
 
     #[inline]
-    pub fn as_constrained_type(&self) -> &'static ConstrainedType {
-        self.data().as_constrained_type().expect("as_constrained_type: wrong type data")
-    }
-    #[inline]
     pub fn as_structured_type(&self) -> &'static StructuredType {
         self.data().as_structured_type().expect("as_structured_type: wrong type data")
     }
@@ -2494,10 +2432,6 @@ pub struct TupleElementInfo {
 }
 
 impl TupleElementInfo {
-    #[inline]
-    pub fn tuple_element_flags(self) -> ElementFlags {
-        self.flags
-    }
     #[inline]
     pub fn labeled_declaration(self) -> Option<P<Node>> {
         self.labeled_declaration
@@ -3394,54 +3328,27 @@ pub(crate) fn type_comparer(
 
 #[derive(Clone, Copy, Debug)]
 pub struct LanguageFeatureMinimumTargetMap {
-    pub exponentiation: ScriptTarget,
     pub(crate) async_functions: ScriptTarget,
     pub(crate) for_await_of: ScriptTarget,
     pub(crate) async_generators: ScriptTarget,
-    pub async_iteration: ScriptTarget,
     pub(crate) object_spread_rest: ScriptTarget,
-    pub regular_expression_flags_dot_all: ScriptTarget,
-    pub bindingless_catch: ScriptTarget,
-    pub big_int: ScriptTarget,
-    pub nullish_coalesce: ScriptTarget,
-    pub optional_chaining: ScriptTarget,
-    pub logical_assignment: ScriptTarget,
-    pub top_level_await: ScriptTarget,
-    pub class_fields: ScriptTarget,
     pub(crate) private_names_and_class_static_blocks: ScriptTarget,
-    pub regular_expression_flags_has_indices: ScriptTarget,
-    pub shebang_comments: ScriptTarget,
     pub(crate) using_and_await_using: ScriptTarget,
     pub(crate) class_and_class_element_decorators: ScriptTarget,
-    pub regular_expression_flags_unicode_sets: ScriptTarget,
 }
 
 pub(crate) static LANGUAGE_FEATURE_MINIMUM_TARGET: LanguageFeatureMinimumTargetMap =
     LanguageFeatureMinimumTargetMap {
-        exponentiation: ScriptTarget::ES2016,
         async_functions: ScriptTarget::ES2017,
         for_await_of: ScriptTarget::ES2018,
         async_generators: ScriptTarget::ES2018,
-        async_iteration: ScriptTarget::ES2018,
         object_spread_rest: ScriptTarget::ES2018,
-        regular_expression_flags_dot_all: ScriptTarget::ES2018,
-        bindingless_catch: ScriptTarget::ES2019,
-        big_int: ScriptTarget::ES2020,
-        nullish_coalesce: ScriptTarget::ES2020,
-        optional_chaining: ScriptTarget::ES2020,
-        logical_assignment: ScriptTarget::ES2021,
-        top_level_await: ScriptTarget::ES2022,
-        class_fields: ScriptTarget::ES2022,
         private_names_and_class_static_blocks: ScriptTarget::ES2022,
-        regular_expression_flags_has_indices: ScriptTarget::ES2022,
-        shebang_comments: ScriptTarget::ES_NEXT,
         using_and_await_using: ScriptTarget::ES_NEXT,
         class_and_class_element_decorators: ScriptTarget::ES_NEXT,
-        regular_expression_flags_unicode_sets: ScriptTarget::ES_NEXT,
     };
 
 // Aliases for types
-pub type StringLiteralType = Type;
 
 // Shared graph: how a fork copies the frozen seed's link records (links.rs `LinkCopy`).
 crate::bitwise_link_copy!(

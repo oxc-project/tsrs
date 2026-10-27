@@ -6,8 +6,7 @@ use tsrs_core::SP;
 use crate::{EmitHelper, Priority};
 
 // helpers.go:35
-pub static DECORATE_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:decorate",
+pub(crate) static DECORATE_HELPER: EmitHelper = EmitHelper {
     import_name: "__decorate",
     scoped: false,
     priority: Some(&Priority { value: 2 }),
@@ -22,8 +21,7 @@ pub static DECORATE_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:48
-pub static METADATA_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:metadata",
+pub(crate) static METADATA_HELPER: EmitHelper = EmitHelper {
     import_name: "__metadata",
     scoped: false,
     priority: Some(&Priority { value: 3 }),
@@ -35,8 +33,7 @@ pub static METADATA_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:58
-pub static PARAM_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:param",
+pub(crate) static PARAM_HELPER: EmitHelper = EmitHelper {
     import_name: "__param",
     scoped: false,
     priority: Some(&Priority { value: 4 }),
@@ -48,8 +45,7 @@ pub static PARAM_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:70
-pub static ADD_DISPOSABLE_RESOURCE_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:addDisposableResource",
+pub(crate) static ADD_DISPOSABLE_RESOURCE_HELPER: EmitHelper = EmitHelper {
     import_name: "__addDisposableResource",
     scoped: false,
     priority: None,
@@ -80,8 +76,7 @@ pub static ADD_DISPOSABLE_RESOURCE_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:98
-pub static DISPOSE_RESOURCES_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:disposeResources",
+pub(crate) static DISPOSE_RESOURCES_HELPER: EmitHelper = EmitHelper {
     import_name: "__disposeResources",
     scoped: false,
     priority: None,
@@ -120,8 +115,7 @@ pub static DISPOSE_RESOURCES_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:184
-pub static CLASS_PRIVATE_FIELD_GET_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:classPrivateFieldGet",
+pub(crate) static CLASS_PRIVATE_FIELD_GET_HELPER: EmitHelper = EmitHelper {
     import_name: "__classPrivateFieldGet",
     scoped: false,
     priority: None,
@@ -135,8 +129,7 @@ pub static CLASS_PRIVATE_FIELD_GET_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:246
-pub static CLASS_PRIVATE_FIELD_SET_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:classPrivateFieldSet",
+pub(crate) static CLASS_PRIVATE_FIELD_SET_HELPER: EmitHelper = EmitHelper {
     import_name: "__classPrivateFieldSet",
     scoped: false,
     priority: None,
@@ -151,8 +144,7 @@ pub static CLASS_PRIVATE_FIELD_SET_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:270
-pub static CLASS_PRIVATE_FIELD_IN_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:classPrivateFieldIn",
+pub(crate) static CLASS_PRIVATE_FIELD_IN_HELPER: EmitHelper = EmitHelper {
     import_name: "__classPrivateFieldIn",
     scoped: false,
     priority: None,
@@ -165,8 +157,7 @@ pub static CLASS_PRIVATE_FIELD_IN_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:282
-pub static AWAIT_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:await",
+pub(crate) static AWAIT_HELPER: EmitHelper = EmitHelper {
     import_name: "__await",
     scoped: false,
     priority: None,
@@ -176,8 +167,7 @@ pub static AWAIT_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:289
-pub static ASYNC_GENERATOR_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:asyncGenerator",
+pub(crate) static ASYNC_GENERATOR_HELPER: EmitHelper = EmitHelper {
     import_name: "__asyncGenerator",
     scoped: false,
     priority: None,
@@ -198,8 +188,7 @@ pub static ASYNC_GENERATOR_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:308
-pub static ASYNC_DELEGATOR_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:asyncDelegator",
+pub(crate) static ASYNC_DELEGATOR_HELPER: EmitHelper = EmitHelper {
     import_name: "__asyncDelegator",
     scoped: false,
     priority: None,
@@ -213,8 +202,7 @@ pub static ASYNC_DELEGATOR_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:320
-pub static ASYNC_VALUES_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:asyncValues",
+pub(crate) static ASYNC_VALUES_HELPER: EmitHelper = EmitHelper {
     import_name: "__asyncValues",
     scoped: false,
     priority: None,
@@ -230,8 +218,7 @@ pub static ASYNC_VALUES_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:334
-pub static REST_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:rest",
+pub(crate) static REST_HELPER: EmitHelper = EmitHelper {
     import_name: "__rest",
     scoped: false,
     priority: None,
@@ -251,8 +238,7 @@ pub static REST_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:351
-pub static AWAITER_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:awaiter",
+pub(crate) static AWAITER_HELPER: EmitHelper = EmitHelper {
     import_name: "__awaiter",
     scoped: false,
     priority: Some(&Priority { value: 5 }),
@@ -271,7 +257,6 @@ pub static AWAITER_HELPER: EmitHelper = EmitHelper {
 
 // helpers.go:367
 pub static ASYNC_SUPER_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:async-super",
     import_name: "",
     scoped: true,
     priority: None,
@@ -282,7 +267,6 @@ pub static ASYNC_SUPER_HELPER: EmitHelper = EmitHelper {
 
 // helpers.go:375
 pub static ADVANCED_ASYNC_SUPER_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:advanced-async-super",
     import_name: "",
     scoped: true,
     priority: None,
@@ -292,8 +276,7 @@ pub static ADVANCED_ASYNC_SUPER_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:388
-pub static ES_DECORATE_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:esDecorate",
+pub(crate) static ES_DECORATE_HELPER: EmitHelper = EmitHelper {
     import_name: "__esDecorate",
     scoped: false,
     priority: Some(&Priority { value: 2 }),
@@ -329,8 +312,7 @@ pub static ES_DECORATE_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:422
-pub static RUN_INITIALIZERS_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:runInitializers",
+pub(crate) static RUN_INITIALIZERS_HELPER: EmitHelper = EmitHelper {
     import_name: "__runInitializers",
     scoped: false,
     priority: Some(&Priority { value: 2 }),
@@ -346,8 +328,7 @@ pub static RUN_INITIALIZERS_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:438
-pub static MAKE_TEMPLATE_OBJECT_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:makeTemplateObject",
+pub(crate) static MAKE_TEMPLATE_OBJECT_HELPER: EmitHelper = EmitHelper {
     import_name: "__makeTemplateObject",
     scoped: false,
     priority: Some(&Priority { value: 0 }),
@@ -360,8 +341,7 @@ pub static MAKE_TEMPLATE_OBJECT_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:449
-pub static PROP_KEY_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:propKey",
+pub(crate) static PROP_KEY_HELPER: EmitHelper = EmitHelper {
     import_name: "__propKey",
     scoped: false,
     priority: None,
@@ -373,8 +353,7 @@ pub static PROP_KEY_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:459
-pub static SET_FUNCTION_NAME_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:setFunctionName",
+pub(crate) static SET_FUNCTION_NAME_HELPER: EmitHelper = EmitHelper {
     import_name: "__setFunctionName",
     scoped: false,
     priority: None,
@@ -388,7 +367,6 @@ pub static SET_FUNCTION_NAME_HELPER: EmitHelper = EmitHelper {
 
 // helpers.go:471
 static CREATE_BINDING_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:commonjscreatebinding",
     import_name: "__createBinding",
     scoped: false,
     priority: Some(&Priority { value: 1 }),
@@ -409,7 +387,6 @@ static CREATE_BINDING_HELPER: EmitHelper = EmitHelper {
 
 // helpers.go:489
 static SET_MODULE_DEFAULT_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:commonjscreatevalue",
     import_name: "__setModuleDefault",
     scoped: false,
     priority: Some(&Priority { value: 1 }),
@@ -423,8 +400,7 @@ static SET_MODULE_DEFAULT_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:501
-pub static IMPORT_STAR_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:commonjsimportstar",
+pub(crate) static IMPORT_STAR_HELPER: EmitHelper = EmitHelper {
     import_name: "__importStar",
     scoped: false,
     priority: Some(&Priority { value: 2 }),
@@ -450,8 +426,7 @@ pub static IMPORT_STAR_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:526
-pub static IMPORT_DEFAULT_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:commonjsimportdefault",
+pub(crate) static IMPORT_DEFAULT_HELPER: EmitHelper = EmitHelper {
     import_name: "__importDefault",
     scoped: false,
     priority: None,
@@ -463,8 +438,7 @@ pub static IMPORT_DEFAULT_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:535
-pub static EXPORT_STAR_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:export-star",
+pub(crate) static EXPORT_STAR_HELPER: EmitHelper = EmitHelper {
     import_name: "__exportStar",
     scoped: false,
     priority: Some(&Priority { value: 2 }),
@@ -476,8 +450,7 @@ pub static EXPORT_STAR_HELPER: EmitHelper = EmitHelper {
 };
 
 // helpers.go:546
-pub static REWRITE_RELATIVE_IMPORT_EXTENSIONS_HELPER: EmitHelper = EmitHelper {
-    name: "typescript:rewriteRelativeImportExtensions",
+pub(crate) static REWRITE_RELATIVE_IMPORT_EXTENSIONS_HELPER: EmitHelper = EmitHelper {
     import_name: "__rewriteRelativeImportExtension",
     scoped: false,
     priority: None,

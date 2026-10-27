@@ -19,7 +19,6 @@ pub struct CodeFixProvider {
     pub(crate) error_codes: &'static [i32],
     pub(crate) get_code_actions:
         fn(ctx: &Context, fix_context: &CodeFixContext) -> Result<Vec<CodeAction>, lsproto::Error>,
-    pub fix_ids: &'static [&'static str],
     pub(crate) get_all_code_actions: Option<
         fn(
             ctx: &Context,
@@ -37,7 +36,6 @@ pub struct CodeFixContext<'a> {
     pub(crate) program: &'static Program,
     pub(crate) ls: &'a LanguageService,
     pub(crate) diagnostic: Option<&'a lsproto::Diagnostic>,
-    pub params: Option<&'a lsproto::CodeActionParams>,
 }
 
 // codeactions.go:40
@@ -47,7 +45,6 @@ pub struct CodeAction {
     pub(crate) description: String,
     pub(crate) changes: Vec<lsproto::TextEdit>,
     pub(crate) fix_id: String,
-    pub fix_all_description: String,
 }
 
 impl CodeAction {
@@ -164,7 +161,6 @@ impl LanguageService {
                             program,
                             ls: self,
                             diagnostic: Some(diag),
-                            params: Some(params),
                         };
 
                         let provider_actions = (provider.get_code_actions)(ctx, &fix_context)?;
@@ -236,7 +232,6 @@ impl LanguageService {
                 program,
                 ls: self,
                 diagnostic: None,
-                params: None,
             };
             let combined = get_all_code_actions(ctx, &fix_context)?;
             if let Some(combined) = combined
@@ -289,7 +284,6 @@ impl LanguageService {
                 program,
                 ls: self,
                 diagnostic: None,
-                params: None,
             };
 
             let combined = get_all_code_actions(ctx, &fix_context)?;

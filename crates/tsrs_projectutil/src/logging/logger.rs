@@ -147,7 +147,7 @@ pub fn new_nop_logger() -> Arc<dyn Logger> {
 
 // logger.go:133
 // Go formats `15:04:05.000` in the local time zone; std has no time zone database, so this is UTC.
-pub fn format_time(t: SystemTime) -> String {
+pub(crate) fn format_time(t: SystemTime) -> String {
     let d = t.duration_since(UNIX_EPOCH).unwrap_or_default();
     let secs = d.as_secs();
     let ms = d.subsec_millis();

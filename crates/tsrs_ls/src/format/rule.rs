@@ -3,7 +3,7 @@ use tsrs_ast::Kind;
 use super::*;
 
 // rule.go:5
-pub struct RuleImpl {
+pub(crate) struct RuleImpl {
     debug_name: &'static str,
     context: Vec<ContextPredicate>,
     action: RuleAction,
@@ -44,7 +44,7 @@ pub struct TokenRange {
 }
 
 // rule.go:33
-pub struct RuleSpec {
+pub(crate) struct RuleSpec {
     pub(crate) left_token_range: TokenRange,
     pub(crate) right_token_range: TokenRange,
     pub(crate) rule: &'static RuleImpl,
@@ -98,7 +98,7 @@ impl ToTokenRange for &TokenRange {
  * @param action a declaration of the expected whitespace
  * @param flags whether the rule deletes a line or not, defaults to no-op
  */
-pub fn rule(
+pub(crate) fn rule(
     debug_name: &'static str,
     left: impl ToTokenRange,
     right: impl ToTokenRange,
@@ -123,10 +123,10 @@ fn to_token_range(e: impl ToTokenRange) -> TokenRange {
 }
 
 // rule.go:83
-pub type ContextPredicate = &'static (dyn Fn(&FormattingContext) -> bool + Send + Sync);
+pub(crate) type ContextPredicate = &'static (dyn Fn(&FormattingContext) -> bool + Send + Sync);
 
 // rule.go:85
-pub fn any_context() -> Vec<ContextPredicate> {
+pub(crate) fn any_context() -> Vec<ContextPredicate> {
     Vec::new()
 }
 

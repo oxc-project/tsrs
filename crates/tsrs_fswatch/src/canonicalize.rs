@@ -1,11 +1,14 @@
 // canonicalize_darwin.go and canonicalize_other.go (selected by `cfg` like Go's build tags).
 
 use crate::pathcompare::BytePathComparer;
+#[cfg(target_os = "macos")]
 use crate::pathkey::PathComparer;
 use crate::watcher::{Error, PlatformWatcher};
 
 #[cfg(target_os = "macos")]
-pub use crate::fsevents_darwin_ffi::{NATIVE_PATH_FOLDING, fold_native_path};
+pub use crate::fsevents_darwin_ffi::NATIVE_PATH_FOLDING;
+#[cfg(target_os = "macos")]
+pub(crate) use crate::fsevents_darwin_ffi::fold_native_path;
 
 #[cfg(target_os = "macos")]
 // canonicalize_darwin.go:15
@@ -13,7 +16,7 @@ pub use crate::fsevents_darwin_ffi::{NATIVE_PATH_FOLDING, fold_native_path};
 // FSEvents paths to NFC. kqueue retains on-disk child spellings for its fd
 // bookkeeping and directory events; on case-insensitive volumes, the native
 // path comparer handles normalization differences when filtering WatchFile.
-pub fn canonicalize_path(p: &str) -> String {
+pub(crate) fn canonicalize_path(p: &str) -> String {
     crate::fsevents_darwin_ffi::normalize_nfc(p)
 }
 
@@ -33,7 +36,7 @@ impl PlatformWatcher {
 // canonicalize_darwin.go:27
 // path_comparer_for_path queries an existing path's volume. Errors are returned to
 // the caller; a failed query must not silently enable or disable native folding.
-pub fn path_comparer_for_path(path: &str) -> Result<PathComparer, Error> {
+fn path_comparer_for_path(path: &str) -> Result<PathComparer, Error> {
     // _PC_CASE_SENSITIVE from sys/unistd.h. Query the watched volume rather
     // than assuming every volume mounted on macOS is case-insensitive.
     const PC_CASE_SENSITIVE: libc::c_int = 11;
@@ -52,7 +55,7 @@ pub const NATIVE_PATH_FOLDING: bool = false;
 
 #[cfg(not(target_os = "macos"))]
 // canonicalize_other.go:7
-pub fn fold_native_path(_: &str) -> String {
+pub(crate) fn fold_native_path(_: &str) -> String {
     panic!("fswatch: native path folding is only available on Darwin");
 }
 
@@ -61,7 +64,7 @@ pub fn fold_native_path(_: &str) -> String {
 // canonicalizePath is a no-op on platforms whose watchers report paths
 // using the same bytes the caller provided. See canonicalize_darwin.go
 // for the rationale on macOS.
-pub fn canonicalize_path(p: &str) -> String {
+pub(crate) fn canonicalize_path(p: &str) -> String {
     p.to_string()
 }
 
@@ -76,16 +79,4 @@ impl PlatformWatcher {
     pub(crate) fn path_comparer(&self, _dir: &str) -> Result<BytePathComparer, Error> {
         Ok(BytePathComparer::default())
     }
-}
-
-#[cfg(not(target_os = "macos"))]
-// canonicalize_other.go:22
-// path_comparer_for_path returns exact comparison on platforms without native
-// Darwin watch aliases. It does not inspect the host filesystem.
-#[expect(
-    clippy::unnecessary_wraps,
-    reason = "Keeps the cross-platform API fallible because macOS volume queries can fail."
-)]
-pub fn path_comparer_for_path(_path: &str) -> Result<PathComparer, Error> {
-    Ok(PathComparer::default())
 }

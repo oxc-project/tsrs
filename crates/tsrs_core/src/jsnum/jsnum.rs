@@ -171,11 +171,6 @@ impl Number {
     }
 
     #[must_use]
-    pub fn floor(self) -> Number {
-        Number(self.0.floor())
-    }
-
-    #[must_use]
     pub fn abs(self) -> Number {
         Number(self.0.abs())
     }

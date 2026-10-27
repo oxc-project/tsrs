@@ -19,23 +19,23 @@ pub struct Api {
     next_id: u32,
 }
 
-pub struct SourceAst {
+pub(crate) struct SourceAst {
     decoded: DecodedNode,
     table: NodeIndexTable,
 }
 
 impl SourceAst {
-    pub fn file(&self) -> P<SourceFile> {
+    pub(crate) fn file(&self) -> P<SourceFile> {
         self.decoded.root().as_source_file_p()
     }
 
-    pub fn handle(&self, node: P<tsrs_ast::Node>) -> String {
+    pub(crate) fn handle(&self, node: P<tsrs_ast::Node>) -> String {
         tsrs_api_codec::node_handle(&self.table, self.file().get(), node)
     }
 }
 
 impl Api {
-    pub fn start(binary: &Path, cwd: &Path) -> Result<Self> {
+    pub(crate) fn start(binary: &Path, cwd: &Path) -> Result<Self> {
         let mut child = Command::new(binary)
             .args(["--api", "--async", "--cwd"])
             .arg(cwd)
@@ -48,7 +48,7 @@ impl Api {
         Ok(Self { child, stdin, stdout, next_id: 1 })
     }
 
-    pub fn request(&mut self, method: &str, params: &Value) -> Result<Value> {
+    pub(crate) fn request(&mut self, method: &str, params: &Value) -> Result<Value> {
         let id = self.next_id;
         self.next_id += 1;
         let body = serde_json::to_vec(&json!({
@@ -87,14 +87,19 @@ impl Api {
         Ok(response["result"].clone())
     }
 
-    pub fn snapshot(&mut self, configs: &[String]) -> Result<(u64, Vec<Value>)> {
+    pub(crate) fn snapshot(&mut self, configs: &[String]) -> Result<(u64, Vec<Value>)> {
         let response = self.request("createSnapshot", &json!({ "openProjects": configs }))?;
         let snapshot = response["snapshot"].as_u64().ok_or("missing snapshot ID")?;
         let projects = response["projects"].as_array().ok_or("missing projects")?.clone();
         Ok((snapshot, projects))
     }
 
-    pub fn source_ast(&mut self, snapshot: u64, project: &str, file: &str) -> Result<SourceAst> {
+    pub(crate) fn source_ast(
+        &mut self,
+        snapshot: u64,
+        project: &str,
+        file: &str,
+    ) -> Result<SourceAst> {
         let response = self.request(
             "getSourceFile",
             &json!({ "snapshot": snapshot, "project": project, "file": file }),

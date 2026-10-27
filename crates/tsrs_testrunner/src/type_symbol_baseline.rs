@@ -1,3 +1,8 @@
+#![expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+
 // internal/testutil/tsbaseline/type_symbol_baseline.go: the `.types` and `.symbols` baselines.
 
 use std::fmt::Write as _;
@@ -27,7 +32,7 @@ static LINE_DELIMITER: LazyLock<Regex> = LazyLock::new(|| Regex::new("\r?\n").un
 // DoTypeAndSymbolBaseline: both baselines from one walker, the type walk first (it runs first in Go's
 // test process, and it can create types that the symbol walk then sees). Each walk runs under its own
 // panic guard (Go's per-subtest RecoverAndFail); a panic is returned as `Err(message)`.
-pub fn do_type_and_symbol_baseline(
+pub(crate) fn do_type_and_symbol_baseline(
     header: &str,
     program: &'static Program,
     all_files: &[TestFile],
@@ -152,7 +157,7 @@ fn file_baseline(
 
 // One file's section of the `.types` (or `.symbols`) baseline for a whole project (tsrs-test types-dump): the
 // walk of `source_file` under `unit_name`, without the `//// [header] ////` prefix.
-pub fn project_file_baseline(
+pub(crate) fn project_file_baseline(
     walker: &mut TypeWriterWalker,
     source_file: P<SourceFile>,
     unit_name: &str,
@@ -163,7 +168,7 @@ pub fn project_file_baseline(
     file_baseline(unit_name, source_file.text(), &results, is_symbol_baseline).unwrap_or_default()
 }
 
-pub struct TypeWriterWalker {
+pub(crate) struct TypeWriterWalker {
     program: &'static Program,
     had_error_baseline: bool,
     current_source_file: Option<P<SourceFile>>,

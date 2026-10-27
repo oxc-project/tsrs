@@ -192,11 +192,11 @@ pub struct TypeDefinitionParams {
     pub position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 }
 
 impl HasTextDocumentURI for TypeDefinitionParams {
@@ -313,7 +313,7 @@ pub struct WorkspaceFolder {
 
     // The name of the workspace folder. Used to refer to this
     // workspace folder in the user interface.
-    pub name: String,
+    name: String,
 }
 
 impl Json for WorkspaceFolder {
@@ -355,7 +355,7 @@ impl Json for WorkspaceFolder {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DidChangeWorkspaceFoldersParams {
     // The actual workspace folder change event.
-    pub event: WorkspaceFoldersChangeEvent,
+    event: WorkspaceFoldersChangeEvent,
 }
 
 impl Json for DidChangeWorkspaceFoldersParams {
@@ -422,14 +422,14 @@ impl Json for ConfigurationParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentColorParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The text document.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 }
 
 impl HasTextDocumentURI for DocumentColorParams {
@@ -480,10 +480,10 @@ impl Json for DocumentColorParams {
 #[derive(Clone, Debug, Default, PartialEq, Copy)]
 pub struct ColorInformation {
     // The range in the document where this color appears.
-    pub range: Range,
+    range: Range,
 
     // The actual color value for this color range.
-    pub color: Color,
+    color: Color,
 }
 
 impl Json for ColorInformation {
@@ -525,13 +525,13 @@ impl Json for ColorInformation {
 pub struct DocumentColorRegistrationOptions {
     // A document selector to identify the scope of the registration. If set to null
     // the document selector provided on the client side will be used.
-    pub document_selector: DocumentSelectorOrNull,
+    document_selector: DocumentSelectorOrNull,
 
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // The id used to register the request. The id can be used to deregister
     // the request again. See also Registration#id.
-    pub id: Option<String>,
+    id: Option<String>,
 }
 
 impl Json for DocumentColorRegistrationOptions {
@@ -576,20 +576,20 @@ impl Json for DocumentColorRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ColorPresentationParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The text document.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 
     // The color to request presentations for.
-    pub color: Color,
+    color: Color,
 
     // The range where the color would be inserted. Serves as a context.
-    pub range: Range,
+    range: Range,
 }
 
 impl HasTextDocumentURI for ColorPresentationParams {
@@ -651,16 +651,16 @@ pub struct ColorPresentation {
     // The label of this color presentation. It will be shown on the color
     // picker header. By default this is also the text that is inserted when selecting
     // this color presentation.
-    pub label: String,
+    label: String,
 
     // An edit which is applied to a document when selecting
     // this presentation for the color. When `falsy` the label
     // is used.
-    pub text_edit: Option<TextEdit>,
+    text_edit: Option<TextEdit>,
 
     // An optional array of additional edits that are applied when
     // selecting this color presentation. Edits must not overlap with the main edit nor with themselves.
-    pub additional_text_edits: Option<Vec<TextEdit>>,
+    additional_text_edits: Option<Vec<TextEdit>>,
 }
 
 impl Json for ColorPresentation {
@@ -705,11 +705,11 @@ impl Json for ColorPresentation {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct FoldingRangeParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The text document.
     pub text_document: TextDocumentIdentifier,
@@ -895,17 +895,17 @@ impl Json for FoldingRangeRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DeclarationParams {
     // The text document.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 
     // The position inside the text document.
-    pub position: Position,
+    position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 }
 
 impl HasTextDocumentURI for DeclarationParams {
@@ -965,15 +965,15 @@ impl Json for DeclarationParams {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DeclarationRegistrationOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // A document selector to identify the scope of the registration. If set to null
     // the document selector provided on the client side will be used.
-    pub document_selector: DocumentSelectorOrNull,
+    document_selector: DocumentSelectorOrNull,
 
     // The id used to register the request. The id can be used to deregister
     // the request again. See also Registration#id.
-    pub id: Option<String>,
+    id: Option<String>,
 }
 
 impl Json for DeclarationRegistrationOptions {
@@ -1018,11 +1018,11 @@ impl Json for DeclarationRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SelectionRangeParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The text document.
     pub text_document: TextDocumentIdentifier,
@@ -1212,7 +1212,7 @@ impl Json for WorkDoneProgressCreateParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkDoneProgressCancelParams {
     // The token to be used to report progress.
-    pub token: IntegerOrString,
+    token: IntegerOrString,
 }
 
 impl Json for WorkDoneProgressCancelParams {
@@ -1254,7 +1254,7 @@ pub struct CallHierarchyPrepareParams {
     pub position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 }
 
 impl HasTextDocumentURI for CallHierarchyPrepareParams {
@@ -1469,11 +1469,11 @@ impl Json for CallHierarchyRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CallHierarchyIncomingCallsParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     pub item: CallHierarchyItem,
 }
@@ -1670,11 +1670,11 @@ impl Json for CallHierarchyOutgoingCall {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SemanticTokensParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The text document.
     pub text_document: TextDocumentIdentifier,
@@ -1774,7 +1774,7 @@ impl Json for SemanticTokens {
 // Since: 3.16.0
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SemanticTokensPartialResult {
-    pub data: Vec<u32>,
+    data: Vec<u32>,
 }
 
 impl Json for SemanticTokensPartialResult {
@@ -1883,18 +1883,18 @@ impl Json for SemanticTokensRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SemanticTokensDeltaParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The text document.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 
     // The result id of a previous response. The result Id can either point to a full response
     // or a delta response depending on what was received last.
-    pub previous_result_id: String,
+    previous_result_id: String,
 }
 
 impl HasTextDocumentURI for SemanticTokensDeltaParams {
@@ -1949,10 +1949,10 @@ impl Json for SemanticTokensDeltaParams {
 // Since: 3.16.0
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SemanticTokensDelta {
-    pub result_id: Option<String>,
+    result_id: Option<String>,
 
     // The semantic token edits to transform a previous result into a new result.
-    pub edits: Vec<SemanticTokensEdit>,
+    edits: Vec<SemanticTokensEdit>,
 }
 
 impl Json for SemanticTokensDelta {
@@ -1992,7 +1992,7 @@ impl Json for SemanticTokensDelta {
 // Since: 3.16.0
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SemanticTokensDeltaPartialResult {
-    pub edits: Vec<SemanticTokensEdit>,
+    edits: Vec<SemanticTokensEdit>,
 }
 
 impl Json for SemanticTokensDeltaPartialResult {
@@ -2026,11 +2026,11 @@ impl Json for SemanticTokensDeltaPartialResult {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SemanticTokensRangeParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The text document.
     pub text_document: TextDocumentIdentifier,
@@ -2094,24 +2094,24 @@ impl Json for SemanticTokensRangeParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ShowDocumentParams {
     // The uri to show.
-    pub uri: URI,
+    uri: URI,
 
     // Indicates to show the resource in an external program.
     // To show, for example, `https://code.visualstudio.com/`
     // in the default WEB browser set `external` to `true`.
-    pub external: Option<bool>,
+    external: Option<bool>,
 
     // An optional property to indicate whether the editor
     // showing the document should take focus or not.
     // Clients might ignore this property if an external
     // program is started.
-    pub take_focus: Option<bool>,
+    take_focus: Option<bool>,
 
     // An optional selection range if the document is a text
     // document. Clients might ignore the property if an
     // external program is started or the file is not a text
     // file.
-    pub selection: Option<Range>,
+    selection: Option<Range>,
 }
 
 impl Json for ShowDocumentParams {
@@ -2162,7 +2162,7 @@ impl Json for ShowDocumentParams {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct ShowDocumentResult {
     // A boolean indicating if the show was successful.
-    pub success: bool,
+    success: bool,
 }
 
 impl Json for ShowDocumentResult {
@@ -2362,7 +2362,7 @@ impl Json for LinkedEditingRangeRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CreateFilesParams {
     // An array of all files/folders created in this operation.
-    pub files: Vec<FileCreate>,
+    files: Vec<FileCreate>,
 }
 
 impl Json for CreateFilesParams {
@@ -2546,7 +2546,7 @@ impl Json for RenameFilesParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DeleteFilesParams {
     // An array of all files/folders deleted in this operation.
-    pub files: Vec<FileDelete>,
+    files: Vec<FileDelete>,
 }
 
 impl Json for DeleteFilesParams {
@@ -2579,17 +2579,17 @@ impl Json for DeleteFilesParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct MonikerParams {
     // The text document.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 
     // The position inside the text document.
-    pub position: Position,
+    position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 }
 
 impl HasTextDocumentURI for MonikerParams {
@@ -2653,17 +2653,17 @@ impl Json for MonikerParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Moniker {
     // The scheme of the moniker. For example tsc or .Net
-    pub scheme: String,
+    scheme: String,
 
     // The identifier of the moniker. The value is opaque in LSIF however
     // schema owners are allowed to define the structure if they want.
-    pub identifier: String,
+    identifier: String,
 
     // The scope in which the moniker is unique
-    pub unique: UniquenessLevel,
+    unique: UniquenessLevel,
 
     // The moniker kind if known.
-    pub kind: Option<MonikerKind>,
+    kind: Option<MonikerKind>,
 }
 
 impl Json for Moniker {
@@ -2714,9 +2714,9 @@ impl Json for Moniker {
 pub struct MonikerRegistrationOptions {
     // A document selector to identify the scope of the registration. If set to null
     // the document selector provided on the client side will be used.
-    pub document_selector: DocumentSelectorOrNull,
+    document_selector: DocumentSelectorOrNull,
 
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for MonikerRegistrationOptions {
@@ -2759,13 +2759,13 @@ impl Json for MonikerRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TypeHierarchyPrepareParams {
     // The text document.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 
     // The position inside the text document.
-    pub position: Position,
+    position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 }
 
 impl HasTextDocumentURI for TypeHierarchyPrepareParams {
@@ -2823,34 +2823,34 @@ impl Json for TypeHierarchyPrepareParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TypeHierarchyItem {
     // The name of this item.
-    pub name: String,
+    name: String,
 
     // The kind of this item.
-    pub kind: SymbolKind,
+    kind: SymbolKind,
 
     // Tags for this item.
-    pub tags: Option<Vec<SymbolTag>>,
+    tags: Option<Vec<SymbolTag>>,
 
     // More detail for this item, e.g. the signature of a function.
-    pub detail: Option<String>,
+    detail: Option<String>,
 
     // The resource identifier of this item.
-    pub uri: DocumentUri,
+    uri: DocumentUri,
 
     // The range enclosing this symbol not including leading/trailing whitespace
     // but everything else, e.g. comments and code.
-    pub range: Range,
+    range: Range,
 
     // The range that should be selected and revealed when this symbol is being
     // picked, e.g. the name of a function. Must be contained by the
     // `range`.
-    pub selection_range: Range,
+    selection_range: Range,
 
     // A data entry field that is preserved between a type hierarchy prepare and
     // supertypes or subtypes requests. It could also be used to identify the
     // type hierarchy in the server, helping improve the performance on
     // resolving supertypes and subtypes.
-    pub data: Option<TypeHierarchyItemData>,
+    data: Option<TypeHierarchyItemData>,
 }
 
 impl HasLocation for TypeHierarchyItem {
@@ -2928,13 +2928,13 @@ impl Json for TypeHierarchyItem {
 pub struct TypeHierarchyRegistrationOptions {
     // A document selector to identify the scope of the registration. If set to null
     // the document selector provided on the client side will be used.
-    pub document_selector: DocumentSelectorOrNull,
+    document_selector: DocumentSelectorOrNull,
 
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // The id used to register the request. The id can be used to deregister
     // the request again. See also Registration#id.
-    pub id: Option<String>,
+    id: Option<String>,
 }
 
 impl Json for TypeHierarchyRegistrationOptions {
@@ -2981,13 +2981,13 @@ impl Json for TypeHierarchyRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TypeHierarchySupertypesParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
-    pub item: TypeHierarchyItem,
+    item: TypeHierarchyItem,
 }
 
 impl Json for TypeHierarchySupertypesParams {
@@ -3034,13 +3034,13 @@ impl Json for TypeHierarchySupertypesParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TypeHierarchySubtypesParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
-    pub item: TypeHierarchyItem,
+    item: TypeHierarchyItem,
 }
 
 impl Json for TypeHierarchySubtypesParams {
@@ -3087,17 +3087,17 @@ impl Json for TypeHierarchySubtypesParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlineValueParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // The text document.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 
     // The document range for which inline values information will be returned.
-    pub range: Range,
+    range: Range,
 
     // Additional information about the context in which inline values information was
     // requested.
-    pub context: InlineValueContext,
+    context: InlineValueContext,
 }
 
 impl HasTextDocumentURI for InlineValueParams {
@@ -3155,15 +3155,15 @@ impl Json for InlineValueParams {
 // Since: 3.17.0
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlineValueRegistrationOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // A document selector to identify the scope of the registration. If set to null
     // the document selector provided on the client side will be used.
-    pub document_selector: DocumentSelectorOrNull,
+    document_selector: DocumentSelectorOrNull,
 
     // The id used to register the request. The id can be used to deregister
     // the request again. See also Registration#id.
-    pub id: Option<String>,
+    id: Option<String>,
 }
 
 impl Json for InlineValueRegistrationOptions {
@@ -3210,7 +3210,7 @@ impl Json for InlineValueRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlayHintParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // The text document.
     pub text_document: TextDocumentIdentifier,
@@ -3514,7 +3514,7 @@ impl Json for DocumentDiagnosticParams {
 // Since: 3.17.0
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DiagnosticServerCancellationData {
-    pub retrigger_request: bool,
+    retrigger_request: bool,
 }
 
 impl Json for DiagnosticServerCancellationData {
@@ -3635,18 +3635,18 @@ impl Json for DiagnosticRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceDiagnosticParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The additional identifier provided during registration.
-    pub identifier: Option<String>,
+    identifier: Option<String>,
 
     // The currently known diagnostic reports with their
     // previous result ids.
-    pub previous_result_ids: Vec<PreviousResultId>,
+    previous_result_ids: Vec<PreviousResultId>,
 }
 
 impl Json for WorkspaceDiagnosticParams {
@@ -3696,7 +3696,7 @@ impl Json for WorkspaceDiagnosticParams {
 // Since: 3.17.0
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceDiagnosticReport {
-    pub items: Vec<WorkspaceFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport>,
+    items: Vec<WorkspaceFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport>,
 }
 
 impl Json for WorkspaceDiagnosticReport {
@@ -3731,7 +3731,7 @@ impl Json for WorkspaceDiagnosticReport {
 // Since: 3.17.0
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceDiagnosticReportPartialResult {
-    pub items: Vec<WorkspaceFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport>,
+    items: Vec<WorkspaceFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport>,
 }
 
 impl Json for WorkspaceDiagnosticReportPartialResult {
@@ -3767,17 +3767,17 @@ impl Json for WorkspaceDiagnosticReportPartialResult {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlineCompletionParams {
     // The text document.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 
     // The position inside the text document.
-    pub position: Position,
+    position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // Additional information about the context in which inline completions were
     // requested.
-    pub context: InlineCompletionContext,
+    context: InlineCompletionContext,
 }
 
 impl HasTextDocumentURI for InlineCompletionParams {
@@ -3842,7 +3842,7 @@ impl Json for InlineCompletionParams {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct InlineCompletionList {
     // The inline completion items
-    pub items: Vec<InlineCompletionItem>,
+    items: Vec<InlineCompletionItem>,
 }
 
 impl Json for InlineCompletionList {
@@ -3878,16 +3878,16 @@ impl Json for InlineCompletionList {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct InlineCompletionItem {
     // The text to replace the range with. Must be set.
-    pub insert_text: StringOrStringValue,
+    insert_text: StringOrStringValue,
 
     // A text that is used to decide if this inline completion should be shown. When `falsy` the InlineCompletionItem.insertText is used.
-    pub filter_text: Option<String>,
+    filter_text: Option<String>,
 
     // The range to replace. Must begin and end on the same line.
-    pub range: Option<Range>,
+    range: Option<Range>,
 
     // An optional Command that is executed *after* inserting this completion.
-    pub command: Option<Command>,
+    command: Option<Command>,
 }
 
 impl Json for InlineCompletionItem {
@@ -3937,15 +3937,15 @@ impl Json for InlineCompletionItem {
 // Since: 3.18.0
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlineCompletionRegistrationOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // A document selector to identify the scope of the registration. If set to null
     // the document selector provided on the client side will be used.
-    pub document_selector: DocumentSelectorOrNull,
+    document_selector: DocumentSelectorOrNull,
 
     // The id used to register the request. The id can be used to deregister
     // the request again. See also Registration#id.
-    pub id: Option<String>,
+    id: Option<String>,
 }
 
 impl Json for InlineCompletionRegistrationOptions {
@@ -3992,7 +3992,7 @@ impl Json for InlineCompletionRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TextDocumentContentParams {
     // The uri of the text document.
-    pub uri: DocumentUri,
+    uri: DocumentUri,
 }
 
 impl Json for TextDocumentContentParams {
@@ -4031,7 +4031,7 @@ pub struct TextDocumentContentResult {
     // any subsequent open notifications for the text document might differ
     // from the returned content due to whitespace and line ending
     // normalizations done on the client
-    pub text: String,
+    text: String,
 }
 
 impl Json for TextDocumentContentResult {
@@ -4067,11 +4067,11 @@ impl Json for TextDocumentContentResult {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TextDocumentContentRegistrationOptions {
     // The schemes for which the server provides content.
-    pub schemes: Vec<String>,
+    schemes: Vec<String>,
 
     // The id used to register the request. The id can be used to deregister
     // the request again. See also Registration#id.
-    pub id: Option<String>,
+    id: Option<String>,
 }
 
 impl Json for TextDocumentContentRegistrationOptions {
@@ -4114,7 +4114,7 @@ impl Json for TextDocumentContentRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TextDocumentContentRefreshParams {
     // The uri of the text document to refresh.
-    pub uri: DocumentUri,
+    uri: DocumentUri,
 }
 
 impl Json for TextDocumentContentRefreshParams {
@@ -4389,7 +4389,7 @@ pub struct InitializeError {
     // (1) show the message provided by the ResponseError to the user
     // (2) user selects retry or cancel
     // (3) if user selected retry the initialize method is sent again.
-    pub retry: bool,
+    retry: bool,
 }
 
 impl Json for InitializeError {
@@ -4504,10 +4504,10 @@ impl Json for DidChangeConfigurationRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ShowMessageParams {
     // The message type. See MessageType
-    pub type_: MessageType,
+    type_: MessageType,
 
     // The actual message.
-    pub message: String,
+    message: String,
 }
 
 impl Json for ShowMessageParams {
@@ -4548,13 +4548,13 @@ impl Json for ShowMessageParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ShowMessageRequestParams {
     // The message type. See MessageType
-    pub type_: MessageType,
+    type_: MessageType,
 
     // The actual message.
-    pub message: String,
+    message: String,
 
     // The message action items to present.
-    pub actions: Option<Vec<MessageActionItem>>,
+    actions: Option<Vec<MessageActionItem>>,
 }
 
 impl Json for ShowMessageRequestParams {
@@ -4599,7 +4599,7 @@ impl Json for ShowMessageRequestParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct MessageActionItem {
     // A short title like 'Retry', 'Open Log' etc.
-    pub title: String,
+    title: String,
 }
 
 impl Json for MessageActionItem {
@@ -4894,7 +4894,7 @@ pub struct DidSaveTextDocumentParams {
 
     // Optional the content when saved. Depends on the includeText value
     // when the save notification was requested.
-    pub text: Option<String>,
+    text: Option<String>,
 }
 
 impl HasTextDocumentURI for DidSaveTextDocumentParams {
@@ -4942,10 +4942,10 @@ impl Json for DidSaveTextDocumentParams {
 pub struct TextDocumentSaveRegistrationOptions {
     // A document selector to identify the scope of the registration. If set to null
     // the document selector provided on the client side will be used.
-    pub document_selector: DocumentSelectorOrNull,
+    document_selector: DocumentSelectorOrNull,
 
     // The client is supposed to include the content on save.
-    pub include_text: Option<bool>,
+    include_text: Option<bool>,
 }
 
 impl Json for TextDocumentSaveRegistrationOptions {
@@ -4986,10 +4986,10 @@ impl Json for TextDocumentSaveRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WillSaveTextDocumentParams {
     // The document that will be saved.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 
     // The 'TextDocumentSaveReason'.
-    pub reason: TextDocumentSaveReason,
+    reason: TextDocumentSaveReason,
 }
 
 impl HasTextDocumentURI for WillSaveTextDocumentParams {
@@ -5903,7 +5903,7 @@ pub struct SignatureHelpParams {
     pub position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // The signature help context. This is only available if the client specifies
     // to send this using the client capability `textDocument.signatureHelp.contextSupport === true`
@@ -6119,11 +6119,11 @@ pub struct DefinitionParams {
     pub position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 }
 
 impl HasTextDocumentURI for DefinitionParams {
@@ -6358,11 +6358,11 @@ pub struct DocumentHighlightParams {
     pub position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 }
 
 impl HasTextDocumentURI for DocumentHighlightParams {
@@ -6514,11 +6514,11 @@ impl Json for DocumentHighlightRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentSymbolParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The text document.
     pub text_document: TextDocumentIdentifier,
@@ -6816,17 +6816,17 @@ impl Json for DocumentSymbolRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CodeActionParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The document in which the command was invoked.
     pub text_document: TextDocumentIdentifier,
 
     // The range for which the command was invoked.
-    pub range: Range,
+    range: Range,
 
     // Context carrying additional information.
     pub context: CodeActionContext,
@@ -7164,11 +7164,11 @@ impl Json for CodeActionRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceSymbolParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // A query string to filter symbols by. Clients may send an empty
     // string here to request all symbols.
@@ -7234,32 +7234,32 @@ impl Json for WorkspaceSymbolParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceSymbol {
     // The name of this symbol.
-    pub name: String,
+    name: String,
 
     // The kind of this symbol.
-    pub kind: SymbolKind,
+    kind: SymbolKind,
 
     // Tags for this symbol.
     //
     // Since: 3.16.0
-    pub tags: Option<Vec<SymbolTag>>,
+    tags: Option<Vec<SymbolTag>>,
 
     // The name of the symbol containing this symbol. This information is for
     // user interface purposes (e.g. to render a qualifier in the user interface
     // if necessary). It can't be used to re-infer a hierarchy for the document
     // symbols.
-    pub container_name: Option<String>,
+    container_name: Option<String>,
 
     // The location of the symbol. Whether a server is allowed to
     // return a location without a range depends on the client
     // capability `workspace.symbol.resolveSupport`.
     //
     // See SymbolInformation#location for more details.
-    pub location: LocationOrLocationUriOnly,
+    location: LocationOrLocationUriOnly,
 
     // A data entry field that is preserved on a workspace symbol between a
     // workspace symbol request and a workspace symbol resolve request.
-    pub data: Option<WorkspaceSymbolData>,
+    data: Option<WorkspaceSymbolData>,
 }
 
 impl Json for WorkspaceSymbol {
@@ -7317,13 +7317,13 @@ impl Json for WorkspaceSymbol {
 // Registration options for a WorkspaceSymbolRequest.
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct WorkspaceSymbolRegistrationOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // The server provides support to resolve additional
     // information for a workspace symbol.
     //
     // Since: 3.17.0
-    pub resolve_provider: Option<bool>,
+    resolve_provider: Option<bool>,
 }
 
 impl Json for WorkspaceSymbolRegistrationOptions {
@@ -7361,11 +7361,11 @@ impl Json for WorkspaceSymbolRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CodeLensParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The document to request code lens for.
     pub text_document: TextDocumentIdentifier,
@@ -7526,14 +7526,14 @@ impl Json for CodeLensRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentLinkParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 
     // The document to provide document links for.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 }
 
 impl HasTextDocumentURI for DocumentLinkParams {
@@ -7585,10 +7585,10 @@ impl Json for DocumentLinkParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentLink {
     // The range this link applies to.
-    pub range: Range,
+    range: Range,
 
     // The uri this link points to. If missing a resolve request is sent later.
-    pub target: Option<URI>,
+    target: Option<URI>,
 
     // The tooltip text when you hover over this link.
     //
@@ -7597,11 +7597,11 @@ pub struct DocumentLink {
     // user settings, and localization.
     //
     // Since: 3.15.0
-    pub tooltip: Option<String>,
+    tooltip: Option<String>,
 
     // A data entry field that is preserved on a document link between a
     // DocumentLinkRequest and a DocumentLinkResolveRequest.
-    pub data: Option<DocumentLinkData>,
+    data: Option<DocumentLinkData>,
 }
 
 impl Json for DocumentLink {
@@ -7651,12 +7651,12 @@ impl Json for DocumentLink {
 pub struct DocumentLinkRegistrationOptions {
     // A document selector to identify the scope of the registration. If set to null
     // the document selector provided on the client side will be used.
-    pub document_selector: DocumentSelectorOrNull,
+    document_selector: DocumentSelectorOrNull,
 
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // Document links have a resolve provider as well.
-    pub resolve_provider: Option<bool>,
+    resolve_provider: Option<bool>,
 }
 
 impl Json for DocumentLinkRegistrationOptions {
@@ -7701,7 +7701,7 @@ impl Json for DocumentLinkRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentFormattingParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // The document to format.
     pub text_document: TextDocumentIdentifier,
@@ -7803,7 +7803,7 @@ impl Json for DocumentFormattingRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentRangeFormattingParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // The document to format.
     pub text_document: TextDocumentIdentifier,
@@ -7924,16 +7924,16 @@ impl Json for DocumentRangeFormattingRegistrationOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentRangesFormattingParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // The document to format.
-    pub text_document: TextDocumentIdentifier,
+    text_document: TextDocumentIdentifier,
 
     // The ranges to format
-    pub ranges: Vec<Range>,
+    ranges: Vec<Range>,
 
     // The format options
-    pub options: FormattingOptions,
+    options: FormattingOptions,
 }
 
 impl HasTextDocumentURI for DocumentRangesFormattingParams {
@@ -8127,7 +8127,7 @@ pub struct RenameParams {
     pub position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // The new name of the symbol. If the given name is not valid the
     // request must return a ResponseError with an
@@ -8253,7 +8253,7 @@ pub struct PrepareRenameParams {
     pub position: Position,
 
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 }
 
 impl HasTextDocumentURI for PrepareRenameParams {
@@ -8311,13 +8311,13 @@ impl Json for PrepareRenameParams {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ExecuteCommandParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 
     // The identifier of the actual command handler.
-    pub command: String,
+    command: String,
 
     // Arguments that the command should be invoked with.
-    pub arguments: Option<Vec<Value>>,
+    arguments: Option<Vec<Value>>,
 }
 
 impl Json for ExecuteCommandParams {
@@ -8361,10 +8361,10 @@ impl Json for ExecuteCommandParams {
 // Registration options for a ExecuteCommandRequest.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ExecuteCommandRegistrationOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // The commands to be executed on the server
-    pub commands: Vec<String>,
+    commands: Vec<String>,
 }
 
 impl Json for ExecuteCommandRegistrationOptions {
@@ -8407,15 +8407,15 @@ pub struct ApplyWorkspaceEditParams {
     // An optional label of the workspace edit. This label is
     // presented in the user interface for example on an undo
     // stack to undo the workspace edit.
-    pub label: Option<String>,
+    label: Option<String>,
 
     // The edits to apply.
-    pub edit: WorkspaceEdit,
+    edit: WorkspaceEdit,
 
     // Additional data about the edit.
     //
     // Since: 3.18.0
-    pub metadata: Option<WorkspaceEditMetadata>,
+    metadata: Option<WorkspaceEditMetadata>,
 }
 
 impl Json for ApplyWorkspaceEditParams {
@@ -8462,17 +8462,17 @@ impl Json for ApplyWorkspaceEditParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ApplyWorkspaceEditResult {
     // Indicates whether the edit was applied or not.
-    pub applied: bool,
+    applied: bool,
 
     // An optional textual description for why the edit was not applied.
     // This may be used by the server for diagnostic logging or to provide
     // a suitable error for a request that triggered the edit.
-    pub failure_reason: Option<String>,
+    failure_reason: Option<String>,
 
     // Depending on the client's failure handling strategy `failedChange` might
     // contain the index of the change that failed. This property is only available
     // if the client signals a `failureHandlingStrategy` in its client capabilities.
-    pub failed_change: Option<u32>,
+    failed_change: Option<u32>,
 }
 
 impl Json for ApplyWorkspaceEditResult {
@@ -8661,11 +8661,11 @@ impl Json for WorkDoneProgressReport {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkDoneProgressEnd {
-    pub kind: StringLiteralEnd,
+    kind: StringLiteralEnd,
 
     // Optional, a final message indicating to for example indicate the outcome
     // of the operation.
-    pub message: Option<String>,
+    message: Option<String>,
 }
 
 impl Json for WorkDoneProgressEnd {
@@ -8704,7 +8704,7 @@ impl Json for WorkDoneProgressEnd {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct SetTraceParams {
-    pub value: TraceValue,
+    value: TraceValue,
 }
 
 impl Json for SetTraceParams {
@@ -8736,9 +8736,9 @@ impl Json for SetTraceParams {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct LogTraceParams {
-    pub message: String,
+    message: String,
 
-    pub verbose: Option<String>,
+    verbose: Option<String>,
 }
 
 impl Json for LogTraceParams {
@@ -8913,7 +8913,7 @@ impl Json for TextDocumentPositionParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkDoneProgressParams {
     // An optional token that a server can use to report work done progress.
-    pub work_done_token: Option<IntegerOrString>,
+    work_done_token: Option<IntegerOrString>,
 }
 
 impl Json for WorkDoneProgressParams {
@@ -8944,7 +8944,7 @@ impl Json for WorkDoneProgressParams {
 pub struct PartialResultParams {
     // An optional token that a server can use to report partial results (e.g. streaming) to
     // the client.
-    pub partial_result_token: Option<IntegerOrString>,
+    partial_result_token: Option<IntegerOrString>,
 }
 
 impl Json for PartialResultParams {
@@ -9099,7 +9099,7 @@ impl Json for Range {
 }
 
 impl Range {
-    pub fn compare(&self, other: &Range) -> std::cmp::Ordering {
+    fn compare(&self, other: &Range) -> std::cmp::Ordering {
         let c = self.start.compare(other.start);
         if c != std::cmp::Ordering::Equal {
             return c;
@@ -9110,7 +9110,7 @@ impl Range {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct ImplementationOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for ImplementationOptions {
@@ -9143,7 +9143,7 @@ impl Json for ImplementationOptions {
 pub struct StaticRegistrationOptions {
     // The id used to register the request. The id can be used to deregister
     // the request again. See also Registration#id.
-    pub id: Option<String>,
+    id: Option<String>,
 }
 
 impl Json for StaticRegistrationOptions {
@@ -9172,7 +9172,7 @@ impl Json for StaticRegistrationOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct TypeDefinitionOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for TypeDefinitionOptions {
@@ -9203,10 +9203,10 @@ impl Json for TypeDefinitionOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceFoldersChangeEvent {
     // The array of added workspace folders
-    pub added: Vec<WorkspaceFolder>,
+    added: Vec<WorkspaceFolder>,
 
     // The array of the removed workspace folders
-    pub removed: Vec<WorkspaceFolder>,
+    removed: Vec<WorkspaceFolder>,
 }
 
 impl Json for WorkspaceFoldersChangeEvent {
@@ -9321,16 +9321,16 @@ impl Json for TextDocumentIdentifier {
 #[derive(Clone, Debug, Default, PartialEq, Copy)]
 pub struct Color {
     // The red component of this color in the range [0-1].
-    pub red: f64,
+    red: f64,
 
     // The green component of this color in the range [0-1].
-    pub green: f64,
+    green: f64,
 
     // The blue component of this color in the range [0-1].
-    pub blue: f64,
+    blue: f64,
 
     // The alpha component of this color in the range [0-1].
-    pub alpha: f64,
+    alpha: f64,
 }
 
 impl Json for Color {
@@ -9379,7 +9379,7 @@ impl Json for Color {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentColorOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for DocumentColorOptions {
@@ -9408,7 +9408,7 @@ impl Json for DocumentColorOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct FoldingRangeOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for FoldingRangeOptions {
@@ -9437,7 +9437,7 @@ impl Json for FoldingRangeOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DeclarationOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for DeclarationOptions {
@@ -9538,7 +9538,7 @@ impl Json for Position {
 }
 
 impl Position {
-    pub fn compare(self, other: Position) -> std::cmp::Ordering {
+    fn compare(self, other: Position) -> std::cmp::Ordering {
         let c = cmp_compare(&self.line, &other.line);
         if c != std::cmp::Ordering::Equal {
             return c;
@@ -9549,7 +9549,7 @@ impl Position {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct SelectionRangeOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for SelectionRangeOptions {
@@ -9581,7 +9581,7 @@ impl Json for SelectionRangeOptions {
 // Since: 3.16.0
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct CallHierarchyOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for CallHierarchyOptions {
@@ -9670,13 +9670,13 @@ impl Json for SemanticTokensOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SemanticTokensEdit {
     // The start offset of the edit.
-    pub start: u32,
+    start: u32,
 
     // The count of elements to remove.
-    pub delete_count: u32,
+    delete_count: u32,
 
     // The elements to insert.
-    pub data: Option<Vec<u32>>,
+    data: Option<Vec<u32>>,
 }
 
 impl Json for SemanticTokensEdit {
@@ -9720,7 +9720,7 @@ impl Json for SemanticTokensEdit {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct LinkedEditingRangeOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for LinkedEditingRangeOptions {
@@ -9753,7 +9753,7 @@ impl Json for LinkedEditingRangeOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct FileCreate {
     // A URI for the location of the file/folder being created.
-    pub uri: DocumentUri,
+    uri: DocumentUri,
 }
 
 impl Json for FileCreate {
@@ -9841,18 +9841,18 @@ impl Json for TextDocumentEdit {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CreateFile {
     // A create
-    pub kind: StringLiteralCreate,
+    kind: StringLiteralCreate,
 
     // An optional annotation identifier describing the operation.
     //
     // Since: 3.16.0
-    pub annotation_id: Option<String>,
+    annotation_id: Option<String>,
 
     // The resource to create.
     pub uri: DocumentUri,
 
     // Additional options
-    pub options: Option<CreateFileOptions>,
+    options: Option<CreateFileOptions>,
 }
 
 impl Json for CreateFile {
@@ -9971,18 +9971,18 @@ impl Json for RenameFile {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DeleteFile {
     // A delete
-    pub kind: StringLiteralDelete,
+    kind: StringLiteralDelete,
 
     // An optional annotation identifier describing the operation.
     //
     // Since: 3.16.0
-    pub annotation_id: Option<String>,
+    annotation_id: Option<String>,
 
     // The file to delete.
     pub uri: DocumentUri,
 
     // Delete options.
-    pub options: Option<DeleteFileOptions>,
+    options: Option<DeleteFileOptions>,
 }
 
 impl Json for DeleteFile {
@@ -10035,15 +10035,15 @@ impl Json for DeleteFile {
 pub struct ChangeAnnotation {
     // A human-readable string describing the actual change. The string
     // is rendered prominent in the user interface.
-    pub label: String,
+    label: String,
 
     // A flag which indicates that user confirmation is needed
     // before applying the change.
-    pub needs_confirmation: Option<bool>,
+    needs_confirmation: Option<bool>,
 
     // A human-readable string which is rendered less prominent in
     // the user interface.
-    pub description: Option<String>,
+    description: Option<String>,
 }
 
 impl Json for ChangeAnnotation {
@@ -10184,7 +10184,7 @@ impl Json for FileRename {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct FileDelete {
     // A URI for the location of the file/folder being deleted.
-    pub uri: DocumentUri,
+    uri: DocumentUri,
 }
 
 impl Json for FileDelete {
@@ -10216,7 +10216,7 @@ impl Json for FileDelete {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct MonikerOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for MonikerOptions {
@@ -10248,7 +10248,7 @@ impl Json for MonikerOptions {
 // Since: 3.17.0
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct TypeHierarchyOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for TypeHierarchyOptions {
@@ -10279,11 +10279,11 @@ impl Json for TypeHierarchyOptions {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct InlineValueContext {
     // The stack frame (as a DAP Id) where the execution has stopped.
-    pub frame_id: i32,
+    frame_id: i32,
 
     // The document range where execution has stopped.
     // Typically the end position of the range denotes the line where the inline values are shown.
-    pub stopped_location: Range,
+    stopped_location: Range,
 }
 
 impl Json for InlineValueContext {
@@ -10327,10 +10327,10 @@ impl Json for InlineValueContext {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlineValueText {
     // The document range for which the inline value applies.
-    pub range: Range,
+    range: Range,
 
     // The text of the inline value.
-    pub text: String,
+    text: String,
 }
 
 impl Json for InlineValueText {
@@ -10383,13 +10383,13 @@ pub struct InlineValueVariableLookup {
     //
     // The range could be used to extract the variable name
     // from the underlying document.
-    pub range: Range,
+    range: Range,
 
     // If specified the name of the variable to look up.
-    pub variable_name: Option<String>,
+    variable_name: Option<String>,
 
     // How to perform the lookup.
-    pub case_sensitive_lookup: bool,
+    case_sensitive_lookup: bool,
 }
 
 impl Json for InlineValueVariableLookup {
@@ -10446,10 +10446,10 @@ pub struct InlineValueEvaluatableExpression {
     //
     // The range could be used to extract the evaluatable expression
     // from the underlying document.
-    pub range: Range,
+    range: Range,
 
     // If specified the expression could be evaluated instead.
-    pub expression: Option<String>,
+    expression: Option<String>,
 }
 
 impl Json for InlineValueEvaluatableExpression {
@@ -10491,7 +10491,7 @@ impl Json for InlineValueEvaluatableExpression {
 // Since: 3.17.0
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct InlineValueOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for InlineValueOptions {
@@ -10665,11 +10665,11 @@ impl Json for MarkupContent {
 // Since: 3.17.0
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct InlayHintOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // The server provides support to resolve additional
     // information for an inlay hint item.
-    pub resolve_provider: Option<bool>,
+    resolve_provider: Option<bool>,
 }
 
 impl Json for InlayHintOptions {
@@ -10783,11 +10783,11 @@ pub struct RelatedUnchangedDocumentDiagnosticReport {
     // no changes to the last result. A server can
     // only return `unchanged` if result ids are
     // provided.
-    pub kind: StringLiteralUnchanged,
+    kind: StringLiteralUnchanged,
 
     // A result id which will be sent on the next
     // diagnostic request for the same document.
-    pub result_id: String,
+    result_id: String,
 
     // Diagnostics of related documents. This information is useful
     // in programming languages where code in a file A can generate
@@ -10796,7 +10796,7 @@ pub struct RelatedUnchangedDocumentDiagnosticReport {
     // a.cpp and result in errors in a header file b.hpp.
     //
     // Since: 3.17.0
-    pub related_documents: Option<
+    related_documents: Option<
         OrderedMap<DocumentUri, FullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport>,
     >,
 }
@@ -10845,7 +10845,7 @@ impl Json for RelatedUnchangedDocumentDiagnosticReport {
 // Since: 3.17.0
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct DocumentDiagnosticReportPartialResult {
-    pub related_documents:
+    related_documents:
         OrderedMap<DocumentUri, FullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport>,
 }
 
@@ -10947,10 +10947,10 @@ impl Json for DiagnosticOptions {
 pub struct PreviousResultId {
     // The URI for which the client knowns a
     // result id.
-    pub uri: DocumentUri,
+    uri: DocumentUri,
 
     // The value of the previous result id.
-    pub value: String,
+    value: String,
 }
 
 impl Json for PreviousResultId {
@@ -11056,10 +11056,10 @@ impl Json for TextDocumentItem {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlineCompletionContext {
     // Describes how the inline completion was triggered.
-    pub trigger_kind: InlineCompletionTriggerKind,
+    trigger_kind: InlineCompletionTriggerKind,
 
     // Provides information about the currently selected item in the autocomplete widget if it is visible.
-    pub selected_completion_info: Option<SelectedCompletionInfo>,
+    selected_completion_info: Option<SelectedCompletionInfo>,
 }
 
 impl Json for InlineCompletionContext {
@@ -11108,10 +11108,10 @@ impl Json for InlineCompletionContext {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct StringValue {
     // The kind of string value.
-    pub kind: StringLiteralSnippet,
+    kind: StringLiteralSnippet,
 
     // The snippet string.
-    pub value: String,
+    value: String,
 }
 
 impl Json for StringValue {
@@ -11154,7 +11154,7 @@ impl Json for StringValue {
 // Since: 3.18.0
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct InlineCompletionOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for InlineCompletionOptions {
@@ -11187,7 +11187,7 @@ impl Json for InlineCompletionOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TextDocumentContentOptions {
     // The schemes for which the server provides content.
-    pub schemes: Vec<String>,
+    schemes: Vec<String>,
 }
 
 impl Json for TextDocumentContentOptions {
@@ -11749,7 +11749,7 @@ pub struct WorkspaceFoldersInitializeParams {
     // configured.
     //
     // Since: 3.6.0
-    pub workspace_folders: Option<WorkspaceFoldersOrNull>,
+    workspace_folders: Option<WorkspaceFoldersOrNull>,
 }
 
 impl Json for WorkspaceFoldersInitializeParams {
@@ -12201,7 +12201,7 @@ impl Json for VersionedTextDocumentIdentifier {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct SaveOptions {
     // The client is supposed to include the content on save.
-    pub include_text: Option<bool>,
+    include_text: Option<bool>,
 }
 
 impl Json for SaveOptions {
@@ -12696,7 +12696,7 @@ pub struct CompletionItemApplyKinds {
     // and the completion's own `commitCharacters`.
     //
     // Since: 3.18.0
-    pub commit_characters: Option<ApplyKind>,
+    commit_characters: Option<ApplyKind>,
 
     // Specifies whether the `data` field on a completion will replace or
     // be merged with data from `completionList.itemDefaults.data`.
@@ -12720,7 +12720,7 @@ pub struct CompletionItemApplyKinds {
     //  within that value will occur.
     //
     // Since: 3.18.0
-    pub data: Option<ApplyKind>,
+    data: Option<ApplyKind>,
 }
 
 impl Json for CompletionItemApplyKinds {
@@ -12836,7 +12836,7 @@ impl Json for CompletionOptions {
 // Hover options.
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct HoverOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for HoverOptions {
@@ -12886,7 +12886,7 @@ pub struct SignatureHelpContext {
     //
     // The `activeSignatureHelp` has its `SignatureHelp.activeSignature` field updated based on
     // the user navigating through available signatures.
-    pub active_signature_help: Option<SignatureHelp>,
+    active_signature_help: Option<SignatureHelp>,
 }
 
 impl Json for SignatureHelpContext {
@@ -13066,7 +13066,7 @@ impl Json for SignatureHelpOptions {
 // Server Capabilities for a DefinitionRequest.
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DefinitionOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for DefinitionOptions {
@@ -13131,7 +13131,7 @@ impl Json for ReferenceContext {
 // Reference options.
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct ReferenceOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for ReferenceOptions {
@@ -13161,7 +13161,7 @@ impl Json for ReferenceOptions {
 // Provider options for a DocumentHighlightRequest.
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentHighlightOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for DocumentHighlightOptions {
@@ -13192,21 +13192,21 @@ impl Json for DocumentHighlightOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct BaseSymbolInformation {
     // The name of this symbol.
-    pub name: String,
+    name: String,
 
     // The kind of this symbol.
-    pub kind: SymbolKind,
+    kind: SymbolKind,
 
     // Tags for this symbol.
     //
     // Since: 3.16.0
-    pub tags: Option<Vec<SymbolTag>>,
+    tags: Option<Vec<SymbolTag>>,
 
     // The name of the symbol containing this symbol. This information is for
     // user interface purposes (e.g. to render a qualifier in the user interface
     // if necessary). It can't be used to re-infer a hierarchy for the document
     // symbols.
-    pub container_name: Option<String>,
+    container_name: Option<String>,
 }
 
 impl Json for BaseSymbolInformation {
@@ -13255,13 +13255,13 @@ impl Json for BaseSymbolInformation {
 // Provider options for a DocumentSymbolRequest.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentSymbolOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // A human-readable string that is shown when multiple outlines trees
     // are shown for the same document.
     //
     // Since: 3.16.0
-    pub label: Option<String>,
+    label: Option<String>,
 }
 
 impl Json for DocumentSymbolOptions {
@@ -13315,7 +13315,7 @@ pub struct CodeActionContext {
     // The reason why code actions were requested.
     //
     // Since: 3.17.0
-    pub trigger_kind: Option<CodeActionTriggerKind>,
+    trigger_kind: Option<CodeActionTriggerKind>,
 }
 
 impl Json for CodeActionContext {
@@ -13364,7 +13364,7 @@ pub struct CodeActionDisabled {
     // Human readable description of why the code action is currently disabled.
     //
     // This is displayed in the code actions UI.
-    pub reason: String,
+    reason: String,
 }
 
 impl Json for CodeActionDisabled {
@@ -13472,7 +13472,7 @@ impl Json for CodeActionOptions {
 // Since: 3.18.0
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct LocationUriOnly {
-    pub uri: DocumentUri,
+    uri: DocumentUri,
 }
 
 impl Json for LocationUriOnly {
@@ -13505,13 +13505,13 @@ impl Json for LocationUriOnly {
 // Server capabilities for a WorkspaceSymbolRequest.
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct WorkspaceSymbolOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // The server provides support to resolve additional
     // information for a workspace symbol.
     //
     // Since: 3.17.0
-    pub resolve_provider: Option<bool>,
+    resolve_provider: Option<bool>,
 }
 
 impl Json for WorkspaceSymbolOptions {
@@ -13588,10 +13588,10 @@ impl Json for CodeLensOptions {
 // Provider options for a DocumentLinkRequest.
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentLinkOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // Document links have a resolve provider as well.
-    pub resolve_provider: Option<bool>,
+    resolve_provider: Option<bool>,
 }
 
 impl Json for DocumentLinkOptions {
@@ -13642,12 +13642,12 @@ pub struct FormattingOptions {
     // Insert a newline character at the end of the file if one does not exist.
     //
     // Since: 3.15.0
-    pub insert_final_newline: Option<bool>,
+    insert_final_newline: Option<bool>,
 
     // Trim all newlines after the final newline at the end of the file.
     //
     // Since: 3.15.0
-    pub trim_final_newlines: Option<bool>,
+    trim_final_newlines: Option<bool>,
 }
 
 impl Json for FormattingOptions {
@@ -13700,7 +13700,7 @@ impl Json for FormattingOptions {
 // Provider options for a DocumentFormattingRequest.
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentFormattingOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 }
 
 impl Json for DocumentFormattingOptions {
@@ -13730,12 +13730,12 @@ impl Json for DocumentFormattingOptions {
 // Provider options for a DocumentRangeFormattingRequest.
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentRangeFormattingOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // Whether the server supports formatting multiple ranges at once.
     //
     // Since: 3.18.0
-    pub ranges_support: Option<bool>,
+    ranges_support: Option<bool>,
 }
 
 impl Json for DocumentRangeFormattingOptions {
@@ -13901,7 +13901,7 @@ impl Json for PrepareRenamePlaceholder {
 // Since: 3.18.0
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct PrepareRenameDefaultBehavior {
-    pub default_behavior: bool,
+    default_behavior: bool,
 }
 
 impl Json for PrepareRenameDefaultBehavior {
@@ -13934,10 +13934,10 @@ impl Json for PrepareRenameDefaultBehavior {
 // The server capabilities of a ExecuteCommandRequest.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ExecuteCommandOptions {
-    pub work_done_progress: Option<bool>,
+    work_done_progress: Option<bool>,
 
     // The commands to be executed on the server
-    pub commands: Vec<String>,
+    commands: Vec<String>,
 }
 
 impl Json for ExecuteCommandOptions {
@@ -13980,7 +13980,7 @@ impl Json for ExecuteCommandOptions {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct WorkspaceEditMetadata {
     // Signal to the editor that this edit is a refactoring.
-    pub is_refactoring: Option<bool>,
+    is_refactoring: Option<bool>,
 }
 
 impl Json for WorkspaceEditMetadata {
@@ -14087,7 +14087,7 @@ impl Json for SemanticTokensLegend {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct SemanticTokensFullDelta {
     // The server supports deltas for full documents.
-    pub delta: Option<bool>,
+    delta: Option<bool>,
 }
 
 impl Json for SemanticTokensFullDelta {
@@ -14169,14 +14169,14 @@ impl Json for OptionalVersionedTextDocumentIdentifier {
 pub struct AnnotatedTextEdit {
     // The range of the text document to be manipulated. To insert
     // text into a document create a range where start === end.
-    pub range: Range,
+    range: Range,
 
     // The string to be inserted. For delete operations use an
     // empty string.
-    pub new_text: String,
+    new_text: String,
 
     // The actual identifier of the change annotation
-    pub annotation_id: String,
+    annotation_id: String,
 }
 
 impl Json for AnnotatedTextEdit {
@@ -14225,13 +14225,13 @@ impl Json for AnnotatedTextEdit {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SnippetTextEdit {
     // The range of the text document to be manipulated.
-    pub range: Range,
+    range: Range,
 
     // The snippet to be inserted.
-    pub snippet: StringValue,
+    snippet: StringValue,
 
     // The actual identifier of the snippet edit.
-    pub annotation_id: Option<String>,
+    annotation_id: Option<String>,
 }
 
 impl Json for SnippetTextEdit {
@@ -14277,12 +14277,12 @@ impl Json for SnippetTextEdit {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ResourceOperation {
     // The resource operation kind.
-    pub kind: String,
+    kind: String,
 
     // An optional annotation identifier describing the operation.
     //
     // Since: 3.16.0
-    pub annotation_id: Option<String>,
+    annotation_id: Option<String>,
 }
 
 impl Json for ResourceOperation {
@@ -14323,10 +14323,10 @@ impl Json for ResourceOperation {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct CreateFileOptions {
     // Overwrite existing file. Overwrite wins over `ignoreIfExists`
-    pub overwrite: Option<bool>,
+    overwrite: Option<bool>,
 
     // Ignore if exists.
-    pub ignore_if_exists: Option<bool>,
+    ignore_if_exists: Option<bool>,
 }
 
 impl Json for CreateFileOptions {
@@ -14364,10 +14364,10 @@ impl Json for CreateFileOptions {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct RenameFileOptions {
     // Overwrite target if existing. Overwrite wins over `ignoreIfExists`
-    pub overwrite: Option<bool>,
+    overwrite: Option<bool>,
 
     // Ignores if target exists.
-    pub ignore_if_exists: Option<bool>,
+    ignore_if_exists: Option<bool>,
 }
 
 impl Json for RenameFileOptions {
@@ -14405,10 +14405,10 @@ impl Json for RenameFileOptions {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DeleteFileOptions {
     // Delete the content recursively if a folder is denoted.
-    pub recursive: Option<bool>,
+    recursive: Option<bool>,
 
     // Ignore the operation if the file doesn't exist.
-    pub ignore_if_not_exists: Option<bool>,
+    ignore_if_not_exists: Option<bool>,
 }
 
 impl Json for DeleteFileOptions {
@@ -14510,15 +14510,15 @@ impl Json for FileOperationPattern {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct FullDocumentDiagnosticReport {
     // A full document diagnostic report.
-    pub kind: StringLiteralFull,
+    kind: StringLiteralFull,
 
     // An optional result id. If provided it will
     // be sent on the next diagnostic request for the
     // same document.
-    pub result_id: Option<String>,
+    result_id: Option<String>,
 
     // The actual items.
-    pub items: Vec<Diagnostic>,
+    items: Vec<Diagnostic>,
 }
 
 impl Json for FullDocumentDiagnosticReport {
@@ -14570,11 +14570,11 @@ pub struct UnchangedDocumentDiagnosticReport {
     // no changes to the last result. A server can
     // only return `unchanged` if result ids are
     // provided.
-    pub kind: StringLiteralUnchanged,
+    kind: StringLiteralUnchanged,
 
     // A result id which will be sent on the next
     // diagnostic request for the same document.
-    pub result_id: String,
+    result_id: String,
 }
 
 impl Json for UnchangedDocumentDiagnosticReport {
@@ -14618,22 +14618,22 @@ impl Json for UnchangedDocumentDiagnosticReport {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceFullDocumentDiagnosticReport {
     // A full document diagnostic report.
-    pub kind: StringLiteralFull,
+    kind: StringLiteralFull,
 
     // An optional result id. If provided it will
     // be sent on the next diagnostic request for the
     // same document.
-    pub result_id: Option<String>,
+    result_id: Option<String>,
 
     // The actual items.
-    pub items: Vec<Diagnostic>,
+    items: Vec<Diagnostic>,
 
     // The URI for which diagnostic information is reported.
-    pub uri: DocumentUri,
+    uri: DocumentUri,
 
     // The version number for which the diagnostics are reported.
     // If the document is not marked as open `null` can be provided.
-    pub version: IntegerOrNull,
+    version: IntegerOrNull,
 }
 
 impl Json for WorkspaceFullDocumentDiagnosticReport {
@@ -14694,18 +14694,18 @@ pub struct WorkspaceUnchangedDocumentDiagnosticReport {
     // no changes to the last result. A server can
     // only return `unchanged` if result ids are
     // provided.
-    pub kind: StringLiteralUnchanged,
+    kind: StringLiteralUnchanged,
 
     // A result id which will be sent on the next
     // diagnostic request for the same document.
-    pub result_id: String,
+    result_id: String,
 
     // The URI for which diagnostic information is reported.
-    pub uri: DocumentUri,
+    uri: DocumentUri,
 
     // The version number for which the diagnostics are reported.
     // If the document is not marked as open `null` can be provided.
-    pub version: IntegerOrNull,
+    version: IntegerOrNull,
 }
 
 impl Json for WorkspaceUnchangedDocumentDiagnosticReport {
@@ -14759,10 +14759,10 @@ impl Json for WorkspaceUnchangedDocumentDiagnosticReport {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SelectedCompletionInfo {
     // The range that will be replaced if this completion item is accepted.
-    pub range: Range,
+    range: Range,
 
     // The text the range will be replaced with if this completion is accepted.
-    pub text: String,
+    text: String,
 }
 
 impl Json for SelectedCompletionInfo {
@@ -14808,10 +14808,10 @@ impl Json for SelectedCompletionInfo {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ClientInfo {
     // The name of the client as defined by the client.
-    pub name: String,
+    name: String,
 
     // The client's version as defined by the client.
-    pub version: Option<String>,
+    version: Option<String>,
 }
 
 impl Json for ClientInfo {
@@ -15170,7 +15170,7 @@ impl Json for TextDocumentContentChangeWholeDocument {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CodeDescription {
     // An URI to open with more information about the diagnostic error.
-    pub href: URI,
+    href: URI,
 }
 
 impl Json for CodeDescription {
@@ -15332,9 +15332,9 @@ impl Json for ServerCompletionItemOptions {
 // Deprecated: use MarkupContent instead.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct MarkedStringWithLanguage {
-    pub language: String,
+    language: String,
 
-    pub value: String,
+    value: String,
 }
 
 impl Json for MarkedStringWithLanguage {
@@ -15439,12 +15439,12 @@ pub struct CodeActionKindDocumentation {
     // If the kind is generic, such as `CodeActionKind.Refactor`, the documentation will be shown whenever any
     // refactorings are returned. If the kind if more specific, such as `CodeActionKind.RefactorExtract`, the
     // documentation will only be shown when extract refactoring code actions are returned.
-    pub kind: CodeActionKind,
+    kind: CodeActionKind,
 
     // Command that is ued to display the documentation to the user.
     //
     // The title of this documentation code action is taken from Command.title
-    pub command: Command,
+    command: Command,
 }
 
 impl Json for CodeActionKindDocumentation {
@@ -15488,7 +15488,7 @@ impl Json for CodeActionKindDocumentation {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct FileOperationPatternOptions {
     // The pattern should be matched ignoring casing.
-    pub ignore_case: Option<bool>,
+    ignore_case: Option<bool>,
 }
 
 impl Json for FileOperationPatternOptions {
@@ -15685,133 +15685,133 @@ impl Json for WorkspaceClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TextDocumentClientCapabilities {
     // Defines which synchronization capabilities the client supports.
-    pub synchronization: Option<TextDocumentSyncClientCapabilities>,
+    synchronization: Option<TextDocumentSyncClientCapabilities>,
 
     // Defines which filters the client supports.
     //
     // Since: 3.18.0
-    pub filters: Option<TextDocumentFilterClientCapabilities>,
+    filters: Option<TextDocumentFilterClientCapabilities>,
 
     // Capabilities specific to the `textDocument/completion` request.
-    pub completion: Option<CompletionClientCapabilities>,
+    completion: Option<CompletionClientCapabilities>,
 
     // Capabilities specific to the `textDocument/hover` request.
-    pub hover: Option<HoverClientCapabilities>,
+    hover: Option<HoverClientCapabilities>,
 
     // Capabilities specific to the `textDocument/signatureHelp` request.
-    pub signature_help: Option<SignatureHelpClientCapabilities>,
+    signature_help: Option<SignatureHelpClientCapabilities>,
 
     // Capabilities specific to the `textDocument/declaration` request.
     //
     // Since: 3.14.0
-    pub declaration: Option<DeclarationClientCapabilities>,
+    declaration: Option<DeclarationClientCapabilities>,
 
     // Capabilities specific to the `textDocument/definition` request.
-    pub definition: Option<DefinitionClientCapabilities>,
+    definition: Option<DefinitionClientCapabilities>,
 
     // Capabilities specific to the `textDocument/typeDefinition` request.
     //
     // Since: 3.6.0
-    pub type_definition: Option<TypeDefinitionClientCapabilities>,
+    type_definition: Option<TypeDefinitionClientCapabilities>,
 
     // Capabilities specific to the `textDocument/implementation` request.
     //
     // Since: 3.6.0
-    pub implementation: Option<ImplementationClientCapabilities>,
+    implementation: Option<ImplementationClientCapabilities>,
 
     // Capabilities specific to the `textDocument/references` request.
-    pub references: Option<ReferenceClientCapabilities>,
+    references: Option<ReferenceClientCapabilities>,
 
     // Capabilities specific to the `textDocument/documentHighlight` request.
-    pub document_highlight: Option<DocumentHighlightClientCapabilities>,
+    document_highlight: Option<DocumentHighlightClientCapabilities>,
 
     // Capabilities specific to the `textDocument/documentSymbol` request.
-    pub document_symbol: Option<DocumentSymbolClientCapabilities>,
+    document_symbol: Option<DocumentSymbolClientCapabilities>,
 
     // Capabilities specific to the `textDocument/codeAction` request.
-    pub code_action: Option<CodeActionClientCapabilities>,
+    code_action: Option<CodeActionClientCapabilities>,
 
     // Capabilities specific to the `textDocument/codeLens` request.
-    pub code_lens: Option<CodeLensClientCapabilities>,
+    code_lens: Option<CodeLensClientCapabilities>,
 
     // Capabilities specific to the `textDocument/documentLink` request.
-    pub document_link: Option<DocumentLinkClientCapabilities>,
+    document_link: Option<DocumentLinkClientCapabilities>,
 
     // Capabilities specific to the `textDocument/documentColor` and the
     // `textDocument/colorPresentation` request.
     //
     // Since: 3.6.0
-    pub color_provider: Option<DocumentColorClientCapabilities>,
+    color_provider: Option<DocumentColorClientCapabilities>,
 
     // Capabilities specific to the `textDocument/formatting` request.
-    pub formatting: Option<DocumentFormattingClientCapabilities>,
+    formatting: Option<DocumentFormattingClientCapabilities>,
 
     // Capabilities specific to the `textDocument/rangeFormatting` request.
-    pub range_formatting: Option<DocumentRangeFormattingClientCapabilities>,
+    range_formatting: Option<DocumentRangeFormattingClientCapabilities>,
 
     // Capabilities specific to the `textDocument/onTypeFormatting` request.
-    pub on_type_formatting: Option<DocumentOnTypeFormattingClientCapabilities>,
+    on_type_formatting: Option<DocumentOnTypeFormattingClientCapabilities>,
 
     // Capabilities specific to the `textDocument/rename` request.
-    pub rename: Option<RenameClientCapabilities>,
+    rename: Option<RenameClientCapabilities>,
 
     // Capabilities specific to the `textDocument/foldingRange` request.
     //
     // Since: 3.10.0
-    pub folding_range: Option<FoldingRangeClientCapabilities>,
+    folding_range: Option<FoldingRangeClientCapabilities>,
 
     // Capabilities specific to the `textDocument/selectionRange` request.
     //
     // Since: 3.15.0
-    pub selection_range: Option<SelectionRangeClientCapabilities>,
+    selection_range: Option<SelectionRangeClientCapabilities>,
 
     // Capabilities specific to the `textDocument/publishDiagnostics` notification.
-    pub publish_diagnostics: Option<PublishDiagnosticsClientCapabilities>,
+    publish_diagnostics: Option<PublishDiagnosticsClientCapabilities>,
 
     // Capabilities specific to the various call hierarchy requests.
     //
     // Since: 3.16.0
-    pub call_hierarchy: Option<CallHierarchyClientCapabilities>,
+    call_hierarchy: Option<CallHierarchyClientCapabilities>,
 
     // Capabilities specific to the various semantic token request.
     //
     // Since: 3.16.0
-    pub semantic_tokens: Option<SemanticTokensClientCapabilities>,
+    semantic_tokens: Option<SemanticTokensClientCapabilities>,
 
     // Capabilities specific to the `textDocument/linkedEditingRange` request.
     //
     // Since: 3.16.0
-    pub linked_editing_range: Option<LinkedEditingRangeClientCapabilities>,
+    linked_editing_range: Option<LinkedEditingRangeClientCapabilities>,
 
     // Client capabilities specific to the `textDocument/moniker` request.
     //
     // Since: 3.16.0
-    pub moniker: Option<MonikerClientCapabilities>,
+    moniker: Option<MonikerClientCapabilities>,
 
     // Capabilities specific to the various type hierarchy requests.
     //
     // Since: 3.17.0
-    pub type_hierarchy: Option<TypeHierarchyClientCapabilities>,
+    type_hierarchy: Option<TypeHierarchyClientCapabilities>,
 
     // Capabilities specific to the `textDocument/inlineValue` request.
     //
     // Since: 3.17.0
-    pub inline_value: Option<InlineValueClientCapabilities>,
+    inline_value: Option<InlineValueClientCapabilities>,
 
     // Capabilities specific to the `textDocument/inlayHint` request.
     //
     // Since: 3.17.0
-    pub inlay_hint: Option<InlayHintClientCapabilities>,
+    inlay_hint: Option<InlayHintClientCapabilities>,
 
     // Capabilities specific to the diagnostic pull model.
     //
     // Since: 3.17.0
-    pub diagnostic: Option<DiagnosticClientCapabilities>,
+    diagnostic: Option<DiagnosticClientCapabilities>,
 
     // Client capabilities specific to inline completions.
     //
     // Since: 3.18.0
-    pub inline_completion: Option<InlineCompletionClientCapabilities>,
+    inline_completion: Option<InlineCompletionClientCapabilities>,
 }
 
 impl Json for TextDocumentClientCapabilities {
@@ -16035,17 +16035,17 @@ pub struct GeneralClientCapabilities {
     // anymore since the information is outdated).
     //
     // Since: 3.17.0
-    pub stale_request_support: Option<StaleRequestSupportOptions>,
+    stale_request_support: Option<StaleRequestSupportOptions>,
 
     // Client capabilities specific to regular expressions.
     //
     // Since: 3.16.0
-    pub regular_expressions: Option<RegularExpressionsClientCapabilities>,
+    regular_expressions: Option<RegularExpressionsClientCapabilities>,
 
     // Client capabilities specific to the client's markdown parser.
     //
     // Since: 3.16.0
-    pub markdown: Option<MarkdownClientCapabilities>,
+    markdown: Option<MarkdownClientCapabilities>,
 
     // The position encodings supported by the client. Client and server
     // have to agree on the same position encoding to ensure that offsets
@@ -16065,7 +16065,7 @@ pub struct GeneralClientCapabilities {
     // side.
     //
     // Since: 3.17.0
-    pub position_encodings: Option<Vec<PositionEncodingKind>>,
+    position_encodings: Option<Vec<PositionEncodingKind>>,
 }
 
 impl Json for GeneralClientCapabilities {
@@ -16110,7 +16110,7 @@ impl Json for GeneralClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceFoldersServerCapabilities {
     // The server has support for workspace folders
-    pub supported: Option<bool>,
+    supported: Option<bool>,
 
     // Whether the server wants to receive workspace folder
     // change notifications.
@@ -16119,7 +16119,7 @@ pub struct WorkspaceFoldersServerCapabilities {
     // under which the notification is registered on the client
     // side. The ID can be used to unregister for these events
     // using the `client/unregisterCapability` request.
-    pub change_notifications: Option<StringOrBoolean>,
+    change_notifications: Option<StringOrBoolean>,
 }
 
 impl Json for WorkspaceFoldersServerCapabilities {
@@ -16371,7 +16371,7 @@ impl Json for WorkspaceEditClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DidChangeConfigurationClientCapabilities {
     // Did change configuration notification supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for DidChangeConfigurationClientCapabilities {
@@ -16403,13 +16403,13 @@ pub struct DidChangeWatchedFilesClientCapabilities {
     // Did change watched files notification supports dynamic registration. Please note
     // that the current protocol doesn't support static configuration for file changes
     // from the server side.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Whether the client has support for pattern
     // or not.
     //
     // Since: 3.17.0
-    pub relative_pattern_support: Option<bool>,
+    relative_pattern_support: Option<bool>,
 }
 
 impl Json for DidChangeWatchedFilesClientCapabilities {
@@ -16447,23 +16447,23 @@ impl Json for DidChangeWatchedFilesClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceSymbolClientCapabilities {
     // Symbol request supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Specific capabilities for the `SymbolKind` in the `workspace/symbol` request.
-    pub symbol_kind: Option<ClientSymbolKindOptions>,
+    symbol_kind: Option<ClientSymbolKindOptions>,
 
     // The client supports tags on `SymbolInformation`.
     // Clients supporting tags have to handle unknown tags gracefully.
     //
     // Since: 3.16.0
-    pub tag_support: Option<ClientSymbolTagOptions>,
+    tag_support: Option<ClientSymbolTagOptions>,
 
     // The client support partial workspace symbols. The client will send the
     // request `workspaceSymbol/resolve` to the server to resolve additional
     // properties.
     //
     // Since: 3.17.0
-    pub resolve_support: Option<ClientSymbolResolveOptions>,
+    resolve_support: Option<ClientSymbolResolveOptions>,
 }
 
 impl Json for WorkspaceSymbolClientCapabilities {
@@ -16509,7 +16509,7 @@ impl Json for WorkspaceSymbolClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct ExecuteCommandClientCapabilities {
     // Execute command supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for ExecuteCommandClientCapabilities {
@@ -16546,7 +16546,7 @@ pub struct SemanticTokensWorkspaceClientCapabilities {
     // semantic tokens currently shown. It should be used with absolute care
     // and is useful for situation where a server for example detects a project
     // wide change that requires such a calculation.
-    pub refresh_support: Option<bool>,
+    refresh_support: Option<bool>,
 }
 
 impl Json for SemanticTokensWorkspaceClientCapabilities {
@@ -16583,7 +16583,7 @@ pub struct CodeLensWorkspaceClientCapabilities {
     // code lenses currently shown. It should be used with absolute care and is
     // useful for situation where a server for example detect a project wide
     // change that requires such a calculation.
-    pub refresh_support: Option<bool>,
+    refresh_support: Option<bool>,
 }
 
 impl Json for CodeLensWorkspaceClientCapabilities {
@@ -16619,25 +16619,25 @@ impl Json for CodeLensWorkspaceClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct FileOperationClientCapabilities {
     // Whether the client supports dynamic registration for file requests/notifications.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The client has support for sending didCreateFiles notifications.
-    pub did_create: Option<bool>,
+    did_create: Option<bool>,
 
     // The client has support for sending willCreateFiles requests.
-    pub will_create: Option<bool>,
+    will_create: Option<bool>,
 
     // The client has support for sending didRenameFiles notifications.
-    pub did_rename: Option<bool>,
+    did_rename: Option<bool>,
 
     // The client has support for sending willRenameFiles requests.
-    pub will_rename: Option<bool>,
+    will_rename: Option<bool>,
 
     // The client has support for sending didDeleteFiles notifications.
-    pub did_delete: Option<bool>,
+    did_delete: Option<bool>,
 
     // The client has support for sending willDeleteFiles requests.
-    pub will_delete: Option<bool>,
+    will_delete: Option<bool>,
 }
 
 impl Json for FileOperationClientCapabilities {
@@ -16703,7 +16703,7 @@ pub struct InlineValueWorkspaceClientCapabilities {
     // inline values currently shown. It should be used with absolute care and is
     // useful for situation where a server for example detects a project wide
     // change that requires such a calculation.
-    pub refresh_support: Option<bool>,
+    refresh_support: Option<bool>,
 }
 
 impl Json for InlineValueWorkspaceClientCapabilities {
@@ -16742,7 +16742,7 @@ pub struct InlayHintWorkspaceClientCapabilities {
     // inlay hints currently shown. It should be used with absolute care and
     // is useful for situation where a server for example detects a project wide
     // change that requires such a calculation.
-    pub refresh_support: Option<bool>,
+    refresh_support: Option<bool>,
 }
 
 impl Json for InlayHintWorkspaceClientCapabilities {
@@ -16781,7 +16781,7 @@ pub struct DiagnosticWorkspaceClientCapabilities {
     // pulled diagnostics currently shown. It should be used with absolute care and
     // is useful for situation where a server for example detects a project wide
     // change that requires such a calculation.
-    pub refresh_support: Option<bool>,
+    refresh_support: Option<bool>,
 }
 
 impl Json for DiagnosticWorkspaceClientCapabilities {
@@ -16822,7 +16822,7 @@ pub struct FoldingRangeWorkspaceClientCapabilities {
     // change that requires such a calculation.
     //
     // Since: 3.18.0
-    pub refresh_support: Option<bool>,
+    refresh_support: Option<bool>,
 }
 
 impl Json for FoldingRangeWorkspaceClientCapabilities {
@@ -16855,7 +16855,7 @@ impl Json for FoldingRangeWorkspaceClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct TextDocumentContentClientCapabilities {
     // Text document content provider supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for TextDocumentContentClientCapabilities {
@@ -16885,18 +16885,18 @@ impl Json for TextDocumentContentClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct TextDocumentSyncClientCapabilities {
     // Whether text document synchronization supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The client supports sending will save notifications.
-    pub will_save: Option<bool>,
+    will_save: Option<bool>,
 
     // The client supports sending a will save request and
     // waits for a response providing text edits which will
     // be applied to the document before it is saved.
-    pub will_save_wait_until: Option<bool>,
+    will_save_wait_until: Option<bool>,
 
     // The client supports did save notifications.
-    pub did_save: Option<bool>,
+    did_save: Option<bool>,
 }
 
 impl Json for TextDocumentSyncClientCapabilities {
@@ -16943,7 +16943,7 @@ pub struct TextDocumentFilterClientCapabilities {
     // The client supports Relative Patterns.
     //
     // Since: 3.18.0
-    pub relative_pattern_support: Option<bool>,
+    relative_pattern_support: Option<bool>,
 }
 
 impl Json for TextDocumentFilterClientCapabilities {
@@ -16974,31 +16974,31 @@ impl Json for TextDocumentFilterClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CompletionClientCapabilities {
     // Whether completion supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The client supports the following `CompletionItem` specific
     // capabilities.
-    pub completion_item: Option<ClientCompletionItemOptions>,
+    completion_item: Option<ClientCompletionItemOptions>,
 
     // The client supports the following completion item kinds.
-    pub completion_item_kind: Option<ClientCompletionItemOptionsKind>,
+    completion_item_kind: Option<ClientCompletionItemOptionsKind>,
 
     // Defines how the client handles whitespace and indentation
     // when accepting a completion item that uses multi line
     // text in either `insertText` or `textEdit`.
     //
     // Since: 3.17.0
-    pub insert_text_mode: Option<InsertTextMode>,
+    insert_text_mode: Option<InsertTextMode>,
 
     // The client supports to send additional context information for a
     // `textDocument/completion` request.
-    pub context_support: Option<bool>,
+    context_support: Option<bool>,
 
     // The client supports the following `CompletionList` specific
     // capabilities.
     //
     // Since: 3.17.0
-    pub completion_list: Option<CompletionListCapabilities>,
+    completion_list: Option<CompletionListCapabilities>,
 }
 
 impl Json for CompletionClientCapabilities {
@@ -17051,11 +17051,11 @@ impl Json for CompletionClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct HoverClientCapabilities {
     // Whether hover supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Client supports the following content formats for the content
     // property. The order describes the preferred format of the client.
-    pub content_format: Option<Vec<MarkupKind>>,
+    content_format: Option<Vec<MarkupKind>>,
 }
 
 impl Json for HoverClientCapabilities {
@@ -17093,11 +17093,11 @@ impl Json for HoverClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SignatureHelpClientCapabilities {
     // Whether signature help supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The client supports the following `SignatureInformation`
     // specific properties.
-    pub signature_information: Option<ClientSignatureInformationOptions>,
+    signature_information: Option<ClientSignatureInformationOptions>,
 
     // The client supports to send additional context information for a
     // `textDocument/signatureHelp` request. A client that opts into
@@ -17105,7 +17105,7 @@ pub struct SignatureHelpClientCapabilities {
     // `SignatureHelpOptions`.
     //
     // Since: 3.15.0
-    pub context_support: Option<bool>,
+    context_support: Option<bool>,
 }
 
 impl Json for SignatureHelpClientCapabilities {
@@ -17149,10 +17149,10 @@ pub struct DeclarationClientCapabilities {
     // Whether declaration supports dynamic registration. If this is set to `true`
     // the client supports the new `DeclarationRegistrationOptions` return value
     // for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The client supports additional metadata in the form of declaration links.
-    pub link_support: Option<bool>,
+    link_support: Option<bool>,
 }
 
 impl Json for DeclarationClientCapabilities {
@@ -17190,12 +17190,12 @@ impl Json for DeclarationClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DefinitionClientCapabilities {
     // Whether definition supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The client supports additional metadata in the form of definition links.
     //
     // Since: 3.14.0
-    pub link_support: Option<bool>,
+    link_support: Option<bool>,
 }
 
 impl Json for DefinitionClientCapabilities {
@@ -17235,12 +17235,12 @@ pub struct TypeDefinitionClientCapabilities {
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `TypeDefinitionRegistrationOptions` return value
     // for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The client supports additional metadata in the form of definition links.
     //
     // Since 3.14.0
-    pub link_support: Option<bool>,
+    link_support: Option<bool>,
 }
 
 impl Json for TypeDefinitionClientCapabilities {
@@ -17280,12 +17280,12 @@ pub struct ImplementationClientCapabilities {
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `ImplementationRegistrationOptions` return value
     // for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The client supports additional metadata in the form of definition links.
     //
     // Since: 3.14.0
-    pub link_support: Option<bool>,
+    link_support: Option<bool>,
 }
 
 impl Json for ImplementationClientCapabilities {
@@ -17323,7 +17323,7 @@ impl Json for ImplementationClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct ReferenceClientCapabilities {
     // Whether references supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for ReferenceClientCapabilities {
@@ -17354,7 +17354,7 @@ impl Json for ReferenceClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentHighlightClientCapabilities {
     // Whether document highlight supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for DocumentHighlightClientCapabilities {
@@ -17385,27 +17385,27 @@ impl Json for DocumentHighlightClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentSymbolClientCapabilities {
     // Whether document symbol supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Specific capabilities for the `SymbolKind` in the
     // `textDocument/documentSymbol` request.
-    pub symbol_kind: Option<ClientSymbolKindOptions>,
+    symbol_kind: Option<ClientSymbolKindOptions>,
 
     // The client supports hierarchical document symbols.
-    pub hierarchical_document_symbol_support: Option<bool>,
+    hierarchical_document_symbol_support: Option<bool>,
 
     // The client supports tags on `SymbolInformation`. Tags are supported on
     // `DocumentSymbol` if `hierarchicalDocumentSymbolSupport` is set to true.
     // Clients supporting tags have to handle unknown tags gracefully.
     //
     // Since: 3.16.0
-    pub tag_support: Option<ClientSymbolTagOptions>,
+    tag_support: Option<ClientSymbolTagOptions>,
 
     // The client supports an additional label presented in the UI when
     // registering a document symbol provider.
     //
     // Since: 3.16.0
-    pub label_support: Option<bool>,
+    label_support: Option<bool>,
 }
 
 impl Json for DocumentSymbolClientCapabilities {
@@ -17458,37 +17458,37 @@ impl Json for DocumentSymbolClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CodeActionClientCapabilities {
     // Whether code action supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The client support code action literals of type `CodeAction` as a valid
     // response of the `textDocument/codeAction` request. If the property is not
     // set the request can only return `Command` literals.
     //
     // Since: 3.8.0
-    pub code_action_literal_support: Option<ClientCodeActionLiteralOptions>,
+    code_action_literal_support: Option<ClientCodeActionLiteralOptions>,
 
     // Whether code action supports the `isPreferred` property.
     //
     // Since: 3.15.0
-    pub is_preferred_support: Option<bool>,
+    is_preferred_support: Option<bool>,
 
     // Whether code action supports the `disabled` property.
     //
     // Since: 3.16.0
-    pub disabled_support: Option<bool>,
+    disabled_support: Option<bool>,
 
     // Whether code action supports the `data` property which is
     // preserved between a `textDocument/codeAction` and a
     // `codeAction/resolve` request.
     //
     // Since: 3.16.0
-    pub data_support: Option<bool>,
+    data_support: Option<bool>,
 
     // Whether the client supports resolving additional code action
     // properties via a separate `codeAction/resolve` request.
     //
     // Since: 3.16.0
-    pub resolve_support: Option<ClientCodeActionResolveOptions>,
+    resolve_support: Option<ClientCodeActionResolveOptions>,
 
     // Whether the client honors the change annotations in
     // text edits and resource operations returned via the
@@ -17497,19 +17497,19 @@ pub struct CodeActionClientCapabilities {
     // for confirmation.
     //
     // Since: 3.16.0
-    pub honors_change_annotations: Option<bool>,
+    honors_change_annotations: Option<bool>,
 
     // Whether the client supports documentation for a class of
     // code actions.
     //
     // Since: 3.18.0
-    pub documentation_support: Option<bool>,
+    documentation_support: Option<bool>,
 
     // Client supports the tag property on a code action. Clients
     // supporting tags have to handle unknown tags gracefully.
     //
     // Since: 3.18.0
-    pub tag_support: Option<CodeActionTagOptions>,
+    tag_support: Option<CodeActionTagOptions>,
 }
 
 impl Json for CodeActionClientCapabilities {
@@ -17575,13 +17575,13 @@ impl Json for CodeActionClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CodeLensClientCapabilities {
     // Whether code lens supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Whether the client supports resolving additional code lens
     // properties via a separate `codeLens/resolve` request.
     //
     // Since: 3.18.0
-    pub resolve_support: Option<ClientCodeLensResolveOptions>,
+    resolve_support: Option<ClientCodeLensResolveOptions>,
 }
 
 impl Json for CodeLensClientCapabilities {
@@ -17619,12 +17619,12 @@ impl Json for CodeLensClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentLinkClientCapabilities {
     // Whether document link supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Whether the client supports the `tooltip` property on `DocumentLink`.
     //
     // Since: 3.15.0
-    pub tooltip_support: Option<bool>,
+    tooltip_support: Option<bool>,
 }
 
 impl Json for DocumentLinkClientCapabilities {
@@ -17663,7 +17663,7 @@ pub struct DocumentColorClientCapabilities {
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `DocumentColorRegistrationOptions` return value
     // for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for DocumentColorClientCapabilities {
@@ -17694,7 +17694,7 @@ impl Json for DocumentColorClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentFormattingClientCapabilities {
     // Whether formatting supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for DocumentFormattingClientCapabilities {
@@ -17725,12 +17725,12 @@ impl Json for DocumentFormattingClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentRangeFormattingClientCapabilities {
     // Whether range formatting supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Whether the client supports formatting multiple ranges at once.
     //
     // Since: 3.18.0
-    pub ranges_support: Option<bool>,
+    ranges_support: Option<bool>,
 }
 
 impl Json for DocumentRangeFormattingClientCapabilities {
@@ -17768,7 +17768,7 @@ impl Json for DocumentRangeFormattingClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct DocumentOnTypeFormattingClientCapabilities {
     // Whether on type formatting supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for DocumentOnTypeFormattingClientCapabilities {
@@ -17798,13 +17798,13 @@ impl Json for DocumentOnTypeFormattingClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct RenameClientCapabilities {
     // Whether rename supports dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Client supports testing for validity of rename operations
     // before execution.
     //
     // Since: 3.12.0
-    pub prepare_support: Option<bool>,
+    prepare_support: Option<bool>,
 
     // Client supports the default behavior result.
     //
@@ -17812,7 +17812,7 @@ pub struct RenameClientCapabilities {
     // client.
     //
     // Since: 3.16.0
-    pub prepare_support_default_behavior: Option<PrepareSupportDefaultBehavior>,
+    prepare_support_default_behavior: Option<PrepareSupportDefaultBehavior>,
 
     // Whether the client honors the change annotations in
     // text edits and resource operations returned via the
@@ -17821,7 +17821,7 @@ pub struct RenameClientCapabilities {
     // for confirmation.
     //
     // Since: 3.16.0
-    pub honors_change_annotations: Option<bool>,
+    honors_change_annotations: Option<bool>,
 }
 
 impl Json for RenameClientCapabilities {
@@ -17869,27 +17869,27 @@ pub struct FoldingRangeClientCapabilities {
     // providers. If this is set to `true` the client supports the new
     // `FoldingRangeRegistrationOptions` return value for the corresponding
     // server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // The maximum number of folding ranges that the client prefers to receive
     // per document. The value serves as a hint, servers are free to follow the
     // limit.
-    pub range_limit: Option<u32>,
+    range_limit: Option<u32>,
 
     // If set, the client signals that it only supports folding complete lines.
     // If set, client will ignore specified `startCharacter` and `endCharacter`
     // properties in a FoldingRange.
-    pub line_folding_only: Option<bool>,
+    line_folding_only: Option<bool>,
 
     // Specific options for the folding range kind.
     //
     // Since: 3.17.0
-    pub folding_range_kind: Option<ClientFoldingRangeKindOptions>,
+    folding_range_kind: Option<ClientFoldingRangeKindOptions>,
 
     // Specific options for the folding range.
     //
     // Since: 3.17.0
-    pub folding_range: Option<ClientFoldingRangeOptions>,
+    folding_range: Option<ClientFoldingRangeOptions>,
 }
 
 impl Json for FoldingRangeClientCapabilities {
@@ -17940,7 +17940,7 @@ pub struct SelectionRangeClientCapabilities {
     // Whether implementation supports dynamic registration for selection range providers. If this is set to `true`
     // the client supports the new `SelectionRangeRegistrationOptions` return value for the corresponding server
     // capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for SelectionRangeClientCapabilities {
@@ -17971,31 +17971,31 @@ impl Json for SelectionRangeClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct PublishDiagnosticsClientCapabilities {
     // Whether the clients accepts diagnostics with related information.
-    pub related_information: Option<bool>,
+    related_information: Option<bool>,
 
     // Client supports the tag property to provide meta data about a diagnostic.
     // Clients supporting tags have to handle unknown tags gracefully.
     //
     // Since: 3.15.0
-    pub tag_support: Option<ClientDiagnosticsTagOptions>,
+    tag_support: Option<ClientDiagnosticsTagOptions>,
 
     // Client supports a codeDescription property
     //
     // Since: 3.16.0
-    pub code_description_support: Option<bool>,
+    code_description_support: Option<bool>,
 
     // Whether code action supports the `data` property which is
     // preserved between a `textDocument/publishDiagnostics` and
     // `textDocument/codeAction` request.
     //
     // Since: 3.16.0
-    pub data_support: Option<bool>,
+    data_support: Option<bool>,
 
     // Whether the client interprets the version property of the
     // `textDocument/publishDiagnostics` notification's parameter.
     //
     // Since: 3.15.0
-    pub version_support: Option<bool>,
+    version_support: Option<bool>,
 }
 
 impl Json for PublishDiagnosticsClientCapabilities {
@@ -18047,7 +18047,7 @@ pub struct CallHierarchyClientCapabilities {
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
     // return value for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for CallHierarchyClientCapabilities {
@@ -18080,7 +18080,7 @@ pub struct SemanticTokensClientCapabilities {
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
     // return value for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Which requests the client supports and might send to the server
     // depending on the server's capability. Please note that clients might not
@@ -18090,22 +18090,22 @@ pub struct SemanticTokensClientCapabilities {
     // `request.range` are both set to true but the server only provides a
     // range provider the client might not render a minimap correctly or might
     // even decide to not show any semantic tokens at all.
-    pub requests: ClientSemanticTokensRequestOptions,
+    requests: ClientSemanticTokensRequestOptions,
 
     // The token types that the client supports.
-    pub token_types: Vec<String>,
+    token_types: Vec<String>,
 
     // The token modifiers that the client supports.
-    pub token_modifiers: Vec<String>,
+    token_modifiers: Vec<String>,
 
     // The token formats the clients supports.
-    pub formats: Vec<TokenFormat>,
+    formats: Vec<TokenFormat>,
 
     // Whether the client supports tokens that can overlap each other.
-    pub overlapping_token_support: Option<bool>,
+    overlapping_token_support: Option<bool>,
 
     // Whether the client supports tokens that can span multiple lines.
-    pub multiline_token_support: Option<bool>,
+    multiline_token_support: Option<bool>,
 
     // Whether the client allows the server to actively cancel a
     // semantic token request, e.g. supports returning
@@ -18113,7 +18113,7 @@ pub struct SemanticTokensClientCapabilities {
     // needs to retrigger the request.
     //
     // Since: 3.17.0
-    pub server_cancel_support: Option<bool>,
+    server_cancel_support: Option<bool>,
 
     // Whether the client uses semantic tokens to augment existing
     // syntax tokens. If set to `true` client side created syntax
@@ -18125,7 +18125,7 @@ pub struct SemanticTokensClientCapabilities {
     // specified.
     //
     // Since: 3.17.0
-    pub augments_syntax_tokens: Option<bool>,
+    augments_syntax_tokens: Option<bool>,
 }
 
 impl Json for SemanticTokensClientCapabilities {
@@ -18205,7 +18205,7 @@ pub struct LinkedEditingRangeClientCapabilities {
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
     // return value for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for LinkedEditingRangeClientCapabilities {
@@ -18240,7 +18240,7 @@ pub struct MonikerClientCapabilities {
     // Whether moniker supports dynamic registration. If this is set to `true`
     // the client supports the new `MonikerRegistrationOptions` return value
     // for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for MonikerClientCapabilities {
@@ -18273,7 +18273,7 @@ pub struct TypeHierarchyClientCapabilities {
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
     // return value for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for TypeHierarchyClientCapabilities {
@@ -18306,7 +18306,7 @@ impl Json for TypeHierarchyClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct InlineValueClientCapabilities {
     // Whether implementation supports dynamic registration for inline value providers.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for InlineValueClientCapabilities {
@@ -18339,11 +18339,11 @@ impl Json for InlineValueClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlayHintClientCapabilities {
     // Whether inlay hints support dynamic registration.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Indicates which properties a client can resolve lazily on an inlay
     // hint.
-    pub resolve_support: Option<ClientInlayHintResolveOptions>,
+    resolve_support: Option<ClientInlayHintResolveOptions>,
 }
 
 impl Json for InlayHintClientCapabilities {
@@ -18383,38 +18383,38 @@ impl Json for InlayHintClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DiagnosticClientCapabilities {
     // Whether the clients accepts diagnostics with related information.
-    pub related_information: Option<bool>,
+    related_information: Option<bool>,
 
     // Client supports the tag property to provide meta data about a diagnostic.
     // Clients supporting tags have to handle unknown tags gracefully.
     //
     // Since: 3.15.0
-    pub tag_support: Option<ClientDiagnosticsTagOptions>,
+    tag_support: Option<ClientDiagnosticsTagOptions>,
 
     // Client supports a codeDescription property
     //
     // Since: 3.16.0
-    pub code_description_support: Option<bool>,
+    code_description_support: Option<bool>,
 
     // Whether code action supports the `data` property which is
     // preserved between a `textDocument/publishDiagnostics` and
     // `textDocument/codeAction` request.
     //
     // Since: 3.16.0
-    pub data_support: Option<bool>,
+    data_support: Option<bool>,
 
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
     // return value for the corresponding server capability as well.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 
     // Whether the clients supports related documents for document diagnostic pulls.
-    pub related_document_support: Option<bool>,
+    related_document_support: Option<bool>,
 
     // Whether the client supports `MarkupContent` in diagnostic messages.
     //
     // Since: 3.18.0
-    pub markup_message_support: Option<bool>,
+    markup_message_support: Option<bool>,
 }
 
 impl Json for DiagnosticClientCapabilities {
@@ -18474,7 +18474,7 @@ impl Json for DiagnosticClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct InlineCompletionClientCapabilities {
     // Whether implementation supports dynamic registration for inline completion providers.
-    pub dynamic_registration: Option<bool>,
+    dynamic_registration: Option<bool>,
 }
 
 impl Json for InlineCompletionClientCapabilities {
@@ -18505,7 +18505,7 @@ impl Json for InlineCompletionClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct ShowMessageRequestClientCapabilities {
     // Capabilities specific to the `MessageActionItem` type.
-    pub message_action_item: Option<ClientShowMessageActionItemOptions>,
+    message_action_item: Option<ClientShowMessageActionItemOptions>,
 }
 
 impl Json for ShowMessageRequestClientCapabilities {
@@ -18539,7 +18539,7 @@ impl Json for ShowMessageRequestClientCapabilities {
 pub struct ShowDocumentClientCapabilities {
     // The client has support for the showDocument
     // request.
-    pub support: bool,
+    support: bool,
 }
 
 impl Json for ShowDocumentClientCapabilities {
@@ -18573,12 +18573,12 @@ impl Json for ShowDocumentClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct StaleRequestSupportOptions {
     // The client will actively cancel the request.
-    pub cancel: bool,
+    cancel: bool,
 
     // The list of requests for which the client
     // will retry the request if it receives a
     // response with error code `ContentModified`
-    pub retry_on_content_modified: Vec<String>,
+    retry_on_content_modified: Vec<String>,
 }
 
 impl Json for StaleRequestSupportOptions {
@@ -18622,10 +18622,10 @@ impl Json for StaleRequestSupportOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct RegularExpressionsClientCapabilities {
     // The engine's name.
-    pub engine: String,
+    engine: String,
 
     // The engine's version.
-    pub version: Option<String>,
+    version: Option<String>,
 }
 
 impl Json for RegularExpressionsClientCapabilities {
@@ -18668,16 +18668,16 @@ impl Json for RegularExpressionsClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct MarkdownClientCapabilities {
     // The name of the parser.
-    pub parser: String,
+    parser: String,
 
     // The version of the parser.
-    pub version: Option<String>,
+    version: Option<String>,
 
     // A list of HTML tags that the client allows / supports in
     // Markdown.
     //
     // Since: 3.17.0
-    pub allowed_tags: Option<Vec<String>>,
+    allowed_tags: Option<Vec<String>>,
 }
 
 impl Json for MarkdownClientCapabilities {
@@ -18724,17 +18724,17 @@ impl Json for MarkdownClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TextDocumentFilterLanguage {
     // A language id, like `typescript`.
-    pub language: String,
+    language: String,
 
     // A Uri scheme, like `file` or `untitled`.
-    pub scheme: Option<String>,
+    scheme: Option<String>,
 
     // A glob pattern, like **​ .{ts,js}. See TextDocumentFilter for examples.
     //
     // Since: 3.18.0 - support for relative patterns. Whether clients support
     // relative patterns depends on the client capability
     // `textDocuments.filters.relativePatternSupport`.
-    pub pattern: Option<PatternOrRelativePattern>,
+    pattern: Option<PatternOrRelativePattern>,
 }
 
 impl Json for TextDocumentFilterLanguage {
@@ -18781,17 +18781,17 @@ impl Json for TextDocumentFilterLanguage {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TextDocumentFilterScheme {
     // A language id, like `typescript`.
-    pub language: Option<String>,
+    language: Option<String>,
 
     // A Uri scheme, like `file` or `untitled`.
-    pub scheme: String,
+    scheme: String,
 
     // A glob pattern, like **​ .{ts,js}. See TextDocumentFilter for examples.
     //
     // Since: 3.18.0 - support for relative patterns. Whether clients support
     // relative patterns depends on the client capability
     // `textDocuments.filters.relativePatternSupport`.
-    pub pattern: Option<PatternOrRelativePattern>,
+    pattern: Option<PatternOrRelativePattern>,
 }
 
 impl Json for TextDocumentFilterScheme {
@@ -18895,7 +18895,7 @@ pub struct ChangeAnnotationsSupportOptions {
     // Whether the client groups edits with equal labels into tree nodes,
     // for instance all edits labelled with "Changes in Strings" would
     // be a tree node.
-    pub groups_on_label: Option<bool>,
+    groups_on_label: Option<bool>,
 }
 
 impl Json for ChangeAnnotationsSupportOptions {
@@ -18933,7 +18933,7 @@ pub struct ClientSymbolKindOptions {
     // If this property is not present the client only supports
     // the symbol kinds from `File` to `Array` as defined in
     // the initial version of the protocol.
-    pub value_set: Option<Vec<SymbolKind>>,
+    value_set: Option<Vec<SymbolKind>>,
 }
 
 impl Json for ClientSymbolKindOptions {
@@ -18964,7 +18964,7 @@ impl Json for ClientSymbolKindOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ClientSymbolTagOptions {
     // The tags supported by the client.
-    pub value_set: Vec<SymbolTag>,
+    value_set: Vec<SymbolTag>,
 }
 
 impl Json for ClientSymbolTagOptions {
@@ -18999,7 +18999,7 @@ impl Json for ClientSymbolTagOptions {
 pub struct ClientSymbolResolveOptions {
     // The properties that a client can resolve lazily. Usually
     // `location.range`
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl Json for ClientSymbolResolveOptions {
@@ -19038,20 +19038,20 @@ pub struct ClientCompletionItemOptions {
     // and `${3:foo}`. `$0` defines the final tab stop, it defaults to
     // the end of the snippet. Placeholders with equal identifiers are linked,
     // that is typing in one will update others too.
-    pub snippet_support: Option<bool>,
+    snippet_support: Option<bool>,
 
     // Client supports commit characters on a completion item.
-    pub commit_characters_support: Option<bool>,
+    commit_characters_support: Option<bool>,
 
     // Client supports the following content formats for the documentation
     // property. The order describes the preferred format of the client.
-    pub documentation_format: Option<Vec<MarkupKind>>,
+    documentation_format: Option<Vec<MarkupKind>>,
 
     // Client supports the deprecated property on a completion item.
-    pub deprecated_support: Option<bool>,
+    deprecated_support: Option<bool>,
 
     // Client supports the preselect property on a completion item.
-    pub preselect_support: Option<bool>,
+    preselect_support: Option<bool>,
 
     // Client supports the tag property on a completion item. Clients supporting
     // tags have to handle unknown tags gracefully. Clients especially need to
@@ -19059,33 +19059,33 @@ pub struct ClientCompletionItemOptions {
     // a resolve call.
     //
     // Since: 3.15.0
-    pub tag_support: Option<CompletionItemTagOptions>,
+    tag_support: Option<CompletionItemTagOptions>,
 
     // Client support insert replace edit to control different behavior if a
     // completion item is inserted in the text or should replace text.
     //
     // Since: 3.16.0
-    pub insert_replace_support: Option<bool>,
+    insert_replace_support: Option<bool>,
 
     // Indicates which properties a client can resolve lazily on a completion
     // item. Before version 3.16.0 only the predefined properties `documentation`
     // and `details` could be resolved lazily.
     //
     // Since: 3.16.0
-    pub resolve_support: Option<ClientCompletionItemResolveOptions>,
+    resolve_support: Option<ClientCompletionItemResolveOptions>,
 
     // The client supports the `insertTextMode` property on
     // a completion item to override the whitespace handling mode
     // as defined by the client (see `insertTextMode`).
     //
     // Since: 3.16.0
-    pub insert_text_mode_support: Option<ClientCompletionItemInsertTextModeOptions>,
+    insert_text_mode_support: Option<ClientCompletionItemInsertTextModeOptions>,
 
     // The client has support for completion item label
     // details (see also `CompletionItemLabelDetails`).
     //
     // Since: 3.17.0
-    pub label_details_support: Option<bool>,
+    label_details_support: Option<bool>,
 }
 
 impl Json for ClientCompletionItemOptions {
@@ -19162,7 +19162,7 @@ pub struct ClientCompletionItemOptionsKind {
     // If this property is not present the client only supports
     // the completion items kinds from `Text` to `Reference` as defined in
     // the initial version of the protocol.
-    pub value_set: Option<Vec<CompletionItemKind>>,
+    value_set: Option<Vec<CompletionItemKind>>,
 }
 
 impl Json for ClientCompletionItemOptionsKind {
@@ -19203,7 +19203,7 @@ pub struct CompletionListCapabilities {
     // no properties are supported.
     //
     // Since: 3.17.0
-    pub item_defaults: Option<Vec<String>>,
+    item_defaults: Option<Vec<String>>,
 
     // Specifies whether the client supports `CompletionList.applyKind` to
     // indicate how supported values from `completionList.itemDefaults`
@@ -19216,7 +19216,7 @@ pub struct CompletionListCapabilities {
     // defined in `CompletionList.applyKind`.
     //
     // Since: 3.18.0
-    pub apply_kind_support: Option<bool>,
+    apply_kind_support: Option<bool>,
 }
 
 impl Json for CompletionListCapabilities {
@@ -19255,23 +19255,23 @@ impl Json for CompletionListCapabilities {
 pub struct ClientSignatureInformationOptions {
     // Client supports the following content formats for the documentation
     // property. The order describes the preferred format of the client.
-    pub documentation_format: Option<Vec<MarkupKind>>,
+    documentation_format: Option<Vec<MarkupKind>>,
 
     // Client capabilities specific to parameter information.
-    pub parameter_information: Option<ClientSignatureParameterInformationOptions>,
+    parameter_information: Option<ClientSignatureParameterInformationOptions>,
 
     // The client supports the `activeParameter` property on `SignatureInformation`
     // literal.
     //
     // Since: 3.16.0
-    pub active_parameter_support: Option<bool>,
+    active_parameter_support: Option<bool>,
 
     // The client supports the `activeParameter` property on
     // `SignatureHelp`/`SignatureInformation` being set to `null` to
     // indicate that no parameter should be active.
     //
     // Since: 3.18.0
-    pub no_active_parameter_support: Option<bool>,
+    no_active_parameter_support: Option<bool>,
 }
 
 impl Json for ClientSignatureInformationOptions {
@@ -19318,7 +19318,7 @@ impl Json for ClientSignatureInformationOptions {
 pub struct ClientCodeActionLiteralOptions {
     // The code action kind is support with the following value
     // set.
-    pub code_action_kind: ClientCodeActionKindOptions,
+    code_action_kind: ClientCodeActionKindOptions,
 }
 
 impl Json for ClientCodeActionLiteralOptions {
@@ -19352,7 +19352,7 @@ impl Json for ClientCodeActionLiteralOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ClientCodeActionResolveOptions {
     // The properties that a client can resolve lazily.
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl Json for ClientCodeActionResolveOptions {
@@ -19386,7 +19386,7 @@ impl Json for ClientCodeActionResolveOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CodeActionTagOptions {
     // The tags supported by the client.
-    pub value_set: Vec<CodeActionTag>,
+    value_set: Vec<CodeActionTag>,
 }
 
 impl Json for CodeActionTagOptions {
@@ -19420,7 +19420,7 @@ impl Json for CodeActionTagOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ClientCodeLensResolveOptions {
     // The properties that a client can resolve lazily.
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl Json for ClientCodeLensResolveOptions {
@@ -19457,7 +19457,7 @@ pub struct ClientFoldingRangeKindOptions {
     // property exists the client also guarantees that it will
     // handle values outside its set gracefully and falls back
     // to a default value when unknown.
-    pub value_set: Option<Vec<FoldingRangeKind>>,
+    value_set: Option<Vec<FoldingRangeKind>>,
 }
 
 impl Json for ClientFoldingRangeKindOptions {
@@ -19491,7 +19491,7 @@ pub struct ClientFoldingRangeOptions {
     // folding ranges to display custom labels instead of the default text.
     //
     // Since: 3.17.0
-    pub collapsed_text: Option<bool>,
+    collapsed_text: Option<bool>,
 }
 
 impl Json for ClientFoldingRangeOptions {
@@ -19522,25 +19522,25 @@ impl Json for ClientFoldingRangeOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DiagnosticsCapabilities {
     // Whether the clients accepts diagnostics with related information.
-    pub related_information: Option<bool>,
+    related_information: Option<bool>,
 
     // Client supports the tag property to provide meta data about a diagnostic.
     // Clients supporting tags have to handle unknown tags gracefully.
     //
     // Since: 3.15.0
-    pub tag_support: Option<ClientDiagnosticsTagOptions>,
+    tag_support: Option<ClientDiagnosticsTagOptions>,
 
     // Client supports a codeDescription property
     //
     // Since: 3.16.0
-    pub code_description_support: Option<bool>,
+    code_description_support: Option<bool>,
 
     // Whether code action supports the `data` property which is
     // preserved between a `textDocument/publishDiagnostics` and
     // `textDocument/codeAction` request.
     //
     // Since: 3.16.0
-    pub data_support: Option<bool>,
+    data_support: Option<bool>,
 }
 
 impl Json for DiagnosticsCapabilities {
@@ -19587,11 +19587,11 @@ impl Json for DiagnosticsCapabilities {
 pub struct ClientSemanticTokensRequestOptions {
     // The client will send the `textDocument/semanticTokens/range` request if
     // the server provides a corresponding handler.
-    pub range: Option<BooleanOrEmptyObject>,
+    range: Option<BooleanOrEmptyObject>,
 
     // The client will send the `textDocument/semanticTokens/full` request if
     // the server provides a corresponding handler.
-    pub full: Option<BooleanOrClientSemanticTokensRequestFullDelta>,
+    full: Option<BooleanOrClientSemanticTokensRequestFullDelta>,
 }
 
 impl Json for ClientSemanticTokensRequestOptions {
@@ -19629,7 +19629,7 @@ impl Json for ClientSemanticTokensRequestOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ClientInlayHintResolveOptions {
     // The properties that a client can resolve lazily.
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl Json for ClientInlayHintResolveOptions {
@@ -19665,7 +19665,7 @@ pub struct ClientShowMessageActionItemOptions {
     // Whether the client supports additional attributes which
     // are preserved and send back to the server in the
     // request's response.
-    pub additional_properties_support: Option<bool>,
+    additional_properties_support: Option<bool>,
 }
 
 impl Json for ClientShowMessageActionItemOptions {
@@ -19696,7 +19696,7 @@ impl Json for ClientShowMessageActionItemOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct CompletionItemTagOptions {
     // The tags supported by the client.
-    pub value_set: Vec<CompletionItemTag>,
+    value_set: Vec<CompletionItemTag>,
 }
 
 impl Json for CompletionItemTagOptions {
@@ -19730,7 +19730,7 @@ impl Json for CompletionItemTagOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ClientCompletionItemResolveOptions {
     // The properties that a client can resolve lazily.
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl Json for ClientCompletionItemResolveOptions {
@@ -19763,7 +19763,7 @@ impl Json for ClientCompletionItemResolveOptions {
 // Since: 3.18.0
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ClientCompletionItemInsertTextModeOptions {
-    pub value_set: Vec<InsertTextMode>,
+    value_set: Vec<InsertTextMode>,
 }
 
 impl Json for ClientCompletionItemInsertTextModeOptions {
@@ -19800,7 +19800,7 @@ pub struct ClientSignatureParameterInformationOptions {
     // simple label string.
     //
     // Since: 3.14.0
-    pub label_offset_support: Option<bool>,
+    label_offset_support: Option<bool>,
 }
 
 impl Json for ClientSignatureParameterInformationOptions {
@@ -19834,7 +19834,7 @@ pub struct ClientCodeActionKindOptions {
     // property exists the client also guarantees that it will
     // handle values outside its set gracefully and falls back
     // to a default value when unknown.
-    pub value_set: Vec<CodeActionKind>,
+    value_set: Vec<CodeActionKind>,
 }
 
 impl Json for ClientCodeActionKindOptions {
@@ -19868,7 +19868,7 @@ impl Json for ClientCodeActionKindOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ClientDiagnosticsTagOptions {
     // The tags supported by the client.
-    pub value_set: Vec<DiagnosticTag>,
+    value_set: Vec<DiagnosticTag>,
 }
 
 impl Json for ClientDiagnosticsTagOptions {
@@ -19903,7 +19903,7 @@ impl Json for ClientDiagnosticsTagOptions {
 pub struct ClientSemanticTokensRequestFullDelta {
     // The client will send the `textDocument/semanticTokens/full/delta` request if
     // the server provides a corresponding handler.
-    pub delta: Option<bool>,
+    delta: Option<bool>,
 }
 
 impl Json for ClientSemanticTokensRequestFullDelta {
@@ -20279,7 +20279,7 @@ impl Json for ExperimentalServerCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct ExperimentalClientCapabilities {
     // The client supports hover verbosityLevel requests and canIncreaseVerbosity responses.
-    pub hover_verbosity_level: Option<bool>,
+    hover_verbosity_level: Option<bool>,
 }
 
 impl Json for ExperimentalClientCapabilities {
@@ -20640,7 +20640,7 @@ impl Json for RequestFailureTelemetryProperties {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ProfileParams {
     // The directory path where the profile should be saved.
-    pub dir: String,
+    dir: String,
 }
 
 impl Json for ProfileParams {
@@ -20674,7 +20674,7 @@ impl Json for ProfileParams {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ProfileResult {
     // The file path where the profile was saved.
-    pub file: String,
+    file: String,
 }
 
 impl Json for ProfileResult {
@@ -21113,13 +21113,13 @@ impl Json for SetLogVerbosityParams {
 #[derive(Clone, Debug, Default, PartialEq, Copy)]
 pub struct PerformanceStatsTelemetryEvent {
     // The name of the telemetry event.
-    pub event_name: StringLiteralLanguageServerPerformanceStats,
+    event_name: StringLiteralLanguageServerPerformanceStats,
 
     // Indicates this is a usage telemetry event.
-    pub telemetry_purpose: StringLiteralUsage,
+    telemetry_purpose: StringLiteralUsage,
 
     // Numeric measurements for this telemetry event.
-    pub measurements: PerformanceStatsTelemetryMeasurements,
+    measurements: PerformanceStatsTelemetryMeasurements,
 }
 
 impl Json for PerformanceStatsTelemetryEvent {
@@ -21166,94 +21166,94 @@ impl Json for PerformanceStatsTelemetryEvent {
 #[derive(Clone, Debug, Default, PartialEq, Copy)]
 pub struct PerformanceStatsTelemetryMeasurements {
     // Number of files currently open in the editor.
-    pub open_file_count: f64,
+    open_file_count: f64,
 
     // Seconds since the session was initialized.
-    pub uptime_seconds: f64,
+    uptime_seconds: f64,
 
     // Number of loaded projects.
-    pub project_count: f64,
+    project_count: f64,
 
     // Number of loaded config files.
-    pub config_count: f64,
+    config_count: f64,
 
     // Number of files cached from disk.
-    pub cached_disk_file_count: f64,
+    cached_disk_file_count: f64,
 
     // Total memory mapped by the Go runtime in bytes.
-    pub memory_used_bytes: f64,
+    memory_used_bytes: f64,
 
     // GOMEMLIMIT value in bytes, or 0 if not set.
-    pub go_mem_limit: f64,
+    go_mem_limit: f64,
 
     // GOGC percentage value configured for the GC.
-    pub go_gc_percent: f64,
+    go_gc_percent: f64,
 
     // Heap size target the GC is working toward in bytes.
-    pub heap_goal_bytes: f64,
+    heap_goal_bytes: f64,
 
     // Bytes of live (reachable) heap objects.
-    pub heap_live_bytes: f64,
+    heap_live_bytes: f64,
 
     // Number of live or unswept objects occupying heap memory.
-    pub heap_object_count: f64,
+    heap_object_count: f64,
 
     // Heap memory reserved for goroutine stacks.
-    pub heap_stack_bytes: f64,
+    heap_stack_bytes: f64,
 
     // Heap memory returned to the OS.
-    pub heap_released_bytes: f64,
+    heap_released_bytes: f64,
 
     // Heap memory that is free and eligible to be returned to the OS.
-    pub heap_free_bytes: f64,
+    heap_free_bytes: f64,
 
     // Total scannable heap bytes — how much the GC must traverse.
-    pub gc_scan_heap_bytes: f64,
+    gc_scan_heap_bytes: f64,
 
     // The current GOMAXPROCS value.
-    pub go_max_procs: f64,
+    go_max_procs: f64,
 
     // Current number of goroutines.
-    pub goroutine_count: f64,
+    goroutine_count: f64,
 
     // Total completed GC cycles.
-    pub gc_cycles_total: f64,
+    gc_cycles_total: f64,
 
     // Cumulative CPU time spent in GC in seconds.
-    pub gc_cpu_seconds: f64,
+    gc_cpu_seconds: f64,
 
     // Cumulative CPU time spent in user Go code in seconds.
-    pub user_cpu_seconds: f64,
+    user_cpu_seconds: f64,
 
     // Total physical memory on the system in bytes.
-    pub system_mem_total: f64,
+    system_mem_total: f64,
 
     // Used physical memory on the system in bytes.
-    pub system_mem_used: f64,
+    system_mem_used: f64,
 
     // Number of auto-import project buckets.
-    pub auto_import_project_bucket_count: f64,
+    auto_import_project_bucket_count: f64,
 
     // Number of auto-import node_modules buckets.
-    pub auto_import_node_modules_bucket_count: f64,
+    auto_import_node_modules_bucket_count: f64,
 
     // Unique packages across all node_modules buckets.
-    pub auto_import_unique_package_count: f64,
+    auto_import_unique_package_count: f64,
 
     // Total indexed exports from project files.
-    pub auto_import_project_export_count: f64,
+    auto_import_project_export_count: f64,
 
     // Total indexed exports from node_modules.
-    pub auto_import_node_modules_export_count: f64,
+    auto_import_node_modules_export_count: f64,
 
     // Total files tracked across project buckets.
-    pub auto_import_project_file_count: f64,
+    auto_import_project_file_count: f64,
 
     // Total files tracked across node_modules buckets.
-    pub auto_import_node_modules_file_count: f64,
+    auto_import_node_modules_file_count: f64,
 
     // Number of node_modules buckets with no package.json filter.
-    pub auto_import_node_modules_unfiltered_bucket_count: f64,
+    auto_import_node_modules_unfiltered_bucket_count: f64,
 }
 
 impl Json for PerformanceStatsTelemetryMeasurements {
@@ -21406,16 +21406,16 @@ impl Json for PerformanceStatsTelemetryMeasurements {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ProjectInfoTelemetryEvent {
     // The name of the telemetry event.
-    pub event_name: StringLiteralLanguageServerProjectInfo,
+    event_name: StringLiteralLanguageServerProjectInfo,
 
     // Indicates this is a usage telemetry event.
-    pub telemetry_purpose: StringLiteralUsage,
+    telemetry_purpose: StringLiteralUsage,
 
     // String properties for this telemetry event. Complex values (compilerOptions, fileStats) are JSON-stringified.
-    pub properties: OrderedMap<String, String>,
+    properties: OrderedMap<String, String>,
 
     // Numeric measurements for this telemetry event.
-    pub measurements: ProjectInfoTelemetryMeasurements,
+    measurements: ProjectInfoTelemetryMeasurements,
 }
 
 impl Json for ProjectInfoTelemetryEvent {
@@ -21470,25 +21470,25 @@ impl Json for ProjectInfoTelemetryEvent {
 // Numeric measurements for ProjectInfoTelemetryEvent.
 #[derive(Clone, Debug, Default, PartialEq, Copy)]
 pub struct ProjectInfoTelemetryMeasurements {
-    pub js_file_count: f64,
+    js_file_count: f64,
 
-    pub js_file_size: f64,
+    js_file_size: f64,
 
-    pub jsx_file_count: f64,
+    jsx_file_count: f64,
 
-    pub jsx_file_size: f64,
+    jsx_file_size: f64,
 
-    pub ts_file_count: f64,
+    ts_file_count: f64,
 
-    pub ts_file_size: f64,
+    ts_file_size: f64,
 
-    pub tsx_file_count: f64,
+    tsx_file_count: f64,
 
-    pub tsx_file_size: f64,
+    tsx_file_size: f64,
 
-    pub dts_file_count: f64,
+    dts_file_count: f64,
 
-    pub dts_file_size: f64,
+    dts_file_size: f64,
 }
 
 impl Json for ProjectInfoTelemetryMeasurements {
@@ -22181,7 +22181,7 @@ impl IsZero for SemanticTokenModifier {
 //
 // Since: 3.17.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct DocumentDiagnosticReportKind(pub &'static str);
+pub struct DocumentDiagnosticReportKind(&'static str);
 
 impl DocumentDiagnosticReportKind {
     // A diagnostic report with a full
@@ -22330,7 +22330,7 @@ impl IsZero for FoldingRangeKind {
 
 // A symbol kind.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct SymbolKind(pub u32);
+pub struct SymbolKind(u32);
 
 impl SymbolKind {
     pub const FILE: SymbolKind = SymbolKind(1);
@@ -22423,7 +22423,7 @@ impl IsZero for SymbolKind {
 //
 // Since: 3.16
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct SymbolTag(pub u32);
+pub struct SymbolTag(u32);
 
 impl SymbolTag {
     // Render a symbol as obsolete, usually using a strike-out.
@@ -22431,7 +22431,7 @@ impl SymbolTag {
 }
 
 impl SymbolTag {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Deprecated".to_string(),
             _ => format!("SymbolTag({})", self.0),
@@ -22467,7 +22467,7 @@ impl IsZero for SymbolTag {
 //
 // Since: 3.16.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct UniquenessLevel(pub &'static str);
+pub struct UniquenessLevel(&'static str);
 
 impl UniquenessLevel {
     // The moniker is only unique inside a document
@@ -22504,7 +22504,7 @@ impl IsZero for UniquenessLevel {
 //
 // Since: 3.16.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct MonikerKind(pub &'static str);
+pub struct MonikerKind(&'static str);
 
 impl MonikerKind {
     // The moniker represent a symbol that is imported into a project
@@ -22601,7 +22601,7 @@ impl MessageType {
 }
 
 impl MessageType {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Error".to_string(),
             2 => "Warning".to_string(),
@@ -22640,7 +22640,7 @@ impl IsZero for MessageType {
 // Defines how the host (editor) should sync
 // document changes to the language server.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct TextDocumentSyncKind(pub u32);
+pub struct TextDocumentSyncKind(u32);
 
 impl TextDocumentSyncKind {
     // Documents should not be synced at all.
@@ -22655,7 +22655,7 @@ impl TextDocumentSyncKind {
 }
 
 impl TextDocumentSyncKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             0 => "None".to_string(),
             1 => "Full".to_string(),
@@ -22691,7 +22691,7 @@ impl IsZero for TextDocumentSyncKind {
 
 // Represents reasons why a text document is saved.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct TextDocumentSaveReason(pub u32);
+pub struct TextDocumentSaveReason(u32);
 
 impl TextDocumentSaveReason {
     // Manually triggered, e.g. by the user pressing save, by starting debugging,
@@ -22704,7 +22704,7 @@ impl TextDocumentSaveReason {
 }
 
 impl TextDocumentSaveReason {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Manual".to_string(),
             2 => "AfterDelay".to_string(),
@@ -22771,7 +22771,7 @@ impl CompletionItemKind {
 }
 
 impl CompletionItemKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Text".to_string(),
             2 => "Method".to_string(),
@@ -22832,7 +22832,7 @@ impl IsZero for CompletionItemKind {
 //
 // Since: 3.15.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct CompletionItemTag(pub u32);
+pub struct CompletionItemTag(u32);
 
 impl CompletionItemTag {
     // Render a completion as obsolete, usually using a strike-out.
@@ -22840,7 +22840,7 @@ impl CompletionItemTag {
 }
 
 impl CompletionItemTag {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Deprecated".to_string(),
             _ => format!("CompletionItemTag({})", self.0),
@@ -22875,7 +22875,7 @@ impl IsZero for CompletionItemTag {
 // Defines whether the insert text in a completion item should be interpreted as
 // plain text or a snippet.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct InsertTextFormat(pub u32);
+pub struct InsertTextFormat(u32);
 
 impl InsertTextFormat {
     // The primary text to be inserted is treated as a plain string.
@@ -22892,7 +22892,7 @@ impl InsertTextFormat {
 }
 
 impl InsertTextFormat {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "PlainText".to_string(),
             2 => "Snippet".to_string(),
@@ -22930,7 +22930,7 @@ impl IsZero for InsertTextFormat {
 //
 // Since: 3.16.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct InsertTextMode(pub u32);
+pub struct InsertTextMode(u32);
 
 impl InsertTextMode {
     // The insertion or replace strings is taken as it is. If the
@@ -22950,7 +22950,7 @@ impl InsertTextMode {
 }
 
 impl InsertTextMode {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "asIs".to_string(),
             2 => "adjustIndentation".to_string(),
@@ -22985,7 +22985,7 @@ impl IsZero for InsertTextMode {
 
 // A document highlight kind.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct DocumentHighlightKind(pub u32);
+pub struct DocumentHighlightKind(u32);
 
 impl DocumentHighlightKind {
     // A textual occurrence.
@@ -22997,7 +22997,7 @@ impl DocumentHighlightKind {
 }
 
 impl DocumentHighlightKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Text".to_string(),
             2 => "Read".to_string(),
@@ -23037,7 +23037,7 @@ pub struct CodeActionKind(pub &'static str);
 
 impl CodeActionKind {
     // Empty kind.
-    pub const EMPTY: CodeActionKind = CodeActionKind("");
+    pub(crate) const EMPTY: CodeActionKind = CodeActionKind("");
     // Base kind for quickfix actions: 'quickfix'
     pub const QUICK_FIX: CodeActionKind = CodeActionKind("quickfix");
     // Base kind for refactoring actions: 'refactor'
@@ -23120,7 +23120,7 @@ impl IsZero for CodeActionKind {
 //
 // Since: 3.18.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct CodeActionTag(pub u32);
+pub struct CodeActionTag(u32);
 
 impl CodeActionTag {
     // Marks the code action as LLM-generated.
@@ -23128,7 +23128,7 @@ impl CodeActionTag {
 }
 
 impl CodeActionTag {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "LLMGenerated".to_string(),
             _ => format!("CodeActionTag({})", self.0),
@@ -23161,7 +23161,7 @@ impl IsZero for CodeActionTag {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct TraceValue(pub &'static str);
+pub struct TraceValue(&'static str);
 
 impl TraceValue {
     // Turn tracing off.
@@ -23319,7 +23319,7 @@ impl IsZero for LanguageKind {
 //
 // Since: 3.18.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct InlineCompletionTriggerKind(pub u32);
+pub struct InlineCompletionTriggerKind(u32);
 
 impl InlineCompletionTriggerKind {
     // Completion was triggered explicitly by a user gesture.
@@ -23329,7 +23329,7 @@ impl InlineCompletionTriggerKind {
 }
 
 impl InlineCompletionTriggerKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Invoked".to_string(),
             2 => "Automatic".to_string(),
@@ -23367,7 +23367,7 @@ impl IsZero for InlineCompletionTriggerKind {
 //
 // Since: 3.17.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct PositionEncodingKind(pub &'static str);
+pub struct PositionEncodingKind(&'static str);
 
 impl PositionEncodingKind {
     // Character offsets count UTF-8 code units (e.g. bytes).
@@ -23417,7 +23417,7 @@ impl FileChangeType {
 }
 
 impl FileChangeType {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Created".to_string(),
             2 => "Changed".to_string(),
@@ -23464,7 +23464,7 @@ impl WatchKind {
 }
 
 impl WatchKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         if self.0 == 0 {
             return "0".to_string();
         }
@@ -23511,7 +23511,7 @@ impl IsZero for WatchKind {
 
 // The diagnostic's severity.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct DiagnosticSeverity(pub u32);
+pub struct DiagnosticSeverity(u32);
 
 impl DiagnosticSeverity {
     // Reports an error.
@@ -23525,7 +23525,7 @@ impl DiagnosticSeverity {
 }
 
 impl DiagnosticSeverity {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Error".to_string(),
             2 => "Warning".to_string(),
@@ -23564,7 +23564,7 @@ impl IsZero for DiagnosticSeverity {
 //
 // Since: 3.15.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct DiagnosticTag(pub u32);
+pub struct DiagnosticTag(u32);
 
 impl DiagnosticTag {
     // Unused or unnecessary code.
@@ -23579,7 +23579,7 @@ impl DiagnosticTag {
 }
 
 impl DiagnosticTag {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Unnecessary".to_string(),
             2 => "Deprecated".to_string(),
@@ -23614,7 +23614,7 @@ impl IsZero for DiagnosticTag {
 
 // How a completion was triggered
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct CompletionTriggerKind(pub u32);
+pub struct CompletionTriggerKind(u32);
 
 impl CompletionTriggerKind {
     // Completion was triggered by typing an identifier (24x7 code
@@ -23628,7 +23628,7 @@ impl CompletionTriggerKind {
 }
 
 impl CompletionTriggerKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Invoked".to_string(),
             2 => "TriggerCharacter".to_string(),
@@ -23667,7 +23667,7 @@ impl IsZero for CompletionTriggerKind {
 //
 // Since: 3.18.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct ApplyKind(pub u32);
+pub struct ApplyKind(u32);
 
 impl ApplyKind {
     // The value from the individual item (if provided and not `null`) will be
@@ -23681,7 +23681,7 @@ impl ApplyKind {
 }
 
 impl ApplyKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Replace".to_string(),
             2 => "Merge".to_string(),
@@ -23718,7 +23718,7 @@ impl IsZero for ApplyKind {
 //
 // Since: 3.15.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct SignatureHelpTriggerKind(pub u32);
+pub struct SignatureHelpTriggerKind(u32);
 
 impl SignatureHelpTriggerKind {
     // Signature help was invoked manually by the user or by a command.
@@ -23730,7 +23730,7 @@ impl SignatureHelpTriggerKind {
 }
 
 impl SignatureHelpTriggerKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Invoked".to_string(),
             2 => "TriggerCharacter".to_string(),
@@ -23768,7 +23768,7 @@ impl IsZero for SignatureHelpTriggerKind {
 //
 // Since: 3.17.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct CodeActionTriggerKind(pub u32);
+pub struct CodeActionTriggerKind(u32);
 
 impl CodeActionTriggerKind {
     // Code actions were explicitly requested by the user or by an extension.
@@ -23781,7 +23781,7 @@ impl CodeActionTriggerKind {
 }
 
 impl CodeActionTriggerKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Invoked".to_string(),
             2 => "Automatic".to_string(),
@@ -23819,7 +23819,7 @@ impl IsZero for CodeActionTriggerKind {
 //
 // Since: 3.16.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct FileOperationPatternKind(pub &'static str);
+pub struct FileOperationPatternKind(&'static str);
 
 impl FileOperationPatternKind {
     // The pattern matches a file only.
@@ -23847,7 +23847,7 @@ impl IsZero for FileOperationPatternKind {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct ResourceOperationKind(pub &'static str);
+pub struct ResourceOperationKind(&'static str);
 
 impl ResourceOperationKind {
     // Supports creating new files and folders.
@@ -23877,7 +23877,7 @@ impl IsZero for ResourceOperationKind {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct FailureHandlingKind(pub &'static str);
+pub struct FailureHandlingKind(&'static str);
 
 impl FailureHandlingKind {
     // Applying the workspace change is simply aborted if one of the changes provided
@@ -23915,7 +23915,7 @@ impl IsZero for FailureHandlingKind {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct PrepareSupportDefaultBehavior(pub u32);
+pub struct PrepareSupportDefaultBehavior(u32);
 
 impl PrepareSupportDefaultBehavior {
     // The client's default behavior is to select the identifier
@@ -23924,7 +23924,7 @@ impl PrepareSupportDefaultBehavior {
 }
 
 impl PrepareSupportDefaultBehavior {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Identifier".to_string(),
             _ => format!("PrepareSupportDefaultBehavior({})", self.0),
@@ -23958,7 +23958,7 @@ impl IsZero for PrepareSupportDefaultBehavior {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct TokenFormat(pub &'static str);
+pub struct TokenFormat(&'static str);
 
 impl TokenFormat {
     pub const RELATIVE: TokenFormat = TokenFormat("relative");
@@ -23984,7 +23984,7 @@ impl IsZero for TokenFormat {
 
 // Layout style for a VSContainerElement's children, mirroring VS's Microsoft.VisualStudio.Text.Adornments.ContainerElementStyle.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct VSContainerElementStyle(pub i32);
+pub struct VSContainerElementStyle(i32);
 
 impl VSContainerElementStyle {
     // Child elements are laid out inline, wrapping as needed (e.g. an icon next to a signature line).
@@ -23994,7 +23994,7 @@ impl VSContainerElementStyle {
 }
 
 impl VSContainerElementStyle {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             0 => "Wrapped".to_string(),
             1 => "Stacked".to_string(),
@@ -24047,7 +24047,7 @@ impl LogVerbosity {
 }
 
 impl LogVerbosity {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             0 => "Off".to_string(),
             1 => "Trace".to_string(),
@@ -24086,7 +24086,7 @@ impl IsZero for LogVerbosity {
 
 // Behavior for tracking and logging flaky diagnostics.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct DiagnosticFlakeLogLevel(pub i32);
+pub struct DiagnosticFlakeLogLevel(i32);
 
 impl DiagnosticFlakeLogLevel {
     // All flake logging disabled.
@@ -24098,7 +24098,7 @@ impl DiagnosticFlakeLogLevel {
 }
 
 impl DiagnosticFlakeLogLevel {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             0 => "Off".to_string(),
             1 => "Log".to_string(),
@@ -24133,7 +24133,7 @@ impl IsZero for DiagnosticFlakeLogLevel {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct VSReferenceKind(pub i32);
+pub struct VSReferenceKind(i32);
 
 impl VSReferenceKind {
     pub const INACTIVE: VSReferenceKind = VSReferenceKind(0);
@@ -24157,7 +24157,7 @@ impl VSReferenceKind {
 }
 
 impl VSReferenceKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             0 => "Inactive".to_string(),
             1 => "Comment".to_string(),
@@ -24207,7 +24207,7 @@ impl IsZero for VSReferenceKind {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct CodeLensKind(pub &'static str);
+pub struct CodeLensKind(&'static str);
 
 impl CodeLensKind {
     pub const REFERENCES: CodeLensKind = CodeLensKind("references");
@@ -24249,7 +24249,7 @@ impl AutoImportFixKind {
 }
 
 impl AutoImportFixKind {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             0 => "UseNamespace".to_string(),
             1 => "JsdocTypeImport".to_string(),
@@ -24348,7 +24348,7 @@ impl AddAsTypeOnly {
 }
 
 impl AddAsTypeOnly {
-    pub fn string(self) -> String {
+    fn string(self) -> String {
         match self.0 {
             1 => "Allowed".to_string(),
             2 => "Required".to_string(),
@@ -24457,7 +24457,7 @@ impl Method {
     // the response is of type Definition or a Thenable that resolves to such.
     pub const TEXT_DOCUMENT_TYPE_DEFINITION: Method = Method("textDocument/typeDefinition");
     // The `workspace/workspaceFolders` is sent from the server to the client to fetch the open workspace folders.
-    pub const WORKSPACE_WORKSPACE_FOLDERS: Method = Method("workspace/workspaceFolders");
+    const WORKSPACE_WORKSPACE_FOLDERS: Method = Method("workspace/workspaceFolders");
     // The 'workspace/configuration' request is sent from the server to the client to fetch a certain
     // configuration setting.
     //
@@ -24465,17 +24465,17 @@ impl Method {
     // event. If the server still needs to react to configuration changes (since the server caches the
     // result of `workspace/configuration` requests) the server should register for an empty configuration
     // change event and empty the cache if such an event is received.
-    pub const WORKSPACE_CONFIGURATION: Method = Method("workspace/configuration");
+    const WORKSPACE_CONFIGURATION: Method = Method("workspace/configuration");
     // A request to list all color symbols found in a given text document. The request's
     // parameter is of type DocumentColorParams the
     // response is of type ColorInformation[] or a Thenable
     // that resolves to such.
-    pub const TEXT_DOCUMENT_DOCUMENT_COLOR: Method = Method("textDocument/documentColor");
+    const TEXT_DOCUMENT_DOCUMENT_COLOR: Method = Method("textDocument/documentColor");
     // A request to list all presentation for a color. The request's
     // parameter is of type ColorPresentationParams the
     // response is of type ColorPresentation[] or a Thenable
     // that resolves to such.
-    pub const TEXT_DOCUMENT_COLOR_PRESENTATION: Method = Method("textDocument/colorPresentation");
+    const TEXT_DOCUMENT_COLOR_PRESENTATION: Method = Method("textDocument/colorPresentation");
     // A request to provide folding ranges in a document. The request's
     // parameter is of type FoldingRangeParams, the
     // response is of type FoldingRangeList or a Thenable
@@ -24484,12 +24484,12 @@ impl Method {
     // A request to refresh the folding ranges in a document.
     //
     // Since: 3.18.0
-    pub const WORKSPACE_FOLDING_RANGE_REFRESH: Method = Method("workspace/foldingRange/refresh");
+    const WORKSPACE_FOLDING_RANGE_REFRESH: Method = Method("workspace/foldingRange/refresh");
     // A request to resolve the type definition locations of a symbol at a given text
     // document position. The request's parameter is of type TextDocumentPositionParams
     // the response is of type Declaration or a typed array of DeclarationLink
     // or a Thenable that resolves to such.
-    pub const TEXT_DOCUMENT_DECLARATION: Method = Method("textDocument/declaration");
+    const TEXT_DOCUMENT_DECLARATION: Method = Method("textDocument/declaration");
     // A request to provide selection ranges in a document. The request's
     // parameter is of type SelectionRangeParams, the
     // response is of type SelectionRange[] or a Thenable
@@ -24507,30 +24507,27 @@ impl Method {
     // A request to resolve the incoming calls for a given `CallHierarchyItem`.
     //
     // Since: 3.16.0
-    pub const CALL_HIERARCHY_INCOMING_CALLS: Method = Method("callHierarchy/incomingCalls");
+    const CALL_HIERARCHY_INCOMING_CALLS: Method = Method("callHierarchy/incomingCalls");
     // A request to resolve the outgoing calls for a given `CallHierarchyItem`.
     //
     // Since: 3.16.0
-    pub const CALL_HIERARCHY_OUTGOING_CALLS: Method = Method("callHierarchy/outgoingCalls");
+    const CALL_HIERARCHY_OUTGOING_CALLS: Method = Method("callHierarchy/outgoingCalls");
     // Since: 3.16.0
-    pub const TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL: Method =
-        Method("textDocument/semanticTokens/full");
+    const TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL: Method = Method("textDocument/semanticTokens/full");
     // Since: 3.16.0
-    pub const TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL_DELTA: Method =
+    const TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL_DELTA: Method =
         Method("textDocument/semanticTokens/full/delta");
     // Since: 3.16.0
-    pub const TEXT_DOCUMENT_SEMANTIC_TOKENS_RANGE: Method =
-        Method("textDocument/semanticTokens/range");
+    const TEXT_DOCUMENT_SEMANTIC_TOKENS_RANGE: Method = Method("textDocument/semanticTokens/range");
     // Since: 3.16.0
-    pub const WORKSPACE_SEMANTIC_TOKENS_REFRESH: Method =
-        Method("workspace/semanticTokens/refresh");
+    const WORKSPACE_SEMANTIC_TOKENS_REFRESH: Method = Method("workspace/semanticTokens/refresh");
     // A request to show a document. This request might open an
     // external program depending on the value of the URI to open.
     // For example a request to open `https://code.visualstudio.com/`
     // will very likely open the URI in a WEB browser.
     //
     // Since: 3.16.0
-    pub const WINDOW_SHOW_DOCUMENT: Method = Method("window/showDocument");
+    const WINDOW_SHOW_DOCUMENT: Method = Method("window/showDocument");
     // A request to provide ranges that can be edited together.
     //
     // Since: 3.16.0
@@ -24544,7 +24541,7 @@ impl Method {
     // to be created.
     //
     // Since: 3.16.0
-    pub const WORKSPACE_WILL_CREATE_FILES: Method = Method("workspace/willCreateFiles");
+    const WORKSPACE_WILL_CREATE_FILES: Method = Method("workspace/willCreateFiles");
     // The will rename files request is sent from the client to the server before files are actually
     // renamed as long as the rename is triggered from within the client.
     //
@@ -24554,33 +24551,33 @@ impl Method {
     // files were deleted from within the client.
     //
     // Since: 3.16.0
-    pub const WORKSPACE_WILL_DELETE_FILES: Method = Method("workspace/willDeleteFiles");
+    const WORKSPACE_WILL_DELETE_FILES: Method = Method("workspace/willDeleteFiles");
     // A request to get the moniker of a symbol at a given text document position.
     // The request parameter is of type TextDocumentPositionParams.
     // The response is of type Moniker[] or `null`.
-    pub const TEXT_DOCUMENT_MONIKER: Method = Method("textDocument/moniker");
+    const TEXT_DOCUMENT_MONIKER: Method = Method("textDocument/moniker");
     // A request to result a `TypeHierarchyItem` in a document at a given position.
     // Can be used as an input to a subtypes or supertypes type hierarchy.
     //
     // Since: 3.17.0
-    pub const TEXT_DOCUMENT_PREPARE_TYPE_HIERARCHY: Method =
+    const TEXT_DOCUMENT_PREPARE_TYPE_HIERARCHY: Method =
         Method("textDocument/prepareTypeHierarchy");
     // A request to resolve the supertypes for a given `TypeHierarchyItem`.
     //
     // Since: 3.17.0
-    pub const TYPE_HIERARCHY_SUPERTYPES: Method = Method("typeHierarchy/supertypes");
+    const TYPE_HIERARCHY_SUPERTYPES: Method = Method("typeHierarchy/supertypes");
     // A request to resolve the subtypes for a given `TypeHierarchyItem`.
     //
     // Since: 3.17.0
-    pub const TYPE_HIERARCHY_SUBTYPES: Method = Method("typeHierarchy/subtypes");
+    const TYPE_HIERARCHY_SUBTYPES: Method = Method("typeHierarchy/subtypes");
     // A request to provide inline values in a document. The request's parameter is of
     // type InlineValueParams, the response is of type
     // InlineValue[] or a Thenable that resolves to such.
     //
     // Since: 3.17.0
-    pub const TEXT_DOCUMENT_INLINE_VALUE: Method = Method("textDocument/inlineValue");
+    const TEXT_DOCUMENT_INLINE_VALUE: Method = Method("textDocument/inlineValue");
     // Since: 3.17.0
-    pub const WORKSPACE_INLINE_VALUE_REFRESH: Method = Method("workspace/inlineValue/refresh");
+    const WORKSPACE_INLINE_VALUE_REFRESH: Method = Method("workspace/inlineValue/refresh");
     // A request to provide inlay hints in a document. The request's parameter is of
     // type InlayHintsParams, the response is of type
     // InlayHint[] or a Thenable that resolves to such.
@@ -24592,9 +24589,9 @@ impl Method {
     // of type InlayHint or a Thenable that resolves to such.
     //
     // Since: 3.17.0
-    pub const INLAY_HINT_RESOLVE: Method = Method("inlayHint/resolve");
+    const INLAY_HINT_RESOLVE: Method = Method("inlayHint/resolve");
     // Since: 3.17.0
-    pub const WORKSPACE_INLAY_HINT_REFRESH: Method = Method("workspace/inlayHint/refresh");
+    const WORKSPACE_INLAY_HINT_REFRESH: Method = Method("workspace/inlayHint/refresh");
     // The document diagnostic request definition.
     //
     // Since: 3.17.0
@@ -24602,27 +24599,27 @@ impl Method {
     // The workspace diagnostic request definition.
     //
     // Since: 3.17.0
-    pub const WORKSPACE_DIAGNOSTIC: Method = Method("workspace/diagnostic");
+    const WORKSPACE_DIAGNOSTIC: Method = Method("workspace/diagnostic");
     // The diagnostic refresh request definition.
     //
     // Since: 3.17.0
-    pub const WORKSPACE_DIAGNOSTIC_REFRESH: Method = Method("workspace/diagnostic/refresh");
+    const WORKSPACE_DIAGNOSTIC_REFRESH: Method = Method("workspace/diagnostic/refresh");
     // A request to provide inline completions in a document. The request's parameter is of
     // type InlineCompletionParams, the response is of type
     // InlineCompletion[] or a Thenable that resolves to such.
     //
     // Since: 3.18.0
-    pub const TEXT_DOCUMENT_INLINE_COMPLETION: Method = Method("textDocument/inlineCompletion");
+    const TEXT_DOCUMENT_INLINE_COMPLETION: Method = Method("textDocument/inlineCompletion");
     // The `workspace/textDocumentContent` request is sent from the client to the
     // server to request the content of a text document.
     //
     // Since: 3.18.0
-    pub const WORKSPACE_TEXT_DOCUMENT_CONTENT: Method = Method("workspace/textDocumentContent");
+    const WORKSPACE_TEXT_DOCUMENT_CONTENT: Method = Method("workspace/textDocumentContent");
     // The `workspace/textDocumentContent` request is sent from the server to the client to refresh
     // the content of a specific text document.
     //
     // Since: 3.18.0
-    pub const WORKSPACE_TEXT_DOCUMENT_CONTENT_REFRESH: Method =
+    const WORKSPACE_TEXT_DOCUMENT_CONTENT_REFRESH: Method =
         Method("workspace/textDocumentContent/refresh");
     // The `client/registerCapability` request is sent from the server to the client to register a new capability
     // handler on the client side.
@@ -24640,17 +24637,17 @@ impl Method {
     // It is sent once when the client decides to shutdown the
     // server. The only notification that is sent after a shutdown request
     // is the exit event.
-    pub const SHUTDOWN: Method = Method("shutdown");
+    const SHUTDOWN: Method = Method("shutdown");
     // The show message request is sent from the server to the client to show a message
     // and a set of options actions to the user.
-    pub const WINDOW_SHOW_MESSAGE_REQUEST: Method = Method("window/showMessageRequest");
+    const WINDOW_SHOW_MESSAGE_REQUEST: Method = Method("window/showMessageRequest");
     // A document will save request is sent from the client to the server before
     // the document is actually saved. The request can return an array of TextEdits
     // which will be applied to the text document before it is saved. Please note that
     // clients might drop results if computing the text edits took too long or if a
     // server constantly fails on this request. This is done to keep the save fast and
     // reliable.
-    pub const TEXT_DOCUMENT_WILL_SAVE_WAIT_UNTIL: Method = Method("textDocument/willSaveWaitUntil");
+    const TEXT_DOCUMENT_WILL_SAVE_WAIT_UNTIL: Method = Method("textDocument/willSaveWaitUntil");
     // Request to request completion at a given text document position. The request's
     // parameter is of type TextDocumentPosition the response
     // is of type CompletionItem[] or CompletionList
@@ -24664,7 +24661,7 @@ impl Method {
     // Request to resolve additional information for a given completion item.The request's
     // parameter is of type CompletionItem the response
     // is of type CompletionItem or a Thenable that resolves to such.
-    pub const COMPLETION_ITEM_RESOLVE: Method = Method("completionItem/resolve");
+    const COMPLETION_ITEM_RESOLVE: Method = Method("completionItem/resolve");
     // Request to request hover information at a given text document position. The request's
     // parameter is of type TextDocumentPosition the response is of
     // type Hover or a Thenable that resolves to such.
@@ -24695,7 +24692,7 @@ impl Method {
     // Request to resolve additional information for a given code action.The request's
     // parameter is of type CodeAction the response
     // is of type CodeAction or a Thenable that resolves to such.
-    pub const CODE_ACTION_RESOLVE: Method = Method("codeAction/resolve");
+    const CODE_ACTION_RESOLVE: Method = Method("codeAction/resolve");
     // A request to list project-wide symbols matching the query string given
     // by the WorkspaceSymbolParams. The response is
     // of type SymbolInformation[] or a Thenable that
@@ -24704,26 +24701,26 @@ impl Method {
     // Since: 3.17.0 - support for WorkspaceSymbol in the returned data. Clients
     //  need to advertise support for WorkspaceSymbols via the client capability
     //  `workspace.symbol.resolveSupport`.
-    pub const WORKSPACE_SYMBOL: Method = Method("workspace/symbol");
+    const WORKSPACE_SYMBOL: Method = Method("workspace/symbol");
     // A request to resolve the range inside the workspace
     // symbol's location.
     //
     // Since: 3.17.0
-    pub const WORKSPACE_SYMBOL_RESOLVE: Method = Method("workspaceSymbol/resolve");
+    const WORKSPACE_SYMBOL_RESOLVE: Method = Method("workspaceSymbol/resolve");
     // A request to provide code lens for the given text document.
     pub const TEXT_DOCUMENT_CODE_LENS: Method = Method("textDocument/codeLens");
     // A request to resolve a command for a given code lens.
-    pub const CODE_LENS_RESOLVE: Method = Method("codeLens/resolve");
+    const CODE_LENS_RESOLVE: Method = Method("codeLens/resolve");
     // A request to refresh all code actions
     //
     // Since: 3.16.0
-    pub const WORKSPACE_CODE_LENS_REFRESH: Method = Method("workspace/codeLens/refresh");
+    const WORKSPACE_CODE_LENS_REFRESH: Method = Method("workspace/codeLens/refresh");
     // A request to provide document links
-    pub const TEXT_DOCUMENT_DOCUMENT_LINK: Method = Method("textDocument/documentLink");
+    const TEXT_DOCUMENT_DOCUMENT_LINK: Method = Method("textDocument/documentLink");
     // Request to resolve additional information for a given document link. The request's
     // parameter is of type DocumentLink the response
     // is of type DocumentLink or a Thenable that resolves to such.
-    pub const DOCUMENT_LINK_RESOLVE: Method = Method("documentLink/resolve");
+    const DOCUMENT_LINK_RESOLVE: Method = Method("documentLink/resolve");
     // A request to format a whole document.
     pub const TEXT_DOCUMENT_FORMATTING: Method = Method("textDocument/formatting");
     // A request to format a range in a document.
@@ -24731,7 +24728,7 @@ impl Method {
     // A request to format ranges in a document.
     //
     // Since: 3.18.0
-    pub const TEXT_DOCUMENT_RANGES_FORMATTING: Method = Method("textDocument/rangesFormatting");
+    const TEXT_DOCUMENT_RANGES_FORMATTING: Method = Method("textDocument/rangesFormatting");
     // A request to format a document on type.
     pub const TEXT_DOCUMENT_ON_TYPE_FORMATTING: Method = Method("textDocument/onTypeFormatting");
     // A request to rename a symbol.
@@ -24739,12 +24736,12 @@ impl Method {
     // A request to test and perform the setup necessary for a rename.
     //
     // Since: 3.16 - support for default behavior
-    pub const TEXT_DOCUMENT_PREPARE_RENAME: Method = Method("textDocument/prepareRename");
+    const TEXT_DOCUMENT_PREPARE_RENAME: Method = Method("textDocument/prepareRename");
     // A request send from the client to the server to execute a command. The request might return
     // a workspace edit which the client will apply to the workspace.
-    pub const WORKSPACE_EXECUTE_COMMAND: Method = Method("workspace/executeCommand");
+    const WORKSPACE_EXECUTE_COMMAND: Method = Method("workspace/executeCommand");
     // A request sent from the server to the client to modified certain resources.
-    pub const WORKSPACE_APPLY_EDIT: Method = Method("workspace/applyEdit");
+    const WORKSPACE_APPLY_EDIT: Method = Method("workspace/applyEdit");
     // Triggers garbage collection in the language server.
     pub const CUSTOM_RUN_GC: Method = Method("custom/runGC");
     // Saves a heap profile to the specified directory.
@@ -24756,65 +24753,64 @@ impl Method {
     // Stops CPU profiling and saves the profile.
     pub const CUSTOM_STOP_CPU_PROFILE: Method = Method("custom/stopCPUProfile");
     // Custom request to initialize an API session.
-    pub const CUSTOM_INITIALIZE_API_SESSION: Method = Method("custom/initializeAPISession");
+    const CUSTOM_INITIALIZE_API_SESSION: Method = Method("custom/initializeAPISession");
     // Returns project information (e.g. the tsconfig.json path) for a given text document.
-    pub const CUSTOM_PROJECT_INFO: Method = Method("custom/projectInfo");
+    const CUSTOM_PROJECT_INFO: Method = Method("custom/projectInfo");
     // Replaces extension content mapper contributions and discovers configured mappers for matching open documents.
-    pub const CUSTOM_SET_CONTENT_MAPPER_CONTRIBUTIONS: Method =
+    const CUSTOM_SET_CONTENT_MAPPER_CONTRIBUTIONS: Method =
         Method("custom/setContentMapperContributions");
     // Request to get source definitions for a position.
-    pub const CUSTOM_TEXT_DOCUMENT_SOURCE_DEFINITION: Method =
+    const CUSTOM_TEXT_DOCUMENT_SOURCE_DEFINITION: Method =
         Method("custom/textDocument/sourceDefinition");
     // Request to get document highlights across multiple files.
-    pub const CUSTOM_TEXT_DOCUMENT_MULTI_DOCUMENT_HIGHLIGHT: Method =
+    const CUSTOM_TEXT_DOCUMENT_MULTI_DOCUMENT_HIGHLIGHT: Method =
         Method("custom/textDocument/multiDocumentHighlight");
     // Request for auto-insert when a trigger character is typed (VS-specific).
-    pub const TEXT_DOCUMENT_VS_ON_AUTO_INSERT: Method = Method("textDocument/_vs_onAutoInsert");
+    const TEXT_DOCUMENT_VS_ON_AUTO_INSERT: Method = Method("textDocument/_vs_onAutoInsert");
     // VS-specific request for Find All References with grouped reference items.
-    pub const TEXT_DOCUMENT_VS_REFERENCES: Method = Method("textDocument/_vs_references");
+    const TEXT_DOCUMENT_VS_REFERENCES: Method = Method("textDocument/_vs_references");
     // The `workspace/didChangeWorkspaceFolders` notification is sent from the client to the server when the workspace
     // folder configuration changes.
-    pub const WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS: Method =
+    const WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS: Method =
         Method("workspace/didChangeWorkspaceFolders");
     // The `window/workDoneProgress/cancel` notification is sent from the client to the server to cancel a progress
     // initiated on the server side.
-    pub const WINDOW_WORK_DONE_PROGRESS_CANCEL: Method = Method("window/workDoneProgress/cancel");
+    const WINDOW_WORK_DONE_PROGRESS_CANCEL: Method = Method("window/workDoneProgress/cancel");
     // The did create files notification is sent from the client to the server when
     // files were created from within the client.
     //
     // Since: 3.16.0
-    pub const WORKSPACE_DID_CREATE_FILES: Method = Method("workspace/didCreateFiles");
+    const WORKSPACE_DID_CREATE_FILES: Method = Method("workspace/didCreateFiles");
     // The did rename files notification is sent from the client to the server when
     // files were renamed from within the client.
     //
     // Since: 3.16.0
-    pub const WORKSPACE_DID_RENAME_FILES: Method = Method("workspace/didRenameFiles");
+    const WORKSPACE_DID_RENAME_FILES: Method = Method("workspace/didRenameFiles");
     // The will delete files request is sent from the client to the server before files are actually
     // deleted as long as the deletion is triggered from within the client.
     //
     // Since: 3.16.0
-    pub const WORKSPACE_DID_DELETE_FILES: Method = Method("workspace/didDeleteFiles");
+    const WORKSPACE_DID_DELETE_FILES: Method = Method("workspace/didDeleteFiles");
     // The initialized notification is sent from the client to the
     // server after the client is fully initialized and the server
     // is allowed to send requests from the server to the client.
     pub const INITIALIZED: Method = Method("initialized");
     // The exit event is sent from the client to the server to
     // ask the server to exit its process.
-    pub const EXIT: Method = Method("exit");
+    const EXIT: Method = Method("exit");
     // The configuration change notification is sent from the client to the server
     // when the client's configuration has changed. The notification contains
     // the changed configuration as defined by the language client.
-    pub const WORKSPACE_DID_CHANGE_CONFIGURATION: Method =
-        Method("workspace/didChangeConfiguration");
+    const WORKSPACE_DID_CHANGE_CONFIGURATION: Method = Method("workspace/didChangeConfiguration");
     // The show message notification is sent from a server to a client to ask
     // the client to display a particular message in the user interface.
-    pub const WINDOW_SHOW_MESSAGE: Method = Method("window/showMessage");
+    const WINDOW_SHOW_MESSAGE: Method = Method("window/showMessage");
     // The log message notification is sent from the server to the client to ask
     // the client to log a particular message.
-    pub const WINDOW_LOG_MESSAGE: Method = Method("window/logMessage");
+    const WINDOW_LOG_MESSAGE: Method = Method("window/logMessage");
     // The telemetry event notification is sent from the server to the client to ask
     // the client to log telemetry data.
-    pub const TELEMETRY_EVENT: Method = Method("telemetry/event");
+    const TELEMETRY_EVENT: Method = Method("telemetry/event");
     // The document open notification is sent from the client to the server to signal
     // newly opened text documents. The document's truth is now managed by the client
     // and the server must not try to read the document's truth using the document's
@@ -24837,33 +24833,29 @@ impl Method {
     pub const TEXT_DOCUMENT_DID_CLOSE: Method = Method("textDocument/didClose");
     // The document save notification is sent from the client to the server when
     // the document got saved in the client.
-    pub const TEXT_DOCUMENT_DID_SAVE: Method = Method("textDocument/didSave");
+    const TEXT_DOCUMENT_DID_SAVE: Method = Method("textDocument/didSave");
     // A document will save notification is sent from the client to the server before
     // the document is actually saved.
-    pub const TEXT_DOCUMENT_WILL_SAVE: Method = Method("textDocument/willSave");
+    const TEXT_DOCUMENT_WILL_SAVE: Method = Method("textDocument/willSave");
     // The watched files notification is sent from the client to the server when
     // the client detects changes to file watched by the language client.
     pub const WORKSPACE_DID_CHANGE_WATCHED_FILES: Method =
         Method("workspace/didChangeWatchedFiles");
     // Diagnostics notification are sent from the server to the client to signal
     // results of validation runs.
-    pub const TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS: Method = Method("textDocument/publishDiagnostics");
-    pub const SET_TRACE: Method = Method("$/setTrace");
-    pub const LOG_TRACE: Method = Method("$/logTrace");
+    const TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS: Method = Method("textDocument/publishDiagnostics");
+    const SET_TRACE: Method = Method("$/setTrace");
+    const LOG_TRACE: Method = Method("$/logTrace");
     pub const CANCEL_REQUEST: Method = Method("$/cancelRequest");
     pub const PROGRESS: Method = Method("$/progress");
     // Notification to set the server's log verbosity level based on the output channel's log level.
-    pub const CUSTOM_SET_LOG_VERBOSITY: Method = Method("custom/setLogVerbosity");
+    const CUSTOM_SET_LOG_VERBOSITY: Method = Method("custom/setLogVerbosity");
     // Registration-only method for textDocument/semanticTokens.
     pub const TEXT_DOCUMENT_SEMANTIC_TOKENS: Method = Method("textDocument/semanticTokens");
 }
 
 impl Method {
-    #[expect(
-        clippy::should_implement_trait,
-        reason = "this conversion is infallible, unlike FromStr"
-    )]
-    pub fn from_str(s: &str) -> Method {
+    pub(crate) fn from_str(s: &str) -> Method {
         match s {
             "textDocument/implementation" => Method::TEXT_DOCUMENT_IMPLEMENTATION,
             "textDocument/typeDefinition" => Method::TEXT_DOCUMENT_TYPE_DEFINITION,
@@ -26043,8 +26035,8 @@ impl Json for StringOrMarkupContent {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct WorkspaceFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport {
-    pub full_document_diagnostic_report: Option<WorkspaceFullDocumentDiagnosticReport>,
-    pub unchanged_document_diagnostic_report: Option<WorkspaceUnchangedDocumentDiagnosticReport>,
+    full_document_diagnostic_report: Option<WorkspaceFullDocumentDiagnosticReport>,
+    unchanged_document_diagnostic_report: Option<WorkspaceUnchangedDocumentDiagnosticReport>,
 }
 
 impl Json for WorkspaceFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport {
@@ -26093,8 +26085,8 @@ impl Json for WorkspaceFullDocumentDiagnosticReportOrUnchangedDocumentDiagnostic
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct StringOrStringValue {
-    pub string: Option<String>,
-    pub string_value: Option<StringValue>,
+    string: Option<String>,
+    string_value: Option<StringValue>,
 }
 
 impl Json for StringOrStringValue {
@@ -26517,8 +26509,8 @@ impl Json for UintegerOrNull {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct LocationOrLocationUriOnly {
-    pub location: Option<Location>,
-    pub location_uri_only: Option<LocationUriOnly>,
+    location: Option<Location>,
+    location_uri_only: Option<LocationUriOnly>,
 }
 
 impl Json for LocationOrLocationUriOnly {
@@ -26657,8 +26649,8 @@ impl Json for TextEditOrAnnotatedTextEditOrSnippetTextEdit {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct FullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport {
-    pub full_document_diagnostic_report: Option<FullDocumentDiagnosticReport>,
-    pub unchanged_document_diagnostic_report: Option<UnchangedDocumentDiagnosticReport>,
+    full_document_diagnostic_report: Option<FullDocumentDiagnosticReport>,
+    unchanged_document_diagnostic_report: Option<UnchangedDocumentDiagnosticReport>,
 }
 
 impl Json for FullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport {
@@ -26791,9 +26783,9 @@ impl Json for BooleanOrHoverOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct BooleanOrDeclarationOptionsOrDeclarationRegistrationOptions {
-    pub boolean: Option<bool>,
-    pub declaration_options: Option<DeclarationOptions>,
-    pub declaration_registration_options: Option<DeclarationRegistrationOptions>,
+    boolean: Option<bool>,
+    declaration_options: Option<DeclarationOptions>,
+    declaration_registration_options: Option<DeclarationRegistrationOptions>,
 }
 
 impl Json for BooleanOrDeclarationOptionsOrDeclarationRegistrationOptions {
@@ -27178,9 +27170,9 @@ impl Json for BooleanOrCodeActionOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptions {
-    pub boolean: Option<bool>,
-    pub document_color_options: Option<DocumentColorOptions>,
-    pub document_color_registration_options: Option<DocumentColorRegistrationOptions>,
+    boolean: Option<bool>,
+    document_color_options: Option<DocumentColorOptions>,
+    document_color_registration_options: Option<DocumentColorRegistrationOptions>,
 }
 
 impl Json for BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptions {
@@ -27684,9 +27676,9 @@ impl Json for SemanticTokensOptionsOrRegistrationOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct BooleanOrMonikerOptionsOrMonikerRegistrationOptions {
-    pub boolean: Option<bool>,
-    pub moniker_options: Option<MonikerOptions>,
-    pub moniker_registration_options: Option<MonikerRegistrationOptions>,
+    boolean: Option<bool>,
+    moniker_options: Option<MonikerOptions>,
+    moniker_registration_options: Option<MonikerRegistrationOptions>,
 }
 
 impl Json for BooleanOrMonikerOptionsOrMonikerRegistrationOptions {
@@ -27739,9 +27731,9 @@ impl Json for BooleanOrMonikerOptionsOrMonikerRegistrationOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct BooleanOrTypeHierarchyOptionsOrTypeHierarchyRegistrationOptions {
-    pub boolean: Option<bool>,
-    pub type_hierarchy_options: Option<TypeHierarchyOptions>,
-    pub type_hierarchy_registration_options: Option<TypeHierarchyRegistrationOptions>,
+    boolean: Option<bool>,
+    type_hierarchy_options: Option<TypeHierarchyOptions>,
+    type_hierarchy_registration_options: Option<TypeHierarchyRegistrationOptions>,
 }
 
 impl Json for BooleanOrTypeHierarchyOptionsOrTypeHierarchyRegistrationOptions {
@@ -27798,9 +27790,9 @@ impl Json for BooleanOrTypeHierarchyOptionsOrTypeHierarchyRegistrationOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct BooleanOrInlineValueOptionsOrInlineValueRegistrationOptions {
-    pub boolean: Option<bool>,
-    pub inline_value_options: Option<InlineValueOptions>,
-    pub inline_value_registration_options: Option<InlineValueRegistrationOptions>,
+    boolean: Option<bool>,
+    inline_value_options: Option<InlineValueOptions>,
+    inline_value_registration_options: Option<InlineValueRegistrationOptions>,
 }
 
 impl Json for BooleanOrInlineValueOptionsOrInlineValueRegistrationOptions {
@@ -27945,8 +27937,8 @@ impl Json for DiagnosticOptionsOrRegistrationOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct BooleanOrInlineCompletionOptions {
-    pub boolean: Option<bool>,
-    pub inline_completion_options: Option<InlineCompletionOptions>,
+    boolean: Option<bool>,
+    inline_completion_options: Option<InlineCompletionOptions>,
 }
 
 impl Json for BooleanOrInlineCompletionOptions {
@@ -28116,8 +28108,8 @@ impl Json for BooleanOrSaveOptions {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TextDocumentContentOptionsOrRegistrationOptions {
-    pub options: Option<TextDocumentContentOptions>,
-    pub registration_options: Option<TextDocumentContentRegistrationOptions>,
+    options: Option<TextDocumentContentOptions>,
+    registration_options: Option<TextDocumentContentRegistrationOptions>,
 }
 
 impl Json for TextDocumentContentOptionsOrRegistrationOptions {
@@ -28195,8 +28187,8 @@ impl Json for StringOrTuple {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct StringOrBoolean {
-    pub string: Option<String>,
-    pub boolean: Option<bool>,
+    string: Option<String>,
+    boolean: Option<bool>,
 }
 
 impl Json for StringOrBoolean {
@@ -28271,8 +28263,8 @@ impl Json for WorkspaceFolderOrURI {
 
 #[derive(Clone, Debug, Default, PartialEq, Copy, Eq, Hash)]
 pub struct BooleanOrClientSemanticTokensRequestFullDelta {
-    pub boolean: Option<bool>,
-    pub client_semantic_tokens_request_full_delta: Option<ClientSemanticTokensRequestFullDelta>,
+    boolean: Option<bool>,
+    client_semantic_tokens_request_full_delta: Option<ClientSemanticTokensRequestFullDelta>,
 }
 
 impl Json for BooleanOrClientSemanticTokensRequestFullDelta {
@@ -28472,9 +28464,9 @@ impl Json for FoldingRangesOrNull {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct LocationOrLocationsOrDeclarationLinksOrNull {
-    pub location: Option<Location>,
-    pub locations: Option<Vec<Location>>,
-    pub declaration_links: Option<Vec<LocationLink>>,
+    location: Option<Location>,
+    locations: Option<Vec<Location>>,
+    declaration_links: Option<Vec<LocationLink>>,
 }
 
 impl Json for LocationOrLocationsOrDeclarationLinksOrNull {
@@ -28711,8 +28703,8 @@ impl Json for SemanticTokensOrNull {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct SemanticTokensOrSemanticTokensDeltaOrNull {
-    pub semantic_tokens: Option<SemanticTokens>,
-    pub semantic_tokens_delta: Option<SemanticTokensDelta>,
+    semantic_tokens: Option<SemanticTokens>,
+    semantic_tokens_delta: Option<SemanticTokensDelta>,
 }
 
 impl Json for SemanticTokensOrSemanticTokensDeltaOrNull {
@@ -28833,7 +28825,7 @@ impl Json for WorkspaceEditOrNull {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct MonikersOrNull {
-    pub monikers: Option<Vec<Moniker>>,
+    monikers: Option<Vec<Moniker>>,
 }
 
 impl Json for MonikersOrNull {
@@ -28864,7 +28856,7 @@ impl Json for MonikersOrNull {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct TypeHierarchyItemsOrNull {
-    pub type_hierarchy_items: Option<Vec<TypeHierarchyItem>>,
+    type_hierarchy_items: Option<Vec<TypeHierarchyItem>>,
 }
 
 impl Json for TypeHierarchyItemsOrNull {
@@ -28898,7 +28890,7 @@ impl Json for TypeHierarchyItemsOrNull {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlineValuesOrNull {
-    pub inline_values: Option<Vec<InlineValueTextOrVariableLookupOrEvaluatableExpression>>,
+    inline_values: Option<Vec<InlineValueTextOrVariableLookupOrEvaluatableExpression>>,
 }
 
 impl Json for InlineValuesOrNull {
@@ -29010,8 +29002,8 @@ impl Json for RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticRe
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct InlineCompletionListOrItemsOrNull {
-    pub list: Option<InlineCompletionList>,
-    pub items: Option<Vec<InlineCompletionItem>>,
+    list: Option<InlineCompletionList>,
+    items: Option<Vec<InlineCompletionItem>>,
 }
 
 impl Json for InlineCompletionListOrItemsOrNull {
@@ -29055,7 +29047,7 @@ impl Json for InlineCompletionListOrItemsOrNull {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct MessageActionItemOrNull {
-    pub message_action_item: Option<MessageActionItem>,
+    message_action_item: Option<MessageActionItem>,
 }
 
 impl Json for MessageActionItemOrNull {
@@ -29499,7 +29491,7 @@ impl Json for CodeLensesOrNull {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct DocumentLinksOrNull {
-    pub document_links: Option<Vec<DocumentLink>>,
+    document_links: Option<Vec<DocumentLink>>,
 }
 
 impl Json for DocumentLinksOrNull {
@@ -29604,7 +29596,7 @@ impl Json for RangeOrPrepareRenamePlaceholderOrPrepareRenameDefaultBehaviorOrNul
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct LSPAnyOrNull {
-    pub lsp_any: Option<Value>,
+    lsp_any: Option<Value>,
 }
 
 impl Json for LSPAnyOrNull {
@@ -29843,8 +29835,8 @@ impl Json for TextDocumentFilterLanguageOrSchemeOrPattern {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct StringOrMarkedStringWithLanguage {
-    pub string: Option<String>,
-    pub marked_string_with_language: Option<MarkedStringWithLanguage>,
+    string: Option<String>,
+    marked_string_with_language: Option<MarkedStringWithLanguage>,
 }
 
 impl Json for StringOrMarkedStringWithLanguage {
@@ -29888,9 +29880,9 @@ impl Json for StringOrMarkedStringWithLanguage {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct InlineValueTextOrVariableLookupOrEvaluatableExpression {
-    pub text: Option<InlineValueText>,
-    pub variable_lookup: Option<InlineValueVariableLookup>,
-    pub evaluatable_expression: Option<InlineValueEvaluatableExpression>,
+    text: Option<InlineValueText>,
+    variable_lookup: Option<InlineValueVariableLookup>,
+    evaluatable_expression: Option<InlineValueEvaluatableExpression>,
 }
 
 impl Json for InlineValueTextOrVariableLookupOrEvaluatableExpression {
@@ -30382,11 +30374,11 @@ pub struct ResolvedChangeAnnotationsSupportOptions {
     // Whether the client groups edits with equal labels into tree nodes,
     // for instance all edits labelled with "Changes in Strings" would
     // be a tree node.
-    pub groups_on_label: bool,
+    groups_on_label: bool,
 }
 
 impl ChangeAnnotationsSupportOptions {
-    pub(crate) fn resolve(self) -> ResolvedChangeAnnotationsSupportOptions {
+    fn resolve(self) -> ResolvedChangeAnnotationsSupportOptions {
         ResolvedChangeAnnotationsSupportOptions {
             groups_on_label: self.groups_on_label.unwrap_or_default(),
         }
@@ -30408,7 +30400,7 @@ pub struct ResolvedWorkspaceEditClientCapabilities {
     // fails.
     //
     // Since: 3.13.0
-    pub failure_handling: FailureHandlingKind,
+    failure_handling: FailureHandlingKind,
     // Whether the client normalizes line endings to the client specific
     // setting.
     // If set to `true` the client will normalize line ending characters
@@ -30416,24 +30408,24 @@ pub struct ResolvedWorkspaceEditClientCapabilities {
     // character.
     //
     // Since: 3.16.0
-    pub normalizes_line_endings: bool,
+    normalizes_line_endings: bool,
     // Whether the client in general supports change annotations on text edits,
     // create file, rename file and delete file changes.
     //
     // Since: 3.16.0
-    pub change_annotation_support: ResolvedChangeAnnotationsSupportOptions,
+    change_annotation_support: ResolvedChangeAnnotationsSupportOptions,
     // Whether the client supports `WorkspaceEditMetadata` in `WorkspaceEdit`s.
     //
     // Since: 3.18.0
-    pub metadata_support: bool,
+    metadata_support: bool,
     // Whether the client supports snippets as text edits.
     //
     // Since: 3.18.0
-    pub snippet_edit_support: bool,
+    snippet_edit_support: bool,
 }
 
 impl WorkspaceEditClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedWorkspaceEditClientCapabilities {
+    fn resolve(&self) -> ResolvedWorkspaceEditClientCapabilities {
         ResolvedWorkspaceEditClientCapabilities {
             document_changes: self.document_changes.unwrap_or_default(),
             resource_operations: self.resource_operations.clone().unwrap_or_default(),
@@ -30455,11 +30447,11 @@ impl WorkspaceEditClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedDidChangeConfigurationClientCapabilities {
     // Did change configuration notification supports dynamic registration.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
 }
 
 impl DidChangeConfigurationClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDidChangeConfigurationClientCapabilities {
+    fn resolve(self) -> ResolvedDidChangeConfigurationClientCapabilities {
         ResolvedDidChangeConfigurationClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -30482,7 +30474,7 @@ pub struct ResolvedDidChangeWatchedFilesClientCapabilities {
 }
 
 impl DidChangeWatchedFilesClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDidChangeWatchedFilesClientCapabilities {
+    fn resolve(self) -> ResolvedDidChangeWatchedFilesClientCapabilities {
         ResolvedDidChangeWatchedFilesClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             relative_pattern_support: self.relative_pattern_support.unwrap_or_default(),
@@ -30504,11 +30496,11 @@ pub struct ResolvedClientSymbolKindOptions {
     // If this property is not present the client only supports
     // the symbol kinds from `File` to `Array` as defined in
     // the initial version of the protocol.
-    pub value_set: Vec<SymbolKind>,
+    value_set: Vec<SymbolKind>,
 }
 
 impl ClientSymbolKindOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientSymbolKindOptions {
+    fn resolve(&self) -> ResolvedClientSymbolKindOptions {
         ResolvedClientSymbolKindOptions { value_set: self.value_set.clone().unwrap_or_default() }
     }
 }
@@ -30520,11 +30512,11 @@ impl ClientSymbolKindOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedClientSymbolTagOptions {
     // The tags supported by the client.
-    pub value_set: Vec<SymbolTag>,
+    value_set: Vec<SymbolTag>,
 }
 
 impl ClientSymbolTagOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientSymbolTagOptions {
+    fn resolve(&self) -> ResolvedClientSymbolTagOptions {
         ResolvedClientSymbolTagOptions { value_set: self.value_set.clone() }
     }
 }
@@ -30537,11 +30529,11 @@ impl ClientSymbolTagOptions {
 pub struct ResolvedClientSymbolResolveOptions {
     // The properties that a client can resolve lazily. Usually
     // `location.range`
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl ClientSymbolResolveOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientSymbolResolveOptions {
+    fn resolve(&self) -> ResolvedClientSymbolResolveOptions {
         ResolvedClientSymbolResolveOptions { properties: self.properties.clone() }
     }
 }
@@ -30553,24 +30545,24 @@ impl ClientSymbolResolveOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedWorkspaceSymbolClientCapabilities {
     // Symbol request supports dynamic registration.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
     // Specific capabilities for the `SymbolKind` in the `workspace/symbol` request.
-    pub symbol_kind: ResolvedClientSymbolKindOptions,
+    symbol_kind: ResolvedClientSymbolKindOptions,
     // The client supports tags on `SymbolInformation`.
     // Clients supporting tags have to handle unknown tags gracefully.
     //
     // Since: 3.16.0
-    pub tag_support: ResolvedClientSymbolTagOptions,
+    tag_support: ResolvedClientSymbolTagOptions,
     // The client support partial workspace symbols. The client will send the
     // request `workspaceSymbol/resolve` to the server to resolve additional
     // properties.
     //
     // Since: 3.17.0
-    pub resolve_support: ResolvedClientSymbolResolveOptions,
+    resolve_support: ResolvedClientSymbolResolveOptions,
 }
 
 impl WorkspaceSymbolClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedWorkspaceSymbolClientCapabilities {
+    fn resolve(&self) -> ResolvedWorkspaceSymbolClientCapabilities {
         ResolvedWorkspaceSymbolClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             symbol_kind: self
@@ -30599,11 +30591,11 @@ impl WorkspaceSymbolClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedExecuteCommandClientCapabilities {
     // Execute command supports dynamic registration.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
 }
 
 impl ExecuteCommandClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedExecuteCommandClientCapabilities {
+    fn resolve(self) -> ResolvedExecuteCommandClientCapabilities {
         ResolvedExecuteCommandClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -30623,11 +30615,11 @@ pub struct ResolvedSemanticTokensWorkspaceClientCapabilities {
     // semantic tokens currently shown. It should be used with absolute care
     // and is useful for situation where a server for example detects a project
     // wide change that requires such a calculation.
-    pub refresh_support: bool,
+    refresh_support: bool,
 }
 
 impl SemanticTokensWorkspaceClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedSemanticTokensWorkspaceClientCapabilities {
+    fn resolve(self) -> ResolvedSemanticTokensWorkspaceClientCapabilities {
         ResolvedSemanticTokensWorkspaceClientCapabilities {
             refresh_support: self.refresh_support.unwrap_or_default(),
         }
@@ -30651,7 +30643,7 @@ pub struct ResolvedCodeLensWorkspaceClientCapabilities {
 }
 
 impl CodeLensWorkspaceClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedCodeLensWorkspaceClientCapabilities {
+    fn resolve(self) -> ResolvedCodeLensWorkspaceClientCapabilities {
         ResolvedCodeLensWorkspaceClientCapabilities {
             refresh_support: self.refresh_support.unwrap_or_default(),
         }
@@ -30672,21 +30664,21 @@ pub struct ResolvedFileOperationClientCapabilities {
     // Whether the client supports dynamic registration for file requests/notifications.
     pub dynamic_registration: bool,
     // The client has support for sending didCreateFiles notifications.
-    pub did_create: bool,
+    did_create: bool,
     // The client has support for sending willCreateFiles requests.
-    pub will_create: bool,
+    will_create: bool,
     // The client has support for sending didRenameFiles notifications.
-    pub did_rename: bool,
+    did_rename: bool,
     // The client has support for sending willRenameFiles requests.
     pub will_rename: bool,
     // The client has support for sending didDeleteFiles notifications.
-    pub did_delete: bool,
+    did_delete: bool,
     // The client has support for sending willDeleteFiles requests.
-    pub will_delete: bool,
+    will_delete: bool,
 }
 
 impl FileOperationClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedFileOperationClientCapabilities {
+    fn resolve(self) -> ResolvedFileOperationClientCapabilities {
         ResolvedFileOperationClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             did_create: self.did_create.unwrap_or_default(),
@@ -30714,11 +30706,11 @@ pub struct ResolvedInlineValueWorkspaceClientCapabilities {
     // inline values currently shown. It should be used with absolute care and is
     // useful for situation where a server for example detects a project wide
     // change that requires such a calculation.
-    pub refresh_support: bool,
+    refresh_support: bool,
 }
 
 impl InlineValueWorkspaceClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedInlineValueWorkspaceClientCapabilities {
+    fn resolve(self) -> ResolvedInlineValueWorkspaceClientCapabilities {
         ResolvedInlineValueWorkspaceClientCapabilities {
             refresh_support: self.refresh_support.unwrap_or_default(),
         }
@@ -30744,7 +30736,7 @@ pub struct ResolvedInlayHintWorkspaceClientCapabilities {
 }
 
 impl InlayHintWorkspaceClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedInlayHintWorkspaceClientCapabilities {
+    fn resolve(self) -> ResolvedInlayHintWorkspaceClientCapabilities {
         ResolvedInlayHintWorkspaceClientCapabilities {
             refresh_support: self.refresh_support.unwrap_or_default(),
         }
@@ -30770,7 +30762,7 @@ pub struct ResolvedDiagnosticWorkspaceClientCapabilities {
 }
 
 impl DiagnosticWorkspaceClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDiagnosticWorkspaceClientCapabilities {
+    fn resolve(self) -> ResolvedDiagnosticWorkspaceClientCapabilities {
         ResolvedDiagnosticWorkspaceClientCapabilities {
             refresh_support: self.refresh_support.unwrap_or_default(),
         }
@@ -30794,11 +30786,11 @@ pub struct ResolvedFoldingRangeWorkspaceClientCapabilities {
     // change that requires such a calculation.
     //
     // Since: 3.18.0
-    pub refresh_support: bool,
+    refresh_support: bool,
 }
 
 impl FoldingRangeWorkspaceClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedFoldingRangeWorkspaceClientCapabilities {
+    fn resolve(self) -> ResolvedFoldingRangeWorkspaceClientCapabilities {
         ResolvedFoldingRangeWorkspaceClientCapabilities {
             refresh_support: self.refresh_support.unwrap_or_default(),
         }
@@ -30814,11 +30806,11 @@ impl FoldingRangeWorkspaceClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedTextDocumentContentClientCapabilities {
     // Text document content provider supports dynamic registration.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
 }
 
 impl TextDocumentContentClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedTextDocumentContentClientCapabilities {
+    fn resolve(self) -> ResolvedTextDocumentContentClientCapabilities {
         ResolvedTextDocumentContentClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -30834,17 +30826,17 @@ pub struct ResolvedWorkspaceClientCapabilities {
     // The client supports applying batch edits
     // to the workspace by supporting the request
     // 'workspace/applyEdit'
-    pub apply_edit: bool,
+    apply_edit: bool,
     // Capabilities specific to `WorkspaceEdit`s.
     pub workspace_edit: ResolvedWorkspaceEditClientCapabilities,
     // Capabilities specific to the `workspace/didChangeConfiguration` notification.
-    pub did_change_configuration: ResolvedDidChangeConfigurationClientCapabilities,
+    did_change_configuration: ResolvedDidChangeConfigurationClientCapabilities,
     // Capabilities specific to the `workspace/didChangeWatchedFiles` notification.
     pub did_change_watched_files: ResolvedDidChangeWatchedFilesClientCapabilities,
     // Capabilities specific to the `workspace/symbol` request.
-    pub symbol: ResolvedWorkspaceSymbolClientCapabilities,
+    symbol: ResolvedWorkspaceSymbolClientCapabilities,
     // Capabilities specific to the `workspace/executeCommand` request.
-    pub execute_command: ResolvedExecuteCommandClientCapabilities,
+    execute_command: ResolvedExecuteCommandClientCapabilities,
     // The client has support for workspace folders.
     //
     // Since: 3.6.0
@@ -30857,7 +30849,7 @@ pub struct ResolvedWorkspaceClientCapabilities {
     // workspace.
     //
     // Since: 3.16.0.
-    pub semantic_tokens: ResolvedSemanticTokensWorkspaceClientCapabilities,
+    semantic_tokens: ResolvedSemanticTokensWorkspaceClientCapabilities,
     // Capabilities specific to the code lens requests scoped to the
     // workspace.
     //
@@ -30871,7 +30863,7 @@ pub struct ResolvedWorkspaceClientCapabilities {
     // workspace.
     //
     // Since: 3.17.0.
-    pub inline_value: ResolvedInlineValueWorkspaceClientCapabilities,
+    inline_value: ResolvedInlineValueWorkspaceClientCapabilities,
     // Capabilities specific to the inlay hint requests scoped to the
     // workspace.
     //
@@ -30885,15 +30877,15 @@ pub struct ResolvedWorkspaceClientCapabilities {
     // Capabilities specific to the folding range requests scoped to the workspace.
     //
     // Since: 3.18.0
-    pub folding_range: ResolvedFoldingRangeWorkspaceClientCapabilities,
+    folding_range: ResolvedFoldingRangeWorkspaceClientCapabilities,
     // Capabilities specific to the `workspace/textDocumentContent` request.
     //
     // Since: 3.18.0
-    pub text_document_content: ResolvedTextDocumentContentClientCapabilities,
+    text_document_content: ResolvedTextDocumentContentClientCapabilities,
 }
 
 impl WorkspaceClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedWorkspaceClientCapabilities {
+    fn resolve(&self) -> ResolvedWorkspaceClientCapabilities {
         ResolvedWorkspaceClientCapabilities {
             apply_edit: self.apply_edit.unwrap_or_default(),
             workspace_edit: self
@@ -30942,17 +30934,17 @@ pub struct ResolvedTextDocumentSyncClientCapabilities {
     // Whether text document synchronization supports dynamic registration.
     pub dynamic_registration: bool,
     // The client supports sending will save notifications.
-    pub will_save: bool,
+    will_save: bool,
     // The client supports sending a will save request and
     // waits for a response providing text edits which will
     // be applied to the document before it is saved.
-    pub will_save_wait_until: bool,
+    will_save_wait_until: bool,
     // The client supports did save notifications.
-    pub did_save: bool,
+    did_save: bool,
 }
 
 impl TextDocumentSyncClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedTextDocumentSyncClientCapabilities {
+    fn resolve(self) -> ResolvedTextDocumentSyncClientCapabilities {
         ResolvedTextDocumentSyncClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             will_save: self.will_save.unwrap_or_default(),
@@ -30969,11 +30961,11 @@ pub struct ResolvedTextDocumentFilterClientCapabilities {
     // The client supports Relative Patterns.
     //
     // Since: 3.18.0
-    pub relative_pattern_support: bool,
+    relative_pattern_support: bool,
 }
 
 impl TextDocumentFilterClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedTextDocumentFilterClientCapabilities {
+    fn resolve(self) -> ResolvedTextDocumentFilterClientCapabilities {
         ResolvedTextDocumentFilterClientCapabilities {
             relative_pattern_support: self.relative_pattern_support.unwrap_or_default(),
         }
@@ -30987,11 +30979,11 @@ impl TextDocumentFilterClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedCompletionItemTagOptions {
     // The tags supported by the client.
-    pub value_set: Vec<CompletionItemTag>,
+    value_set: Vec<CompletionItemTag>,
 }
 
 impl CompletionItemTagOptions {
-    pub(crate) fn resolve(&self) -> ResolvedCompletionItemTagOptions {
+    fn resolve(&self) -> ResolvedCompletionItemTagOptions {
         ResolvedCompletionItemTagOptions { value_set: self.value_set.clone() }
     }
 }
@@ -31003,11 +30995,11 @@ impl CompletionItemTagOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedClientCompletionItemResolveOptions {
     // The properties that a client can resolve lazily.
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl ClientCompletionItemResolveOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientCompletionItemResolveOptions {
+    fn resolve(&self) -> ResolvedClientCompletionItemResolveOptions {
         ResolvedClientCompletionItemResolveOptions { properties: self.properties.clone() }
     }
 }
@@ -31018,11 +31010,11 @@ impl ClientCompletionItemResolveOptions {
 // Since: 3.18.0
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedClientCompletionItemInsertTextModeOptions {
-    pub value_set: Vec<InsertTextMode>,
+    value_set: Vec<InsertTextMode>,
 }
 
 impl ClientCompletionItemInsertTextModeOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientCompletionItemInsertTextModeOptions {
+    fn resolve(&self) -> ResolvedClientCompletionItemInsertTextModeOptions {
         ResolvedClientCompletionItemInsertTextModeOptions { value_set: self.value_set.clone() }
     }
 }
@@ -31046,16 +31038,16 @@ pub struct ResolvedClientCompletionItemOptions {
     // property. The order describes the preferred format of the client.
     pub documentation_format: Vec<MarkupKind>,
     // Client supports the deprecated property on a completion item.
-    pub deprecated_support: bool,
+    deprecated_support: bool,
     // Client supports the preselect property on a completion item.
-    pub preselect_support: bool,
+    preselect_support: bool,
     // Client supports the tag property on a completion item. Clients supporting
     // tags have to handle unknown tags gracefully. Clients especially need to
     // preserve unknown tags when sending a completion item back to the server in
     // a resolve call.
     //
     // Since: 3.15.0
-    pub tag_support: ResolvedCompletionItemTagOptions,
+    tag_support: ResolvedCompletionItemTagOptions,
     // Client support insert replace edit to control different behavior if a
     // completion item is inserted in the text or should replace text.
     //
@@ -31066,13 +31058,13 @@ pub struct ResolvedClientCompletionItemOptions {
     // and `details` could be resolved lazily.
     //
     // Since: 3.16.0
-    pub resolve_support: ResolvedClientCompletionItemResolveOptions,
+    resolve_support: ResolvedClientCompletionItemResolveOptions,
     // The client supports the `insertTextMode` property on
     // a completion item to override the whitespace handling mode
     // as defined by the client (see `insertTextMode`).
     //
     // Since: 3.16.0
-    pub insert_text_mode_support: ResolvedClientCompletionItemInsertTextModeOptions,
+    insert_text_mode_support: ResolvedClientCompletionItemInsertTextModeOptions,
     // The client has support for completion item label
     // details (see also `CompletionItemLabelDetails`).
     //
@@ -31081,7 +31073,7 @@ pub struct ResolvedClientCompletionItemOptions {
 }
 
 impl ClientCompletionItemOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientCompletionItemOptions {
+    fn resolve(&self) -> ResolvedClientCompletionItemOptions {
         ResolvedClientCompletionItemOptions {
             snippet_support: self.snippet_support.unwrap_or_default(),
             commit_characters_support: self.commit_characters_support.unwrap_or_default(),
@@ -31123,11 +31115,11 @@ pub struct ResolvedClientCompletionItemOptionsKind {
     // If this property is not present the client only supports
     // the completion items kinds from `Text` to `Reference` as defined in
     // the initial version of the protocol.
-    pub value_set: Vec<CompletionItemKind>,
+    value_set: Vec<CompletionItemKind>,
 }
 
 impl ClientCompletionItemOptionsKind {
-    pub(crate) fn resolve(&self) -> ResolvedClientCompletionItemOptionsKind {
+    fn resolve(&self) -> ResolvedClientCompletionItemOptionsKind {
         ResolvedClientCompletionItemOptionsKind {
             value_set: self.value_set.clone().unwrap_or_default(),
         }
@@ -31163,11 +31155,11 @@ pub struct ResolvedCompletionListCapabilities {
     // defined in `CompletionList.applyKind`.
     //
     // Since: 3.18.0
-    pub apply_kind_support: bool,
+    apply_kind_support: bool,
 }
 
 impl CompletionListCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedCompletionListCapabilities {
+    fn resolve(&self) -> ResolvedCompletionListCapabilities {
         ResolvedCompletionListCapabilities {
             item_defaults: self.item_defaults.clone().unwrap_or_default(),
             apply_kind_support: self.apply_kind_support.unwrap_or_default(),
@@ -31187,16 +31179,16 @@ pub struct ResolvedCompletionClientCapabilities {
     // capabilities.
     pub completion_item: ResolvedClientCompletionItemOptions,
     // The client supports the following completion item kinds.
-    pub completion_item_kind: ResolvedClientCompletionItemOptionsKind,
+    completion_item_kind: ResolvedClientCompletionItemOptionsKind,
     // Defines how the client handles whitespace and indentation
     // when accepting a completion item that uses multi line
     // text in either `insertText` or `textEdit`.
     //
     // Since: 3.17.0
-    pub insert_text_mode: InsertTextMode,
+    insert_text_mode: InsertTextMode,
     // The client supports to send additional context information for a
     // `textDocument/completion` request.
-    pub context_support: bool,
+    context_support: bool,
     // The client supports the following `CompletionList` specific
     // capabilities.
     //
@@ -31205,7 +31197,7 @@ pub struct ResolvedCompletionClientCapabilities {
 }
 
 impl CompletionClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedCompletionClientCapabilities {
+    fn resolve(&self) -> ResolvedCompletionClientCapabilities {
         ResolvedCompletionClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             completion_item: self
@@ -31241,7 +31233,7 @@ pub struct ResolvedHoverClientCapabilities {
 }
 
 impl HoverClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedHoverClientCapabilities {
+    fn resolve(&self) -> ResolvedHoverClientCapabilities {
         ResolvedHoverClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             content_format: self.content_format.clone().unwrap_or_default(),
@@ -31259,11 +31251,11 @@ pub struct ResolvedClientSignatureParameterInformationOptions {
     // simple label string.
     //
     // Since: 3.14.0
-    pub label_offset_support: bool,
+    label_offset_support: bool,
 }
 
 impl ClientSignatureParameterInformationOptions {
-    pub(crate) fn resolve(self) -> ResolvedClientSignatureParameterInformationOptions {
+    fn resolve(self) -> ResolvedClientSignatureParameterInformationOptions {
         ResolvedClientSignatureParameterInformationOptions {
             label_offset_support: self.label_offset_support.unwrap_or_default(),
         }
@@ -31280,7 +31272,7 @@ pub struct ResolvedClientSignatureInformationOptions {
     // property. The order describes the preferred format of the client.
     pub documentation_format: Vec<MarkupKind>,
     // Client capabilities specific to parameter information.
-    pub parameter_information: ResolvedClientSignatureParameterInformationOptions,
+    parameter_information: ResolvedClientSignatureParameterInformationOptions,
     // The client supports the `activeParameter` property on `SignatureInformation`
     // literal.
     //
@@ -31295,7 +31287,7 @@ pub struct ResolvedClientSignatureInformationOptions {
 }
 
 impl ClientSignatureInformationOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientSignatureInformationOptions {
+    fn resolve(&self) -> ResolvedClientSignatureInformationOptions {
         ResolvedClientSignatureInformationOptions {
             documentation_format: self.documentation_format.clone().unwrap_or_default(),
             parameter_information: self
@@ -31326,11 +31318,11 @@ pub struct ResolvedSignatureHelpClientCapabilities {
     // `SignatureHelpOptions`.
     //
     // Since: 3.15.0
-    pub context_support: bool,
+    context_support: bool,
 }
 
 impl SignatureHelpClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedSignatureHelpClientCapabilities {
+    fn resolve(&self) -> ResolvedSignatureHelpClientCapabilities {
         ResolvedSignatureHelpClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             signature_information: self
@@ -31352,13 +31344,13 @@ pub struct ResolvedDeclarationClientCapabilities {
     // Whether declaration supports dynamic registration. If this is set to `true`
     // the client supports the new `DeclarationRegistrationOptions` return value
     // for the corresponding server capability as well.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
     // The client supports additional metadata in the form of declaration links.
-    pub link_support: bool,
+    link_support: bool,
 }
 
 impl DeclarationClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDeclarationClientCapabilities {
+    fn resolve(self) -> ResolvedDeclarationClientCapabilities {
         ResolvedDeclarationClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             link_support: self.link_support.unwrap_or_default(),
@@ -31381,7 +31373,7 @@ pub struct ResolvedDefinitionClientCapabilities {
 }
 
 impl DefinitionClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDefinitionClientCapabilities {
+    fn resolve(self) -> ResolvedDefinitionClientCapabilities {
         ResolvedDefinitionClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             link_support: self.link_support.unwrap_or_default(),
@@ -31406,7 +31398,7 @@ pub struct ResolvedTypeDefinitionClientCapabilities {
 }
 
 impl TypeDefinitionClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedTypeDefinitionClientCapabilities {
+    fn resolve(self) -> ResolvedTypeDefinitionClientCapabilities {
         ResolvedTypeDefinitionClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             link_support: self.link_support.unwrap_or_default(),
@@ -31431,7 +31423,7 @@ pub struct ResolvedImplementationClientCapabilities {
 }
 
 impl ImplementationClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedImplementationClientCapabilities {
+    fn resolve(self) -> ResolvedImplementationClientCapabilities {
         ResolvedImplementationClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             link_support: self.link_support.unwrap_or_default(),
@@ -31450,7 +31442,7 @@ pub struct ResolvedReferenceClientCapabilities {
 }
 
 impl ReferenceClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedReferenceClientCapabilities {
+    fn resolve(self) -> ResolvedReferenceClientCapabilities {
         ResolvedReferenceClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -31468,7 +31460,7 @@ pub struct ResolvedDocumentHighlightClientCapabilities {
 }
 
 impl DocumentHighlightClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDocumentHighlightClientCapabilities {
+    fn resolve(self) -> ResolvedDocumentHighlightClientCapabilities {
         ResolvedDocumentHighlightClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -31485,7 +31477,7 @@ pub struct ResolvedDocumentSymbolClientCapabilities {
     pub dynamic_registration: bool,
     // Specific capabilities for the `SymbolKind` in the
     // `textDocument/documentSymbol` request.
-    pub symbol_kind: ResolvedClientSymbolKindOptions,
+    symbol_kind: ResolvedClientSymbolKindOptions,
     // The client supports hierarchical document symbols.
     pub hierarchical_document_symbol_support: bool,
     // The client supports tags on `SymbolInformation`. Tags are supported on
@@ -31493,16 +31485,16 @@ pub struct ResolvedDocumentSymbolClientCapabilities {
     // Clients supporting tags have to handle unknown tags gracefully.
     //
     // Since: 3.16.0
-    pub tag_support: ResolvedClientSymbolTagOptions,
+    tag_support: ResolvedClientSymbolTagOptions,
     // The client supports an additional label presented in the UI when
     // registering a document symbol provider.
     //
     // Since: 3.16.0
-    pub label_support: bool,
+    label_support: bool,
 }
 
 impl DocumentSymbolClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedDocumentSymbolClientCapabilities {
+    fn resolve(&self) -> ResolvedDocumentSymbolClientCapabilities {
         ResolvedDocumentSymbolClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             symbol_kind: self
@@ -31533,11 +31525,11 @@ pub struct ResolvedClientCodeActionKindOptions {
     // property exists the client also guarantees that it will
     // handle values outside its set gracefully and falls back
     // to a default value when unknown.
-    pub value_set: Vec<CodeActionKind>,
+    value_set: Vec<CodeActionKind>,
 }
 
 impl ClientCodeActionKindOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientCodeActionKindOptions {
+    fn resolve(&self) -> ResolvedClientCodeActionKindOptions {
         ResolvedClientCodeActionKindOptions { value_set: self.value_set.clone() }
     }
 }
@@ -31550,11 +31542,11 @@ impl ClientCodeActionKindOptions {
 pub struct ResolvedClientCodeActionLiteralOptions {
     // The code action kind is support with the following value
     // set.
-    pub code_action_kind: ResolvedClientCodeActionKindOptions,
+    code_action_kind: ResolvedClientCodeActionKindOptions,
 }
 
 impl ClientCodeActionLiteralOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientCodeActionLiteralOptions {
+    fn resolve(&self) -> ResolvedClientCodeActionLiteralOptions {
         ResolvedClientCodeActionLiteralOptions { code_action_kind: self.code_action_kind.resolve() }
     }
 }
@@ -31566,11 +31558,11 @@ impl ClientCodeActionLiteralOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedClientCodeActionResolveOptions {
     // The properties that a client can resolve lazily.
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl ClientCodeActionResolveOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientCodeActionResolveOptions {
+    fn resolve(&self) -> ResolvedClientCodeActionResolveOptions {
         ResolvedClientCodeActionResolveOptions { properties: self.properties.clone() }
     }
 }
@@ -31582,11 +31574,11 @@ impl ClientCodeActionResolveOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedCodeActionTagOptions {
     // The tags supported by the client.
-    pub value_set: Vec<CodeActionTag>,
+    value_set: Vec<CodeActionTag>,
 }
 
 impl CodeActionTagOptions {
-    pub(crate) fn resolve(&self) -> ResolvedCodeActionTagOptions {
+    fn resolve(&self) -> ResolvedCodeActionTagOptions {
         ResolvedCodeActionTagOptions { value_set: self.value_set.clone() }
     }
 }
@@ -31604,26 +31596,26 @@ pub struct ResolvedCodeActionClientCapabilities {
     // set the request can only return `Command` literals.
     //
     // Since: 3.8.0
-    pub code_action_literal_support: ResolvedClientCodeActionLiteralOptions,
+    code_action_literal_support: ResolvedClientCodeActionLiteralOptions,
     // Whether code action supports the `isPreferred` property.
     //
     // Since: 3.15.0
-    pub is_preferred_support: bool,
+    is_preferred_support: bool,
     // Whether code action supports the `disabled` property.
     //
     // Since: 3.16.0
-    pub disabled_support: bool,
+    disabled_support: bool,
     // Whether code action supports the `data` property which is
     // preserved between a `textDocument/codeAction` and a
     // `codeAction/resolve` request.
     //
     // Since: 3.16.0
-    pub data_support: bool,
+    data_support: bool,
     // Whether the client supports resolving additional code action
     // properties via a separate `codeAction/resolve` request.
     //
     // Since: 3.16.0
-    pub resolve_support: ResolvedClientCodeActionResolveOptions,
+    resolve_support: ResolvedClientCodeActionResolveOptions,
     // Whether the client honors the change annotations in
     // text edits and resource operations returned via the
     // `CodeAction#edit` property by for example presenting
@@ -31631,21 +31623,21 @@ pub struct ResolvedCodeActionClientCapabilities {
     // for confirmation.
     //
     // Since: 3.16.0
-    pub honors_change_annotations: bool,
+    honors_change_annotations: bool,
     // Whether the client supports documentation for a class of
     // code actions.
     //
     // Since: 3.18.0
-    pub documentation_support: bool,
+    documentation_support: bool,
     // Client supports the tag property on a code action. Clients
     // supporting tags have to handle unknown tags gracefully.
     //
     // Since: 3.18.0
-    pub tag_support: ResolvedCodeActionTagOptions,
+    tag_support: ResolvedCodeActionTagOptions,
 }
 
 impl CodeActionClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedCodeActionClientCapabilities {
+    fn resolve(&self) -> ResolvedCodeActionClientCapabilities {
         ResolvedCodeActionClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             code_action_literal_support: self
@@ -31679,11 +31671,11 @@ impl CodeActionClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedClientCodeLensResolveOptions {
     // The properties that a client can resolve lazily.
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl ClientCodeLensResolveOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientCodeLensResolveOptions {
+    fn resolve(&self) -> ResolvedClientCodeLensResolveOptions {
         ResolvedClientCodeLensResolveOptions { properties: self.properties.clone() }
     }
 }
@@ -31700,11 +31692,11 @@ pub struct ResolvedCodeLensClientCapabilities {
     // properties via a separate `codeLens/resolve` request.
     //
     // Since: 3.18.0
-    pub resolve_support: ResolvedClientCodeLensResolveOptions,
+    resolve_support: ResolvedClientCodeLensResolveOptions,
 }
 
 impl CodeLensClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedCodeLensClientCapabilities {
+    fn resolve(&self) -> ResolvedCodeLensClientCapabilities {
         ResolvedCodeLensClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             resolve_support: self
@@ -31723,15 +31715,15 @@ impl CodeLensClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedDocumentLinkClientCapabilities {
     // Whether document link supports dynamic registration.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
     // Whether the client supports the `tooltip` property on `DocumentLink`.
     //
     // Since: 3.15.0
-    pub tooltip_support: bool,
+    tooltip_support: bool,
 }
 
 impl DocumentLinkClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDocumentLinkClientCapabilities {
+    fn resolve(self) -> ResolvedDocumentLinkClientCapabilities {
         ResolvedDocumentLinkClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             tooltip_support: self.tooltip_support.unwrap_or_default(),
@@ -31746,11 +31738,11 @@ pub struct ResolvedDocumentColorClientCapabilities {
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `DocumentColorRegistrationOptions` return value
     // for the corresponding server capability as well.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
 }
 
 impl DocumentColorClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDocumentColorClientCapabilities {
+    fn resolve(self) -> ResolvedDocumentColorClientCapabilities {
         ResolvedDocumentColorClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -31768,7 +31760,7 @@ pub struct ResolvedDocumentFormattingClientCapabilities {
 }
 
 impl DocumentFormattingClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDocumentFormattingClientCapabilities {
+    fn resolve(self) -> ResolvedDocumentFormattingClientCapabilities {
         ResolvedDocumentFormattingClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -31786,11 +31778,11 @@ pub struct ResolvedDocumentRangeFormattingClientCapabilities {
     // Whether the client supports formatting multiple ranges at once.
     //
     // Since: 3.18.0
-    pub ranges_support: bool,
+    ranges_support: bool,
 }
 
 impl DocumentRangeFormattingClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDocumentRangeFormattingClientCapabilities {
+    fn resolve(self) -> ResolvedDocumentRangeFormattingClientCapabilities {
         ResolvedDocumentRangeFormattingClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             ranges_support: self.ranges_support.unwrap_or_default(),
@@ -31809,7 +31801,7 @@ pub struct ResolvedDocumentOnTypeFormattingClientCapabilities {
 }
 
 impl DocumentOnTypeFormattingClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedDocumentOnTypeFormattingClientCapabilities {
+    fn resolve(self) -> ResolvedDocumentOnTypeFormattingClientCapabilities {
         ResolvedDocumentOnTypeFormattingClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -31826,14 +31818,14 @@ pub struct ResolvedRenameClientCapabilities {
     // before execution.
     //
     // Since: 3.12.0
-    pub prepare_support: bool,
+    prepare_support: bool,
     // Client supports the default behavior result.
     //
     // The value indicates the default behavior used by the
     // client.
     //
     // Since: 3.16.0
-    pub prepare_support_default_behavior: PrepareSupportDefaultBehavior,
+    prepare_support_default_behavior: PrepareSupportDefaultBehavior,
     // Whether the client honors the change annotations in
     // text edits and resource operations returned via the
     // rename request's workspace edit by for example presenting
@@ -31841,11 +31833,11 @@ pub struct ResolvedRenameClientCapabilities {
     // for confirmation.
     //
     // Since: 3.16.0
-    pub honors_change_annotations: bool,
+    honors_change_annotations: bool,
 }
 
 impl RenameClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedRenameClientCapabilities {
+    fn resolve(self) -> ResolvedRenameClientCapabilities {
         ResolvedRenameClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             prepare_support: self.prepare_support.unwrap_or_default(),
@@ -31867,11 +31859,11 @@ pub struct ResolvedClientFoldingRangeKindOptions {
     // property exists the client also guarantees that it will
     // handle values outside its set gracefully and falls back
     // to a default value when unknown.
-    pub value_set: Vec<FoldingRangeKind>,
+    value_set: Vec<FoldingRangeKind>,
 }
 
 impl ClientFoldingRangeKindOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientFoldingRangeKindOptions {
+    fn resolve(&self) -> ResolvedClientFoldingRangeKindOptions {
         ResolvedClientFoldingRangeKindOptions {
             value_set: self.value_set.clone().unwrap_or_default(),
         }
@@ -31892,7 +31884,7 @@ pub struct ResolvedClientFoldingRangeOptions {
 }
 
 impl ClientFoldingRangeOptions {
-    pub(crate) fn resolve(self) -> ResolvedClientFoldingRangeOptions {
+    fn resolve(self) -> ResolvedClientFoldingRangeOptions {
         ResolvedClientFoldingRangeOptions {
             collapsed_text: self.collapsed_text.unwrap_or_default(),
         }
@@ -31911,7 +31903,7 @@ pub struct ResolvedFoldingRangeClientCapabilities {
     // The maximum number of folding ranges that the client prefers to receive
     // per document. The value serves as a hint, servers are free to follow the
     // limit.
-    pub range_limit: u32,
+    range_limit: u32,
     // If set, the client signals that it only supports folding complete lines.
     // If set, client will ignore specified `startCharacter` and `endCharacter`
     // properties in a FoldingRange.
@@ -31919,7 +31911,7 @@ pub struct ResolvedFoldingRangeClientCapabilities {
     // Specific options for the folding range kind.
     //
     // Since: 3.17.0
-    pub folding_range_kind: ResolvedClientFoldingRangeKindOptions,
+    folding_range_kind: ResolvedClientFoldingRangeKindOptions,
     // Specific options for the folding range.
     //
     // Since: 3.17.0
@@ -31927,7 +31919,7 @@ pub struct ResolvedFoldingRangeClientCapabilities {
 }
 
 impl FoldingRangeClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedFoldingRangeClientCapabilities {
+    fn resolve(&self) -> ResolvedFoldingRangeClientCapabilities {
         ResolvedFoldingRangeClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             range_limit: self.range_limit.unwrap_or_default(),
@@ -31953,7 +31945,7 @@ pub struct ResolvedSelectionRangeClientCapabilities {
 }
 
 impl SelectionRangeClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedSelectionRangeClientCapabilities {
+    fn resolve(self) -> ResolvedSelectionRangeClientCapabilities {
         ResolvedSelectionRangeClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -31971,7 +31963,7 @@ pub struct ResolvedClientDiagnosticsTagOptions {
 }
 
 impl ClientDiagnosticsTagOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientDiagnosticsTagOptions {
+    fn resolve(&self) -> ResolvedClientDiagnosticsTagOptions {
         ResolvedClientDiagnosticsTagOptions { value_set: self.value_set.clone() }
     }
 }
@@ -31992,22 +31984,22 @@ pub struct ResolvedPublishDiagnosticsClientCapabilities {
     // Client supports a codeDescription property
     //
     // Since: 3.16.0
-    pub code_description_support: bool,
+    code_description_support: bool,
     // Whether code action supports the `data` property which is
     // preserved between a `textDocument/publishDiagnostics` and
     // `textDocument/codeAction` request.
     //
     // Since: 3.16.0
-    pub data_support: bool,
+    data_support: bool,
     // Whether the client interprets the version property of the
     // `textDocument/publishDiagnostics` notification's parameter.
     //
     // Since: 3.15.0
-    pub version_support: bool,
+    version_support: bool,
 }
 
 impl PublishDiagnosticsClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedPublishDiagnosticsClientCapabilities {
+    fn resolve(&self) -> ResolvedPublishDiagnosticsClientCapabilities {
         ResolvedPublishDiagnosticsClientCapabilities {
             related_information: self.related_information.unwrap_or_default(),
             tag_support: self
@@ -32035,7 +32027,7 @@ pub struct ResolvedCallHierarchyClientCapabilities {
 }
 
 impl CallHierarchyClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedCallHierarchyClientCapabilities {
+    fn resolve(self) -> ResolvedCallHierarchyClientCapabilities {
         ResolvedCallHierarchyClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -32050,14 +32042,14 @@ impl CallHierarchyClientCapabilities {
 pub struct ResolvedClientSemanticTokensRequestOptions {
     // The client will send the `textDocument/semanticTokens/range` request if
     // the server provides a corresponding handler.
-    pub range: BooleanOrEmptyObject,
+    range: BooleanOrEmptyObject,
     // The client will send the `textDocument/semanticTokens/full` request if
     // the server provides a corresponding handler.
-    pub full: BooleanOrClientSemanticTokensRequestFullDelta,
+    full: BooleanOrClientSemanticTokensRequestFullDelta,
 }
 
 impl ClientSemanticTokensRequestOptions {
-    pub(crate) fn resolve(self) -> ResolvedClientSemanticTokensRequestOptions {
+    fn resolve(self) -> ResolvedClientSemanticTokensRequestOptions {
         ResolvedClientSemanticTokensRequestOptions {
             range: self.range.unwrap_or_default(),
             full: self.full.unwrap_or_default(),
@@ -32083,24 +32075,24 @@ pub struct ResolvedSemanticTokensClientCapabilities {
     // `request.range` are both set to true but the server only provides a
     // range provider the client might not render a minimap correctly or might
     // even decide to not show any semantic tokens at all.
-    pub requests: ResolvedClientSemanticTokensRequestOptions,
+    requests: ResolvedClientSemanticTokensRequestOptions,
     // The token types that the client supports.
     pub token_types: Vec<String>,
     // The token modifiers that the client supports.
     pub token_modifiers: Vec<String>,
     // The token formats the clients supports.
-    pub formats: Vec<TokenFormat>,
+    formats: Vec<TokenFormat>,
     // Whether the client supports tokens that can overlap each other.
-    pub overlapping_token_support: bool,
+    overlapping_token_support: bool,
     // Whether the client supports tokens that can span multiple lines.
-    pub multiline_token_support: bool,
+    multiline_token_support: bool,
     // Whether the client allows the server to actively cancel a
     // semantic token request, e.g. supports returning
     // LSPErrorCodes.ServerCancelled. If a server does the client
     // needs to retrigger the request.
     //
     // Since: 3.17.0
-    pub server_cancel_support: bool,
+    server_cancel_support: bool,
     // Whether the client uses semantic tokens to augment existing
     // syntax tokens. If set to `true` client side created syntax
     // tokens and semantic tokens are both used for colorization. If
@@ -32111,11 +32103,11 @@ pub struct ResolvedSemanticTokensClientCapabilities {
     // specified.
     //
     // Since: 3.17.0
-    pub augments_syntax_tokens: bool,
+    augments_syntax_tokens: bool,
 }
 
 impl SemanticTokensClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedSemanticTokensClientCapabilities {
+    fn resolve(&self) -> ResolvedSemanticTokensClientCapabilities {
         ResolvedSemanticTokensClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             requests: self.requests.resolve(),
@@ -32145,7 +32137,7 @@ pub struct ResolvedLinkedEditingRangeClientCapabilities {
 }
 
 impl LinkedEditingRangeClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedLinkedEditingRangeClientCapabilities {
+    fn resolve(self) -> ResolvedLinkedEditingRangeClientCapabilities {
         ResolvedLinkedEditingRangeClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -32163,11 +32155,11 @@ pub struct ResolvedMonikerClientCapabilities {
     // Whether moniker supports dynamic registration. If this is set to `true`
     // the client supports the new `MonikerRegistrationOptions` return value
     // for the corresponding server capability as well.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
 }
 
 impl MonikerClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedMonikerClientCapabilities {
+    fn resolve(self) -> ResolvedMonikerClientCapabilities {
         ResolvedMonikerClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -32183,11 +32175,11 @@ pub struct ResolvedTypeHierarchyClientCapabilities {
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
     // return value for the corresponding server capability as well.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
 }
 
 impl TypeHierarchyClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedTypeHierarchyClientCapabilities {
+    fn resolve(self) -> ResolvedTypeHierarchyClientCapabilities {
         ResolvedTypeHierarchyClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -32203,11 +32195,11 @@ impl TypeHierarchyClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedInlineValueClientCapabilities {
     // Whether implementation supports dynamic registration for inline value providers.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
 }
 
 impl InlineValueClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedInlineValueClientCapabilities {
+    fn resolve(self) -> ResolvedInlineValueClientCapabilities {
         ResolvedInlineValueClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -32221,11 +32213,11 @@ impl InlineValueClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedClientInlayHintResolveOptions {
     // The properties that a client can resolve lazily.
-    pub properties: Vec<String>,
+    properties: Vec<String>,
 }
 
 impl ClientInlayHintResolveOptions {
-    pub(crate) fn resolve(&self) -> ResolvedClientInlayHintResolveOptions {
+    fn resolve(&self) -> ResolvedClientInlayHintResolveOptions {
         ResolvedClientInlayHintResolveOptions { properties: self.properties.clone() }
     }
 }
@@ -32242,11 +32234,11 @@ pub struct ResolvedInlayHintClientCapabilities {
     pub dynamic_registration: bool,
     // Indicates which properties a client can resolve lazily on an inlay
     // hint.
-    pub resolve_support: ResolvedClientInlayHintResolveOptions,
+    resolve_support: ResolvedClientInlayHintResolveOptions,
 }
 
 impl InlayHintClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedInlayHintClientCapabilities {
+    fn resolve(&self) -> ResolvedInlayHintClientCapabilities {
         ResolvedInlayHintClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
             resolve_support: self
@@ -32276,27 +32268,27 @@ pub struct ResolvedDiagnosticClientCapabilities {
     // Client supports a codeDescription property
     //
     // Since: 3.16.0
-    pub code_description_support: bool,
+    code_description_support: bool,
     // Whether code action supports the `data` property which is
     // preserved between a `textDocument/publishDiagnostics` and
     // `textDocument/codeAction` request.
     //
     // Since: 3.16.0
-    pub data_support: bool,
+    data_support: bool,
     // Whether implementation supports dynamic registration. If this is set to `true`
     // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
     // return value for the corresponding server capability as well.
     pub dynamic_registration: bool,
     // Whether the clients supports related documents for document diagnostic pulls.
-    pub related_document_support: bool,
+    related_document_support: bool,
     // Whether the client supports `MarkupContent` in diagnostic messages.
     //
     // Since: 3.18.0
-    pub markup_message_support: bool,
+    markup_message_support: bool,
 }
 
 impl DiagnosticClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedDiagnosticClientCapabilities {
+    fn resolve(&self) -> ResolvedDiagnosticClientCapabilities {
         ResolvedDiagnosticClientCapabilities {
             related_information: self.related_information.unwrap_or_default(),
             tag_support: self
@@ -32322,11 +32314,11 @@ impl DiagnosticClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedInlineCompletionClientCapabilities {
     // Whether implementation supports dynamic registration for inline completion providers.
-    pub dynamic_registration: bool,
+    dynamic_registration: bool,
 }
 
 impl InlineCompletionClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedInlineCompletionClientCapabilities {
+    fn resolve(self) -> ResolvedInlineCompletionClientCapabilities {
         ResolvedInlineCompletionClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
         }
@@ -32344,7 +32336,7 @@ pub struct ResolvedTextDocumentClientCapabilities {
     // Defines which filters the client supports.
     //
     // Since: 3.18.0
-    pub filters: ResolvedTextDocumentFilterClientCapabilities,
+    filters: ResolvedTextDocumentFilterClientCapabilities,
     // Capabilities specific to the `textDocument/completion` request.
     pub completion: ResolvedCompletionClientCapabilities,
     // Capabilities specific to the `textDocument/hover` request.
@@ -32354,7 +32346,7 @@ pub struct ResolvedTextDocumentClientCapabilities {
     // Capabilities specific to the `textDocument/declaration` request.
     //
     // Since: 3.14.0
-    pub declaration: ResolvedDeclarationClientCapabilities,
+    declaration: ResolvedDeclarationClientCapabilities,
     // Capabilities specific to the `textDocument/definition` request.
     pub definition: ResolvedDefinitionClientCapabilities,
     // Capabilities specific to the `textDocument/typeDefinition` request.
@@ -32376,12 +32368,12 @@ pub struct ResolvedTextDocumentClientCapabilities {
     // Capabilities specific to the `textDocument/codeLens` request.
     pub code_lens: ResolvedCodeLensClientCapabilities,
     // Capabilities specific to the `textDocument/documentLink` request.
-    pub document_link: ResolvedDocumentLinkClientCapabilities,
+    document_link: ResolvedDocumentLinkClientCapabilities,
     // Capabilities specific to the `textDocument/documentColor` and the
     // `textDocument/colorPresentation` request.
     //
     // Since: 3.6.0
-    pub color_provider: ResolvedDocumentColorClientCapabilities,
+    color_provider: ResolvedDocumentColorClientCapabilities,
     // Capabilities specific to the `textDocument/formatting` request.
     pub formatting: ResolvedDocumentFormattingClientCapabilities,
     // Capabilities specific to the `textDocument/rangeFormatting` request.
@@ -32415,15 +32407,15 @@ pub struct ResolvedTextDocumentClientCapabilities {
     // Client capabilities specific to the `textDocument/moniker` request.
     //
     // Since: 3.16.0
-    pub moniker: ResolvedMonikerClientCapabilities,
+    moniker: ResolvedMonikerClientCapabilities,
     // Capabilities specific to the various type hierarchy requests.
     //
     // Since: 3.17.0
-    pub type_hierarchy: ResolvedTypeHierarchyClientCapabilities,
+    type_hierarchy: ResolvedTypeHierarchyClientCapabilities,
     // Capabilities specific to the `textDocument/inlineValue` request.
     //
     // Since: 3.17.0
-    pub inline_value: ResolvedInlineValueClientCapabilities,
+    inline_value: ResolvedInlineValueClientCapabilities,
     // Capabilities specific to the `textDocument/inlayHint` request.
     //
     // Since: 3.17.0
@@ -32435,11 +32427,11 @@ pub struct ResolvedTextDocumentClientCapabilities {
     // Client capabilities specific to inline completions.
     //
     // Since: 3.18.0
-    pub inline_completion: ResolvedInlineCompletionClientCapabilities,
+    inline_completion: ResolvedInlineCompletionClientCapabilities,
 }
 
 impl TextDocumentClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedTextDocumentClientCapabilities {
+    fn resolve(&self) -> ResolvedTextDocumentClientCapabilities {
         ResolvedTextDocumentClientCapabilities {
             synchronization: self.synchronization.as_ref().map(|v| v.resolve()).unwrap_or_default(),
             filters: self.filters.as_ref().map(|v| v.resolve()).unwrap_or_default(),
@@ -32546,11 +32538,11 @@ pub struct ResolvedClientShowMessageActionItemOptions {
     // Whether the client supports additional attributes which
     // are preserved and send back to the server in the
     // request's response.
-    pub additional_properties_support: bool,
+    additional_properties_support: bool,
 }
 
 impl ClientShowMessageActionItemOptions {
-    pub(crate) fn resolve(self) -> ResolvedClientShowMessageActionItemOptions {
+    fn resolve(self) -> ResolvedClientShowMessageActionItemOptions {
         ResolvedClientShowMessageActionItemOptions {
             additional_properties_support: self.additional_properties_support.unwrap_or_default(),
         }
@@ -32564,11 +32556,11 @@ impl ClientShowMessageActionItemOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedShowMessageRequestClientCapabilities {
     // Capabilities specific to the `MessageActionItem` type.
-    pub message_action_item: ResolvedClientShowMessageActionItemOptions,
+    message_action_item: ResolvedClientShowMessageActionItemOptions,
 }
 
 impl ShowMessageRequestClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedShowMessageRequestClientCapabilities {
+    fn resolve(self) -> ResolvedShowMessageRequestClientCapabilities {
         ResolvedShowMessageRequestClientCapabilities {
             message_action_item: self
                 .message_action_item
@@ -32589,11 +32581,11 @@ impl ShowMessageRequestClientCapabilities {
 pub struct ResolvedShowDocumentClientCapabilities {
     // The client has support for the showDocument
     // request.
-    pub support: bool,
+    support: bool,
 }
 
 impl ShowDocumentClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedShowDocumentClientCapabilities {
+    fn resolve(self) -> ResolvedShowDocumentClientCapabilities {
         ResolvedShowDocumentClientCapabilities { support: self.support }
     }
 }
@@ -32615,15 +32607,15 @@ pub struct ResolvedWindowClientCapabilities {
     // Capabilities specific to the showMessage request.
     //
     // Since: 3.16.0
-    pub show_message: ResolvedShowMessageRequestClientCapabilities,
+    show_message: ResolvedShowMessageRequestClientCapabilities,
     // Capabilities specific to the showDocument request.
     //
     // Since: 3.16.0
-    pub show_document: ResolvedShowDocumentClientCapabilities,
+    show_document: ResolvedShowDocumentClientCapabilities,
 }
 
 impl WindowClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedWindowClientCapabilities {
+    fn resolve(self) -> ResolvedWindowClientCapabilities {
         ResolvedWindowClientCapabilities {
             work_done_progress: self.work_done_progress.unwrap_or_default(),
             show_message: self.show_message.as_ref().map(|v| v.resolve()).unwrap_or_default(),
@@ -32639,15 +32631,15 @@ impl WindowClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedStaleRequestSupportOptions {
     // The client will actively cancel the request.
-    pub cancel: bool,
+    cancel: bool,
     // The list of requests for which the client
     // will retry the request if it receives a
     // response with error code `ContentModified`
-    pub retry_on_content_modified: Vec<String>,
+    retry_on_content_modified: Vec<String>,
 }
 
 impl StaleRequestSupportOptions {
-    pub(crate) fn resolve(&self) -> ResolvedStaleRequestSupportOptions {
+    fn resolve(&self) -> ResolvedStaleRequestSupportOptions {
         ResolvedStaleRequestSupportOptions {
             cancel: self.cancel,
             retry_on_content_modified: self.retry_on_content_modified.clone(),
@@ -32664,13 +32656,13 @@ impl StaleRequestSupportOptions {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedRegularExpressionsClientCapabilities {
     // The engine's name.
-    pub engine: String,
+    engine: String,
     // The engine's version.
-    pub version: String,
+    version: String,
 }
 
 impl RegularExpressionsClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedRegularExpressionsClientCapabilities {
+    fn resolve(&self) -> ResolvedRegularExpressionsClientCapabilities {
         ResolvedRegularExpressionsClientCapabilities {
             engine: self.engine.clone(),
             version: self.version.clone().unwrap_or_default(),
@@ -32687,18 +32679,18 @@ impl RegularExpressionsClientCapabilities {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolvedMarkdownClientCapabilities {
     // The name of the parser.
-    pub parser: String,
+    parser: String,
     // The version of the parser.
-    pub version: String,
+    version: String,
     // A list of HTML tags that the client allows / supports in
     // Markdown.
     //
     // Since: 3.17.0
-    pub allowed_tags: Vec<String>,
+    allowed_tags: Vec<String>,
 }
 
 impl MarkdownClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedMarkdownClientCapabilities {
+    fn resolve(&self) -> ResolvedMarkdownClientCapabilities {
         ResolvedMarkdownClientCapabilities {
             parser: self.parser.clone(),
             version: self.version.clone().unwrap_or_default(),
@@ -32721,15 +32713,15 @@ pub struct ResolvedGeneralClientCapabilities {
     // anymore since the information is outdated).
     //
     // Since: 3.17.0
-    pub stale_request_support: ResolvedStaleRequestSupportOptions,
+    stale_request_support: ResolvedStaleRequestSupportOptions,
     // Client capabilities specific to regular expressions.
     //
     // Since: 3.16.0
-    pub regular_expressions: ResolvedRegularExpressionsClientCapabilities,
+    regular_expressions: ResolvedRegularExpressionsClientCapabilities,
     // Client capabilities specific to the client's markdown parser.
     //
     // Since: 3.16.0
-    pub markdown: ResolvedMarkdownClientCapabilities,
+    markdown: ResolvedMarkdownClientCapabilities,
     // The position encodings supported by the client. Client and server
     // have to agree on the same position encoding to ensure that offsets
     // (e.g. character position in a line) are interpreted the same on both
@@ -32752,7 +32744,7 @@ pub struct ResolvedGeneralClientCapabilities {
 }
 
 impl GeneralClientCapabilities {
-    pub(crate) fn resolve(&self) -> ResolvedGeneralClientCapabilities {
+    fn resolve(&self) -> ResolvedGeneralClientCapabilities {
         ResolvedGeneralClientCapabilities {
             stale_request_support: self
                 .stale_request_support
@@ -32785,7 +32777,7 @@ pub struct ResolvedExperimentalClientCapabilities {
 }
 
 impl ExperimentalClientCapabilities {
-    pub(crate) fn resolve(self) -> ResolvedExperimentalClientCapabilities {
+    fn resolve(self) -> ResolvedExperimentalClientCapabilities {
         ResolvedExperimentalClientCapabilities {
             hover_verbosity_level: self.hover_verbosity_level.unwrap_or_default(),
         }

@@ -160,7 +160,7 @@ impl super::index::Named for Arc<Export> {
 }
 
 // export.go:96
-pub fn symbol_to_export(symbol: P<Symbol>, ch: &mut Checker) -> Option<Arc<Export>> {
+pub(crate) fn symbol_to_export(symbol: P<Symbol>, ch: &mut Checker) -> Option<Arc<Export>> {
     if let Some(parent) = symbol.parent()
         && checker::is_external_module_symbol(parent)
     {

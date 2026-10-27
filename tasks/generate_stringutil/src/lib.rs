@@ -219,7 +219,6 @@ fn render_ranges(output: &mut String, name: &str, points: &[u32]) {
     let (bmp, astral) = points.split_at(points.partition_point(|&point| point <= 0xFFFF));
     let r16 = stride_ranges(bmp);
     let r32 = stride_ranges(astral);
-    let latin_offset = r16.iter().take_while(|range| range.hi <= 0xFF).count();
     for (width, ranges) in [(16, r16), (32, r32)] {
         writeln!(output, "static {name}_R{width}: &[Range{width}] = &[").unwrap();
         for Range { lo, hi, stride } in ranges {
@@ -228,5 +227,9 @@ fn render_ranges(output: &mut String, name: &str, points: &[u32]) {
         }
         output.push_str("];\n");
     }
-    writeln!(output, "pub static {name}: RangeTable = RangeTable {{ r16: {name}_R16, r32: {name}_R32, latin_offset: {latin_offset} }};\n").unwrap();
+    writeln!(
+        output,
+        "pub static {name}: RangeTable = RangeTable {{ r16: {name}_R16, r32: {name}_R32 }};\n"
+    )
+    .unwrap();
 }

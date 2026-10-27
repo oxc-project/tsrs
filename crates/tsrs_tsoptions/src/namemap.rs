@@ -7,9 +7,9 @@ use crate::commandlineoption::CommandLineOption;
 use crate::declsbuild::BUILD_OPTS;
 use crate::declscompiler::OPTIONS_DECLARATIONS;
 
-pub static COMPILER_NAME_MAP: LazyLock<NameMap> =
+pub(crate) static COMPILER_NAME_MAP: LazyLock<NameMap> =
     LazyLock::new(|| get_name_map_from_list(&OPTIONS_DECLARATIONS));
-pub static BUILD_NAME_MAP: LazyLock<NameMap> =
+pub(crate) static BUILD_NAME_MAP: LazyLock<NameMap> =
     LazyLock::new(|| get_name_map_from_list(&BUILD_OPTS));
 
 pub fn get_name_map_from_list(opt_decls: &[&'static CommandLineOption]) -> NameMap {
@@ -33,12 +33,6 @@ pub struct NameMap {
 impl NameMap {
     pub(crate) fn get(&self, name: &str) -> Option<&'static CommandLineOption> {
         self.options_names.get(&name.to_lowercase()).copied()
-    }
-
-    pub fn get_from_short(&self, short_name: &str) -> Option<&'static CommandLineOption> {
-        // returns option only if shortName is a valid short option
-        let name = self.short_option_names.get(short_name)?;
-        self.get(name)
     }
 
     pub(crate) fn get_option_declaration_from_name(

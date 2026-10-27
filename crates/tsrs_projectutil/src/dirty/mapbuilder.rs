@@ -8,7 +8,6 @@ pub struct MapBuilder<K, VBase, VBuilder> {
     dirty: FxHashMap<K, VBuilder>,
     deleted: Option<FxHashSet<K>>,
 
-    to_builder: Box<dyn Fn(&VBase) -> VBuilder + Send + Sync>,
     build: Box<dyn Fn(VBuilder) -> VBase + Send + Sync>,
 }
 
@@ -19,16 +18,9 @@ pub struct MapBuilder<K, VBase, VBuilder> {
 )]
 pub fn new_map_builder<K, VBase, VBuilder>(
     base: Arc<FxHashMap<K, VBase>>,
-    to_builder: impl Fn(&VBase) -> VBuilder + Send + Sync + 'static,
     build: impl Fn(VBuilder) -> VBase + Send + Sync + 'static,
 ) -> MapBuilder<K, VBase, VBuilder> {
-    MapBuilder {
-        base,
-        dirty: FxHashMap::default(),
-        deleted: None,
-        to_builder: Box::new(to_builder),
-        build: Box::new(build),
-    }
+    MapBuilder { base, dirty: FxHashMap::default(), deleted: None, build: Box::new(build) }
 }
 
 impl<K: Hash + Eq + Clone, VBase: Clone, VBuilder: Clone> MapBuilder<K, VBase, VBuilder> {
@@ -83,9 +75,5 @@ impl<K: Hash + Eq + Clone, VBase: Clone, VBuilder: Clone> MapBuilder<K, VBase, V
             self.dirty.iter().map(|(key, value)| (key.clone(), (self.build)(value.clone()))),
         );
         Arc::new(result)
-    }
-
-    pub fn to_builder(&self, value: &VBase) -> VBuilder {
-        (self.to_builder)(value)
     }
 }

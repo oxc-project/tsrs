@@ -41,22 +41,6 @@ impl Tristate {
         self
     }
 
-    pub fn unmarshal_json(data: &str) -> Tristate {
-        match data {
-            "true" => Tristate::True,
-            "false" => Tristate::False,
-            _ => Tristate::Unknown,
-        }
-    }
-
-    pub fn marshal_json(self) -> &'static str {
-        match self {
-            Tristate::True => "true",
-            Tristate::False => "false",
-            Tristate::Unknown => "null",
-        }
-    }
-
     fn string(self) -> &'static str {
         match self {
             Tristate::Unknown => "TSUnknown",

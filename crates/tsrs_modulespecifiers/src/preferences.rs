@@ -269,7 +269,11 @@ pub fn get_allowed_endings_in_preferred_order(
 }
 
 // preferences.go:213
-pub fn get_module_specifier_preferences(
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn get_module_specifier_preferences(
     prefs: &UserPreferences,
     _host: &dyn ModuleSpecifierGenerationHost,
     _compiler_options: &CompilerOptions,

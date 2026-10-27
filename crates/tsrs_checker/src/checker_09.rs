@@ -695,14 +695,14 @@ pub fn get_type_list_key(types: &[P<Type>]) -> CacheHashKey {
 }
 
 // checker.go:17842
-pub fn get_alias_key(alias: AliasArg<'_>) -> CacheHashKey {
+pub(crate) fn get_alias_key(alias: AliasArg<'_>) -> CacheHashKey {
     let mut b = KeyBuilder::default();
     b.write_alias_arg(alias);
     b.hash()
 }
 
 // checker.go:17848
-pub fn get_union_key(
+pub(crate) fn get_union_key(
     types: &[P<Type>],
     origin: Option<P<Type>>,
     alias: AliasArg<'_>,
@@ -732,7 +732,7 @@ pub fn get_union_key(
 }
 
 // checker.go:17872
-pub fn get_intersection_key(
+pub(crate) fn get_intersection_key(
     types: &[P<Type>],
     flags: IntersectionFlags,
     alias: AliasArg<'_>,
@@ -748,7 +748,7 @@ pub fn get_intersection_key(
 }
 
 // checker.go:17883
-pub fn get_tuple_key(element_infos: &[TupleElementInfo], readonly: bool) -> CacheHashKey {
+pub(crate) fn get_tuple_key(element_infos: &[TupleElementInfo], readonly: bool) -> CacheHashKey {
     let mut b = KeyBuilder::default();
     for e in element_infos {
         if e.flags.intersects(ElementFlags::Required) {
@@ -771,7 +771,7 @@ pub fn get_tuple_key(element_infos: &[TupleElementInfo], readonly: bool) -> Cach
 }
 
 // checker.go:17906
-pub fn get_type_alias_instantiation_key(
+pub(crate) fn get_type_alias_instantiation_key(
     type_arguments: &[P<Type>],
     alias: Option<P<TypeAlias>>,
 ) -> CacheHashKey {
@@ -804,7 +804,7 @@ fn packed_type_list_key(tag: u64, types: &[P<Type>], flag: bool) -> Option<Cache
 
 // checker.go:17910
 #[inline]
-pub fn get_type_instantiation_key(
+pub(crate) fn get_type_instantiation_key(
     type_arguments: &[P<Type>],
     alias: AliasArg<'_>,
     single_signature: bool,
@@ -834,7 +834,7 @@ fn get_type_instantiation_key_hashed(
 }
 
 // checker.go:17920
-pub fn get_indexed_access_key(
+pub(crate) fn get_indexed_access_key(
     object_type: P<Type>,
     index_type: P<Type>,
     access_flags: AccessFlags,
@@ -849,7 +849,7 @@ pub fn get_indexed_access_key(
 }
 
 // checker.go:17929
-pub fn get_template_type_key(texts: &[&str], types: &[P<Type>]) -> CacheHashKey {
+pub(crate) fn get_template_type_key(texts: &[&str], types: &[P<Type>]) -> CacheHashKey {
     let mut b = KeyBuilder::default();
     b.write_types(types);
     b.write_byte(b'|');
@@ -865,7 +865,7 @@ pub fn get_template_type_key(texts: &[&str], types: &[P<Type>]) -> CacheHashKey 
 
 // checker.go:17943
 #[inline]
-pub fn get_conditional_type_key(
+pub(crate) fn get_conditional_type_key(
     type_arguments: &[P<Type>],
     alias: Option<P<TypeAlias>>,
     for_constraint: bool,
@@ -895,7 +895,7 @@ fn get_conditional_type_key_hashed(
 }
 
 // checker.go:17953
-pub fn get_relation_key(
+pub(crate) fn get_relation_key(
     c: &mut Checker,
     source: P<Type>,
     target: P<Type>,
@@ -946,7 +946,7 @@ fn get_relation_key_worker(
 }
 
 // checker.go:17980
-pub fn is_type_reference_with_generic_arguments(c: &mut Checker, t: P<Type>) -> bool {
+fn is_type_reference_with_generic_arguments(c: &mut Checker, t: P<Type>) -> bool {
     is_non_deferred_type_reference(t)
         && c.get_type_arguments(t).iter().any(|&t| {
             t.flags().intersects(TypeFlags::TypeParameter)
@@ -955,7 +955,7 @@ pub fn is_type_reference_with_generic_arguments(c: &mut Checker, t: P<Type>) -> 
 }
 
 // checker.go:17986
-pub fn is_non_deferred_type_reference(t: P<Type>) -> bool {
+fn is_non_deferred_type_reference(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::Reference)
         && t.as_type_reference().node.get().is_none()
 }
@@ -3441,7 +3441,10 @@ impl Checker {
 }
 
 // checker.go:19499
-pub fn find_index_info(index_infos: &[P<IndexInfo>], key_type: P<Type>) -> Option<P<IndexInfo>> {
+pub(crate) fn find_index_info(
+    index_infos: &[P<IndexInfo>],
+    key_type: P<Type>,
+) -> Option<P<IndexInfo>> {
     if let Some(result) = index_infos.iter().find_map(|&info| {
         if info.key_type.get() == Some(key_type) { Some(Some(info)) } else { None }
     }) {
@@ -3530,7 +3533,7 @@ fn lazy_unaffected_shadow() -> bool {
     *SHADOW.get_or_init(|| std::env::var("TSRS_LAZY_UNAFFECTED").as_deref() == Ok("shadow"))
 }
 
-pub fn may_have_lazy_members(t: P<Type>) -> bool {
+pub(crate) fn may_have_lazy_members(t: P<Type>) -> bool {
     t.object_flags_lazy() & (ObjectFlags::MembersResolved | ObjectFlags::Reference)
         == ObjectFlags::Reference
 }
@@ -4258,7 +4261,7 @@ impl Checker {
 }
 
 /// See `Checker::resolved_property_source`.
-pub struct ResolvedPropertySource {
+pub(crate) struct ResolvedPropertySource {
     t: P<Type>,
     members: Option<P<SymbolTable>>,
     epoch: u32,

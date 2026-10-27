@@ -101,11 +101,7 @@ pub struct LeafSettings {
 /// and more checkers free leaves in a more scattered order). The README bench's +21% on the 8-vCPU runner was a
 /// slower runner and a PGO build without its training profiles (#153), not freeing. `TSRS_FREE_LEAVES=1` turns it on
 /// at any count.
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub const MAX_DEFAULT_CHECKERS: usize = 16;
+const MAX_DEFAULT_CHECKERS: usize = 16;
 
 /// Keeps lazy declaration parsing within its supported CLI modes.
 ///
@@ -149,11 +145,7 @@ static LAZY_DTS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::
 ///
 /// Forcing a list early changes nothing observable (`lazylist`). `TSRS_LAZY_DTS_SHARED=0` forces only the
 /// merges.
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub fn force_shared_lists(program: &crate::program::Program) {
+pub(crate) fn force_shared_lists(program: &crate::program::Program) {
     use rayon::prelude::*;
 
     // Relaxed: see `LAZY_DTS`.
@@ -355,11 +347,7 @@ fn stats() -> bool {
 /// program (`root`, its include reason): only a file parsed for one can be a leaf, as a file parsed for an import or a
 /// reference has a referrer, so only it gets a region (`wants_region`). In a monorepo app most files come from other
 /// packages through imports (cal-diy: 2,643 of 3,550 files), and their regions would cost and free nothing.
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub fn parse_task<T>(root: bool, parse: impl FnOnce() -> T) -> T {
+pub(crate) fn parse_task<T>(root: bool, parse: impl FnOnce() -> T) -> T {
     // Relaxed: see `enable`.
     if !root || !REGIONS_ON.load(Ordering::Relaxed) {
         return parse();
@@ -372,7 +360,7 @@ pub fn parse_task<T>(root: bool, parse: impl FnOnce() -> T) -> T {
 
 /// Whether a file of this name and kind is parsed into a region of its own: a `region_candidate` parsed for a root file
 /// of the program (`parse_task`).
-pub fn wants_region(file_name: &str, script_kind: ScriptKind) -> bool {
+pub(crate) fn wants_region(file_name: &str, script_kind: ScriptKind) -> bool {
     ROOT_PARSE.get() && region_candidate(file_name, script_kind)
 }
 
@@ -387,11 +375,11 @@ fn first_chunk(text_len: usize) -> usize {
 /// file's region is then carved right after this one's last used byte instead of after an unused tail and its partly
 /// used page. Binding on the same thread right away (the parallel loader) grows the region into the space just given
 /// back.
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub fn parse(opts: SourceFileParseOptions, text: String, script_kind: ScriptKind) -> P<SourceFile> {
+pub(crate) fn parse(
+    opts: SourceFileParseOptions,
+    text: String,
+    script_kind: ScriptKind,
+) -> P<SourceFile> {
     let region = Region::new_scratch_in_large_slabs(first_chunk(text.len()));
     let file = {
         let _scratch = region.enter_scratch();
@@ -404,7 +392,7 @@ pub fn parse(opts: SourceFileParseOptions, text: String, script_kind: ScriptKind
 
 /// `tsrs_binder::bind_source_file`, in the file's region if it has one (then trimmed to what parse and bind used, if
 /// this thread carved it last).
-pub fn bind(file: P<SourceFile>) {
+pub(crate) fn bind(file: P<SourceFile>) {
     // Relaxed: see `bind_in_file_regions`.
     if !file.is_bound()
         && OWN_FILE_REGIONS.load(Ordering::Relaxed)
@@ -434,7 +422,7 @@ pub fn bind(file: P<SourceFile>) {
 
 /// Marks the leaves among `program`'s files before its type-check pass (`SourceFile::set_check_leaf`) when its
 /// `leaf_files` mode asks for it, and returns whether the pass frees them.
-pub fn classify(program: &Program) -> bool {
+pub(crate) fn classify(program: &Program) -> bool {
     let mode = program.leaf_files;
     if mode == LeafMode::Off {
         return false;
@@ -517,11 +505,7 @@ pub fn classify(program: &Program) -> bool {
 /// checker pool creates its checkers and assigns them files (checkerpool.rs `create_checkers`), so that it is not
 /// one more serial step between them and the pass (vscode: 4-5 ms on the 64-vCPU runner, about 1% of the check time
 /// at 32 checkers). Does nothing for a program that frees nothing.
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub fn prepare(program: &Program) {
+pub(crate) fn prepare(program: &Program) {
     if program.leaf_files != LeafMode::Off {
         // Not under the lock: binding (`bind`) takes it, and creating a checker may bind.
         let with_region: FxHashSet<P<SourceFile>> =
@@ -676,16 +660,12 @@ fn adds_nothing(program: &Program, file: P<SourceFile>) -> bool {
 /// One atomic load for any other file.
 /// Whether `file` was parsed into a region of its own: it may be freed once checked (the shared-graph seed must not
 /// check it, sharedgraph.rs).
-#[expect(
-    clippy::too_long_first_doc_paragraph,
-    reason = "Public for the integration tests; the comment keeps its upstream wording."
-)]
-pub fn has_region(file: P<SourceFile>) -> bool {
+pub(crate) fn has_region(file: P<SourceFile>) -> bool {
     region_candidate(file.file_name(), file.script_kind.get())
         && REGIONS.lock().unwrap().contains_key(&file)
 }
 
-pub fn assert_not_freed(file: P<SourceFile>) {
+pub(crate) fn assert_not_freed(file: P<SourceFile>) {
     assert!(
         !file.is_check_leaf() || REGIONS.lock().unwrap().contains_key(&file),
         "fileregions: {} was freed after the type-check pass; its tree can no longer be read",
@@ -694,13 +674,13 @@ pub fn assert_not_freed(file: P<SourceFile>) {
 }
 
 /// After the type-check pass that freed leaves: gives back the pages of the last batch of freed regions.
-pub fn pass_done() {
+pub(crate) fn pass_done() {
     tsrs_core::arena::flush_retired();
 }
 
 /// Frees `file`'s region (a leaf whose diagnostics the pass has collected). Called on the checker thread that
 /// checked it; nothing reads the file's tree or binder output afterwards (`classify`).
-pub fn free(file: P<SourceFile>) {
+pub(crate) fn free(file: P<SourceFile>) {
     let Some(region) = REGIONS.lock().unwrap().remove(&file) else {
         return;
     };

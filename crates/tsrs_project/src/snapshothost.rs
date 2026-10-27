@@ -14,10 +14,7 @@ use crate::extendedconfigcache::{ExtendedConfigCache, new_extended_config_cache}
 use crate::filechange::FileChangeSummary;
 use crate::logging::Logger;
 use crate::overlayfs::{FsRef, ToPath, new_cached_file_handle, new_overlay_fs};
-use crate::parsecache::{
-    ContentMappedParseCache, ParseCache, ParseCacheKey, new_content_mapped_parse_cache,
-    new_parse_cache, new_parse_cache_key,
-};
+use crate::parsecache::{ParseCache, ParseCacheKey, new_parse_cache, new_parse_cache_key};
 use crate::programcounter::ProgramCounter;
 use crate::refcountcache::RefCountCacheOptions;
 use crate::session::{SessionInit, SessionOptions, UpdateReason};
@@ -34,7 +31,6 @@ pub struct SnapshotHost {
     pub(crate) fs: Arc<dyn FS>,
 
     pub parse_cache: Arc<ParseCache>,
-    pub(crate) content_mapped_parse_cache: Arc<ContentMappedParseCache>,
     pub(crate) extended_config_cache: Arc<ExtendedConfigCache>,
     pub program_counter: ProgramCounter,
     // (Content mappers are not ported: Go's `contentMapperHost` is always nil here.)
@@ -110,16 +106,12 @@ pub fn new_snapshot_host(init: &SessionInit) -> Arc<SnapshotHost> {
         .parse_cache
         .clone()
         .unwrap_or_else(|| Arc::new(new_parse_cache(RefCountCacheOptions::default())));
-    let content_mapped_parse_cache = init.content_mapped_parse_cache.clone().unwrap_or_else(|| {
-        Arc::new(new_content_mapped_parse_cache(RefCountCacheOptions::default()))
-    });
 
     Arc::new(SnapshotHost {
         options: Arc::clone(&init.options),
         to_path,
         fs: Arc::clone(&init.fs),
         parse_cache,
-        content_mapped_parse_cache,
         extended_config_cache: Arc::new(new_extended_config_cache()),
         program_counter: ProgramCounter::default(),
         snapshot_id: AtomicU64::new(0),

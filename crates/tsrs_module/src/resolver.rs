@@ -375,7 +375,7 @@ impl Tracer {
 }
 
 impl DefaultResolver<'_> {
-    pub(crate) fn resolve_type_reference_directive(
+    fn resolve_type_reference_directive(
         &self,
         type_reference_directive_name: &str,
         containing_file: &str,
@@ -3163,7 +3163,7 @@ fn get_node_resolution_features(options: &CompilerOptions) -> NodeResolutionFeat
     features
 }
 
-pub fn move_to_next_directory_separator_if_available(
+pub(crate) fn move_to_next_directory_separator_if_available(
     path: &str,
     prev_separator_index: usize,
     is_folder: bool,

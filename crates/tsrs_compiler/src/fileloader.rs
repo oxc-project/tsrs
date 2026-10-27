@@ -39,7 +39,7 @@ use crate::projectreferenceparser::ProjectReferenceParser;
 // fileloader.go:34
 const MAX_CONTENT_MAPPER_FAILURES: usize = 5;
 
-pub struct LibResolution {
+pub(crate) struct LibResolution {
     pub(crate) library_name: String,
     pub(crate) resolution: Option<P<ResolvedModule>>,
     pub(crate) trace: Vec<DiagAndArgs>,
@@ -51,12 +51,12 @@ pub struct LibFile {
     pub replaced: bool,
 }
 
-pub struct SourceFileFromReferenceDiagnostic {
+pub(crate) struct SourceFileFromReferenceDiagnostic {
     message: &'static Message,
     args: Vec<String>,
 }
 
-pub struct FileLoader {
+pub(crate) struct FileLoader {
     pub(crate) opts: ProgramConfig,
     pub(crate) host: std::sync::Arc<dyn CompilerHost>,
     resolver: Box<dyn Resolver>,
@@ -111,16 +111,8 @@ pub struct RedirectsFile {
 #[derive(Clone, Debug)]
 pub struct DuplicateSourceFile {
     pub parse_options: SourceFileParseOptions,
-    // ContentMapperParseOptions are the acquire-time options for a content-mapped parse-cache entry.
-    pub content_mapper_parse_options: SourceFileParseOptions,
     pub hash: u128,
     pub script_kind: ScriptKind,
-    // ContentMapper is the identity of the content mapper that produced this file,
-    // or "" if the file is not content-mapped.
-    pub content_mapper: &'static str,
-    // IsContentMapperFailureStub reports whether the file is an empty placeholder
-    // from a failed transform.
-    pub is_content_mapper_failure_stub: bool,
 }
 
 #[derive(Default)]
@@ -188,7 +180,7 @@ fn add_project_reference_tasks(
     ProjectReferenceFileMapperBuilder { mapper, host: mapper.resolution_host(resolution_host) }
 }
 
-pub fn process_all_program_files(
+pub(crate) fn process_all_program_files(
     opts: &ProgramOptions,
     single_threaded: bool,
 ) -> (ProcessedFiles, P<module::ResolutionData>, Option<String>) {
@@ -926,7 +918,7 @@ impl SourceFileParser<'_> {
 
 // ContentMapperInitializationDiagnostic returns a fileless diagnostic for a mapper initialization failure.
 // fileloader.go:613
-pub fn content_mapper_initialization_diagnostic(
+fn content_mapper_initialization_diagnostic(
     label: &str,
     err: &contentmapper::Error,
 ) -> P<Diagnostic> {
@@ -1039,7 +1031,7 @@ impl SourceFileParser<'_> {
     }
 }
 
-pub fn source_file_meta_data(
+pub(crate) fn source_file_meta_data(
     opts: &ProgramConfig,
     resolver: &dyn Resolver,
     project_references: &ProjectReferenceFileMapperBuilder,
@@ -1085,7 +1077,7 @@ pub fn source_file_meta_data(
     SourceFileMetaData { package_json_type, package_json_directory, implied_node_format }
 }
 
-pub fn parse_options_for(
+pub(crate) fn parse_options_for(
     host: &dyn CompilerHost,
     project_references: &ProjectReferenceFileMapperBuilder,
     normalized_file_path: &str,
@@ -1120,7 +1112,7 @@ pub fn parse_options_for(
 // name), and one per type reference directive, in source order. Resolution results do not depend on the order
 // in which files are resolved (the resolver caches are keyed by name, directory, mode and redirect), so the
 // sequential load consumes them exactly as if it had resolved on the spot.
-pub struct PrefetchedResolutions {
+pub(crate) struct PrefetchedResolutions {
     pub(crate) referenced_files: Vec<(String, Option<SourceFileFromReferenceDiagnostic>)>,
     pub(crate) imports: Vec<Option<PrefetchedImport>>,
     pub(crate) type_references: Vec<(P<ResolvedTypeReferenceDirective>, Vec<DiagAndArgs>)>,
@@ -1138,7 +1130,7 @@ impl PrefetchedResolutions {
     }
 }
 
-pub struct PrefetchedImport {
+pub(crate) struct PrefetchedImport {
     resolution: Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String>,
     // The import's resolution mode.
     mode: ResolutionMode,
@@ -1151,7 +1143,7 @@ pub struct PrefetchedImport {
 // map held when the round's prefetch started. Everything depends only on the file, its metadata, the resolution and
 // the tasks that exist before the round; `data_id` is `NO_DATA` for a path first seen in this round, and the
 // sequential load then looks it up again (an earlier file of the round may have added it).
-pub struct PreparedSubTask {
+pub(crate) struct PreparedSubTask {
     pub(crate) normalized_file_path: Arc<str>,
     pub(crate) path: Path,
     data_id: u32,
@@ -1162,7 +1154,7 @@ pub struct PreparedSubTask {
 }
 
 // The parts of the file loader that the parallel prefetch reads (the loader itself is not Sync).
-pub struct PrefetchContext<'a> {
+pub(crate) struct PrefetchContext<'a> {
     pub(crate) opts: &'a ProgramConfig,
     pub(crate) host: &'a dyn CompilerHost,
     pub(crate) resolver: &'a dyn Resolver,
@@ -1233,7 +1225,7 @@ fn tripleslash_reference_lookup(
     (normalized_file_name, looked_up)
 }
 
-pub fn prefetch_resolutions(
+pub(crate) fn prefetch_resolutions(
     ctx: &PrefetchContext,
     file: P<SourceFile>,
     meta: &SourceFileMetaData,
@@ -1871,7 +1863,7 @@ impl FileLoader {
 // The part of resolveImportsAndModuleAugmentations that decides whether the file a resolved import names is added
 // to the program, and whether that sub task is elided past maxNodeModuleJsDepth (`isJsFileFromNodeModules`).
 // The speculative parse (filesParser::prefetch) asks the same question.
-pub fn resolved_import_sub_task(
+fn resolved_import_sub_task(
     project_references: &ProjectReferenceFileMapperBuilder,
     host: &dyn CompilerHost,
     options_for_file: &CompilerOptions,
@@ -1921,7 +1913,7 @@ pub fn resolved_import_sub_task(
 }
 
 // fileLoader.getSourceFileFromReference; `is_referenced_file_reason` is what it asks of the include reason.
-pub fn source_file_from_reference(
+fn source_file_from_reference(
     options: &CompilerOptions,
     fs: &dyn tsrs_vfs::FS,
     supported_extensions: &[Vec<String>],
@@ -2025,7 +2017,7 @@ pub fn source_file_from_reference(
     )
 }
 
-pub fn is_supported_extension(
+pub(crate) fn is_supported_extension(
     supported_extensions_with_json: &[Vec<String>],
     canonical_file_name: &str,
 ) -> bool {
@@ -2080,7 +2072,7 @@ fn get_inferred_library_name_resolve_from(
     )
 }
 
-pub fn get_mode_for_type_reference_directive_in_file(
+fn get_mode_for_type_reference_directive_in_file(
     ref_: P<FileReference>,
     file: P<SourceFile>,
     meta: &SourceFileMetaData,
@@ -2093,7 +2085,7 @@ pub fn get_mode_for_type_reference_directive_in_file(
     }
 }
 
-pub fn get_default_resolution_mode_for_file(
+pub(crate) fn get_default_resolution_mode_for_file(
     file_name: &str,
     meta: &SourceFileMetaData,
     options: &CompilerOptions,
@@ -2109,7 +2101,7 @@ pub fn get_default_resolution_mode_for_file(
     }
 }
 
-pub fn get_mode_for_usage_location(
+pub(crate) fn get_mode_for_usage_location(
     file_name: &str,
     meta: &SourceFileMetaData,
     usage: P<Node>,
@@ -2163,7 +2155,7 @@ fn import_syntax_affects_module_resolution(options: &CompilerOptions) -> bool {
         || options.get_resolve_package_json_imports()
 }
 
-pub fn get_emit_syntax_for_usage_location_worker(
+pub(crate) fn get_emit_syntax_for_usage_location_worker(
     file_name: &str,
     meta: &SourceFileMetaData,
     usage: P<Node>,
@@ -2203,6 +2195,6 @@ pub fn get_emit_syntax_for_usage_location_worker(
     ModuleKind::NONE
 }
 
-pub fn str_slice(group: &[String]) -> Vec<&str> {
+pub(crate) fn str_slice(group: &[String]) -> Vec<&str> {
     group.iter().map(std::string::String::as_str).collect()
 }

@@ -30,7 +30,7 @@ pub use definitions::*;
 pub use esdecorator_1::*;
 pub(crate) use esdecorator_2::*;
 pub(crate) use exponentiation::*;
-pub use forawait::*;
+pub(crate) use forawait::*;
 pub(crate) use logicalassignment::*;
 pub(crate) use namedevaluation::*;
 pub(crate) use nullishcoalescing::*;

@@ -9,9 +9,9 @@ use tsrs_core::tspath::{self, ComparePathsOptions};
 use tsrs_diagnostics::{self as diagnostics, Category};
 
 pub struct FileLike {
-    pub file_name: String,
-    pub text: String,
-    pub line_map: Vec<u32>,
+    pub(crate) file_name: String,
+    text: String,
+    line_map: Vec<u32>,
 }
 
 impl FileLike {
@@ -40,8 +40,7 @@ pub struct Diag {
 }
 
 impl Diag {
-    #[expect(clippy::len_without_is_empty, reason = "Public for the integration tests.")]
-    pub fn len(&self) -> Option<u32> {
+    fn len(&self) -> Option<u32> {
         Some(self.end?.saturating_sub(self.pos?))
     }
 }
@@ -103,7 +102,7 @@ fn compare_related_info(r1: &[Diag], r2: &[Diag]) -> Ordering {
 }
 
 // ast.CompareDiagnostics
-pub fn compare_diagnostics(d1: &Diag, d2: &Diag) -> Ordering {
+pub(crate) fn compare_diagnostics(d1: &Diag, d2: &Diag) -> Ordering {
     let mut c = compare_str(diagnostic_path(d1), diagnostic_path(d2));
     if !c.is_eq() {
         return c;
@@ -151,7 +150,7 @@ pub fn compare_diagnostics(d1: &Diag, d2: &Diag) -> Ordering {
     clippy::naive_bytecount,
     reason = "a specialized search is a performance change that requires measurements"
 )]
-pub fn compute_ecma_line_starts(text: &str) -> Vec<u32> {
+pub(crate) fn compute_ecma_line_starts(text: &str) -> Vec<u32> {
     let bytes = text.as_bytes();
     let mut result = Vec::with_capacity(bytes.iter().filter(|&&b| b == b'\n').count() + 1);
     let mut pos = 0usize;
@@ -187,14 +186,14 @@ pub fn compute_ecma_line_starts(text: &str) -> Vec<u32> {
     result
 }
 
-pub fn utf16_len(s: &str) -> u32 {
+fn utf16_len(s: &str) -> u32 {
     s.chars()
         .map(|c| u32::try_from(c.len_utf16()).expect("UTF-16 character length exceeds u32"))
         .sum()
 }
 
 // scanner.ComputeLineOfPosition
-pub fn compute_line_of_position(line_starts: &[u32], pos: u32) -> usize {
+fn compute_line_of_position(line_starts: &[u32], pos: u32) -> usize {
     match line_starts.binary_search(&pos) {
         Ok(i) => i,
         Err(i) => i.saturating_sub(1),
@@ -215,20 +214,20 @@ fn byte_slice(text: &str, start: usize, end: usize) -> &str {
     &text[s..e]
 }
 
-pub fn get_ecma_line_and_utf16_character_of_position(file: &FileLike, pos: u32) -> (usize, u32) {
+fn get_ecma_line_and_utf16_character_of_position(file: &FileLike, pos: u32) -> (usize, u32) {
     let line = compute_line_of_position(&file.line_map, pos);
     let start = file.line_map[line] as usize;
     let character = utf16_len(byte_slice(&file.text, start, pos as usize));
     (line, character)
 }
 
-pub fn get_ecma_line_of_position(file: &FileLike, pos: u32) -> usize {
+fn get_ecma_line_of_position(file: &FileLike, pos: u32) -> usize {
     compute_line_of_position(&file.line_map, pos)
 }
 
-pub struct FormattingOptions {
-    pub compare_paths_options: ComparePathsOptions,
-    pub new_line: &'static str,
+pub(crate) struct FormattingOptions {
+    pub(crate) compare_paths_options: ComparePathsOptions,
+    pub(crate) new_line: &'static str,
 }
 
 const FOREGROUND_COLOR_ESCAPE_GREY: &str = "\u{001b}[90m";
@@ -246,7 +245,7 @@ fn file_appears_to_be_binary_code() -> i32 {
     diagnostics::FILE_APPEARS_TO_BE_BINARY.code()
 }
 
-pub fn format_diagnostics_with_color_and_context(
+pub(crate) fn format_diagnostics_with_color_and_context(
     output: &mut String,
     diags: &[&Diag],
     format_opts: &FormattingOptions,
@@ -259,7 +258,7 @@ pub fn format_diagnostics_with_color_and_context(
     }
 }
 
-pub fn format_diagnostic_with_color_and_context(
+fn format_diagnostic_with_color_and_context(
     output: &mut String,
     diagnostic: &Diag,
     format_opts: &FormattingOptions,
@@ -422,13 +421,13 @@ fn write_code_snippet(
     }
 }
 
-pub fn flatten_diagnostic_message(d: &Diag, new_line: &str) -> String {
+pub(crate) fn flatten_diagnostic_message(d: &Diag, new_line: &str) -> String {
     let mut output = String::new();
     write_flattened_diagnostic_message(&mut output, d, new_line);
     output
 }
 
-pub fn write_flattened_diagnostic_message(writer: &mut String, diagnostic: &Diag, newline: &str) {
+fn write_flattened_diagnostic_message(writer: &mut String, diagnostic: &Diag, newline: &str) {
     writer.push_str(&diagnostic.message);
     for chain in &diagnostic.chain {
         flatten_diagnostic_message_chain(writer, chain, newline, 1);
@@ -465,15 +464,15 @@ fn get_category_format(category: Category) -> &'static str {
     }
 }
 
-pub type FormattedWriter = fn(&mut String, &str, &str);
+pub(crate) type FormattedWriter = fn(&mut String, &str, &str);
 
-pub fn write_with_style_and_reset(output: &mut String, text: &str, format_style: &str) {
+fn write_with_style_and_reset(output: &mut String, text: &str, format_style: &str) {
     output.push_str(format_style);
     output.push_str(text);
     output.push_str(RESET_ESCAPE_SEQUENCE);
 }
 
-pub fn write_location(
+pub(crate) fn write_location(
     output: &mut String,
     file: &FileLike,
     pos: u32,
@@ -501,7 +500,7 @@ pub fn write_location(
     );
 }
 
-pub fn write_error_summary_text(
+pub(crate) fn write_error_summary_text(
     output: &mut String,
     all_diagnostics: &[&Diag],
     format_opts: &FormattingOptions,
@@ -607,7 +606,7 @@ fn pretty_path_for_file_error(
     format!("{}{}:{}{}", file_name, FOREGROUND_COLOR_ESCAPE_GREY, line + 1, RESET_ESCAPE_SEQUENCE)
 }
 
-pub fn write_format_diagnostics(
+pub(crate) fn write_format_diagnostics(
     output: &mut String,
     diagnostics: &[&Diag],
     format_opts: &FormattingOptions,
@@ -617,7 +616,7 @@ pub fn write_format_diagnostics(
     }
 }
 
-pub fn write_format_diagnostic(
+fn write_format_diagnostic(
     output: &mut String,
     diagnostic: &Diag,
     format_opts: &FormattingOptions,

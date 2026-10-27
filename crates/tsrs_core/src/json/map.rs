@@ -75,11 +75,6 @@ impl JsonMap {
         self.entries.is_empty()
     }
 
-    pub fn clear(&mut self) {
-        self.entries.clear();
-        self.index = None;
-    }
-
     pub fn reserve(&mut self, additional: usize) {
         self.entries.reserve(additional);
     }
@@ -114,28 +109,8 @@ impl JsonMap {
         self.get_index_of(key).map(|i| &mut self.entries[i].1)
     }
 
-    pub fn get_key_value(&self, key: &str) -> Option<(&str, &Value)> {
-        self.get_index_of(key).map(|i| (&*self.entries[i].0, &self.entries[i].1))
-    }
-
     pub fn contains_key(&self, key: &str) -> bool {
         self.get_index_of(key).is_some()
-    }
-
-    pub fn get_index(&self, i: usize) -> Option<(&str, &Value)> {
-        self.entries.get(i).map(|(k, v)| (&**k, v))
-    }
-
-    pub fn get_index_mut(&mut self, i: usize) -> Option<(&str, &mut Value)> {
-        self.entries.get_mut(i).map(|(k, v)| (&**k, v))
-    }
-
-    pub fn first(&self) -> Option<(&str, &Value)> {
-        self.get_index(0)
-    }
-
-    pub fn last(&self) -> Option<(&str, &Value)> {
-        self.entries.last().map(|(k, v)| (&**k, v))
     }
 
     /// Sets `key`'s value: a new key goes last, an existing one keeps its position. Returns the old value.
@@ -225,24 +200,6 @@ impl JsonMap {
         entry
     }
 
-    /// Removes `key`'s member, moving the last member into its place.
-    pub fn swap_remove(&mut self, key: &str) -> Option<Value> {
-        let i = self.get_index_of(key)?;
-        let (_, value) = self.entries.swap_remove(i);
-        if self.index.is_some() {
-            self.reindex();
-        }
-        Some(value)
-    }
-
-    pub fn retain(&mut self, mut keep: impl FnMut(&str, &mut Value) -> bool) {
-        let len = self.entries.len();
-        self.entries.retain_mut(|(k, v)| keep(k, v));
-        if self.entries.len() != len && self.index.is_some() {
-            self.reindex();
-        }
-    }
-
     pub(crate) fn entry(&mut self, key: impl Into<Key>) -> Entry<'_> {
         let key = key.into();
         match self.get_index_of(&key) {
@@ -267,20 +224,6 @@ impl JsonMap {
         self.entries.iter().map(|(_, v)| v)
     }
 
-    pub fn values_mut(
-        &mut self,
-    ) -> impl DoubleEndedIterator<Item = &mut Value> + ExactSizeIterator {
-        self.entries.iter_mut().map(|(_, v)| v)
-    }
-
-    pub fn into_keys(self) -> impl DoubleEndedIterator<Item = String> + ExactSizeIterator {
-        self.entries.into_iter().map(|(k, _)| k.into_owned())
-    }
-
-    pub fn into_values(self) -> impl DoubleEndedIterator<Item = Value> + ExactSizeIterator {
-        self.entries.into_iter().map(|(_, v)| v)
-    }
-
     /// Stable sort by a key computed once per member.
     pub fn sort_by_cached_key<T: Ord>(&mut self, mut sort_key: impl FnMut(&str, &Value) -> T) {
         self.entries.sort_by_cached_key(|(k, v)| sort_key(k, v));
@@ -292,17 +235,6 @@ impl JsonMap {
     /// Stable sort by member name.
     pub fn sort_keys(&mut self) {
         self.entries.sort_by(|(a, _), (b, _)| a.cmp(b));
-        if self.index.is_some() {
-            self.reindex();
-        }
-    }
-
-    /// Stable sort.
-    pub fn sort_by(
-        &mut self,
-        mut compare: impl FnMut(&str, &Value, &str, &Value) -> std::cmp::Ordering,
-    ) {
-        self.entries.sort_by(|(ka, va), (kb, vb)| compare(ka, va, kb, vb));
         if self.index.is_some() {
             self.reindex();
         }
@@ -466,99 +398,28 @@ impl<'a> IntoIterator for &'a mut JsonMap {
     }
 }
 
-pub enum Entry<'a> {
+pub(crate) enum Entry<'a> {
     Occupied(OccupiedEntry<'a>),
     Vacant(VacantEntry<'a>),
 }
 
-impl<'a> Entry<'a> {
-    pub fn key(&self) -> &str {
-        match self {
-            Entry::Occupied(e) => e.key(),
-            Entry::Vacant(e) => e.key(),
-        }
-    }
-
-    pub fn or_insert(self, default: Value) -> &'a mut Value {
-        match self {
-            Entry::Occupied(e) => e.into_mut(),
-            Entry::Vacant(e) => e.insert(default),
-        }
-    }
-
-    pub fn or_insert_with(self, default: impl FnOnce() -> Value) -> &'a mut Value {
-        match self {
-            Entry::Occupied(e) => e.into_mut(),
-            Entry::Vacant(e) => e.insert(default()),
-        }
-    }
-
-    pub fn or_default(self) -> &'a mut Value {
-        self.or_insert_with(Value::default)
-    }
-
-    #[must_use]
-    pub fn and_modify(self, f: impl FnOnce(&mut Value)) -> Entry<'a> {
-        match self {
-            Entry::Occupied(mut e) => {
-                f(e.get_mut());
-                Entry::Occupied(e)
-            }
-            Entry::Vacant(e) => Entry::Vacant(e),
-        }
-    }
-}
-
-pub struct OccupiedEntry<'a> {
+pub(crate) struct OccupiedEntry<'a> {
     map: &'a mut JsonMap,
     index: usize,
 }
 
-impl<'a> OccupiedEntry<'a> {
+impl OccupiedEntry<'_> {
     pub(crate) fn key(&self) -> &str {
         &self.map.entries[self.index].0
     }
-
-    pub fn index(&self) -> usize {
-        self.index
-    }
-
-    pub fn get(&self) -> &Value {
-        &self.map.entries[self.index].1
-    }
-
-    pub fn get_mut(&mut self) -> &mut Value {
-        &mut self.map.entries[self.index].1
-    }
-
-    pub fn into_mut(self) -> &'a mut Value {
-        &mut self.map.entries[self.index].1
-    }
-
-    /// Replaces the value, returning the old one.
-    pub fn insert(&mut self, value: Value) -> Value {
-        std::mem::replace(self.get_mut(), value)
-    }
-
-    pub fn shift_remove(self) -> Value {
-        self.map.remove_at(self.index).1
-    }
 }
 
-pub struct VacantEntry<'a> {
+pub(crate) struct VacantEntry<'a> {
     map: &'a mut JsonMap,
     key: Key,
 }
 
 impl<'a> VacantEntry<'a> {
-    pub fn key(&self) -> &str {
-        &self.key
-    }
-
-    pub fn into_key(self) -> String {
-        self.key.into_owned()
-    }
-
     pub(crate) fn insert(self, value: Value) -> &'a mut Value {
         let i = self.map.push(self.key, value);
         &mut self.map.entries[i].1

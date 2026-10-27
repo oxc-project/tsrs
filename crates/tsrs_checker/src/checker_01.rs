@@ -132,14 +132,14 @@ use tsrs_diagnostics::Message;
 //   var primitiveTypeAliasSuggestions (checker.go:1786)
 
 // checker.go:1128
-pub fn create_file_index_map(files: &[P<SourceFile>]) -> FxHashMap<P<SourceFile>, usize> {
+pub(crate) fn create_file_index_map(files: &[P<SourceFile>]) -> FxHashMap<P<SourceFile>, usize> {
     let mut result = FxHashMap::with_capacity_and_hasher(files.len(), rustc_hash::FxBuildHasher);
     result.extend(files.iter().enumerate().map(|(i, file)| (*file, i)));
     result
 }
 
 // checker.go:1136
-pub fn count_global_symbols(files: &[P<SourceFile>]) -> usize {
+pub(crate) fn count_global_symbols(files: &[P<SourceFile>]) -> usize {
     let mut count = 0;
     count = files.iter().fold(count, |mut count, file| {
         if !ast::is_external_or_common_js_module(*file) {
@@ -255,7 +255,7 @@ impl Checker {
 }
 
 // checker.go:1241
-pub fn get_global_type_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
+fn get_global_type_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
     if let Some(result) = symbol.declarations().iter().find_map(|declaration| {
         match declaration.kind() {
             Kind::ClassDeclaration
@@ -990,7 +990,7 @@ impl Checker {
 }
 
 // checker.go:1678
-pub fn is_primitive_type_name(s: &str) -> bool {
+fn is_primitive_type_name(s: &str) -> bool {
     s == "any" || s == "string" || s == "number" || s == "boolean" || s == "never" || s == "unknown"
 }
 
@@ -1139,7 +1139,7 @@ impl Checker {
 }
 
 // checker.go:1745
-pub fn is_es2015_or_later_constructor_name(s: &str) -> bool {
+fn is_es2015_or_later_constructor_name(s: &str) -> bool {
     s == "Promise" || s == "Symbol" || s == "Map" || s == "WeakMap" || s == "Set" || s == "WeakSet"
 }
 
@@ -1221,7 +1221,7 @@ impl Checker {
 }
 
 // checker.go:1804
-pub fn get_primitive_type_alias_suggestions(symbols: Option<P<SymbolTable>>) -> Vec<P<Symbol>> {
+fn get_primitive_type_alias_suggestions(symbols: Option<P<SymbolTable>>) -> Vec<P<Symbol>> {
     let mut result = Vec::new();
     result.extend(primitive_type_alias_suggestions().iter().filter_map(
         |(builtin_name, suggestion)| {
@@ -1813,7 +1813,7 @@ impl Checker {
 }
 
 // checker.go:2113
-pub fn is_immediately_used_in_initializer_of_block_scoped_variable(
+fn is_immediately_used_in_initializer_of_block_scoped_variable(
     declaration: P<Node>,
     usage: P<Node>,
     decl_container: P<Node>,
@@ -1838,7 +1838,7 @@ pub fn is_immediately_used_in_initializer_of_block_scoped_variable(
 // If current node is an IIFE, continue walking up.
 // Return false if 'stopAt' node is reached or isFunctionLike(current) === true.
 // checker.go:2131
-pub fn is_same_scope_descendent_of(
+fn is_same_scope_descendent_of(
     initial: P<Node>,
     parent: Option<P<Node>>,
     stop_at: P<Node>,
@@ -1866,7 +1866,7 @@ pub fn is_same_scope_descendent_of(
 
 // isPropertyImmediatelyReferencedWithinDeclaration is used for detecting ES-standard class field use-before-def errors
 // checker.go:2147
-pub fn is_property_immediately_referenced_within_declaration(
+fn is_property_immediately_referenced_within_declaration(
     declaration: P<Node>,
     usage: P<Node>,
     stop_at_any_property_declaration: bool,

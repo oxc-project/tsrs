@@ -27,18 +27,6 @@ impl GeneratedIdentifierFlags {
         self & GeneratedIdentifierFlags::KindMask
     }
 
-    pub fn is_auto(self) -> bool {
-        self.kind() == GeneratedIdentifierFlags::Auto
-    }
-
-    pub fn is_loop(self) -> bool {
-        self.kind() == GeneratedIdentifierFlags::Loop
-    }
-
-    pub fn is_unique(self) -> bool {
-        self.kind() == GeneratedIdentifierFlags::Unique
-    }
-
     pub(crate) fn is_node(self) -> bool {
         self.kind() == GeneratedIdentifierFlags::Node
     }

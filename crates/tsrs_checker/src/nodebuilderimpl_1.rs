@@ -19,8 +19,7 @@ use tsrs_core::*;
 //   type sortedSymbolNamePair (nodebuilderimpl.go:1081)
 
 // nodebuilderimpl.go:125
-#[expect(clippy::implicit_hasher, reason = "Public for the integration tests.")]
-pub fn new_node_builder_impl(
+pub(crate) fn new_node_builder_impl(
     ch: &Checker,
     e: P<EmitContext>,
     id_to_symbol: Option<P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>>,
@@ -38,7 +37,7 @@ pub fn new_node_builder_impl(
         NodeBuilderImpl {
             f: e.factory.as_node_factory().clone(),
             e,
-            pc: new_pseudo_checker(ch.strict_null_checks, ch.exact_optional_property_types),
+            pc: new_pseudo_checker(ch.strict_null_checks),
             links: tsrs_core::LinkStore::new_scratch(scratch),
             symbol_links: tsrs_core::LinkStore::new_scratch(scratch),
             ctx: Cell::new(None),
@@ -312,7 +311,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:325
-pub fn get_access_stack(ref_: P<Node>) -> Vec<P<Node>> {
+fn get_access_stack(ref_: P<Node>) -> Vec<P<Node>> {
     let mut state: P<Node> = ref_.as_type_reference_node().type_name;
     let mut ids: Vec<P<Node>> = vec![];
     while !is_identifier(state) {
@@ -325,7 +324,7 @@ pub fn get_access_stack(ref_: P<Node>) -> Vec<P<Node>> {
 }
 
 // nodebuilderimpl.go:337
-pub fn is_class_instance_side(c: &mut Checker, t: P<Type>) -> bool {
+pub(crate) fn is_class_instance_side(c: &mut Checker, t: P<Type>) -> bool {
     t.symbol().is_some()
         && t.symbol().unwrap().flags().intersects(SymbolFlags::Class)
         && (t == c.get_declared_type_of_class_or_interface(t.symbol().unwrap())
@@ -517,12 +516,12 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:463
-pub fn is_identifier_type_reference(node: P<Node>) -> bool {
+fn is_identifier_type_reference(node: P<Node>) -> bool {
     is_type_reference_node(node) && is_identifier(node.as_type_reference_node().type_name)
 }
 
 // nodebuilderimpl.go:467
-pub fn array_is_homogeneous<T: Clone>(array: &[T], mut comparer: impl FnMut(T, T) -> bool) -> bool {
+fn array_is_homogeneous<T: Clone>(array: &[T], mut comparer: impl FnMut(T, T) -> bool) -> bool {
     if array.len() < 2 {
         return true;
     }
@@ -537,7 +536,7 @@ pub fn array_is_homogeneous<T: Clone>(array: &[T], mut comparer: impl FnMut(T, T
 }
 
 // nodebuilderimpl.go:481
-pub fn types_are_same_reference(a: P<Type>, b: P<Type>) -> bool {
+fn types_are_same_reference(a: P<Type>, b: P<Type>) -> bool {
     a == b
         || a.symbol().is_some() && a.symbol() == b.symbol()
         || a.alias().is_some() && a.alias() == b.alias()
@@ -963,7 +962,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:745
-pub fn get_topmost_indexed_access_type(node: P<Node>) -> P<Node> {
+fn get_topmost_indexed_access_type(node: P<Node>) -> P<Node> {
     let object_type = node.as_indexed_access_type_node().object_type;
     if is_indexed_access_type_node(object_type) {
         return get_topmost_indexed_access_type(object_type);
@@ -1242,7 +1241,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:912
-pub fn can_use_property_access(name: &str) -> bool {
+fn can_use_property_access(name: &str) -> bool {
     if name.is_empty() {
         return false;
     }
@@ -1256,17 +1255,17 @@ pub fn can_use_property_access(name: &str) -> bool {
 }
 
 // nodebuilderimpl.go:924
-pub fn starts_with_single_or_double_quote(str: &str) -> bool {
+fn starts_with_single_or_double_quote(str: &str) -> bool {
     str.starts_with('\'') || str.starts_with('"')
 }
 
 // nodebuilderimpl.go:928
-pub fn starts_with_square_bracket(str: &str) -> bool {
+fn starts_with_square_bracket(str: &str) -> bool {
     str.starts_with('[')
 }
 
 // nodebuilderimpl.go:932
-pub fn is_default_binding_context(location: P<Node>) -> bool {
+fn is_default_binding_context(location: P<Node>) -> bool {
     location.kind() == Kind::SourceFile || is_ambient_module(location)
 }
 
@@ -1629,7 +1628,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:1172
-pub fn can_have_module_specifier(node: Option<P<Node>>) -> bool {
+fn can_have_module_specifier(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
@@ -1659,7 +1658,7 @@ pub fn try_get_module_specifier_from_declaration(node: P<Node>) -> Option<P<Node
 }
 
 // nodebuilderimpl.go:1201
-pub fn try_get_module_specifier_from_declaration_worker(node: P<Node>) -> Option<P<Node>> {
+fn try_get_module_specifier_from_declaration_worker(node: P<Node>) -> Option<P<Node>> {
     match node.kind() {
         Kind::VariableDeclaration | Kind::BindingElement => {
             let module_call = find_ancestor(node.initializer(), |node| {
@@ -2471,7 +2470,7 @@ impl NodeBuilderImpl {
 }
 
 // nodebuilderimpl.go:1715
-pub fn get_effective_parameter_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
+fn get_effective_parameter_declaration(symbol: P<Symbol>) -> Option<P<Node>> {
     let parameter_declaration = get_declaration_of_kind(symbol, Kind::Parameter);
     if parameter_declaration.is_some() {
         return parameter_declaration;

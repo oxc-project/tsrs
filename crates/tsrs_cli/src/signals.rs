@@ -58,7 +58,7 @@ pub fn notify_interrupts() {
 }
 
 /// Runs `hook` once SIGINT or SIGTERM arrives, or now if one already has.
-pub fn on_interrupt(hook: impl FnOnce() + Send + 'static) {
+pub(crate) fn on_interrupt(hook: impl FnOnce() + Send + 'static) {
     let mut state = STATE.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
     if state.received {
         drop(state);

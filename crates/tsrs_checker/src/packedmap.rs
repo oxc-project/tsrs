@@ -60,10 +60,6 @@ impl<K, V> Default for PackedMap<K, V> {
 }
 
 impl<K: PackedKey, V: Copy> PackedMap<K, V> {
-    pub fn new() -> Self {
-        PackedMap::default()
-    }
-
     /// A map holding one entry, with the capacity `FxHashMap::from_iter([(key, value)])` has.
     pub(crate) fn from_one(key: K, value: V) -> Self {
         let mut m = PackedMap { table: hashbrown::HashTable::with_capacity(1) };
@@ -75,11 +71,6 @@ impl<K: PackedKey, V: Copy> PackedMap<K, V> {
     pub(crate) fn get(&self, key: &K) -> Option<V> {
         let key = *key;
         self.table.find(key.packed_hash(), |slot| ({ slot.key }) == key).map(|slot| slot.value)
-    }
-
-    #[inline]
-    pub fn contains_key(&self, key: &K) -> bool {
-        self.get(key).is_some()
     }
 
     /// Like `HashMap::insert`: returns the value the key had.
@@ -117,11 +108,6 @@ impl<K: PackedKey, V: Copy> PackedMap<K, V> {
     pub(crate) fn clear(&mut self) {
         self.table.clear();
     }
-
-    /// The values, in table order (counts and tests only: the order is not observable).
-    pub fn values(&self) -> impl Iterator<Item = V> + '_ {
-        self.table.iter().map(|slot| slot.value)
-    }
 }
 
 /// `GoMap` (a nil-able shared map in the arena) over a `PackedMap`, for the `CacheHashKey`-keyed instantiation maps
@@ -142,10 +128,6 @@ impl<K: PackedKey + 'static, V: Copy + 'static> GoPackedMap<K, V> {
         // As `GoMap::make`: the table lives where the map field does (emit scratch regions).
         let scratch = tsrs_core::arena::scratch_contains(std::ptr::from_ref::<Self>(self) as usize);
         self.0.set(Some(P::new_in(scratch, RefCell::new(PackedMap::default()))));
-    }
-
-    pub fn is_nil(&self) -> bool {
-        self.0.get().is_none()
     }
 
     /// Go `v, ok := m[k]` (reading a nil map is allowed).
@@ -171,14 +153,6 @@ impl<K: PackedKey + 'static, V: Copy + 'static> GoPackedMap<K, V> {
             }
         };
         m.borrow_mut().insert(key, value);
-    }
-
-    pub fn len(&self) -> usize {
-        self.0.get().map_or(0, |m| tsrs_core::sharedgraph::with_ref(&m, PackedMap::len))
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.0.get().is_none_or(|m| tsrs_core::sharedgraph::with_ref(&m, PackedMap::is_empty))
     }
 }
 
@@ -234,13 +208,5 @@ impl StringLiteralTypes {
         let value = Self::value_of(t);
         debug_assert!(self.get(value).is_none());
         self.table.insert_unique(Self::hash(value), t, |&t| Self::hash(Self::value_of(t)));
-    }
-
-    pub fn len(&self) -> usize {
-        self.table.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.table.is_empty()
     }
 }

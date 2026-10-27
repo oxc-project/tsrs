@@ -124,7 +124,7 @@ pub struct DeletedNode {
 }
 
 // tracker.go:112
-pub fn new_tracker(
+pub(crate) fn new_tracker(
     ctx: &Context,
     compiler_options: &CompilerOptions,
     format_options: FormatCodeSettings,
@@ -158,15 +158,11 @@ fn with_format_code_settings(
     ctx.with_value(format::with_format_code_settings(&base, options, new_line))
 }
 
-pub fn format_context(ctx: &Context) -> format::FormatContext {
+pub(crate) fn format_context(ctx: &Context) -> format::FormatContext {
     ctx.value::<format::FormatContext>().cloned().unwrap_or_default()
 }
 
 impl Tracker {
-    pub fn new_line(&self) -> &str {
-        &self.new_line
-    }
-
     fn add_change(&mut self, source_file: P<SourceFile>, edit: TrackerEdit) {
         self.changes.entry(source_file).or_default().push(edit);
     }
@@ -580,17 +576,6 @@ impl Tracker {
     // tracker.go:341
     // DeleteNode deletes a node immediately with specified trivia options.
     // Stop! Consider using Delete instead, which has logic for deleting nodes from delimited lists.
-    pub fn delete_node(
-        &mut self,
-        source_file: P<SourceFile>,
-        node: P<Node>,
-        leading_trivia: LeadingTriviaOption,
-        trailing_trivia: TrailingTriviaOption,
-    ) {
-        let range =
-            self.get_adjusted_range(source_file, node, node, leading_trivia, trailing_trivia);
-        self.replace_text_range_with_text(source_file, range, "");
-    }
 
     // tracker.go:346
     // DeleteNodeRange deletes a range of nodes with specified trivia options.
@@ -1236,7 +1221,7 @@ fn range_contains_range_exclusive(outer: P<Node>, inner: P<Node>) -> bool {
 }
 
 // tracker.go:799
-pub fn is_separator(node: P<Node>, candidate: Option<P<Node>>) -> bool {
+pub(crate) fn is_separator(node: P<Node>, candidate: Option<P<Node>>) -> bool {
     let Some(candidate) = candidate else {
         return false;
     };

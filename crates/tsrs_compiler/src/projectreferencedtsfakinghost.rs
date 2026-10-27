@@ -14,7 +14,7 @@ struct ProjectReferenceDtsFakingHost {
 }
 
 // projectreferencedtsfakinghost.go:22
-pub fn new_project_reference_dts_faking_host(
+pub(crate) fn new_project_reference_dts_faking_host(
     host: &'static dyn ResolutionHost,
     references: &'static ProjectReferenceFileMapper,
 ) -> &'static dyn ResolutionHost {

@@ -87,7 +87,7 @@ fn equate_string_case_sensitive(a: &str, b: &str) -> bool {
     a == b
 }
 
-pub fn get_string_equality_comparer(ignore_case: bool) -> fn(&str, &str) -> bool {
+pub(crate) fn get_string_equality_comparer(ignore_case: bool) -> fn(&str, &str) -> bool {
     if ignore_case {
         return equate_string_case_insensitive;
     }
@@ -145,7 +145,7 @@ pub fn compare_strings_case_sensitive(a: &str, b: &str) -> Comparison {
     a.as_bytes().cmp(b.as_bytes())
 }
 
-pub fn get_string_comparer(ignore_case: bool) -> fn(&str, &str) -> Comparison {
+pub(crate) fn get_string_comparer(ignore_case: bool) -> fn(&str, &str) -> Comparison {
     if ignore_case {
         return compare_strings_case_insensitive;
     }

@@ -5,7 +5,7 @@ use regex::Regex;
 use tsrs_core::tspath;
 
 // Posix-style path to additional test libraries
-pub const TEST_LIB_FOLDER: &str = "/.lib";
+pub(crate) const TEST_LIB_FOLDER: &str = "/.lib";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TestFile {
@@ -24,26 +24,26 @@ pub type TestConfiguration = BTreeMap<String, String>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NamedTestConfiguration {
-    pub name: String,
+    pub(crate) name: String,
     pub config: TestConfiguration,
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct HarnessOptions {
-    pub use_case_sensitive_file_names: bool,
-    pub baseline_file: String,
-    pub include_built_file: String,
-    pub file_name: String,
-    pub lib_files: Vec<String>,
-    pub no_implicit_references: bool,
-    pub current_directory: String,
-    pub symlink: String,
-    pub link: String,
-    pub no_types_and_symbols: bool,
-    pub full_emit_paths: bool,
-    pub report_diagnostics: bool,
-    pub capture_suggestions: bool,
-    pub typescript_version: String,
+    pub(crate) use_case_sensitive_file_names: bool,
+    pub(crate) baseline_file: String,
+    pub(crate) include_built_file: String,
+    pub(crate) file_name: String,
+    pub(crate) lib_files: Vec<String>,
+    pub(crate) no_implicit_references: bool,
+    pub(crate) current_directory: String,
+    pub(crate) symlink: String,
+    pub(crate) link: String,
+    pub(crate) no_types_and_symbols: bool,
+    pub(crate) full_emit_paths: bool,
+    pub(crate) report_diagnostics: bool,
+    pub(crate) capture_suggestions: bool,
+    pub(crate) typescript_version: String,
 }
 
 // The subset of a tsoptions.CommandLineOption that the configuration logic needs. `Enum` carries the
@@ -57,24 +57,24 @@ pub enum OptKind {
 
 #[derive(Clone, Debug)]
 pub struct OptionDecl {
-    pub name: String,
-    pub kind: OptKind,
+    pub(crate) name: String,
+    pub(crate) kind: OptKind,
 }
 
 // `compilerOptions` (tsoptions.OptionsDeclarations + the harness-only compiler options) together with the
 // set of options for which variations are allowed (`compilerVaryBy`, lower-cased names).
 pub struct OptionTable {
-    pub decls: Vec<OptionDecl>,
-    pub vary_by: rustc_hash::FxHashSet<String>,
+    pub(crate) decls: Vec<OptionDecl>,
+    pub(crate) vary_by: rustc_hash::FxHashSet<String>,
 }
 
 impl OptionTable {
-    pub fn get_command_line_option(&self, option: &str) -> Option<&OptionDecl> {
+    fn get_command_line_option(&self, option: &str) -> Option<&OptionDecl> {
         self.decls.iter().find(|d| d.name.eq_ignore_ascii_case(option))
     }
 }
 
-pub fn get_config_name_from_file_name(filename: &str) -> String {
+pub(crate) fn get_config_name_from_file_name(filename: &str) -> String {
     let basename_lower = tspath::get_base_file_name(filename).to_lowercase();
     if basename_lower == "tsconfig.json" || basename_lower == "jsconfig.json" {
         return basename_lower;
@@ -82,7 +82,7 @@ pub fn get_config_name_from_file_name(filename: &str) -> String {
     String::new()
 }
 
-pub fn enumerate_files(
+pub(crate) fn enumerate_files(
     folder: &Path,
     test_regex: &Regex,
     recursive: bool,
@@ -130,7 +130,7 @@ fn get_file_based_test_configuration_description(config: &TestConfiguration) -> 
     output
 }
 
-pub fn get_file_based_test_configurations(
+pub(crate) fn get_file_based_test_configurations(
     settings: &BTreeMap<String, String>,
     table: &OptionTable,
 ) -> Result<Vec<NamedTestConfiguration>, String> {

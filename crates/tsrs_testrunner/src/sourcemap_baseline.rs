@@ -10,7 +10,7 @@ use crate::baseline::NO_CONTENT;
 use crate::harnessutil::{HarnessOptions, TestFile};
 use crate::tsbaseline::remove_test_path_prefixes;
 
-pub struct SourceMapCompilationResult<'a> {
+pub(crate) struct SourceMapCompilationResult<'a> {
     // result.Maps (in the harness's output order)
     pub(crate) maps: &'a [TestFile],
     // result.DTS.Size()
@@ -31,7 +31,7 @@ pub struct SourceMapCompilationResult<'a> {
 
 // js_emit_baseline.go:149
 // TODO(emit/core): shared with the `.js` baseline (js_emit_baseline.go); keep one copy once both have landed.
-pub fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
+fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
     let file_name = if settings.full_emit_paths {
         remove_test_path_prefixes(&file.unit_name, false /*retainTrailingDirectorySeparator*/)
     } else {
@@ -43,7 +43,7 @@ pub fn file_output(file: &TestFile, settings: &HarnessOptions) -> String {
 // sourcemap_baseline.go:18
 // Returns the baseline path and content to compare, `Ok(None)` when Go returns without a baseline, and `Err` for
 // Go's `t.Fatal`.
-pub fn do_sourcemap_baseline(
+pub(crate) fn do_sourcemap_baseline(
     baseline_path: &str,
     options: &CompilerOptions,
     result: &SourceMapCompilationResult,
@@ -104,7 +104,7 @@ pub fn do_sourcemap_baseline(
 }
 
 // sourcemap_baseline.go:72
-pub fn create_source_map_preview_link(
+fn create_source_map_preview_link(
     source_map: &TestFile,
     result: &SourceMapCompilationResult,
 ) -> String {
@@ -236,7 +236,7 @@ fn base64_std_encode(data: &[u8]) -> String {
 
 // sourcemap_record_baseline.go:12
 // Returns the baseline path and content to compare.
-pub fn do_sourcemap_record_baseline(
+pub(crate) fn do_sourcemap_record_baseline(
     baseline_path: &str,
     options: &CompilerOptions,
     result: &SourceMapCompilationResult,

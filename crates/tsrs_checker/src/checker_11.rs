@@ -470,7 +470,7 @@ impl NameCounts {
  * Note that this is not tracked well within the compiler, so the answer may be incorrect.
  */
 // checker.go:22037
-pub fn is_prototype_property(symbol: P<Symbol>) -> bool {
+pub(crate) fn is_prototype_property(symbol: P<Symbol>) -> bool {
     symbol.flags().intersects(SymbolFlags::Method)
         || symbol.check_flags().intersects(CheckFlags::SyntheticMethod)
 }
@@ -938,7 +938,7 @@ impl Checker {
 }
 
 // checker.go:22284
-pub fn is_conflicting_private_property(prop: P<Symbol>) -> bool {
+pub(crate) fn is_conflicting_private_property(prop: P<Symbol>) -> bool {
     // Return true for a synthetic property with multiple declarations, at least one of which is private.
     prop.value_declaration().is_none() && prop.check_flags().intersects(CheckFlags::ContainsPrivate)
 }
@@ -2404,7 +2404,7 @@ impl Checker {
 }
 
 // checker.go:23085
-pub fn get_modified_readonly_state(state: bool, modifiers: MappedTypeModifiers) -> bool {
+fn get_modified_readonly_state(state: bool, modifiers: MappedTypeModifiers) -> bool {
     if modifiers.intersects(MappedTypeModifiers::IncludeReadonly) {
         return true;
     } else if modifiers.intersects(MappedTypeModifiers::ExcludeReadonly) {
@@ -2973,7 +2973,7 @@ impl Checker {
 }
 
 // checker.go:23470
-pub fn get_non_distributed_type_parameter(t: P<Type>) -> Option<P<Type>> {
+pub(crate) fn get_non_distributed_type_parameter(t: P<Type>) -> Option<P<Type>> {
     if t.flags().intersects(TypeFlags::TypeParameter) && t.as_type_parameter().is_distributed.get()
     {
         return t.as_type_parameter().constraint.get();
@@ -2982,7 +2982,7 @@ pub fn get_non_distributed_type_parameter(t: P<Type>) -> Option<P<Type>> {
 }
 
 // checker.go:23477
-pub fn is_simple_identifier_type_reference(node: P<Node>) -> bool {
+fn is_simple_identifier_type_reference(node: P<Node>) -> bool {
     is_type_reference_node(node)
         && is_identifier(node.as_type_reference_node().type_name)
         && node.type_argument_list().is_none()
@@ -3151,7 +3151,7 @@ impl Checker {
 }
 
 // checker.go:23600
-pub fn get_symbol_path(symbol: P<Symbol>) -> String {
+fn get_symbol_path(symbol: P<Symbol>) -> String {
     if let Some(parent) = symbol.parent() {
         return get_symbol_path(parent) + "." + symbol.name();
     }
@@ -3613,7 +3613,7 @@ impl TupleNormalizer {
 
 // Return count of starting consecutive tuple elements of the given kind(s)
 // checker.go:23906
-pub fn get_start_element_count(t: &'static TupleType, flags: ElementFlags) -> usize {
+pub(crate) fn get_start_element_count(t: &'static TupleType, flags: ElementFlags) -> usize {
     if let Some(result) = t
         .element_infos()
         .iter()
@@ -3627,14 +3627,14 @@ pub fn get_start_element_count(t: &'static TupleType, flags: ElementFlags) -> us
 
 // Return count of ending consecutive tuple elements of the given kind(s)
 // checker.go:23916
-pub fn get_end_element_count(t: &'static TupleType, flags: ElementFlags) -> usize {
+pub(crate) fn get_end_element_count(t: &'static TupleType, flags: ElementFlags) -> usize {
     let element_infos = t.element_infos();
 
     element_infos.iter().rev().take_while(|info| info.flags.intersects(flags)).count()
 }
 
 // checker.go:23925
-pub fn get_total_fixed_element_count(t: &'static TupleType) -> usize {
+pub(crate) fn get_total_fixed_element_count(t: &'static TupleType) -> usize {
     t.fixed_length() + get_end_element_count(t, ElementFlags::Fixed)
 }
 
@@ -3669,7 +3669,7 @@ impl Checker {
 }
 
 // checker.go:23950
-pub fn is_tuple_type(t: P<Type>) -> bool {
+pub(crate) fn is_tuple_type(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::Reference)
         && t.target().unwrap().object_flags().intersects(ObjectFlags::Tuple)
 }

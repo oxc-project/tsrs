@@ -1,10 +1,6 @@
 use crate::canonicalize::{NATIVE_PATH_FOLDING, fold_native_path};
 use crate::pathcompare::BytePathComparer;
 
-// NativePathComparisonAvailable reports whether this platform implements the
-// native watch-name comparison. Volume sensitivity is queried separately.
-pub const NATIVE_PATH_COMPARISON_AVAILABLE: bool = NATIVE_PATH_FOLDING;
-
 // PathComparer describes the filename equivalence of a watched volume. Its zero
 // value compares bytes exactly. It is immutable and safe to share.
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]

@@ -208,7 +208,7 @@ fn dispatch(h: &dyn CheckerHost, method: &str, p: &Params) -> CheckerResult<Chec
 }
 
 /// Every method this lane dispatches.
-pub const CHECKER_METHODS: &[&str] = &[
+const CHECKER_METHODS: &[&str] = &[
     "getSymbolAtPosition",
     "getSymbolsAtPositions",
     "getSymbolAtLocation",

@@ -405,18 +405,17 @@ pub static A_GET_ACCESSOR_CANNOT_HAVE_PARAMETERS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static TYPE_0_IS_NOT_A_VALID_ASYNC_FUNCTION_RETURN_TYPE_IN_ES5_BECAUSE_IT_DOES_NOT_REFER_TO_A_PROMISE_COMPATIBLE_CONSTRUCTOR_VALUE: Message = Message { code: 1055, category: Category::Error, key: Key("Type_0_is_not_a_valid_async_function_return_type_in_ES5_because_it_does_not_refer_to_a_Promise_compa_1055"), text: "Type '{0}' is not a valid async function return type in ES5 because it does not refer to a Promise-compatible constructor value.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static TYPE_0_IS_NOT_A_VALID_ASYNC_FUNCTION_RETURN_TYPE_IN_ES5_BECAUSE_IT_DOES_NOT_REFER_TO_A_PROMISE_COMPATIBLE_CONSTRUCTOR_VALUE: Message = Message { code: 1055, category: Category::Error, key: Key("Type_0_is_not_a_valid_async_function_return_type_in_ES5_because_it_does_not_refer_to_a_Promise_compa_1055"), text: "Type '{0}' is not a valid async function return type in ES5 because it does not refer to a Promise-compatible constructor value.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static ACCESSORS_ARE_ONLY_AVAILABLE_WHEN_TARGETING_ECMA_SCRIPT_5_AND_HIGHER: Message =
-    Message {
-        code: 1056,
-        category: Category::Error,
-        key: Key("Accessors_are_only_available_when_targeting_ECMAScript_5_and_higher_1056"),
-        text: "Accessors are only available when targeting ECMAScript 5 and higher.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static ACCESSORS_ARE_ONLY_AVAILABLE_WHEN_TARGETING_ECMA_SCRIPT_5_AND_HIGHER: Message = Message {
+    code: 1056,
+    category: Category::Error,
+    key: Key("Accessors_are_only_available_when_targeting_ECMAScript_5_and_higher_1056"),
+    text: "Accessors are only available when targeting ECMAScript 5 and higher.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static THE_RETURN_TYPE_OF_AN_ASYNC_FUNCTION_MUST_EITHER_BE_A_VALID_PROMISE_OR_MUST_NOT_CONTAIN_A_CALLABLE_THEN_MEMBER: Message = Message { code: 1058, category: Category::Error, key: Key("The_return_type_of_an_async_function_must_either_be_a_valid_promise_or_must_not_contain_a_callable_t_1058"), text: "The return type of an async function must either be a valid promise or must not contain a callable 'then' member.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -465,18 +464,18 @@ pub static AN_EXPORT_ASSIGNMENT_CANNOT_BE_USED_IN_A_NAMESPACE: Message = Message
 
 pub static THE_RETURN_TYPE_OF_AN_ASYNC_FUNCTION_OR_METHOD_MUST_BE_THE_GLOBAL_PROMISE_T_TYPE_DID_YOU_MEAN_TO_WRITE_PROMISE_0: Message = Message { code: 1064, category: Category::Error, key: Key("The_return_type_of_an_async_function_or_method_must_be_the_global_Promise_T_type_Did_you_mean_to_wri_1064"), text: "The return type of an async function or method must be the global Promise<T> type. Did you mean to write 'Promise<{0}>'?", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static THE_RETURN_TYPE_OF_AN_ASYNC_FUNCTION_OR_METHOD_MUST_BE_THE_GLOBAL_PROMISE_T_TYPE:
-    Message = Message {
-    code: 1065,
-    category: Category::Error,
-    key: Key(
-        "The_return_type_of_an_async_function_or_method_must_be_the_global_Promise_T_type_1065",
-    ),
-    text: "The return type of an async function or method must be the global Promise<T> type.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static THE_RETURN_TYPE_OF_AN_ASYNC_FUNCTION_OR_METHOD_MUST_BE_THE_GLOBAL_PROMISE_T_TYPE: Message =
+    Message {
+        code: 1065,
+        category: Category::Error,
+        key: Key(
+            "The_return_type_of_an_async_function_or_method_must_be_the_global_Promise_T_type_1065",
+        ),
+        text: "The return type of an async function or method must be the global Promise<T> type.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
 pub static IN_AMBIENT_ENUM_DECLARATIONS_MEMBER_INITIALIZER_MUST_BE_CONSTANT_EXPRESSION: Message =
     Message {
@@ -1110,16 +1109,15 @@ pub static IMPORT_DECLARATIONS_IN_A_NAMESPACE_CANNOT_REFERENCE_A_MODULE: Message
     reports_deprecated: false,
 };
 
-pub static CANNOT_USE_IMPORTS_EXPORTS_OR_MODULE_AUGMENTATIONS_WHEN_MODULE_IS_NONE: Message =
-    Message {
-        code: 1148,
-        category: Category::Error,
-        key: Key("Cannot_use_imports_exports_or_module_augmentations_when_module_is_none_1148"),
-        text: "Cannot use imports, exports, or module augmentations when '--module' is 'none'.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static CANNOT_USE_IMPORTS_EXPORTS_OR_MODULE_AUGMENTATIONS_WHEN_MODULE_IS_NONE: Message = Message {
+    code: 1148,
+    category: Category::Error,
+    key: Key("Cannot_use_imports_exports_or_module_augmentations_when_module_is_none_1148"),
+    text: "Cannot use imports, exports, or module augmentations when '--module' is 'none'.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static FILE_NAME_0_DIFFERS_FROM_ALREADY_INCLUDED_FILE_NAME_1_ONLY_IN_CASING: Message =
     Message {
@@ -1779,7 +1777,7 @@ pub static A_NAMESPACE_DECLARATION_IS_ONLY_ALLOWED_AT_THE_TOP_LEVEL_OF_A_NAMESPA
     reports_deprecated: false,
 };
 
-pub static THE_RETURN_TYPE_OF_A_PROPERTY_DECORATOR_FUNCTION_MUST_BE_EITHER_VOID_OR_ANY: Message =
+static THE_RETURN_TYPE_OF_A_PROPERTY_DECORATOR_FUNCTION_MUST_BE_EITHER_VOID_OR_ANY: Message =
     Message {
         code: 1236,
         category: Category::Error,
@@ -1792,7 +1790,7 @@ pub static THE_RETURN_TYPE_OF_A_PROPERTY_DECORATOR_FUNCTION_MUST_BE_EITHER_VOID_
         reports_deprecated: false,
     };
 
-pub static THE_RETURN_TYPE_OF_A_PARAMETER_DECORATOR_FUNCTION_MUST_BE_EITHER_VOID_OR_ANY: Message =
+static THE_RETURN_TYPE_OF_A_PARAMETER_DECORATOR_FUNCTION_MUST_BE_EITHER_VOID_OR_ANY: Message =
     Message {
         code: 1237,
         category: Category::Error,
@@ -1942,7 +1940,7 @@ pub static A_DECORATOR_CAN_ONLY_DECORATE_A_METHOD_IMPLEMENTATION_NOT_AN_OVERLOAD
         reports_deprecated: false,
     };
 
-pub static FUNCTION_DECLARATIONS_ARE_NOT_ALLOWED_INSIDE_BLOCKS_IN_STRICT_MODE_WHEN_TARGETING_ES5:
+static FUNCTION_DECLARATIONS_ARE_NOT_ALLOWED_INSIDE_BLOCKS_IN_STRICT_MODE_WHEN_TARGETING_ES5:
     Message = Message {
     code: 1250,
     category: Category::Error,
@@ -1955,9 +1953,9 @@ pub static FUNCTION_DECLARATIONS_ARE_NOT_ALLOWED_INSIDE_BLOCKS_IN_STRICT_MODE_WH
     reports_deprecated: false,
 };
 
-pub static FUNCTION_DECLARATIONS_ARE_NOT_ALLOWED_INSIDE_BLOCKS_IN_STRICT_MODE_WHEN_TARGETING_ES5_CLASS_DEFINITIONS_ARE_AUTOMATICALLY_IN_STRICT_MODE: Message = Message { code: 1251, category: Category::Error, key: Key("Function_declarations_are_not_allowed_inside_blocks_in_strict_mode_when_targeting_ES5_Class_definiti_1251"), text: "Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'. Class definitions are automatically in strict mode.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static FUNCTION_DECLARATIONS_ARE_NOT_ALLOWED_INSIDE_BLOCKS_IN_STRICT_MODE_WHEN_TARGETING_ES5_CLASS_DEFINITIONS_ARE_AUTOMATICALLY_IN_STRICT_MODE: Message = Message { code: 1251, category: Category::Error, key: Key("Function_declarations_are_not_allowed_inside_blocks_in_strict_mode_when_targeting_ES5_Class_definiti_1251"), text: "Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'. Class definitions are automatically in strict mode.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static FUNCTION_DECLARATIONS_ARE_NOT_ALLOWED_INSIDE_BLOCKS_IN_STRICT_MODE_WHEN_TARGETING_ES5_MODULES_ARE_AUTOMATICALLY_IN_STRICT_MODE: Message = Message { code: 1252, category: Category::Error, key: Key("Function_declarations_are_not_allowed_inside_blocks_in_strict_mode_when_targeting_ES5_Modules_are_au_1252"), text: "Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'. Modules are automatically in strict mode.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static FUNCTION_DECLARATIONS_ARE_NOT_ALLOWED_INSIDE_BLOCKS_IN_STRICT_MODE_WHEN_TARGETING_ES5_MODULES_ARE_AUTOMATICALLY_IN_STRICT_MODE: Message = Message { code: 1252, category: Category::Error, key: Key("Function_declarations_are_not_allowed_inside_blocks_in_strict_mode_when_targeting_ES5_Modules_are_au_1252"), text: "Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'. Modules are automatically in strict mode.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static ABSTRACT_PROPERTIES_CAN_ONLY_APPEAR_WITHIN_AN_ABSTRACT_CLASS: Message = Message {
     code: 1253,
@@ -2002,7 +2000,7 @@ pub static A_DEFAULT_EXPORT_MUST_BE_AT_THE_TOP_LEVEL_OF_A_FILE_OR_MODULE_DECLARA
         reports_deprecated: false,
     };
 
-pub static MODULE_0_CAN_ONLY_BE_DEFAULT_IMPORTED_USING_THE_1_FLAG: Message = Message {
+static MODULE_0_CAN_ONLY_BE_DEFAULT_IMPORTED_USING_THE_1_FLAG: Message = Message {
     code: 1259,
     category: Category::Error,
     key: Key("Module_0_can_only_be_default_imported_using_the_1_flag_1259"),
@@ -2669,7 +2667,7 @@ pub static A_TYPE_ONLY_IMPORT_CAN_SPECIFY_A_DEFAULT_IMPORT_OR_NAMED_BINDINGS_BUT
         reports_deprecated: false,
     };
 
-pub static CONVERT_TO_TYPE_ONLY_EXPORT: Message = Message {
+static CONVERT_TO_TYPE_ONLY_EXPORT: Message = Message {
     code: 1364,
     category: Category::Message,
     key: Key("Convert_to_type_only_export_1364"),
@@ -2679,7 +2677,7 @@ pub static CONVERT_TO_TYPE_ONLY_EXPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_RE_EXPORTED_TYPES_TO_TYPE_ONLY_EXPORTS: Message = Message {
+static CONVERT_ALL_RE_EXPORTED_TYPES_TO_TYPE_ONLY_EXPORTS: Message = Message {
     code: 1365,
     category: Category::Message,
     key: Key("Convert_all_re_exported_types_to_type_only_exports_1365"),
@@ -2689,7 +2687,7 @@ pub static CONVERT_ALL_RE_EXPORTED_TYPES_TO_TYPE_ONLY_EXPORTS: Message = Message
     reports_deprecated: false,
 };
 
-pub static SPLIT_INTO_TWO_SEPARATE_IMPORT_DECLARATIONS: Message = Message {
+static SPLIT_INTO_TWO_SEPARATE_IMPORT_DECLARATIONS: Message = Message {
     code: 1366,
     category: Category::Message,
     key: Key("Split_into_two_separate_import_declarations_1366"),
@@ -2699,7 +2697,7 @@ pub static SPLIT_INTO_TWO_SEPARATE_IMPORT_DECLARATIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SPLIT_ALL_INVALID_TYPE_ONLY_IMPORTS: Message = Message {
+static SPLIT_ALL_INVALID_TYPE_ONLY_IMPORTS: Message = Message {
     code: 1367,
     category: Category::Message,
     key: Key("Split_all_invalid_type_only_imports_1367"),
@@ -3055,7 +3053,7 @@ pub static FILE_IS_MATCHED_BY_FILES_LIST_SPECIFIED_HERE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static OUTPUT_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_1_SPECIFIED: Message = Message {
+static OUTPUT_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_1_SPECIFIED: Message = Message {
     code: 1411,
     category: Category::Message,
     key: Key("Output_from_referenced_project_0_included_because_1_specified_1411"),
@@ -3065,7 +3063,7 @@ pub static OUTPUT_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_1_SPECIFIED: Messag
     reports_deprecated: false,
 };
 
-pub static OUTPUT_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_MODULE_IS_SPECIFIED_AS_NONE: Message =
+static OUTPUT_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_MODULE_IS_SPECIFIED_AS_NONE: Message =
     Message {
         code: 1412,
         category: Category::Message,
@@ -3078,7 +3076,7 @@ pub static OUTPUT_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_MODULE_IS_SPECIFIED
         reports_deprecated: false,
     };
 
-pub static FILE_IS_OUTPUT_FROM_REFERENCED_PROJECT_SPECIFIED_HERE: Message = Message {
+static FILE_IS_OUTPUT_FROM_REFERENCED_PROJECT_SPECIFIED_HERE: Message = Message {
     code: 1413,
     category: Category::Message,
     key: Key("File_is_output_from_referenced_project_specified_here_1413"),
@@ -3088,7 +3086,7 @@ pub static FILE_IS_OUTPUT_FROM_REFERENCED_PROJECT_SPECIFIED_HERE: Message = Mess
     reports_deprecated: false,
 };
 
-pub static SOURCE_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_1_SPECIFIED: Message = Message {
+static SOURCE_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_1_SPECIFIED: Message = Message {
     code: 1414,
     category: Category::Message,
     key: Key("Source_from_referenced_project_0_included_because_1_specified_1414"),
@@ -3098,7 +3096,7 @@ pub static SOURCE_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_1_SPECIFIED: Messag
     reports_deprecated: false,
 };
 
-pub static SOURCE_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_MODULE_IS_SPECIFIED_AS_NONE: Message =
+static SOURCE_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_MODULE_IS_SPECIFIED_AS_NONE: Message =
     Message {
         code: 1415,
         category: Category::Message,
@@ -3111,7 +3109,7 @@ pub static SOURCE_FROM_REFERENCED_PROJECT_0_INCLUDED_BECAUSE_MODULE_IS_SPECIFIED
         reports_deprecated: false,
     };
 
-pub static FILE_IS_SOURCE_FROM_REFERENCED_PROJECT_SPECIFIED_HERE: Message = Message {
+static FILE_IS_SOURCE_FROM_REFERENCED_PROJECT_SPECIFIED_HERE: Message = Message {
     code: 1416,
     category: Category::Message,
     key: Key("File_is_source_from_referenced_project_specified_here_1416"),
@@ -3381,7 +3379,18 @@ pub static MODULE_DECLARATION_NAMES_MAY_ONLY_USE_OR_QUOTED_STRINGS: Message = Me
 
 pub static X_0_RESOLVES_TO_A_TYPE_ONLY_DECLARATION_AND_MUST_BE_RE_EXPORTED_USING_A_TYPE_ONLY_RE_EXPORT_WHEN_1_IS_ENABLED: Message = Message { code: 1448, category: Category::Error, key: Key("_0_resolves_to_a_type_only_declaration_and_must_be_re_exported_using_a_type_only_re_export_when_1_is_1448"), text: "'{0}' resolves to a type-only declaration and must be re-exported using a type-only re-export when '{1}' is enabled.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static PRESERVE_UNUSED_IMPORTED_VALUES_IN_THE_JAVA_SCRIPT_OUTPUT_THAT_WOULD_OTHERWISE_BE_REMOVED: Message = Message { code: 1449, category: Category::Message, key: Key("Preserve_unused_imported_values_in_the_JavaScript_output_that_would_otherwise_be_removed_1449"), text: "Preserve unused imported values in the JavaScript output that would otherwise be removed.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static PRESERVE_UNUSED_IMPORTED_VALUES_IN_THE_JAVA_SCRIPT_OUTPUT_THAT_WOULD_OTHERWISE_BE_REMOVED:
+    Message = Message {
+    code: 1449,
+    category: Category::Message,
+    key: Key(
+        "Preserve_unused_imported_values_in_the_JavaScript_output_that_would_otherwise_be_removed_1449",
+    ),
+    text: "Preserve unused imported values in the JavaScript output that would otherwise be removed.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static DYNAMIC_IMPORTS_CAN_ONLY_ACCEPT_A_MODULE_SPECIFIER_AND_AN_OPTIONAL_SET_OF_ATTRIBUTES_AS_ARGUMENTS: Message = Message { code: 1450, category: Category::Message, key: Key("Dynamic_imports_can_only_accept_a_module_specifier_and_an_optional_set_of_attributes_as_arguments_1450"), text: "Dynamic imports can only accept a module specifier and an optional set of attributes as arguments", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -3407,7 +3416,7 @@ pub static X_RESOLUTION_MODE_CAN_ONLY_BE_SET_FOR_TYPE_ONLY_IMPORTS: Message = Me
     reports_deprecated: false,
 };
 
-pub static X_RESOLUTION_MODE_IS_THE_ONLY_VALID_KEY_FOR_TYPE_IMPORT_ASSERTIONS: Message = Message {
+static X_RESOLUTION_MODE_IS_THE_ONLY_VALID_KEY_FOR_TYPE_IMPORT_ASSERTIONS: Message = Message {
     code: 1455,
     category: Category::Error,
     key: Key("resolution_mode_is_the_only_valid_key_for_type_import_assertions_1455"),
@@ -3417,7 +3426,7 @@ pub static X_RESOLUTION_MODE_IS_THE_ONLY_VALID_KEY_FOR_TYPE_IMPORT_ASSERTIONS: M
     reports_deprecated: false,
 };
 
-pub static TYPE_IMPORT_ASSERTIONS_SHOULD_HAVE_EXACTLY_ONE_KEY_RESOLUTION_MODE_WITH_VALUE_IMPORT_OR_REQUIRE: Message = Message { code: 1456, category: Category::Error, key: Key("Type_import_assertions_should_have_exactly_one_key_resolution_mode_with_value_import_or_require_1456"), text: "Type import assertions should have exactly one key - `resolution-mode` - with value `import` or `require`.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static TYPE_IMPORT_ASSERTIONS_SHOULD_HAVE_EXACTLY_ONE_KEY_RESOLUTION_MODE_WITH_VALUE_IMPORT_OR_REQUIRE: Message = Message { code: 1456, category: Category::Error, key: Key("Type_import_assertions_should_have_exactly_one_key_resolution_mode_with_value_import_or_require_1456"), text: "Type import assertions should have exactly one key - `resolution-mode` - with value `import` or `require`.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static MATCHED_BY_DEFAULT_INCLUDE_PATTERN_ASTERISK_ASTERISK_SLASH_ASTERISK: Message = Message {
     code: 1457,
@@ -3666,7 +3675,7 @@ pub static X_0_MODIFIER_CANNOT_APPEAR_ON_AN_AWAIT_USING_DECLARATION: Message = M
     reports_deprecated: false,
 };
 
-pub static IDENTIFIER_STRING_LITERAL_OR_NUMBER_LITERAL_EXPECTED: Message = Message {
+static IDENTIFIER_STRING_LITERAL_OR_NUMBER_LITERAL_EXPECTED: Message = Message {
     code: 1496,
     category: Category::Error,
     key: Key("Identifier_string_literal_or_number_literal_expected_1496"),
@@ -4264,7 +4273,7 @@ pub static THE_PROJECT_ROOT_IS_AMBIGUOUS_BUT_IS_REQUIRED_TO_RESOLVE_EXPORT_MAP_E
 
 pub static THE_PROJECT_ROOT_IS_AMBIGUOUS_BUT_IS_REQUIRED_TO_RESOLVE_IMPORT_MAP_ENTRY_0_IN_FILE_1_SUPPLY_THE_ROOT_DIR_COMPILER_OPTION_TO_DISAMBIGUATE: Message = Message { code: 2210, category: Category::Error, key: Key("The_project_root_is_ambiguous_but_is_required_to_resolve_import_map_entry_0_in_file_1_Supply_the_roo_2210"), text: "The project root is ambiguous, but is required to resolve import map entry '{0}' in file '{1}'. Supply the `rootDir` compiler option to disambiguate.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static ADD_EXTENDS_CONSTRAINT: Message = Message {
+static ADD_EXTENDS_CONSTRAINT: Message = Message {
     code: 2211,
     category: Category::Message,
     key: Key("Add_extends_constraint_2211"),
@@ -4274,7 +4283,7 @@ pub static ADD_EXTENDS_CONSTRAINT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_EXTENDS_CONSTRAINT_TO_ALL_TYPE_PARAMETERS: Message = Message {
+static ADD_EXTENDS_CONSTRAINT_TO_ALL_TYPE_PARAMETERS: Message = Message {
     code: 2212,
     category: Category::Message,
     key: Key("Add_extends_constraint_to_all_type_parameters_2212"),
@@ -4473,7 +4482,7 @@ pub static INTERFACE_0_CANNOT_SIMULTANEOUSLY_EXTEND_TYPES_1_AND_2: Message = Mes
     reports_deprecated: false,
 };
 
-pub static EXCESSIVE_STACK_DEPTH_COMPARING_TYPES_0_AND_1: Message = Message {
+static EXCESSIVE_STACK_DEPTH_COMPARING_TYPES_0_AND_1: Message = Message {
     code: 2321,
     category: Category::Error,
     key: Key("Excessive_stack_depth_comparing_types_0_and_1_2321"),
@@ -4593,7 +4602,7 @@ pub static X_THIS_CANNOT_BE_REFERENCED_IN_CURRENT_LOCATION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_THIS_CANNOT_BE_REFERENCED_IN_A_STATIC_PROPERTY_INITIALIZER: Message = Message {
+static X_THIS_CANNOT_BE_REFERENCED_IN_A_STATIC_PROPERTY_INITIALIZER: Message = Message {
     code: 2334,
     category: Category::Error,
     key: Key("this_cannot_be_referenced_in_a_static_property_initializer_2334"),
@@ -4637,7 +4646,18 @@ pub static PROPERTY_0_DOES_NOT_EXIST_ON_TYPE_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ONLY_PUBLIC_AND_PROTECTED_METHODS_OF_THE_BASE_CLASS_ARE_ACCESSIBLE_VIA_THE_SUPER_KEYWORD: Message = Message { code: 2340, category: Category::Error, key: Key("Only_public_and_protected_methods_of_the_base_class_are_accessible_via_the_super_keyword_2340"), text: "Only public and protected methods of the base class are accessible via the 'super' keyword.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static ONLY_PUBLIC_AND_PROTECTED_METHODS_OF_THE_BASE_CLASS_ARE_ACCESSIBLE_VIA_THE_SUPER_KEYWORD:
+    Message = Message {
+    code: 2340,
+    category: Category::Error,
+    key: Key(
+        "Only_public_and_protected_methods_of_the_base_class_are_accessible_via_the_super_keyword_2340",
+    ),
+    text: "Only public and protected methods of the base class are accessible via the 'super' keyword.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static PROPERTY_0_IS_PRIVATE_AND_ONLY_ACCESSIBLE_WITHIN_CLASS_1: Message = Message {
     code: 2341,
@@ -4671,7 +4691,7 @@ pub static ARGUMENT_OF_TYPE_0_IS_NOT_ASSIGNABLE_TO_PARAMETER_OF_TYPE_1: Message 
     reports_deprecated: false,
 };
 
-pub static CALL_TARGET_DOES_NOT_CONTAIN_ANY_SIGNATURES: Message = Message {
+static CALL_TARGET_DOES_NOT_CONTAIN_ANY_SIGNATURES: Message = Message {
     code: 2346,
     category: Category::Error,
     key: Key("Call_target_does_not_contain_any_signatures_2346"),
@@ -5068,7 +5088,7 @@ pub static INDIVIDUAL_DECLARATIONS_IN_MERGED_DECLARATION_0_MUST_BE_ALL_EXPORTED_
     reports_deprecated: false,
 };
 
-pub static DUPLICATE_IDENTIFIER_ARGUMENTS_COMPILER_USES_ARGUMENTS_TO_INITIALIZE_REST_PARAMETERS:
+static DUPLICATE_IDENTIFIER_ARGUMENTS_COMPILER_USES_ARGUMENTS_TO_INITIALIZE_REST_PARAMETERS:
     Message = Message {
     code: 2396,
     category: Category::Error,
@@ -5101,24 +5121,24 @@ pub static X_CONSTRUCTOR_CANNOT_BE_USED_AS_A_PARAMETER_PROPERTY_NAME: Message = 
     reports_deprecated: false,
 };
 
-pub static DUPLICATE_IDENTIFIER_THIS_COMPILER_USES_VARIABLE_DECLARATION_THIS_TO_CAPTURE_THIS_REFERENCE: Message = Message { code: 2399, category: Category::Error, key: Key("Duplicate_identifier_this_Compiler_uses_variable_declaration_this_to_capture_this_reference_2399"), text: "Duplicate identifier '_this'. Compiler uses variable declaration '_this' to capture 'this' reference.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static DUPLICATE_IDENTIFIER_THIS_COMPILER_USES_VARIABLE_DECLARATION_THIS_TO_CAPTURE_THIS_REFERENCE: Message = Message { code: 2399, category: Category::Error, key: Key("Duplicate_identifier_this_Compiler_uses_variable_declaration_this_to_capture_this_reference_2399"), text: "Duplicate identifier '_this'. Compiler uses variable declaration '_this' to capture 'this' reference.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static EXPRESSION_RESOLVES_TO_VARIABLE_DECLARATION_THIS_THAT_COMPILER_USES_TO_CAPTURE_THIS_REFERENCE: Message = Message { code: 2400, category: Category::Error, key: Key("Expression_resolves_to_variable_declaration_this_that_compiler_uses_to_capture_this_reference_2400"), text: "Expression resolves to variable declaration '_this' that compiler uses to capture 'this' reference.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static EXPRESSION_RESOLVES_TO_VARIABLE_DECLARATION_THIS_THAT_COMPILER_USES_TO_CAPTURE_THIS_REFERENCE: Message = Message { code: 2400, category: Category::Error, key: Key("Expression_resolves_to_variable_declaration_this_that_compiler_uses_to_capture_this_reference_2400"), text: "Expression resolves to variable declaration '_this' that compiler uses to capture 'this' reference.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static A_SUPER_CALL_MUST_BE_A_ROOT_LEVEL_STATEMENT_WITHIN_A_CONSTRUCTOR_OF_A_DERIVED_CLASS_THAT_CONTAINS_INITIALIZED_PROPERTIES_PARAMETER_PROPERTIES_OR_PRIVATE_IDENTIFIERS: Message = Message { code: 2401, category: Category::Error, key: Key("A_super_call_must_be_a_root_level_statement_within_a_constructor_of_a_derived_class_that_contains_in_2401"), text: "A 'super' call must be a root-level statement within a constructor of a derived class that contains initialized properties, parameter properties, or private identifiers.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static EXPRESSION_RESOLVES_TO_SUPER_THAT_COMPILER_USES_TO_CAPTURE_BASE_CLASS_REFERENCE:
-    Message = Message {
-    code: 2402,
-    category: Category::Error,
-    key: Key(
-        "Expression_resolves_to_super_that_compiler_uses_to_capture_base_class_reference_2402",
-    ),
-    text: "Expression resolves to '_super' that compiler uses to capture base class reference.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static EXPRESSION_RESOLVES_TO_SUPER_THAT_COMPILER_USES_TO_CAPTURE_BASE_CLASS_REFERENCE: Message =
+    Message {
+        code: 2402,
+        category: Category::Error,
+        key: Key(
+            "Expression_resolves_to_super_that_compiler_uses_to_capture_base_class_reference_2402",
+        ),
+        text: "Expression resolves to '_super' that compiler uses to capture base class reference.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
 pub static SUBSEQUENT_VARIABLE_DECLARATIONS_MUST_HAVE_THE_SAME_TYPE_VARIABLE_0_MUST_BE_OF_TYPE_1_BUT_HERE_HAS_TYPE_2: Message = Message { code: 2403, category: Category::Error, key: Key("Subsequent_variable_declarations_must_have_the_same_type_Variable_0_must_be_of_type_1_but_here_has_t_2403"), text: "Subsequent variable declarations must have the same type.  Variable '{0}' must be of type '{1}', but here has type '{2}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -5258,7 +5278,7 @@ pub static TYPE_OF_COMPUTED_PROPERTY_S_VALUE_IS_0_WHICH_IS_NOT_ASSIGNABLE_TO_TYP
         reports_deprecated: false,
     };
 
-pub static TYPES_OF_CONSTRUCT_SIGNATURES_ARE_INCOMPATIBLE: Message = Message {
+static TYPES_OF_CONSTRUCT_SIGNATURES_ARE_INCOMPATIBLE: Message = Message {
     code: 2419,
     category: Category::Error,
     key: Key("Types_of_construct_signatures_are_incompatible_2419"),
@@ -5533,7 +5553,7 @@ pub static TYPE_ALIAS_NAME_CANNOT_BE_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static AN_AMD_MODULE_CANNOT_HAVE_MULTIPLE_NAME_ASSIGNMENTS: Message = Message {
+static AN_AMD_MODULE_CANNOT_HAVE_MULTIPLE_NAME_ASSIGNMENTS: Message = Message {
     code: 2458,
     category: Category::Error,
     key: Key("An_AMD_module_cannot_have_multiple_name_assignments_2458"),
@@ -5660,7 +5680,7 @@ pub static THE_0_OPERATOR_CANNOT_BE_APPLIED_TO_TYPE_SYMBOL: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SPREAD_OPERATOR_IN_NEW_EXPRESSIONS_IS_ONLY_AVAILABLE_WHEN_TARGETING_ECMA_SCRIPT_5_AND_HIGHER: Message = Message { code: 2472, category: Category::Error, key: Key("Spread_operator_in_new_expressions_is_only_available_when_targeting_ECMAScript_5_and_higher_2472"), text: "Spread operator in 'new' expressions is only available when targeting ECMAScript 5 and higher.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPREAD_OPERATOR_IN_NEW_EXPRESSIONS_IS_ONLY_AVAILABLE_WHEN_TARGETING_ECMA_SCRIPT_5_AND_HIGHER: Message = Message { code: 2472, category: Category::Error, key: Key("Spread_operator_in_new_expressions_is_only_available_when_targeting_ECMAScript_5_and_higher_2472"), text: "Spread operator in 'new' expressions is only available when targeting ECMAScript 5 and higher.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static ENUM_DECLARATIONS_MUST_ALL_BE_CONST_OR_NON_CONST: Message = Message {
     code: 2473,
@@ -5826,18 +5846,18 @@ pub static TUPLE_TYPE_0_OF_LENGTH_1_HAS_NO_ELEMENT_AT_INDEX_2: Message = Message
     reports_deprecated: false,
 };
 
-pub static USING_A_STRING_IN_A_FOR_OF_STATEMENT_IS_ONLY_SUPPORTED_IN_ECMA_SCRIPT_5_AND_HIGHER:
-    Message = Message {
-    code: 2494,
-    category: Category::Error,
-    key: Key(
-        "Using_a_string_in_a_for_of_statement_is_only_supported_in_ECMAScript_5_and_higher_2494",
-    ),
-    text: "Using a string in a 'for...of' statement is only supported in ECMAScript 5 and higher.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static USING_A_STRING_IN_A_FOR_OF_STATEMENT_IS_ONLY_SUPPORTED_IN_ECMA_SCRIPT_5_AND_HIGHER: Message =
+    Message {
+        code: 2494,
+        category: Category::Error,
+        key: Key(
+            "Using_a_string_in_a_for_of_statement_is_only_supported_in_ECMAScript_5_and_higher_2494",
+        ),
+        text: "Using a string in a 'for...of' statement is only supported in ECMAScript 5 and higher.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
 pub static TYPE_0_IS_NOT_AN_ARRAY_TYPE_OR_A_STRING_TYPE: Message = Message {
     code: 2495,
@@ -5849,9 +5869,9 @@ pub static TYPE_0_IS_NOT_AN_ARRAY_TYPE_OR_A_STRING_TYPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static THE_ARGUMENTS_OBJECT_CANNOT_BE_REFERENCED_IN_AN_ARROW_FUNCTION_IN_ES5_CONSIDER_USING_A_STANDARD_FUNCTION_EXPRESSION: Message = Message { code: 2496, category: Category::Error, key: Key("The_arguments_object_cannot_be_referenced_in_an_arrow_function_in_ES5_Consider_using_a_standard_func_2496"), text: "The 'arguments' object cannot be referenced in an arrow function in ES5. Consider using a standard function expression.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static THE_ARGUMENTS_OBJECT_CANNOT_BE_REFERENCED_IN_AN_ARROW_FUNCTION_IN_ES5_CONSIDER_USING_A_STANDARD_FUNCTION_EXPRESSION: Message = Message { code: 2496, category: Category::Error, key: Key("The_arguments_object_cannot_be_referenced_in_an_arrow_function_in_ES5_Consider_using_a_standard_func_2496"), text: "The 'arguments' object cannot be referenced in an arrow function in ES5. Consider using a standard function expression.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static THIS_MODULE_CAN_ONLY_BE_REFERENCED_WITH_ECMA_SCRIPT_IMPORTS_SLASHEXPORTS_BY_TURNING_ON_THE_0_FLAG_AND_REFERENCING_ITS_DEFAULT_EXPORT: Message = Message { code: 2497, category: Category::Error, key: Key("This_module_can_only_be_referenced_with_ECMAScript_imports_Slashexports_by_turning_on_the_0_flag_and_2497"), text: "This module can only be referenced with ECMAScript imports/exports by turning on the '{0}' flag and referencing its default export.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static THIS_MODULE_CAN_ONLY_BE_REFERENCED_WITH_ECMA_SCRIPT_IMPORTS_SLASHEXPORTS_BY_TURNING_ON_THE_0_FLAG_AND_REFERENCING_ITS_DEFAULT_EXPORT: Message = Message { code: 2497, category: Category::Error, key: Key("This_module_can_only_be_referenced_with_ECMAScript_imports_Slashexports_by_turning_on_the_0_flag_and_2497"), text: "This module can only be referenced with ECMAScript imports/exports by turning on the '{0}' flag and referencing its default export.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static MODULE_0_USES_EXPORT_AND_CANNOT_BE_USED_WITH_EXPORT_ASTERISK: Message = Message {
     code: 2498,
@@ -6062,7 +6082,7 @@ pub static AN_ASYNC_ITERATOR_MUST_HAVE_A_NEXT_METHOD: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DUPLICATE_IDENTIFIER_0_COMPILER_USES_DECLARATION_1_TO_SUPPORT_ASYNC_FUNCTIONS: Message =
+static DUPLICATE_IDENTIFIER_0_COMPILER_USES_DECLARATION_1_TO_SUPPORT_ASYNC_FUNCTIONS: Message =
     Message {
         code: 2520,
         category: Category::Error,
@@ -6075,7 +6095,7 @@ pub static DUPLICATE_IDENTIFIER_0_COMPILER_USES_DECLARATION_1_TO_SUPPORT_ASYNC_F
         reports_deprecated: false,
     };
 
-pub static THE_ARGUMENTS_OBJECT_CANNOT_BE_REFERENCED_IN_AN_ASYNC_FUNCTION_OR_METHOD_IN_ES5_CONSIDER_USING_A_STANDARD_FUNCTION_OR_METHOD: Message = Message { code: 2522, category: Category::Error, key: Key("The_arguments_object_cannot_be_referenced_in_an_async_function_or_method_in_ES5_Consider_using_a_sta_2522"), text: "The 'arguments' object cannot be referenced in an async function or method in ES5. Consider using a standard function or method.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static THE_ARGUMENTS_OBJECT_CANNOT_BE_REFERENCED_IN_AN_ASYNC_FUNCTION_OR_METHOD_IN_ES5_CONSIDER_USING_A_STANDARD_FUNCTION_OR_METHOD: Message = Message { code: 2522, category: Category::Error, key: Key("The_arguments_object_cannot_be_referenced_in_an_async_function_or_method_in_ES5_Consider_using_a_sta_2522"), text: "The 'arguments' object cannot be referenced in an async function or method in ES5. Consider using a standard function or method.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static X_YIELD_EXPRESSIONS_CANNOT_BE_USED_IN_A_PARAMETER_INITIALIZER: Message = Message {
     code: 2523,
@@ -6234,9 +6254,9 @@ pub static INDEX_SIGNATURE_IN_TYPE_0_ONLY_PERMITS_READING: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DUPLICATE_IDENTIFIER_NEW_TARGET_COMPILER_USES_VARIABLE_DECLARATION_NEW_TARGET_TO_CAPTURE_NEW_TARGET_META_PROPERTY_REFERENCE: Message = Message { code: 2543, category: Category::Error, key: Key("Duplicate_identifier_newTarget_Compiler_uses_variable_declaration_newTarget_to_capture_new_target_me_2543"), text: "Duplicate identifier '_newTarget'. Compiler uses variable declaration '_newTarget' to capture 'new.target' meta-property reference.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static DUPLICATE_IDENTIFIER_NEW_TARGET_COMPILER_USES_VARIABLE_DECLARATION_NEW_TARGET_TO_CAPTURE_NEW_TARGET_META_PROPERTY_REFERENCE: Message = Message { code: 2543, category: Category::Error, key: Key("Duplicate_identifier_newTarget_Compiler_uses_variable_declaration_newTarget_to_capture_new_target_me_2543"), text: "Duplicate identifier '_newTarget'. Compiler uses variable declaration '_newTarget' to capture 'new.target' meta-property reference.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static EXPRESSION_RESOLVES_TO_VARIABLE_DECLARATION_NEW_TARGET_THAT_COMPILER_USES_TO_CAPTURE_NEW_TARGET_META_PROPERTY_REFERENCE: Message = Message { code: 2544, category: Category::Error, key: Key("Expression_resolves_to_variable_declaration_newTarget_that_compiler_uses_to_capture_new_target_meta__2544"), text: "Expression resolves to variable declaration '_newTarget' that compiler uses to capture 'new.target' meta-property reference.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static EXPRESSION_RESOLVES_TO_VARIABLE_DECLARATION_NEW_TARGET_THAT_COMPILER_USES_TO_CAPTURE_NEW_TARGET_META_PROPERTY_REFERENCE: Message = Message { code: 2544, category: Category::Error, key: Key("Expression_resolves_to_variable_declaration_newTarget_that_compiler_uses_to_capture_new_target_meta__2544"), text: "Expression resolves to variable declaration '_newTarget' that compiler uses to capture 'new.target' meta-property reference.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static A_MIXIN_CLASS_MUST_HAVE_A_CONSTRUCTOR_WITH_A_SINGLE_REST_PARAMETER_OF_TYPE_ANY: Message =
     Message {
@@ -6253,9 +6273,9 @@ pub static A_MIXIN_CLASS_MUST_HAVE_A_CONSTRUCTOR_WITH_A_SINGLE_REST_PARAMETER_OF
 
 pub static THE_TYPE_RETURNED_BY_THE_0_METHOD_OF_AN_ASYNC_ITERATOR_MUST_BE_A_PROMISE_FOR_A_TYPE_WITH_A_VALUE_PROPERTY: Message = Message { code: 2547, category: Category::Error, key: Key("The_type_returned_by_the_0_method_of_an_async_iterator_must_be_a_promise_for_a_type_with_a_value_pro_2547"), text: "The type returned by the '{0}()' method of an async iterator must be a promise for a type with a 'value' property.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static TYPE_0_IS_NOT_AN_ARRAY_TYPE_OR_DOES_NOT_HAVE_A_SYMBOL_ITERATOR_METHOD_THAT_RETURNS_AN_ITERATOR: Message = Message { code: 2548, category: Category::Error, key: Key("Type_0_is_not_an_array_type_or_does_not_have_a_Symbol_iterator_method_that_returns_an_iterator_2548"), text: "Type '{0}' is not an array type or does not have a '[Symbol.iterator]()' method that returns an iterator.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static TYPE_0_IS_NOT_AN_ARRAY_TYPE_OR_DOES_NOT_HAVE_A_SYMBOL_ITERATOR_METHOD_THAT_RETURNS_AN_ITERATOR: Message = Message { code: 2548, category: Category::Error, key: Key("Type_0_is_not_an_array_type_or_does_not_have_a_Symbol_iterator_method_that_returns_an_iterator_2548"), text: "Type '{0}' is not an array type or does not have a '[Symbol.iterator]()' method that returns an iterator.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static TYPE_0_IS_NOT_AN_ARRAY_TYPE_OR_A_STRING_TYPE_OR_DOES_NOT_HAVE_A_SYMBOL_ITERATOR_METHOD_THAT_RETURNS_AN_ITERATOR: Message = Message { code: 2549, category: Category::Error, key: Key("Type_0_is_not_an_array_type_or_a_string_type_or_does_not_have_a_Symbol_iterator_method_that_returns__2549"), text: "Type '{0}' is not an array type or a string type or does not have a '[Symbol.iterator]()' method that returns an iterator.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static TYPE_0_IS_NOT_AN_ARRAY_TYPE_OR_A_STRING_TYPE_OR_DOES_NOT_HAVE_A_SYMBOL_ITERATOR_METHOD_THAT_RETURNS_AN_ITERATOR: Message = Message { code: 2549, category: Category::Error, key: Key("Type_0_is_not_an_array_type_or_a_string_type_or_does_not_have_a_Symbol_iterator_method_that_returns__2549"), text: "Type '{0}' is not an array type or a string type or does not have a '[Symbol.iterator]()' method that returns an iterator.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static PROPERTY_0_DOES_NOT_EXIST_ON_TYPE_1_DO_YOU_NEED_TO_CHANGE_YOUR_TARGET_LIBRARY_TRY_CHANGING_THE_LIB_COMPILER_OPTION_TO_2_OR_LATER: Message = Message { code: 2550, category: Category::Error, key: Key("Property_0_does_not_exist_on_type_1_Do_you_need_to_change_your_target_library_Try_changing_the_lib_c_2550"), text: "Property '{0}' does not exist on type '{1}'. Do you need to change your target library? Try changing the 'lib' compiler option to '{2}' or later.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -6279,16 +6299,15 @@ pub static CANNOT_FIND_NAME_0_DID_YOU_MEAN_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COMPUTED_VALUES_ARE_NOT_PERMITTED_IN_AN_ENUM_WITH_STRING_VALUED_MEMBERS: Message =
-    Message {
-        code: 2553,
-        category: Category::Error,
-        key: Key("Computed_values_are_not_permitted_in_an_enum_with_string_valued_members_2553"),
-        text: "Computed values are not permitted in an enum with string valued members.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static COMPUTED_VALUES_ARE_NOT_PERMITTED_IN_AN_ENUM_WITH_STRING_VALUED_MEMBERS: Message = Message {
+    code: 2553,
+    category: Category::Error,
+    key: Key("Computed_values_are_not_permitted_in_an_enum_with_string_valued_members_2553"),
+    text: "Computed values are not permitted in an enum with string valued members.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static EXPECTED_0_ARGUMENTS_BUT_GOT_1: Message = Message {
     code: 2554,
@@ -6537,7 +6556,7 @@ pub static CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_INSTALL_TYPE_DEFINITIONS_FOR_J_QUER
 
 pub static CANNOT_FIND_NAME_0_DO_YOU_NEED_TO_INSTALL_TYPE_DEFINITIONS_FOR_A_TEST_RUNNER_TRY_NPM_I_SAVE_DEV_TYPES_SLASHJEST_OR_NPM_I_SAVE_DEV_TYPES_SLASHMOCHA_AND_THEN_ADD_JEST_OR_MOCHA_TO_THE_TYPES_FIELD_IN_YOUR_TSCONFIG: Message = Message { code: 2593, category: Category::Error, key: Key("Cannot_find_name_0_Do_you_need_to_install_type_definitions_for_a_test_runner_Try_npm_i_save_dev_type_2593"), text: "Cannot find name '{0}'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha` and then add 'jest' or 'mocha' to the types field in your tsconfig.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static THIS_MODULE_IS_DECLARED_WITH_EXPORT_AND_CAN_ONLY_BE_USED_WITH_A_DEFAULT_IMPORT_WHEN_USING_THE_0_FLAG: Message = Message { code: 2594, category: Category::Error, key: Key("This_module_is_declared_with_export_and_can_only_be_used_with_a_default_import_when_using_the_0_flag_2594"), text: "This module is declared with 'export =', and can only be used with a default import when using the '{0}' flag.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static THIS_MODULE_IS_DECLARED_WITH_EXPORT_AND_CAN_ONLY_BE_USED_WITH_A_DEFAULT_IMPORT_WHEN_USING_THE_0_FLAG: Message = Message { code: 2594, category: Category::Error, key: Key("This_module_is_declared_with_export_and_can_only_be_used_with_a_default_import_when_using_the_0_flag_2594"), text: "This module is declared with 'export =', and can only be used with a default import when using the '{0}' flag.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static X_0_CAN_ONLY_BE_IMPORTED_BY_USING_A_DEFAULT_IMPORT: Message = Message {
     code: 2595,
@@ -6549,7 +6568,7 @@ pub static X_0_CAN_ONLY_BE_IMPORTED_BY_USING_A_DEFAULT_IMPORT: Message = Message
     reports_deprecated: false,
 };
 
-pub static X_0_CAN_ONLY_BE_IMPORTED_BY_TURNING_ON_THE_ES_MODULE_INTEROP_FLAG_AND_USING_A_DEFAULT_IMPORT: Message = Message { code: 2596, category: Category::Error, key: Key("_0_can_only_be_imported_by_turning_on_the_esModuleInterop_flag_and_using_a_default_import_2596"), text: "'{0}' can only be imported by turning on the 'esModuleInterop' flag and using a default import.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static X_0_CAN_ONLY_BE_IMPORTED_BY_TURNING_ON_THE_ES_MODULE_INTEROP_FLAG_AND_USING_A_DEFAULT_IMPORT: Message = Message { code: 2596, category: Category::Error, key: Key("_0_can_only_be_imported_by_turning_on_the_esModuleInterop_flag_and_using_a_default_import_2596"), text: "'{0}' can only be imported by turning on the 'esModuleInterop' flag and using a default import.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static X_0_CAN_ONLY_BE_IMPORTED_BY_USING_A_REQUIRE_CALL_OR_BY_USING_A_DEFAULT_IMPORT: Message =
     Message {
@@ -6564,11 +6583,11 @@ pub static X_0_CAN_ONLY_BE_IMPORTED_BY_USING_A_REQUIRE_CALL_OR_BY_USING_A_DEFAUL
         reports_deprecated: false,
     };
 
-pub static X_0_CAN_ONLY_BE_IMPORTED_BY_USING_A_REQUIRE_CALL_OR_BY_TURNING_ON_THE_ES_MODULE_INTEROP_FLAG_AND_USING_A_DEFAULT_IMPORT: Message = Message { code: 2598, category: Category::Error, key: Key("_0_can_only_be_imported_by_using_a_require_call_or_by_turning_on_the_esModuleInterop_flag_and_using__2598"), text: "'{0}' can only be imported by using a 'require' call or by turning on the 'esModuleInterop' flag and using a default import.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static X_0_CAN_ONLY_BE_IMPORTED_BY_USING_A_REQUIRE_CALL_OR_BY_TURNING_ON_THE_ES_MODULE_INTEROP_FLAG_AND_USING_A_DEFAULT_IMPORT: Message = Message { code: 2598, category: Category::Error, key: Key("_0_can_only_be_imported_by_using_a_require_call_or_by_turning_on_the_esModuleInterop_flag_and_using__2598"), text: "'{0}' can only be imported by using a 'require' call or by turning on the 'esModuleInterop' flag and using a default import.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static JSX_ELEMENT_IMPLICITLY_HAS_TYPE_ANY_BECAUSE_THE_GLOBAL_TYPE_JSX_ELEMENT_DOES_NOT_EXIST: Message = Message { code: 2602, category: Category::Error, key: Key("JSX_element_implicitly_has_type_any_because_the_global_type_JSX_Element_does_not_exist_2602"), text: "JSX element implicitly has type 'any' because the global type 'JSX.Element' does not exist.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static PROPERTY_0_IN_TYPE_1_IS_NOT_ASSIGNABLE_TO_TYPE_2: Message = Message {
+static PROPERTY_0_IN_TYPE_1_IS_NOT_ASSIGNABLE_TO_TYPE_2: Message = Message {
     code: 2603,
     category: Category::Error,
     key: Key("Property_0_in_type_1_is_not_assignable_to_type_2_2603"),
@@ -6588,16 +6607,15 @@ pub static JSX_ELEMENT_TYPE_0_DOES_NOT_HAVE_ANY_CONSTRUCT_OR_CALL_SIGNATURES: Me
     reports_deprecated: false,
 };
 
-pub static PROPERTY_0_OF_JSX_SPREAD_ATTRIBUTE_IS_NOT_ASSIGNABLE_TO_TARGET_PROPERTY: Message =
-    Message {
-        code: 2606,
-        category: Category::Error,
-        key: Key("Property_0_of_JSX_spread_attribute_is_not_assignable_to_target_property_2606"),
-        text: "Property '{0}' of JSX spread attribute is not assignable to target property.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static PROPERTY_0_OF_JSX_SPREAD_ATTRIBUTE_IS_NOT_ASSIGNABLE_TO_TARGET_PROPERTY: Message = Message {
+    code: 2606,
+    category: Category::Error,
+    key: Key("Property_0_of_JSX_spread_attribute_is_not_assignable_to_target_property_2606"),
+    text: "Property '{0}' of JSX spread attribute is not assignable to target property.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static JSX_ELEMENT_CLASS_DOES_NOT_SUPPORT_ATTRIBUTES_BECAUSE_IT_DOES_NOT_HAVE_A_0_PROPERTY:
     Message = Message {
@@ -6694,7 +6712,7 @@ pub static X_0_CAN_ONLY_BE_IMPORTED_BY_USING_IMPORT_1_REQUIRE_2_OR_A_DEFAULT_IMP
         reports_deprecated: false,
     };
 
-pub static X_0_CAN_ONLY_BE_IMPORTED_BY_USING_IMPORT_1_REQUIRE_2_OR_BY_TURNING_ON_THE_ES_MODULE_INTEROP_FLAG_AND_USING_A_DEFAULT_IMPORT: Message = Message { code: 2617, category: Category::Error, key: Key("_0_can_only_be_imported_by_using_import_1_require_2_or_by_turning_on_the_esModuleInterop_flag_and_us_2617"), text: "'{0}' can only be imported by using 'import {1} = require({2})' or by turning on the 'esModuleInterop' flag and using a default import.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static X_0_CAN_ONLY_BE_IMPORTED_BY_USING_IMPORT_1_REQUIRE_2_OR_BY_TURNING_ON_THE_ES_MODULE_INTEROP_FLAG_AND_USING_A_DEFAULT_IMPORT: Message = Message { code: 2617, category: Category::Error, key: Key("_0_can_only_be_imported_by_using_import_1_require_2_or_by_turning_on_the_esModuleInterop_flag_and_us_2617"), text: "'{0}' can only be imported by using 'import {1} = require({2})' or by turning on the 'esModuleInterop' flag and using a default import.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static SOURCE_HAS_0_ELEMENT_S_BUT_TARGET_REQUIRES_1: Message = Message {
     code: 2618,
@@ -6928,7 +6946,7 @@ pub static TYPE_0_PROVIDES_NO_MATCH_FOR_THE_SIGNATURE_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_SUPER_IS_ONLY_ALLOWED_IN_MEMBERS_OF_OBJECT_LITERAL_EXPRESSIONS_WHEN_OPTION_TARGET_IS_ES2015_OR_HIGHER: Message = Message { code: 2659, category: Category::Error, key: Key("super_is_only_allowed_in_members_of_object_literal_expressions_when_option_target_is_ES2015_or_highe_2659"), text: "'super' is only allowed in members of object literal expressions when option 'target' is 'ES2015' or higher.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static X_SUPER_IS_ONLY_ALLOWED_IN_MEMBERS_OF_OBJECT_LITERAL_EXPRESSIONS_WHEN_OPTION_TARGET_IS_ES2015_OR_HIGHER: Message = Message { code: 2659, category: Category::Error, key: Key("super_is_only_allowed_in_members_of_object_literal_expressions_when_option_target_is_ES2015_or_highe_2659"), text: "'super' is only allowed in members of object literal expressions when option 'target' is 'ES2015' or higher.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static X_SUPER_CAN_ONLY_BE_REFERENCED_IN_MEMBERS_OF_DERIVED_CLASSES_OR_OBJECT_LITERAL_EXPRESSIONS: Message = Message { code: 2660, category: Category::Error, key: Key("super_can_only_be_referenced_in_members_of_derived_classes_or_object_literal_expressions_2660"), text: "'super' can only be referenced in members of derived classes or object literal expressions.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -7372,7 +7390,7 @@ pub static TYPE_PARAMETER_0_HAS_A_CIRCULAR_DEFAULT: Message = Message {
 
 pub static SUBSEQUENT_PROPERTY_DECLARATIONS_MUST_HAVE_THE_SAME_TYPE_PROPERTY_0_MUST_BE_OF_TYPE_1_BUT_HERE_HAS_TYPE_2: Message = Message { code: 2717, category: Category::Error, key: Key("Subsequent_property_declarations_must_have_the_same_type_Property_0_must_be_of_type_1_but_here_has_t_2717"), text: "Subsequent property declarations must have the same type.  Property '{0}' must be of type '{1}', but here has type '{2}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static DUPLICATE_PROPERTY_0: Message = Message {
+static DUPLICATE_PROPERTY_0: Message = Message {
     code: 2718,
     category: Category::Error,
     key: Key("Duplicate_property_0_2718"),
@@ -7491,7 +7509,7 @@ pub static IMPLICIT_CONVERSION_OF_A_SYMBOL_TO_A_STRING_WILL_FAIL_AT_RUNTIME_CONS
 
 pub static CANNOT_FIND_MODULE_0_CONSIDER_USING_RESOLVE_JSON_MODULE_TO_IMPORT_MODULE_WITH_JSON_EXTENSION: Message = Message { code: 2732, category: Category::Error, key: Key("Cannot_find_module_0_Consider_using_resolveJsonModule_to_import_module_with_json_extension_2732"), text: "Cannot find module '{0}'. Consider using '--resolveJsonModule' to import module with '.json' extension.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static PROPERTY_0_WAS_ALSO_DECLARED_HERE: Message = Message {
+static PROPERTY_0_WAS_ALSO_DECLARED_HERE: Message = Message {
     code: 2733,
     category: Category::Error,
     key: Key("Property_0_was_also_declared_here_2733"),
@@ -7800,7 +7818,7 @@ pub static THE_LAST_OVERLOAD_IS_DECLARED_HERE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static OVERLOAD_0_OF_1_2_GAVE_THE_FOLLOWING_ERROR: Message = Message {
+static OVERLOAD_0_OF_1_2_GAVE_THE_FOLLOWING_ERROR: Message = Message {
     code: 2772,
     category: Category::Error,
     key: Key("Overload_0_of_1_2_gave_the_following_error_2772"),
@@ -7981,7 +7999,7 @@ pub static THE_OPERAND_OF_A_DELETE_OPERATOR_MUST_BE_OPTIONAL: Message = Message 
 
 pub static EXPONENTIATION_CANNOT_BE_PERFORMED_ON_BIGINT_VALUES_UNLESS_THE_TARGET_OPTION_IS_SET_TO_ES2016_OR_LATER: Message = Message { code: 2791, category: Category::Error, key: Key("Exponentiation_cannot_be_performed_on_bigint_values_unless_the_target_option_is_set_to_es2016_or_lat_2791"), text: "Exponentiation cannot be performed on 'bigint' values unless the 'target' option is set to 'es2016' or later.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static CANNOT_FIND_MODULE_0_DID_YOU_MEAN_TO_SET_THE_MODULE_RESOLUTION_OPTION_TO_NODENEXT_OR_TO_ADD_ALIASES_TO_THE_PATHS_OPTION: Message = Message { code: 2792, category: Category::Error, key: Key("Cannot_find_module_0_Did_you_mean_to_set_the_moduleResolution_option_to_nodenext_or_to_add_aliases_t_2792"), text: "Cannot find module '{0}'. Did you mean to set the 'moduleResolution' option to 'nodenext', or to add aliases to the 'paths' option?", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static CANNOT_FIND_MODULE_0_DID_YOU_MEAN_TO_SET_THE_MODULE_RESOLUTION_OPTION_TO_NODENEXT_OR_TO_ADD_ALIASES_TO_THE_PATHS_OPTION: Message = Message { code: 2792, category: Category::Error, key: Key("Cannot_find_module_0_Did_you_mean_to_set_the_moduleResolution_option_to_nodenext_or_to_add_aliases_t_2792"), text: "Cannot find module '{0}'. Did you mean to set the 'moduleResolution' option to 'nodenext', or to add aliases to the 'paths' option?", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static THE_CALL_WOULD_HAVE_SUCCEEDED_AGAINST_THIS_IMPLEMENTATION_BUT_IMPLEMENTATION_SIGNATURES_OF_OVERLOADS_ARE_NOT_EXTERNALLY_VISIBLE: Message = Message { code: 2793, category: Category::Error, key: Key("The_call_would_have_succeeded_against_this_implementation_but_implementation_signatures_of_overloads_2793"), text: "The call would have succeeded against this implementation, but implementation signatures of overloads are not externally visible.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -8085,7 +8103,7 @@ pub static DECLARATION_OR_STATEMENT_EXPECTED_THIS_FOLLOWS_A_BLOCK_OF_STATEMENTS_
 
 pub static EXPECTED_1_ARGUMENT_BUT_GOT_0_NEW_PROMISE_NEEDS_A_JSDOC_HINT_TO_PRODUCE_A_RESOLVE_THAT_CAN_BE_CALLED_WITHOUT_ARGUMENTS: Message = Message { code: 2810, category: Category::Error, key: Key("Expected_1_argument_but_got_0_new_Promise_needs_a_JSDoc_hint_to_produce_a_resolve_that_can_be_called_2810"), text: "Expected 1 argument, but got 0. 'new Promise()' needs a JSDoc hint to produce a 'resolve' that can be called without arguments.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static INITIALIZER_FOR_PROPERTY_0: Message = Message {
+static INITIALIZER_FOR_PROPERTY_0: Message = Message {
     code: 2811,
     category: Category::Error,
     key: Key("Initializer_for_property_0_2811"),
@@ -8130,7 +8148,7 @@ pub static CANNOT_USE_THIS_IN_A_STATIC_PROPERTY_INITIALIZER_OF_A_DECORATED_CLASS
         reports_deprecated: false,
     };
 
-pub static PROPERTY_0_HAS_NO_INITIALIZER_AND_IS_NOT_DEFINITELY_ASSIGNED_IN_A_CLASS_STATIC_BLOCK:
+static PROPERTY_0_HAS_NO_INITIALIZER_AND_IS_NOT_DEFINITELY_ASSIGNED_IN_A_CLASS_STATIC_BLOCK:
     Message = Message {
     code: 2817,
     category: Category::Error,
@@ -8165,9 +8183,9 @@ pub static TYPE_0_IS_NOT_ASSIGNABLE_TO_TYPE_1_DID_YOU_MEAN_2: Message = Message 
     reports_deprecated: false,
 };
 
-pub static IMPORT_ASSERTIONS_ARE_ONLY_SUPPORTED_WHEN_THE_MODULE_OPTION_IS_SET_TO_ESNEXT_NODE18_NODE20_NODENEXT_OR_PRESERVE: Message = Message { code: 2821, category: Category::Error, key: Key("Import_assertions_are_only_supported_when_the_module_option_is_set_to_esnext_node18_node20_nodenext__2821"), text: "Import assertions are only supported when the '--module' option is set to 'esnext', 'node18', 'node20', 'nodenext', or 'preserve'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static IMPORT_ASSERTIONS_ARE_ONLY_SUPPORTED_WHEN_THE_MODULE_OPTION_IS_SET_TO_ESNEXT_NODE18_NODE20_NODENEXT_OR_PRESERVE: Message = Message { code: 2821, category: Category::Error, key: Key("Import_assertions_are_only_supported_when_the_module_option_is_set_to_esnext_node18_node20_nodenext__2821"), text: "Import assertions are only supported when the '--module' option is set to 'esnext', 'node18', 'node20', 'nodenext', or 'preserve'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static IMPORT_ASSERTIONS_CANNOT_BE_USED_WITH_TYPE_ONLY_IMPORTS_OR_EXPORTS: Message = Message {
+static IMPORT_ASSERTIONS_CANNOT_BE_USED_WITH_TYPE_ONLY_IMPORTS_OR_EXPORTS: Message = Message {
     code: 2822,
     category: Category::Error,
     key: Key("Import_assertions_cannot_be_used_with_type_only_imports_or_exports_2822"),
@@ -8193,9 +8211,20 @@ pub static RELATIVE_IMPORT_PATHS_NEED_EXPLICIT_FILE_EXTENSIONS_IN_ECMA_SCRIPT_IM
 
 pub static RELATIVE_IMPORT_PATHS_NEED_EXPLICIT_FILE_EXTENSIONS_IN_ECMA_SCRIPT_IMPORTS_WHEN_MODULE_RESOLUTION_IS_NODE16_OR_NODENEXT_DID_YOU_MEAN_0: Message = Message { code: 2835, category: Category::Error, key: Key("Relative_import_paths_need_explicit_file_extensions_in_ECMAScript_imports_when_moduleResolution_is_n_2835"), text: "Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '{0}'?", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static IMPORT_ASSERTIONS_ARE_NOT_ALLOWED_ON_STATEMENTS_THAT_COMPILE_TO_COMMON_JS_REQUIRE_CALLS: Message = Message { code: 2836, category: Category::Error, key: Key("Import_assertions_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls_2836"), text: "Import assertions are not allowed on statements that compile to CommonJS 'require' calls.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static IMPORT_ASSERTIONS_ARE_NOT_ALLOWED_ON_STATEMENTS_THAT_COMPILE_TO_COMMON_JS_REQUIRE_CALLS:
+    Message = Message {
+    code: 2836,
+    category: Category::Error,
+    key: Key(
+        "Import_assertions_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls_2836",
+    ),
+    text: "Import assertions are not allowed on statements that compile to CommonJS 'require' calls.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
-pub static IMPORT_ASSERTION_VALUES_MUST_BE_STRING_LITERAL_EXPRESSIONS: Message = Message {
+static IMPORT_ASSERTION_VALUES_MUST_BE_STRING_LITERAL_EXPRESSIONS: Message = Message {
     code: 2837,
     category: Category::Error,
     key: Key("Import_assertion_values_must_be_string_literal_expressions_2837"),
@@ -8286,7 +8315,7 @@ pub static CLASS_FIELD_0_DEFINED_BY_THE_PARENT_CLASS_IS_NOT_ACCESSIBLE_IN_THE_CH
 
 pub static IMPORT_ATTRIBUTES_ARE_NOT_ALLOWED_ON_STATEMENTS_THAT_COMPILE_TO_COMMON_JS_REQUIRE_CALLS: Message = Message { code: 2856, category: Category::Error, key: Key("Import_attributes_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls_2856"), text: "Import attributes are not allowed on statements that compile to CommonJS 'require' calls.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static IMPORT_ATTRIBUTES_CANNOT_BE_USED_WITH_TYPE_ONLY_IMPORTS_OR_EXPORTS: Message = Message {
+static IMPORT_ATTRIBUTES_CANNOT_BE_USED_WITH_TYPE_ONLY_IMPORTS_OR_EXPORTS: Message = Message {
     code: 2857,
     category: Category::Error,
     key: Key("Import_attributes_cannot_be_used_with_type_only_imports_or_exports_2857"),
@@ -8353,7 +8382,7 @@ pub static RIGHT_OPERAND_OF_IS_UNREACHABLE_BECAUSE_THE_LEFT_OPERAND_IS_NEVER_NUL
         reports_deprecated: false,
     };
 
-pub static THIS_BINARY_EXPRESSION_IS_NEVER_NULLISH_ARE_YOU_MISSING_PARENTHESES: Message = Message {
+static THIS_BINARY_EXPRESSION_IS_NEVER_NULLISH_ARE_YOU_MISSING_PARENTHESES: Message = Message {
     code: 2870,
     category: Category::Error,
     key: Key("This_binary_expression_is_never_nullish_Are_you_missing_parentheses_2870"),
@@ -8426,7 +8455,7 @@ pub static IMPORT_ASSERTIONS_HAVE_BEEN_REPLACED_BY_IMPORT_ATTRIBUTES_USE_WITH_IN
     reports_deprecated: false,
 };
 
-pub static THIS_EXPRESSION_IS_NEVER_NULLISH: Message = Message {
+static THIS_EXPRESSION_IS_NEVER_NULLISH: Message = Message {
     code: 2881,
     category: Category::Error,
     key: Key("This_expression_is_never_nullish_2881"),
@@ -9161,7 +9190,7 @@ pub static THIS_MEMBER_CANNOT_HAVE_A_JSDOC_COMMENT_WITH_AN_OVERRIDE_TAG_BECAUSE_
 
 pub static THIS_MEMBER_CANNOT_HAVE_A_JSDOC_COMMENT_WITH_AN_OVERRIDE_TAG_BECAUSE_IT_IS_NOT_DECLARED_IN_THE_BASE_CLASS_0_DID_YOU_MEAN_1: Message = Message { code: 4123, category: Category::Error, key: Key("This_member_cannot_have_a_JSDoc_comment_with_an_override_tag_because_it_is_not_declared_in_the_base__4123"), text: "This member cannot have a JSDoc comment with an 'override' tag because it is not declared in the base class '{0}'. Did you mean '{1}'?", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static COMPILER_OPTION_0_OF_VALUE_1_IS_UNSTABLE_USE_NIGHTLY_TYPE_SCRIPT_TO_SILENCE_THIS_ERROR_TRY_UPDATING_WITH_NPM_INSTALL_D_TYPESCRIPT_NEXT: Message = Message { code: 4124, category: Category::Error, key: Key("Compiler_option_0_of_value_1_is_unstable_Use_nightly_TypeScript_to_silence_this_error_Try_updating_w_4124"), text: "Compiler option '{0}' of value '{1}' is unstable. Use nightly TypeScript to silence this error. Try updating with 'npm install -D typescript@next'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static COMPILER_OPTION_0_OF_VALUE_1_IS_UNSTABLE_USE_NIGHTLY_TYPE_SCRIPT_TO_SILENCE_THIS_ERROR_TRY_UPDATING_WITH_NPM_INSTALL_D_TYPESCRIPT_NEXT: Message = Message { code: 4124, category: Category::Error, key: Key("Compiler_option_0_of_value_1_is_unstable_Use_nightly_TypeScript_to_silence_this_error_Try_updating_w_4124"), text: "Compiler option '{0}' of value '{1}' is unstable. Use nightly TypeScript to silence this error. Try updating with 'npm install -D typescript@next'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static EACH_DECLARATION_OF_0_1_DIFFERS_IN_ITS_VALUE_WHERE_2_WAS_EXPECTED_BUT_3_WAS_GIVEN:
     Message = Message {
@@ -9191,7 +9220,7 @@ pub static THIS_MEMBER_CANNOT_HAVE_AN_OVERRIDE_MODIFIER_BECAUSE_ITS_NAME_IS_DYNA
 
 pub static THIS_MEMBER_CANNOT_HAVE_A_JSDOC_COMMENT_WITH_AN_OVERRIDE_TAG_BECAUSE_ITS_NAME_IS_DYNAMIC: Message = Message { code: 4128, category: Category::Error, key: Key("This_member_cannot_have_a_JSDoc_comment_with_an_override_tag_because_its_name_is_dynamic_4128"), text: "This member cannot have a JSDoc comment with an '@override' tag because its name is dynamic.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static THE_CURRENT_HOST_DOES_NOT_SUPPORT_THE_0_OPTION: Message = Message {
+static THE_CURRENT_HOST_DOES_NOT_SUPPORT_THE_0_OPTION: Message = Message {
     code: 5001,
     category: Category::Error,
     key: Key("The_current_host_does_not_support_the_0_option_5001"),
@@ -9225,7 +9254,7 @@ pub static FILE_SPECIFICATION_CANNOT_END_IN_A_RECURSIVE_DIRECTORY_WILDCARD_ASTER
 
 pub static THE_COMMON_SOURCE_DIRECTORY_OF_0_IS_1_THE_ROOT_DIR_SETTING_MUST_BE_EXPLICITLY_SET_TO_THIS_OR_ANOTHER_PATH_TO_ADJUST_YOUR_OUTPUT_S_FILE_LAYOUT: Message = Message { code: 5011, category: Category::Error, key: Key("The_common_source_directory_of_0_is_1_The_rootDir_setting_must_be_explicitly_set_to_this_or_another__5011"), text: "The common source directory of '{0}' is '{1}'. The 'rootDir' setting must be explicitly set to this or another path to adjust your output's file layout.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static CANNOT_READ_FILE_0_COLON_1: Message = Message {
+static CANNOT_READ_FILE_0_COLON_1: Message = Message {
     code: 5012,
     category: Category::Error,
     key: Key("Cannot_read_file_0_Colon_1_5012"),
@@ -9285,7 +9314,7 @@ pub static OPTION_PROJECT_CANNOT_BE_MIXED_WITH_SOURCE_FILES_ON_A_COMMAND_LINE: M
     reports_deprecated: false,
 };
 
-pub static OPTION_ISOLATED_MODULES_CAN_ONLY_BE_USED_WHEN_EITHER_OPTION_MODULE_IS_PROVIDED_OR_OPTION_TARGET_IS_ES2015_OR_HIGHER: Message = Message { code: 5047, category: Category::Error, key: Key("Option_isolatedModules_can_only_be_used_when_either_option_module_is_provided_or_option_target_is_ES_5047"), text: "Option 'isolatedModules' can only be used when either option '--module' is provided or option 'target' is 'ES2015' or higher.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static OPTION_ISOLATED_MODULES_CAN_ONLY_BE_USED_WHEN_EITHER_OPTION_MODULE_IS_PROVIDED_OR_OPTION_TARGET_IS_ES2015_OR_HIGHER: Message = Message { code: 5047, category: Category::Error, key: Key("Option_isolatedModules_can_only_be_used_when_either_option_module_is_provided_or_option_target_is_ES_5047"), text: "Option 'isolatedModules' can only be used when either option '--module' is provided or option 'target' is 'ES2015' or higher.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static OPTION_0_CAN_ONLY_BE_USED_WHEN_EITHER_OPTION_INLINE_SOURCE_MAP_OR_OPTION_SOURCE_MAP_IS_PROVIDED: Message = Message { code: 5051, category: Category::Error, key: Key("Option_0_can_only_be_used_when_either_option_inlineSourceMap_or_option_sourceMap_is_provided_5051"), text: "Option '{0} can only be used when either option '--inlineSourceMap' or option '--sourceMap' is provided.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -9309,7 +9338,7 @@ pub static OPTION_0_CANNOT_BE_SPECIFIED_WITH_OPTION_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static A_TSCONFIG_JSON_FILE_IS_ALREADY_DEFINED_AT_COLON_0: Message = Message {
+static A_TSCONFIG_JSON_FILE_IS_ALREADY_DEFINED_AT_COLON_0: Message = Message {
     code: 5054,
     category: Category::Error,
     key: Key("A_tsconfig_json_file_is_already_defined_at_Colon_0_5054"),
@@ -9342,7 +9371,7 @@ pub static CANNOT_WRITE_FILE_0_BECAUSE_IT_WOULD_BE_OVERWRITTEN_BY_MULTIPLE_INPUT
         reports_deprecated: false,
     };
 
-pub static CANNOT_FIND_A_TSCONFIG_JSON_FILE_AT_THE_SPECIFIED_DIRECTORY_COLON_0: Message = Message {
+static CANNOT_FIND_A_TSCONFIG_JSON_FILE_AT_THE_SPECIFIED_DIRECTORY_COLON_0: Message = Message {
     code: 5057,
     category: Category::Error,
     key: Key("Cannot_find_a_tsconfig_json_file_at_the_specified_directory_Colon_0_5057"),
@@ -9402,16 +9431,15 @@ pub static SUBSTITUTIONS_FOR_PATTERN_0_SHOULD_BE_AN_ARRAY: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SUBSTITUTION_0_FOR_PATTERN_1_HAS_INCORRECT_TYPE_EXPECTED_STRING_GOT_2: Message =
-    Message {
-        code: 5064,
-        category: Category::Error,
-        key: Key("Substitution_0_for_pattern_1_has_incorrect_type_expected_string_got_2_5064"),
-        text: "Substitution '{0}' for pattern '{1}' has incorrect type, expected 'string', got '{2}'.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static SUBSTITUTION_0_FOR_PATTERN_1_HAS_INCORRECT_TYPE_EXPECTED_STRING_GOT_2: Message = Message {
+    code: 5064,
+    category: Category::Error,
+    key: Key("Substitution_0_for_pattern_1_has_incorrect_type_expected_string_got_2_5064"),
+    text: "Substitution '{0}' for pattern '{1}' has incorrect type, expected 'string', got '{2}'.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static FILE_SPECIFICATION_CANNOT_CONTAIN_A_PARENT_DIRECTORY_THAT_APPEARS_AFTER_A_RECURSIVE_DIRECTORY_WILDCARD_ASTERISK_ASTERISK_COLON_0: Message = Message { code: 5065, category: Category::Error, key: Key("File_specification_cannot_contain_a_parent_directory_that_appears_after_a_recursive_directory_wildca_5065"), text: "File specification cannot contain a parent directory ('..') that appears after a recursive directory wildcard ('**'): '{0}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -9449,9 +9477,31 @@ pub static OPTION_0_CANNOT_BE_SPECIFIED_WITHOUT_SPECIFYING_OPTION_1_OR_OPTION_2:
         reports_deprecated: false,
     };
 
-pub static OPTION_RESOLVE_JSON_MODULE_CANNOT_BE_SPECIFIED_WHEN_MODULE_RESOLUTION_IS_SET_TO_CLASSIC: Message = Message { code: 5070, category: Category::Error, key: Key("Option_resolveJsonModule_cannot_be_specified_when_moduleResolution_is_set_to_classic_5070"), text: "Option '--resolveJsonModule' cannot be specified when 'moduleResolution' is set to 'classic'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static OPTION_RESOLVE_JSON_MODULE_CANNOT_BE_SPECIFIED_WHEN_MODULE_RESOLUTION_IS_SET_TO_CLASSIC:
+    Message = Message {
+    code: 5070,
+    category: Category::Error,
+    key: Key(
+        "Option_resolveJsonModule_cannot_be_specified_when_moduleResolution_is_set_to_classic_5070",
+    ),
+    text: "Option '--resolveJsonModule' cannot be specified when 'moduleResolution' is set to 'classic'.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
-pub static OPTION_RESOLVE_JSON_MODULE_CANNOT_BE_SPECIFIED_WHEN_MODULE_IS_SET_TO_NONE_SYSTEM_OR_UMD: Message = Message { code: 5071, category: Category::Error, key: Key("Option_resolveJsonModule_cannot_be_specified_when_module_is_set_to_none_system_or_umd_5071"), text: "Option '--resolveJsonModule' cannot be specified when 'module' is set to 'none', 'system', or 'umd'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static OPTION_RESOLVE_JSON_MODULE_CANNOT_BE_SPECIFIED_WHEN_MODULE_IS_SET_TO_NONE_SYSTEM_OR_UMD:
+    Message = Message {
+    code: 5071,
+    category: Category::Error,
+    key: Key(
+        "Option_resolveJsonModule_cannot_be_specified_when_module_is_set_to_none_system_or_umd_5071",
+    ),
+    text: "Option '--resolveJsonModule' cannot be specified when 'module' is set to 'none', 'system', or 'umd'.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static UNKNOWN_BUILD_OPTION_0: Message = Message {
     code: 5072,
@@ -9497,7 +9547,7 @@ pub static UNKNOWN_BUILD_OPTION_0_DID_YOU_MEAN_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static UNKNOWN_WATCH_OPTION_0: Message = Message {
+static UNKNOWN_WATCH_OPTION_0: Message = Message {
     code: 5078,
     category: Category::Error,
     key: Key("Unknown_watch_option_0_5078"),
@@ -9507,7 +9557,7 @@ pub static UNKNOWN_WATCH_OPTION_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static UNKNOWN_WATCH_OPTION_0_DID_YOU_MEAN_1: Message = Message {
+static UNKNOWN_WATCH_OPTION_0_DID_YOU_MEAN_1: Message = Message {
     code: 5079,
     category: Category::Error,
     key: Key("Unknown_watch_option_0_Did_you_mean_1_5079"),
@@ -9517,7 +9567,7 @@ pub static UNKNOWN_WATCH_OPTION_0_DID_YOU_MEAN_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static WATCH_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1: Message = Message {
+static WATCH_OPTION_0_REQUIRES_A_VALUE_OF_TYPE_1: Message = Message {
     code: 5080,
     category: Category::Error,
     key: Key("Watch_option_0_requires_a_value_of_type_1_5080"),
@@ -9666,7 +9716,7 @@ pub static OPTION_0_CAN_ONLY_BE_USED_WHEN_MODULE_RESOLUTION_IS_SET_TO_NODE16_NOD
     reports_deprecated: false,
 };
 
-pub static OPTION_0_IS_DEPRECATED_AND_WILL_STOP_FUNCTIONING_IN_TYPE_SCRIPT_1_SPECIFY_COMPILER_OPTION_IGNORE_DEPRECATIONS_COLON_2_TO_SILENCE_THIS_ERROR: Message = Message { code: 5101, category: Category::Error, key: Key("Option_0_is_deprecated_and_will_stop_functioning_in_TypeScript_1_Specify_compilerOption_ignoreDeprec_5101"), text: "Option '{0}' is deprecated and will stop functioning in TypeScript {1}. Specify compilerOption '\"ignoreDeprecations\": \"{2}\"' to silence this error.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static OPTION_0_IS_DEPRECATED_AND_WILL_STOP_FUNCTIONING_IN_TYPE_SCRIPT_1_SPECIFY_COMPILER_OPTION_IGNORE_DEPRECATIONS_COLON_2_TO_SILENCE_THIS_ERROR: Message = Message { code: 5101, category: Category::Error, key: Key("Option_0_is_deprecated_and_will_stop_functioning_in_TypeScript_1_Specify_compilerOption_ignoreDeprec_5101"), text: "Option '{0}' is deprecated and will stop functioning in TypeScript {1}. Specify compilerOption '\"ignoreDeprecations\": \"{2}\"' to silence this error.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static OPTION_0_HAS_BEEN_REMOVED_PLEASE_REMOVE_IT_FROM_YOUR_CONFIGURATION: Message = Message {
     code: 5102,
@@ -9678,7 +9728,7 @@ pub static OPTION_0_HAS_BEEN_REMOVED_PLEASE_REMOVE_IT_FROM_YOUR_CONFIGURATION: M
     reports_deprecated: false,
 };
 
-pub static INVALID_VALUE_FOR_IGNORE_DEPRECATIONS: Message = Message {
+static INVALID_VALUE_FOR_IGNORE_DEPRECATIONS: Message = Message {
     code: 5103,
     category: Category::Error,
     key: Key("Invalid_value_for_ignoreDeprecations_5103"),
@@ -9688,7 +9738,7 @@ pub static INVALID_VALUE_FOR_IGNORE_DEPRECATIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static OPTION_0_IS_REDUNDANT_AND_CANNOT_BE_SPECIFIED_WITH_OPTION_1: Message = Message {
+static OPTION_0_IS_REDUNDANT_AND_CANNOT_BE_SPECIFIED_WITH_OPTION_1: Message = Message {
     code: 5104,
     category: Category::Error,
     key: Key("Option_0_is_redundant_and_cannot_be_specified_with_option_1_5104"),
@@ -9698,7 +9748,7 @@ pub static OPTION_0_IS_REDUNDANT_AND_CANNOT_BE_SPECIFIED_WITH_OPTION_1: Message 
     reports_deprecated: false,
 };
 
-pub static OPTION_VERBATIM_MODULE_SYNTAX_CANNOT_BE_USED_WHEN_MODULE_IS_SET_TO_UMD_AMD_OR_SYSTEM:
+static OPTION_VERBATIM_MODULE_SYNTAX_CANNOT_BE_USED_WHEN_MODULE_IS_SET_TO_UMD_AMD_OR_SYSTEM:
     Message = Message {
     code: 5105,
     category: Category::Error,
@@ -9721,7 +9771,7 @@ pub static USE_0_INSTEAD: Message = Message {
     reports_deprecated: false,
 };
 
-pub static OPTION_0_1_IS_DEPRECATED_AND_WILL_STOP_FUNCTIONING_IN_TYPE_SCRIPT_2_SPECIFY_COMPILER_OPTION_IGNORE_DEPRECATIONS_COLON_3_TO_SILENCE_THIS_ERROR: Message = Message { code: 5107, category: Category::Error, key: Key("Option_0_1_is_deprecated_and_will_stop_functioning_in_TypeScript_2_Specify_compilerOption_ignoreDepr_5107"), text: "Option '{0}={1}' is deprecated and will stop functioning in TypeScript {2}. Specify compilerOption '\"ignoreDeprecations\": \"{3}\"' to silence this error.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static OPTION_0_1_IS_DEPRECATED_AND_WILL_STOP_FUNCTIONING_IN_TYPE_SCRIPT_2_SPECIFY_COMPILER_OPTION_IGNORE_DEPRECATIONS_COLON_3_TO_SILENCE_THIS_ERROR: Message = Message { code: 5107, category: Category::Error, key: Key("Option_0_1_is_deprecated_and_will_stop_functioning_in_TypeScript_2_Specify_compilerOption_ignoreDepr_5107"), text: "Option '{0}={1}' is deprecated and will stop functioning in TypeScript {2}. Specify compilerOption '\"ignoreDeprecations\": \"{3}\"' to silence this error.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static OPTION_0_1_HAS_BEEN_REMOVED_PLEASE_REMOVE_IT_FROM_YOUR_CONFIGURATION: Message =
     Message {
@@ -9802,7 +9852,7 @@ pub static NETWORK_PATH_0_IS_NOT_SUPPORTED: Message = Message {
     reports_deprecated: false,
 };
 
-pub static GENERATES_A_SOURCEMAP_FOR_EACH_CORRESPONDING_D_TS_FILE: Message = Message {
+static GENERATES_A_SOURCEMAP_FOR_EACH_CORRESPONDING_D_TS_FILE: Message = Message {
     code: 6000,
     category: Category::Message,
     key: Key("Generates_a_sourcemap_for_each_corresponding_d_ts_file_6000"),
@@ -9812,7 +9862,7 @@ pub static GENERATES_A_SOURCEMAP_FOR_EACH_CORRESPONDING_D_TS_FILE: Message = Mes
     reports_deprecated: false,
 };
 
-pub static CONCATENATE_AND_EMIT_OUTPUT_TO_SINGLE_FILE: Message = Message {
+static CONCATENATE_AND_EMIT_OUTPUT_TO_SINGLE_FILE: Message = Message {
     code: 6001,
     category: Category::Message,
     key: Key("Concatenate_and_emit_output_to_single_file_6001"),
@@ -9822,7 +9872,7 @@ pub static CONCATENATE_AND_EMIT_OUTPUT_TO_SINGLE_FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static GENERATES_CORRESPONDING_D_TS_FILE: Message = Message {
+static GENERATES_CORRESPONDING_D_TS_FILE: Message = Message {
     code: 6002,
     category: Category::Message,
     key: Key("Generates_corresponding_d_ts_file_6002"),
@@ -9832,7 +9882,7 @@ pub static GENERATES_CORRESPONDING_D_TS_FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SPECIFY_THE_LOCATION_WHERE_DEBUGGER_SHOULD_LOCATE_TYPE_SCRIPT_FILES_INSTEAD_OF_SOURCE_LOCATIONS: Message = Message { code: 6004, category: Category::Message, key: Key("Specify_the_location_where_debugger_should_locate_TypeScript_files_instead_of_source_locations_6004"), text: "Specify the location where debugger should locate TypeScript files instead of source locations.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_THE_LOCATION_WHERE_DEBUGGER_SHOULD_LOCATE_TYPE_SCRIPT_FILES_INSTEAD_OF_SOURCE_LOCATIONS: Message = Message { code: 6004, category: Category::Message, key: Key("Specify_the_location_where_debugger_should_locate_TypeScript_files_instead_of_source_locations_6004"), text: "Specify the location where debugger should locate TypeScript files instead of source locations.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static WATCH_INPUT_FILES: Message = Message {
     code: 6005,
@@ -9844,7 +9894,7 @@ pub static WATCH_INPUT_FILES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REDIRECT_OUTPUT_STRUCTURE_TO_THE_DIRECTORY: Message = Message {
+static REDIRECT_OUTPUT_STRUCTURE_TO_THE_DIRECTORY: Message = Message {
     code: 6006,
     category: Category::Message,
     key: Key("Redirect_output_structure_to_the_directory_6006"),
@@ -9854,7 +9904,7 @@ pub static REDIRECT_OUTPUT_STRUCTURE_TO_THE_DIRECTORY: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DO_NOT_ERASE_CONST_ENUM_DECLARATIONS_IN_GENERATED_CODE: Message = Message {
+static DO_NOT_ERASE_CONST_ENUM_DECLARATIONS_IN_GENERATED_CODE: Message = Message {
     code: 6007,
     category: Category::Message,
     key: Key("Do_not_erase_const_enum_declarations_in_generated_code_6007"),
@@ -9864,7 +9914,7 @@ pub static DO_NOT_ERASE_CONST_ENUM_DECLARATIONS_IN_GENERATED_CODE: Message = Mes
     reports_deprecated: false,
 };
 
-pub static DO_NOT_EMIT_OUTPUTS_IF_ANY_ERRORS_WERE_REPORTED: Message = Message {
+static DO_NOT_EMIT_OUTPUTS_IF_ANY_ERRORS_WERE_REPORTED: Message = Message {
     code: 6008,
     category: Category::Message,
     key: Key("Do_not_emit_outputs_if_any_errors_were_reported_6008"),
@@ -9874,7 +9924,7 @@ pub static DO_NOT_EMIT_OUTPUTS_IF_ANY_ERRORS_WERE_REPORTED: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DO_NOT_EMIT_COMMENTS_TO_OUTPUT: Message = Message {
+static DO_NOT_EMIT_COMMENTS_TO_OUTPUT: Message = Message {
     code: 6009,
     category: Category::Message,
     key: Key("Do_not_emit_comments_to_output_6009"),
@@ -9884,7 +9934,7 @@ pub static DO_NOT_EMIT_COMMENTS_TO_OUTPUT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DO_NOT_EMIT_OUTPUTS: Message = Message {
+static DO_NOT_EMIT_OUTPUTS: Message = Message {
     code: 6010,
     category: Category::Message,
     key: Key("Do_not_emit_outputs_6010"),
@@ -9894,9 +9944,9 @@ pub static DO_NOT_EMIT_OUTPUTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ALLOW_DEFAULT_IMPORTS_FROM_MODULES_WITH_NO_DEFAULT_EXPORT_THIS_DOES_NOT_AFFECT_CODE_EMIT_JUST_TYPECHECKING: Message = Message { code: 6011, category: Category::Message, key: Key("Allow_default_imports_from_modules_with_no_default_export_This_does_not_affect_code_emit_just_typech_6011"), text: "Allow default imports from modules with no default export. This does not affect code emit, just typechecking.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static ALLOW_DEFAULT_IMPORTS_FROM_MODULES_WITH_NO_DEFAULT_EXPORT_THIS_DOES_NOT_AFFECT_CODE_EMIT_JUST_TYPECHECKING: Message = Message { code: 6011, category: Category::Message, key: Key("Allow_default_imports_from_modules_with_no_default_export_This_does_not_affect_code_emit_just_typech_6011"), text: "Allow default imports from modules with no default export. This does not affect code emit, just typechecking.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static SKIP_TYPE_CHECKING_OF_DECLARATION_FILES: Message = Message {
+static SKIP_TYPE_CHECKING_OF_DECLARATION_FILES: Message = Message {
     code: 6012,
     category: Category::Message,
     key: Key("Skip_type_checking_of_declaration_files_6012"),
@@ -9906,7 +9956,7 @@ pub static SKIP_TYPE_CHECKING_OF_DECLARATION_FILES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DO_NOT_RESOLVE_THE_REAL_PATH_OF_SYMLINKS: Message = Message {
+static DO_NOT_RESOLVE_THE_REAL_PATH_OF_SYMLINKS: Message = Message {
     code: 6013,
     category: Category::Message,
     key: Key("Do_not_resolve_the_real_path_of_symlinks_6013"),
@@ -9916,7 +9966,7 @@ pub static DO_NOT_RESOLVE_THE_REAL_PATH_OF_SYMLINKS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ONLY_EMIT_D_TS_DECLARATION_FILES: Message = Message {
+static ONLY_EMIT_D_TS_DECLARATION_FILES: Message = Message {
     code: 6014,
     category: Category::Message,
     key: Key("Only_emit_d_ts_declaration_files_6014"),
@@ -9926,7 +9976,7 @@ pub static ONLY_EMIT_D_TS_DECLARATION_FILES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SPECIFY_ECMA_SCRIPT_TARGET_VERSION: Message = Message {
+static SPECIFY_ECMA_SCRIPT_TARGET_VERSION: Message = Message {
     code: 6015,
     category: Category::Message,
     key: Key("Specify_ECMAScript_target_version_6015"),
@@ -9936,7 +9986,7 @@ pub static SPECIFY_ECMA_SCRIPT_TARGET_VERSION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SPECIFY_MODULE_CODE_GENERATION: Message = Message {
+static SPECIFY_MODULE_CODE_GENERATION: Message = Message {
     code: 6016,
     category: Category::Message,
     key: Key("Specify_module_code_generation_6016"),
@@ -9968,7 +10018,7 @@ pub static PRINT_THE_COMPILER_S_VERSION: Message = Message {
 
 pub static COMPILE_THE_PROJECT_GIVEN_THE_PATH_TO_ITS_CONFIGURATION_FILE_OR_TO_A_FOLDER_WITH_A_TSCONFIG_JSON: Message = Message { code: 6020, category: Category::Message, key: Key("Compile_the_project_given_the_path_to_its_configuration_file_or_to_a_folder_with_a_tsconfig_json_6020"), text: "Compile the project given the path to its configuration file, or to a folder with a 'tsconfig.json'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static SYNTAX_COLON_0: Message = Message {
+static SYNTAX_COLON_0: Message = Message {
     code: 6023,
     category: Category::Message,
     key: Key("Syntax_Colon_0_6023"),
@@ -9978,7 +10028,7 @@ pub static SYNTAX_COLON_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_OPTIONS: Message = Message {
+static X_OPTIONS: Message = Message {
     code: 6024,
     category: Category::Message,
     key: Key("options_6024"),
@@ -9988,7 +10038,7 @@ pub static X_OPTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_FILE: Message = Message {
+static X_FILE: Message = Message {
     code: 6025,
     category: Category::Message,
     key: Key("file_6025"),
@@ -9998,7 +10048,7 @@ pub static X_FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXAMPLES_COLON_0: Message = Message {
+static EXAMPLES_COLON_0: Message = Message {
     code: 6026,
     category: Category::Message,
     key: Key("Examples_Colon_0_6026"),
@@ -10008,7 +10058,7 @@ pub static EXAMPLES_COLON_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static OPTIONS_COLON: Message = Message {
+static OPTIONS_COLON: Message = Message {
     code: 6027,
     category: Category::Message,
     key: Key("Options_Colon_6027"),
@@ -10028,7 +10078,7 @@ pub static VERSION_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INSERT_COMMAND_LINE_OPTIONS_AND_FILES_FROM_A_FILE: Message = Message {
+static INSERT_COMMAND_LINE_OPTIONS_AND_FILES_FROM_A_FILE: Message = Message {
     code: 6030,
     category: Category::Message,
     key: Key("Insert_command_line_options_and_files_from_a_file_6030"),
@@ -10058,7 +10108,7 @@ pub static FILE_CHANGE_DETECTED_STARTING_INCREMENTAL_COMPILATION: Message = Mess
     reports_deprecated: false,
 };
 
-pub static KIND: Message = Message {
+static KIND: Message = Message {
     code: 6034,
     category: Category::Message,
     key: Key("KIND_6034"),
@@ -10068,7 +10118,7 @@ pub static KIND: Message = Message {
     reports_deprecated: false,
 };
 
-pub static FILE: Message = Message {
+static FILE: Message = Message {
     code: 6035,
     category: Category::Message,
     key: Key("FILE_6035"),
@@ -10078,7 +10128,7 @@ pub static FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static VERSION: Message = Message {
+static VERSION: Message = Message {
     code: 6036,
     category: Category::Message,
     key: Key("VERSION_6036"),
@@ -10088,7 +10138,7 @@ pub static VERSION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static LOCATION: Message = Message {
+static LOCATION: Message = Message {
     code: 6037,
     category: Category::Message,
     key: Key("LOCATION_6037"),
@@ -10098,7 +10148,7 @@ pub static LOCATION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DIRECTORY: Message = Message {
+static DIRECTORY: Message = Message {
     code: 6038,
     category: Category::Message,
     key: Key("DIRECTORY_6038"),
@@ -10108,7 +10158,7 @@ pub static DIRECTORY: Message = Message {
     reports_deprecated: false,
 };
 
-pub static STRATEGY: Message = Message {
+static STRATEGY: Message = Message {
     code: 6039,
     category: Category::Message,
     key: Key("STRATEGY_6039"),
@@ -10118,7 +10168,7 @@ pub static STRATEGY: Message = Message {
     reports_deprecated: false,
 };
 
-pub static FILE_OR_DIRECTORY: Message = Message {
+static FILE_OR_DIRECTORY: Message = Message {
     code: 6040,
     category: Category::Message,
     key: Key("FILE_OR_DIRECTORY_6040"),
@@ -10138,7 +10188,7 @@ pub static ERRORS_FILES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static GENERATES_CORRESPONDING_MAP_FILE: Message = Message {
+static GENERATES_CORRESPONDING_MAP_FILE: Message = Message {
     code: 6043,
     category: Category::Message,
     key: Key("Generates_corresponding_map_file_6043"),
@@ -10188,7 +10238,7 @@ pub static LOCALE_MUST_BE_AN_IETF_BCP_47_LANGUAGE_TAG_EXAMPLES_COLON_0_1: Messag
     reports_deprecated: false,
 };
 
-pub static UNABLE_TO_OPEN_FILE_0: Message = Message {
+static UNABLE_TO_OPEN_FILE_0: Message = Message {
     code: 6050,
     category: Category::Error,
     key: Key("Unable_to_open_file_0_6050"),
@@ -10198,7 +10248,7 @@ pub static UNABLE_TO_OPEN_FILE_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CORRUPTED_LOCALE_FILE_0: Message = Message {
+static CORRUPTED_LOCALE_FILE_0: Message = Message {
     code: 6051,
     category: Category::Error,
     key: Key("Corrupted_locale_file_0_6051"),
@@ -10208,16 +10258,15 @@ pub static CORRUPTED_LOCALE_FILE_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static RAISE_ERROR_ON_EXPRESSIONS_AND_DECLARATIONS_WITH_AN_IMPLIED_ANY_TYPE: Message =
-    Message {
-        code: 6052,
-        category: Category::Message,
-        key: Key("Raise_error_on_expressions_and_declarations_with_an_implied_any_type_6052"),
-        text: "Raise error on expressions and declarations with an implied 'any' type.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static RAISE_ERROR_ON_EXPRESSIONS_AND_DECLARATIONS_WITH_AN_IMPLIED_ANY_TYPE: Message = Message {
+    code: 6052,
+    category: Category::Message,
+    key: Key("Raise_error_on_expressions_and_declarations_with_an_implied_any_type_6052"),
+    text: "Raise error on expressions and declarations with an implied 'any' type.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static FILE_0_NOT_FOUND: Message = Message {
     code: 6053,
@@ -10240,7 +10289,7 @@ pub static FILE_0_HAS_AN_UNSUPPORTED_EXTENSION_THE_ONLY_SUPPORTED_EXTENSIONS_ARE
         reports_deprecated: false,
     };
 
-pub static SUPPRESS_NO_IMPLICIT_ANY_ERRORS_FOR_INDEXING_OBJECTS_LACKING_INDEX_SIGNATURES: Message =
+static SUPPRESS_NO_IMPLICIT_ANY_ERRORS_FOR_INDEXING_OBJECTS_LACKING_INDEX_SIGNATURES: Message =
     Message {
         code: 6055,
         category: Category::Message,
@@ -10253,7 +10302,7 @@ pub static SUPPRESS_NO_IMPLICIT_ANY_ERRORS_FOR_INDEXING_OBJECTS_LACKING_INDEX_SI
         reports_deprecated: false,
     };
 
-pub static DO_NOT_EMIT_DECLARATIONS_FOR_CODE_THAT_HAS_AN_INTERNAL_ANNOTATION: Message = Message {
+static DO_NOT_EMIT_DECLARATIONS_FOR_CODE_THAT_HAS_AN_INTERNAL_ANNOTATION: Message = Message {
     code: 6056,
     category: Category::Message,
     key: Key("Do_not_emit_declarations_for_code_that_has_an_internal_annotation_6056"),
@@ -10263,7 +10312,7 @@ pub static DO_NOT_EMIT_DECLARATIONS_FOR_CODE_THAT_HAS_AN_INTERNAL_ANNOTATION: Me
     reports_deprecated: false,
 };
 
-pub static SPECIFY_THE_ROOT_DIRECTORY_OF_INPUT_FILES_USE_TO_CONTROL_THE_OUTPUT_DIRECTORY_STRUCTURE_WITH_OUT_DIR: Message = Message { code: 6058, category: Category::Message, key: Key("Specify_the_root_directory_of_input_files_Use_to_control_the_output_directory_structure_with_outDir_6058"), text: "Specify the root directory of input files. Use to control the output directory structure with --outDir.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_THE_ROOT_DIRECTORY_OF_INPUT_FILES_USE_TO_CONTROL_THE_OUTPUT_DIRECTORY_STRUCTURE_WITH_OUT_DIR: Message = Message { code: 6058, category: Category::Message, key: Key("Specify_the_root_directory_of_input_files_Use_to_control_the_output_directory_structure_with_outDir_6058"), text: "Specify the root directory of input files. Use to control the output directory structure with --outDir.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static FILE_0_IS_NOT_UNDER_ROOT_DIR_1_ROOT_DIR_IS_EXPECTED_TO_CONTAIN_ALL_SOURCE_FILES:
     Message = Message {
@@ -10276,9 +10325,20 @@ pub static FILE_0_IS_NOT_UNDER_ROOT_DIR_1_ROOT_DIR_IS_EXPECTED_TO_CONTAIN_ALL_SO
     reports_deprecated: false,
 };
 
-pub static SPECIFY_THE_END_OF_LINE_SEQUENCE_TO_BE_USED_WHEN_EMITTING_FILES_COLON_CRLF_DOS_OR_LF_UNIX: Message = Message { code: 6060, category: Category::Message, key: Key("Specify_the_end_of_line_sequence_to_be_used_when_emitting_files_Colon_CRLF_dos_or_LF_unix_6060"), text: "Specify the end of line sequence to be used when emitting files: 'CRLF' (dos) or 'LF' (unix).", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_THE_END_OF_LINE_SEQUENCE_TO_BE_USED_WHEN_EMITTING_FILES_COLON_CRLF_DOS_OR_LF_UNIX:
+    Message = Message {
+    code: 6060,
+    category: Category::Message,
+    key: Key(
+        "Specify_the_end_of_line_sequence_to_be_used_when_emitting_files_Colon_CRLF_dos_or_LF_unix_6060",
+    ),
+    text: "Specify the end of line sequence to be used when emitting files: 'CRLF' (dos) or 'LF' (unix).",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
-pub static NEWLINE: Message = Message {
+static NEWLINE: Message = Message {
     code: 6061,
     category: Category::Message,
     key: Key("NEWLINE_6061"),
@@ -10301,7 +10361,7 @@ pub static OPTION_0_CAN_ONLY_BE_SPECIFIED_IN_TSCONFIG_JSON_FILE_OR_SET_TO_NULL_O
     reports_deprecated: false,
 };
 
-pub static ENABLES_EXPERIMENTAL_SUPPORT_FOR_ES7_DECORATORS: Message = Message {
+static ENABLES_EXPERIMENTAL_SUPPORT_FOR_ES7_DECORATORS: Message = Message {
     code: 6065,
     category: Category::Message,
     key: Key("Enables_experimental_support_for_ES7_decorators_6065"),
@@ -10311,16 +10371,15 @@ pub static ENABLES_EXPERIMENTAL_SUPPORT_FOR_ES7_DECORATORS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ENABLES_EXPERIMENTAL_SUPPORT_FOR_EMITTING_TYPE_METADATA_FOR_DECORATORS: Message =
-    Message {
-        code: 6066,
-        category: Category::Message,
-        key: Key("Enables_experimental_support_for_emitting_type_metadata_for_decorators_6066"),
-        text: "Enables experimental support for emitting type metadata for decorators.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static ENABLES_EXPERIMENTAL_SUPPORT_FOR_EMITTING_TYPE_METADATA_FOR_DECORATORS: Message = Message {
+    code: 6066,
+    category: Category::Message,
+    key: Key("Enables_experimental_support_for_emitting_type_metadata_for_decorators_6066"),
+    text: "Enables experimental support for emitting type metadata for decorators.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static INITIALIZES_A_TYPE_SCRIPT_PROJECT_AND_CREATES_A_TSCONFIG_JSON_FILE: Message = Message {
     code: 6070,
@@ -10332,7 +10391,7 @@ pub static INITIALIZES_A_TYPE_SCRIPT_PROJECT_AND_CREATES_A_TSCONFIG_JSON_FILE: M
     reports_deprecated: false,
 };
 
-pub static SUCCESSFULLY_CREATED_A_TSCONFIG_JSON_FILE: Message = Message {
+static SUCCESSFULLY_CREATED_A_TSCONFIG_JSON_FILE: Message = Message {
     code: 6071,
     category: Category::Message,
     key: Key("Successfully_created_a_tsconfig_json_file_6071"),
@@ -10342,7 +10401,7 @@ pub static SUCCESSFULLY_CREATED_A_TSCONFIG_JSON_FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SUPPRESS_EXCESS_PROPERTY_CHECKS_FOR_OBJECT_LITERALS: Message = Message {
+static SUPPRESS_EXCESS_PROPERTY_CHECKS_FOR_OBJECT_LITERALS: Message = Message {
     code: 6072,
     category: Category::Message,
     key: Key("Suppress_excess_property_checks_for_object_literals_6072"),
@@ -10352,7 +10411,7 @@ pub static SUPPRESS_EXCESS_PROPERTY_CHECKS_FOR_OBJECT_LITERALS: Message = Messag
     reports_deprecated: false,
 };
 
-pub static STYLIZE_ERRORS_AND_MESSAGES_USING_COLOR_AND_CONTEXT_EXPERIMENTAL: Message = Message {
+static STYLIZE_ERRORS_AND_MESSAGES_USING_COLOR_AND_CONTEXT_EXPERIMENTAL: Message = Message {
     code: 6073,
     category: Category::Message,
     key: Key("Stylize_errors_and_messages_using_color_and_context_experimental_6073"),
@@ -10362,7 +10421,7 @@ pub static STYLIZE_ERRORS_AND_MESSAGES_USING_COLOR_AND_CONTEXT_EXPERIMENTAL: Mes
     reports_deprecated: false,
 };
 
-pub static DO_NOT_REPORT_ERRORS_ON_UNUSED_LABELS: Message = Message {
+static DO_NOT_REPORT_ERRORS_ON_UNUSED_LABELS: Message = Message {
     code: 6074,
     category: Category::Message,
     key: Key("Do_not_report_errors_on_unused_labels_6074"),
@@ -10372,7 +10431,7 @@ pub static DO_NOT_REPORT_ERRORS_ON_UNUSED_LABELS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REPORT_ERROR_WHEN_NOT_ALL_CODE_PATHS_IN_FUNCTION_RETURN_A_VALUE: Message = Message {
+static REPORT_ERROR_WHEN_NOT_ALL_CODE_PATHS_IN_FUNCTION_RETURN_A_VALUE: Message = Message {
     code: 6075,
     category: Category::Message,
     key: Key("Report_error_when_not_all_code_paths_in_function_return_a_value_6075"),
@@ -10382,7 +10441,7 @@ pub static REPORT_ERROR_WHEN_NOT_ALL_CODE_PATHS_IN_FUNCTION_RETURN_A_VALUE: Mess
     reports_deprecated: false,
 };
 
-pub static REPORT_ERRORS_FOR_FALLTHROUGH_CASES_IN_SWITCH_STATEMENT: Message = Message {
+static REPORT_ERRORS_FOR_FALLTHROUGH_CASES_IN_SWITCH_STATEMENT: Message = Message {
     code: 6076,
     category: Category::Message,
     key: Key("Report_errors_for_fallthrough_cases_in_switch_statement_6076"),
@@ -10392,7 +10451,7 @@ pub static REPORT_ERRORS_FOR_FALLTHROUGH_CASES_IN_SWITCH_STATEMENT: Message = Me
     reports_deprecated: false,
 };
 
-pub static DO_NOT_REPORT_ERRORS_ON_UNREACHABLE_CODE: Message = Message {
+static DO_NOT_REPORT_ERRORS_ON_UNREACHABLE_CODE: Message = Message {
     code: 6077,
     category: Category::Message,
     key: Key("Do_not_report_errors_on_unreachable_code_6077"),
@@ -10402,7 +10461,7 @@ pub static DO_NOT_REPORT_ERRORS_ON_UNREACHABLE_CODE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DISALLOW_INCONSISTENTLY_CASED_REFERENCES_TO_THE_SAME_FILE: Message = Message {
+static DISALLOW_INCONSISTENTLY_CASED_REFERENCES_TO_THE_SAME_FILE: Message = Message {
     code: 6078,
     category: Category::Message,
     key: Key("Disallow_inconsistently_cased_references_to_the_same_file_6078"),
@@ -10412,7 +10471,7 @@ pub static DISALLOW_INCONSISTENTLY_CASED_REFERENCES_TO_THE_SAME_FILE: Message = 
     reports_deprecated: false,
 };
 
-pub static SPECIFY_LIBRARY_FILES_TO_BE_INCLUDED_IN_THE_COMPILATION: Message = Message {
+static SPECIFY_LIBRARY_FILES_TO_BE_INCLUDED_IN_THE_COMPILATION: Message = Message {
     code: 6079,
     category: Category::Message,
     key: Key("Specify_library_files_to_be_included_in_the_compilation_6079"),
@@ -10422,7 +10481,7 @@ pub static SPECIFY_LIBRARY_FILES_TO_BE_INCLUDED_IN_THE_COMPILATION: Message = Me
     reports_deprecated: false,
 };
 
-pub static SPECIFY_JSX_CODE_GENERATION: Message = Message {
+static SPECIFY_JSX_CODE_GENERATION: Message = Message {
     code: 6080,
     category: Category::Message,
     key: Key("Specify_JSX_code_generation_6080"),
@@ -10432,7 +10491,7 @@ pub static SPECIFY_JSX_CODE_GENERATION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ONLY_AMD_AND_SYSTEM_MODULES_ARE_SUPPORTED_ALONGSIDE_0: Message = Message {
+static ONLY_AMD_AND_SYSTEM_MODULES_ARE_SUPPORTED_ALONGSIDE_0: Message = Message {
     code: 6082,
     category: Category::Error,
     key: Key("Only_amd_and_system_modules_are_supported_alongside_0_6082"),
@@ -10442,7 +10501,7 @@ pub static ONLY_AMD_AND_SYSTEM_MODULES_ARE_SUPPORTED_ALONGSIDE_0: Message = Mess
     reports_deprecated: false,
 };
 
-pub static BASE_DIRECTORY_TO_RESOLVE_NON_ABSOLUTE_MODULE_NAMES: Message = Message {
+static BASE_DIRECTORY_TO_RESOLVE_NON_ABSOLUTE_MODULE_NAMES: Message = Message {
     code: 6083,
     category: Category::Message,
     key: Key("Base_directory_to_resolve_non_absolute_module_names_6083"),
@@ -10452,9 +10511,9 @@ pub static BASE_DIRECTORY_TO_RESOLVE_NON_ABSOLUTE_MODULE_NAMES: Message = Messag
     reports_deprecated: false,
 };
 
-pub static DEPRECATED_USE_JSX_FACTORY_INSTEAD_SPECIFY_THE_OBJECT_INVOKED_FOR_CREATE_ELEMENT_WHEN_TARGETING_REACT_JSX_EMIT: Message = Message { code: 6084, category: Category::Message, key: Key("Deprecated_Use_jsxFactory_instead_Specify_the_object_invoked_for_createElement_when_targeting_react__6084"), text: "[Deprecated] Use '--jsxFactory' instead. Specify the object invoked for createElement when targeting 'react' JSX emit", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static DEPRECATED_USE_JSX_FACTORY_INSTEAD_SPECIFY_THE_OBJECT_INVOKED_FOR_CREATE_ELEMENT_WHEN_TARGETING_REACT_JSX_EMIT: Message = Message { code: 6084, category: Category::Message, key: Key("Deprecated_Use_jsxFactory_instead_Specify_the_object_invoked_for_createElement_when_targeting_react__6084"), text: "[Deprecated] Use '--jsxFactory' instead. Specify the object invoked for createElement when targeting 'react' JSX emit", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static ENABLE_TRACING_OF_THE_NAME_RESOLUTION_PROCESS: Message = Message {
+static ENABLE_TRACING_OF_THE_NAME_RESOLUTION_PROCESS: Message = Message {
     code: 6085,
     category: Category::Message,
     key: Key("Enable_tracing_of_the_name_resolution_process_6085"),
@@ -10545,7 +10604,7 @@ pub static TRYING_SUBSTITUTION_0_CANDIDATE_MODULE_LOCATION_COLON_1: Message = Me
     reports_deprecated: false,
 };
 
-pub static RESOLVING_MODULE_NAME_0_RELATIVE_TO_BASE_URL_1_2: Message = Message {
+static RESOLVING_MODULE_NAME_0_RELATIVE_TO_BASE_URL_1_2: Message = Message {
     code: 6094,
     category: Category::Message,
     key: Key("Resolving_module_name_0_relative_to_base_url_1_2_6094"),
@@ -10617,7 +10676,7 @@ pub static X_PACKAGE_JSON_HAS_0_FIELD_1_THAT_REFERENCES_2: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ALLOW_JAVASCRIPT_FILES_TO_BE_COMPILED: Message = Message {
+static ALLOW_JAVASCRIPT_FILES_TO_BE_COMPILED: Message = Message {
     code: 6102,
     category: Category::Message,
     key: Key("Allow_javascript_files_to_be_compiled_6102"),
@@ -10647,7 +10706,7 @@ pub static EXPECTED_TYPE_OF_0_FIELD_IN_PACKAGE_JSON_TO_BE_1_GOT_2: Message = Mes
     reports_deprecated: false,
 };
 
-pub static X_BASE_URL_OPTION_IS_SET_TO_0_USING_THIS_VALUE_TO_RESOLVE_NON_RELATIVE_MODULE_NAME_1:
+static X_BASE_URL_OPTION_IS_SET_TO_0_USING_THIS_VALUE_TO_RESOLVE_NON_RELATIVE_MODULE_NAME_1:
     Message = Message {
     code: 6106,
     category: Category::Message,
@@ -10711,7 +10770,7 @@ pub static MODULE_RESOLUTION_USING_ROOT_DIRS_HAS_FAILED: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DO_NOT_EMIT_USE_STRICT_DIRECTIVES_IN_MODULE_OUTPUT: Message = Message {
+static DO_NOT_EMIT_USE_STRICT_DIRECTIVES_IN_MODULE_OUTPUT: Message = Message {
     code: 6112,
     category: Category::Message,
     key: Key("Do_not_emit_use_strict_directives_in_module_output_6112"),
@@ -10721,7 +10780,7 @@ pub static DO_NOT_EMIT_USE_STRICT_DIRECTIVES_IN_MODULE_OUTPUT: Message = Message
     reports_deprecated: false,
 };
 
-pub static ENABLE_STRICT_NULL_CHECKS: Message = Message {
+static ENABLE_STRICT_NULL_CHECKS: Message = Message {
     code: 6113,
     category: Category::Message,
     key: Key("Enable_strict_null_checks_6113"),
@@ -10741,7 +10800,7 @@ pub static UNKNOWN_OPTION_EXCLUDES_DID_YOU_MEAN_EXCLUDE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static RAISE_ERROR_ON_THIS_EXPRESSIONS_WITH_AN_IMPLIED_ANY_TYPE: Message = Message {
+static RAISE_ERROR_ON_THIS_EXPRESSIONS_WITH_AN_IMPLIED_ANY_TYPE: Message = Message {
     code: 6115,
     category: Category::Message,
     key: Key("Raise_error_on_this_expressions_with_an_implied_any_type_6115"),
@@ -10803,7 +10862,7 @@ pub static ROOT_DIRECTORY_CANNOT_BE_DETERMINED_SKIPPING_PRIMARY_SEARCH_PATHS: Me
     reports_deprecated: false,
 };
 
-pub static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_1_ROOT_DIRECTORY_NOT_SET: Message =
+static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_1_ROOT_DIRECTORY_NOT_SET: Message =
     Message {
         code: 6123,
         category: Category::Message,
@@ -10816,7 +10875,7 @@ pub static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_1_ROOT_DIRECTORY
         reports_deprecated: false,
     };
 
-pub static TYPE_DECLARATION_FILES_TO_BE_INCLUDED_IN_COMPILATION: Message = Message {
+static TYPE_DECLARATION_FILES_TO_BE_INCLUDED_IN_COMPILATION: Message = Message {
     code: 6124,
     category: Category::Message,
     key: Key("Type_declaration_files_to_be_included_in_compilation_6124"),
@@ -10836,9 +10895,9 @@ pub static LOOKING_UP_IN_NODE_MODULES_FOLDER_INITIAL_LOCATION_0: Message = Messa
     reports_deprecated: false,
 };
 
-pub static CONTAINING_FILE_IS_NOT_SPECIFIED_AND_ROOT_DIRECTORY_CANNOT_BE_DETERMINED_SKIPPING_LOOKUP_IN_NODE_MODULES_FOLDER: Message = Message { code: 6126, category: Category::Message, key: Key("Containing_file_is_not_specified_and_root_directory_cannot_be_determined_skipping_lookup_in_node_mod_6126"), text: "Containing file is not specified and root directory cannot be determined, skipping lookup in 'node_modules' folder.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static CONTAINING_FILE_IS_NOT_SPECIFIED_AND_ROOT_DIRECTORY_CANNOT_BE_DETERMINED_SKIPPING_LOOKUP_IN_NODE_MODULES_FOLDER: Message = Message { code: 6126, category: Category::Message, key: Key("Containing_file_is_not_specified_and_root_directory_cannot_be_determined_skipping_lookup_in_node_mod_6126"), text: "Containing file is not specified and root directory cannot be determined, skipping lookup in 'node_modules' folder.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_NOT_SET_ROOT_DIRECTORY_1: Message =
+static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_NOT_SET_ROOT_DIRECTORY_1: Message =
     Message {
         code: 6127,
         category: Category::Message,
@@ -10851,7 +10910,7 @@ pub static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_NOT_SET_ROOT_DIR
         reports_deprecated: false,
     };
 
-pub static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_NOT_SET_ROOT_DIRECTORY_NOT_SET:
+static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_NOT_SET_ROOT_DIRECTORY_NOT_SET:
     Message = Message {
     code: 6128,
     category: Category::Message,
@@ -10874,7 +10933,7 @@ pub static RESOLVING_REAL_PATH_FOR_0_RESULT_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CANNOT_COMPILE_MODULES_USING_OPTION_0_UNLESS_THE_MODULE_FLAG_IS_AMD_OR_SYSTEM: Message =
+static CANNOT_COMPILE_MODULES_USING_OPTION_0_UNLESS_THE_MODULE_FLAG_IS_AMD_OR_SYSTEM: Message =
     Message {
         code: 6131,
         category: Category::Error,
@@ -10907,7 +10966,7 @@ pub static X_0_IS_DECLARED_BUT_ITS_VALUE_IS_NEVER_READ: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REPORT_ERRORS_ON_UNUSED_LOCALS: Message = Message {
+static REPORT_ERRORS_ON_UNUSED_LOCALS: Message = Message {
     code: 6134,
     category: Category::Message,
     key: Key("Report_errors_on_unused_locals_6134"),
@@ -10917,7 +10976,7 @@ pub static REPORT_ERRORS_ON_UNUSED_LOCALS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REPORT_ERRORS_ON_UNUSED_PARAMETERS: Message = Message {
+static REPORT_ERRORS_ON_UNUSED_PARAMETERS: Message = Message {
     code: 6135,
     category: Category::Message,
     key: Key("Report_errors_on_unused_parameters_6135"),
@@ -10927,7 +10986,7 @@ pub static REPORT_ERRORS_ON_UNUSED_PARAMETERS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static THE_MAXIMUM_DEPENDENCY_DEPTH_TO_SEARCH_UNDER_NODE_MODULES_AND_LOAD_JAVA_SCRIPT_FILES:
+static THE_MAXIMUM_DEPENDENCY_DEPTH_TO_SEARCH_UNDER_NODE_MODULES_AND_LOAD_JAVA_SCRIPT_FILES:
     Message = Message {
     code: 6136,
     category: Category::Message,
@@ -10961,7 +11020,7 @@ pub static PROPERTY_0_IS_DECLARED_BUT_ITS_VALUE_IS_NEVER_READ: Message = Message
     reports_deprecated: false,
 };
 
-pub static IMPORT_EMIT_HELPERS_FROM_TSLIB: Message = Message {
+static IMPORT_EMIT_HELPERS_FROM_TSLIB: Message = Message {
     code: 6139,
     category: Category::Message,
     key: Key("Import_emit_helpers_from_tslib_6139"),
@@ -10973,7 +11032,7 @@ pub static IMPORT_EMIT_HELPERS_FROM_TSLIB: Message = Message {
 
 pub static AUTO_DISCOVERY_FOR_TYPINGS_IS_ENABLED_IN_PROJECT_0_RUNNING_EXTRA_RESOLUTION_PASS_FOR_MODULE_1_USING_CACHE_LOCATION_2: Message = Message { code: 6140, category: Category::Error, key: Key("Auto_discovery_for_typings_is_enabled_in_project_0_Running_extra_resolution_pass_for_module_1_using__6140"), text: "Auto discovery for typings is enabled in project '{0}'. Running extra resolution pass for module '{1}' using cache location '{2}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static PARSE_IN_STRICT_MODE_AND_EMIT_USE_STRICT_FOR_EACH_SOURCE_FILE: Message = Message {
+static PARSE_IN_STRICT_MODE_AND_EMIT_USE_STRICT_FOR_EACH_SOURCE_FILE: Message = Message {
     code: 6141,
     category: Category::Message,
     key: Key("Parse_in_strict_mode_and_emit_use_strict_for_each_source_file_6141"),
@@ -11003,9 +11062,9 @@ pub static MODULE_0_WAS_RESOLVED_AS_LOCALLY_DECLARED_AMBIENT_MODULE_IN_FILE_1: M
     reports_deprecated: false,
 };
 
-pub static SPECIFY_THE_JSX_FACTORY_FUNCTION_TO_USE_WHEN_TARGETING_REACT_JSX_EMIT_E_G_REACT_CREATE_ELEMENT_OR_H: Message = Message { code: 6146, category: Category::Message, key: Key("Specify_the_JSX_factory_function_to_use_when_targeting_react_JSX_emit_e_g_React_createElement_or_h_6146"), text: "Specify the JSX factory function to use when targeting 'react' JSX emit, e.g. 'React.createElement' or 'h'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_THE_JSX_FACTORY_FUNCTION_TO_USE_WHEN_TARGETING_REACT_JSX_EMIT_E_G_REACT_CREATE_ELEMENT_OR_H: Message = Message { code: 6146, category: Category::Message, key: Key("Specify_the_JSX_factory_function_to_use_when_targeting_react_JSX_emit_e_g_React_createElement_or_h_6146"), text: "Specify the JSX factory function to use when targeting 'react' JSX emit, e.g. 'React.createElement' or 'h'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static RESOLUTION_FOR_MODULE_0_WAS_FOUND_IN_CACHE_FROM_LOCATION_1: Message = Message {
+static RESOLUTION_FOR_MODULE_0_WAS_FOUND_IN_CACHE_FROM_LOCATION_1: Message = Message {
     code: 6147,
     category: Category::Message,
     key: Key("Resolution_for_module_0_was_found_in_cache_from_location_1_6147"),
@@ -11025,7 +11084,7 @@ pub static DIRECTORY_0_DOES_NOT_EXIST_SKIPPING_ALL_LOOKUPS_IN_IT: Message = Mess
     reports_deprecated: false,
 };
 
-pub static SHOW_DIAGNOSTIC_INFORMATION: Message = Message {
+static SHOW_DIAGNOSTIC_INFORMATION: Message = Message {
     code: 6149,
     category: Category::Message,
     key: Key("Show_diagnostic_information_6149"),
@@ -11035,7 +11094,7 @@ pub static SHOW_DIAGNOSTIC_INFORMATION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SHOW_VERBOSE_DIAGNOSTIC_INFORMATION: Message = Message {
+static SHOW_VERBOSE_DIAGNOSTIC_INFORMATION: Message = Message {
     code: 6150,
     category: Category::Message,
     key: Key("Show_verbose_diagnostic_information_6150"),
@@ -11045,31 +11104,29 @@ pub static SHOW_VERBOSE_DIAGNOSTIC_INFORMATION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EMIT_A_SINGLE_FILE_WITH_SOURCE_MAPS_INSTEAD_OF_HAVING_A_SEPARATE_FILE: Message =
-    Message {
-        code: 6151,
-        category: Category::Message,
-        key: Key("Emit_a_single_file_with_source_maps_instead_of_having_a_separate_file_6151"),
-        text: "Emit a single file with source maps instead of having a separate file.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static EMIT_A_SINGLE_FILE_WITH_SOURCE_MAPS_INSTEAD_OF_HAVING_A_SEPARATE_FILE: Message = Message {
+    code: 6151,
+    category: Category::Message,
+    key: Key("Emit_a_single_file_with_source_maps_instead_of_having_a_separate_file_6151"),
+    text: "Emit a single file with source maps instead of having a separate file.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
-pub static EMIT_THE_SOURCE_ALONGSIDE_THE_SOURCEMAPS_WITHIN_A_SINGLE_FILE_REQUIRES_INLINE_SOURCE_MAP_OR_SOURCE_MAP_TO_BE_SET: Message = Message { code: 6152, category: Category::Message, key: Key("Emit_the_source_alongside_the_sourcemaps_within_a_single_file_requires_inlineSourceMap_or_sourceMap__6152"), text: "Emit the source alongside the sourcemaps within a single file; requires '--inlineSourceMap' or '--sourceMap' to be set.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static EMIT_THE_SOURCE_ALONGSIDE_THE_SOURCEMAPS_WITHIN_A_SINGLE_FILE_REQUIRES_INLINE_SOURCE_MAP_OR_SOURCE_MAP_TO_BE_SET: Message = Message { code: 6152, category: Category::Message, key: Key("Emit_the_source_alongside_the_sourcemaps_within_a_single_file_requires_inlineSourceMap_or_sourceMap__6152"), text: "Emit the source alongside the sourcemaps within a single file; requires '--inlineSourceMap' or '--sourceMap' to be set.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static TRANSPILE_EACH_FILE_AS_A_SEPARATE_MODULE_SIMILAR_TO_TS_TRANSPILE_MODULE: Message =
-    Message {
-        code: 6153,
-        category: Category::Message,
-        key: Key("Transpile_each_file_as_a_separate_module_similar_to_ts_transpileModule_6153"),
-        text: "Transpile each file as a separate module (similar to 'ts.transpileModule').",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static TRANSPILE_EACH_FILE_AS_A_SEPARATE_MODULE_SIMILAR_TO_TS_TRANSPILE_MODULE: Message = Message {
+    code: 6153,
+    category: Category::Message,
+    key: Key("Transpile_each_file_as_a_separate_module_similar_to_ts_transpileModule_6153"),
+    text: "Transpile each file as a separate module (similar to 'ts.transpileModule').",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
-pub static PRINT_NAMES_OF_GENERATED_FILES_PART_OF_THE_COMPILATION: Message = Message {
+static PRINT_NAMES_OF_GENERATED_FILES_PART_OF_THE_COMPILATION: Message = Message {
     code: 6154,
     category: Category::Message,
     key: Key("Print_names_of_generated_files_part_of_the_compilation_6154"),
@@ -11079,7 +11136,7 @@ pub static PRINT_NAMES_OF_GENERATED_FILES_PART_OF_THE_COMPILATION: Message = Mes
     reports_deprecated: false,
 };
 
-pub static PRINT_NAMES_OF_FILES_PART_OF_THE_COMPILATION: Message = Message {
+static PRINT_NAMES_OF_FILES_PART_OF_THE_COMPILATION: Message = Message {
     code: 6155,
     category: Category::Message,
     key: Key("Print_names_of_files_part_of_the_compilation_6155"),
@@ -11089,7 +11146,7 @@ pub static PRINT_NAMES_OF_FILES_PART_OF_THE_COMPILATION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static THE_LOCALE_USED_WHEN_DISPLAYING_MESSAGES_TO_THE_USER_E_G_EN_US: Message = Message {
+static THE_LOCALE_USED_WHEN_DISPLAYING_MESSAGES_TO_THE_USER_E_G_EN_US: Message = Message {
     code: 6156,
     category: Category::Message,
     key: Key("The_locale_used_when_displaying_messages_to_the_user_e_g_en_us_6156"),
@@ -11099,18 +11156,17 @@ pub static THE_LOCALE_USED_WHEN_DISPLAYING_MESSAGES_TO_THE_USER_E_G_EN_US: Messa
     reports_deprecated: false,
 };
 
-pub static DO_NOT_GENERATE_CUSTOM_HELPER_FUNCTIONS_LIKE_EXTENDS_IN_COMPILED_OUTPUT: Message =
-    Message {
-        code: 6157,
-        category: Category::Message,
-        key: Key("Do_not_generate_custom_helper_functions_like_extends_in_compiled_output_6157"),
-        text: "Do not generate custom helper functions like '__extends' in compiled output.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static DO_NOT_GENERATE_CUSTOM_HELPER_FUNCTIONS_LIKE_EXTENDS_IN_COMPILED_OUTPUT: Message = Message {
+    code: 6157,
+    category: Category::Message,
+    key: Key("Do_not_generate_custom_helper_functions_like_extends_in_compiled_output_6157"),
+    text: "Do not generate custom helper functions like '__extends' in compiled output.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
-pub static DO_NOT_INCLUDE_THE_DEFAULT_LIBRARY_FILE_LIB_D_TS: Message = Message {
+static DO_NOT_INCLUDE_THE_DEFAULT_LIBRARY_FILE_LIB_D_TS: Message = Message {
     code: 6158,
     category: Category::Message,
     key: Key("Do_not_include_the_default_library_file_lib_d_ts_6158"),
@@ -11120,7 +11176,7 @@ pub static DO_NOT_INCLUDE_THE_DEFAULT_LIBRARY_FILE_LIB_D_TS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DO_NOT_ADD_TRIPLE_SLASH_REFERENCES_OR_IMPORTED_MODULES_TO_THE_LIST_OF_COMPILED_FILES:
+static DO_NOT_ADD_TRIPLE_SLASH_REFERENCES_OR_IMPORTED_MODULES_TO_THE_LIST_OF_COMPILED_FILES:
     Message = Message {
     code: 6159,
     category: Category::Message,
@@ -11133,9 +11189,9 @@ pub static DO_NOT_ADD_TRIPLE_SLASH_REFERENCES_OR_IMPORTED_MODULES_TO_THE_LIST_OF
     reports_deprecated: false,
 };
 
-pub static DEPRECATED_USE_SKIP_LIB_CHECK_INSTEAD_SKIP_TYPE_CHECKING_OF_DEFAULT_LIBRARY_DECLARATION_FILES: Message = Message { code: 6160, category: Category::Message, key: Key("Deprecated_Use_skipLibCheck_instead_Skip_type_checking_of_default_library_declaration_files_6160"), text: "[Deprecated] Use '--skipLibCheck' instead. Skip type checking of default library declaration files.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static DEPRECATED_USE_SKIP_LIB_CHECK_INSTEAD_SKIP_TYPE_CHECKING_OF_DEFAULT_LIBRARY_DECLARATION_FILES: Message = Message { code: 6160, category: Category::Message, key: Key("Deprecated_Use_skipLibCheck_instead_Skip_type_checking_of_default_library_declaration_files_6160"), text: "[Deprecated] Use '--skipLibCheck' instead. Skip type checking of default library declaration files.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static LIST_OF_FOLDERS_TO_INCLUDE_TYPE_DEFINITIONS_FROM: Message = Message {
+static LIST_OF_FOLDERS_TO_INCLUDE_TYPE_DEFINITIONS_FROM: Message = Message {
     code: 6161,
     category: Category::Message,
     key: Key("List_of_folders_to_include_type_definitions_from_6161"),
@@ -11145,7 +11201,7 @@ pub static LIST_OF_FOLDERS_TO_INCLUDE_TYPE_DEFINITIONS_FROM: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DISABLE_SIZE_LIMITATIONS_ON_JAVA_SCRIPT_PROJECTS: Message = Message {
+static DISABLE_SIZE_LIMITATIONS_ON_JAVA_SCRIPT_PROJECTS: Message = Message {
     code: 6162,
     category: Category::Message,
     key: Key("Disable_size_limitations_on_JavaScript_projects_6162"),
@@ -11155,7 +11211,7 @@ pub static DISABLE_SIZE_LIMITATIONS_ON_JAVA_SCRIPT_PROJECTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static THE_CHARACTER_SET_OF_THE_INPUT_FILES: Message = Message {
+static THE_CHARACTER_SET_OF_THE_INPUT_FILES: Message = Message {
     code: 6163,
     category: Category::Message,
     key: Key("The_character_set_of_the_input_files_6163"),
@@ -11178,7 +11234,7 @@ pub static SKIPPING_MODULE_0_THAT_LOOKS_LIKE_AN_ABSOLUTE_URI_TARGET_FILE_TYPES_C
         reports_deprecated: false,
     };
 
-pub static DO_NOT_TRUNCATE_ERROR_MESSAGES: Message = Message {
+static DO_NOT_TRUNCATE_ERROR_MESSAGES: Message = Message {
     code: 6165,
     category: Category::Message,
     key: Key("Do_not_truncate_error_messages_6165"),
@@ -11188,7 +11244,7 @@ pub static DO_NOT_TRUNCATE_ERROR_MESSAGES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static OUTPUT_DIRECTORY_FOR_GENERATED_DECLARATION_FILES: Message = Message {
+static OUTPUT_DIRECTORY_FOR_GENERATED_DECLARATION_FILES: Message = Message {
     code: 6166,
     category: Category::Message,
     key: Key("Output_directory_for_generated_declaration_files_6166"),
@@ -11198,7 +11254,7 @@ pub static OUTPUT_DIRECTORY_FOR_GENERATED_DECLARATION_FILES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static A_SERIES_OF_ENTRIES_WHICH_RE_MAP_IMPORTS_TO_LOOKUP_LOCATIONS_RELATIVE_TO_THE_BASE_URL:
+static A_SERIES_OF_ENTRIES_WHICH_RE_MAP_IMPORTS_TO_LOOKUP_LOCATIONS_RELATIVE_TO_THE_BASE_URL:
     Message = Message {
     code: 6167,
     category: Category::Message,
@@ -11211,7 +11267,7 @@ pub static A_SERIES_OF_ENTRIES_WHICH_RE_MAP_IMPORTS_TO_LOOKUP_LOCATIONS_RELATIVE
     reports_deprecated: false,
 };
 
-pub static LIST_OF_ROOT_FOLDERS_WHOSE_COMBINED_CONTENT_REPRESENTS_THE_STRUCTURE_OF_THE_PROJECT_AT_RUNTIME: Message = Message { code: 6168, category: Category::Message, key: Key("List_of_root_folders_whose_combined_content_represents_the_structure_of_the_project_at_runtime_6168"), text: "List of root folders whose combined content represents the structure of the project at runtime.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static LIST_OF_ROOT_FOLDERS_WHOSE_COMBINED_CONTENT_REPRESENTS_THE_STRUCTURE_OF_THE_PROJECT_AT_RUNTIME: Message = Message { code: 6168, category: Category::Message, key: Key("List_of_root_folders_whose_combined_content_represents_the_structure_of_the_project_at_runtime_6168"), text: "List of root folders whose combined content represents the structure of the project at runtime.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static SHOW_ALL_COMPILER_OPTIONS: Message = Message {
     code: 6169,
@@ -11223,7 +11279,7 @@ pub static SHOW_ALL_COMPILER_OPTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DEPRECATED_USE_OUT_FILE_INSTEAD_CONCATENATE_AND_EMIT_OUTPUT_TO_SINGLE_FILE: Message =
+static DEPRECATED_USE_OUT_FILE_INSTEAD_CONCATENATE_AND_EMIT_OUTPUT_TO_SINGLE_FILE: Message =
     Message {
         code: 6170,
         category: Category::Message,
@@ -11244,7 +11300,18 @@ pub static COMMAND_LINE_OPTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static PROVIDE_FULL_SUPPORT_FOR_ITERABLES_IN_FOR_OF_SPREAD_AND_DESTRUCTURING_WHEN_TARGETING_ES5: Message = Message { code: 6179, category: Category::Message, key: Key("Provide_full_support_for_iterables_in_for_of_spread_and_destructuring_when_targeting_ES5_6179"), text: "Provide full support for iterables in 'for-of', spread, and destructuring when targeting 'ES5'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static PROVIDE_FULL_SUPPORT_FOR_ITERABLES_IN_FOR_OF_SPREAD_AND_DESTRUCTURING_WHEN_TARGETING_ES5:
+    Message = Message {
+    code: 6179,
+    category: Category::Message,
+    key: Key(
+        "Provide_full_support_for_iterables_in_for_of_spread_and_destructuring_when_targeting_ES5_6179",
+    ),
+    text: "Provide full support for iterables in 'for-of', spread, and destructuring when targeting 'ES5'.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static ENABLE_ALL_STRICT_TYPE_CHECKING_OPTIONS: Message = Message {
     code: 6180,
@@ -11266,11 +11333,22 @@ pub static SCOPED_PACKAGE_DETECTED_LOOKING_IN_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_SUCCESSFULLY_RESOLVED_TO_2: Message = Message { code: 6183, category: Category::Message, key: Key("Reusing_resolution_of_module_0_from_1_of_old_program_it_was_successfully_resolved_to_2_6183"), text: "Reusing resolution of module '{0}' from '{1}' of old program, it was successfully resolved to '{2}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_SUCCESSFULLY_RESOLVED_TO_2:
+    Message = Message {
+    code: 6183,
+    category: Category::Message,
+    key: Key(
+        "Reusing_resolution_of_module_0_from_1_of_old_program_it_was_successfully_resolved_to_2_6183",
+    ),
+    text: "Reusing resolution of module '{0}' from '{1}' of old program, it was successfully resolved to '{2}'.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
-pub static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_SUCCESSFULLY_RESOLVED_TO_2_WITH_PACKAGE_ID_3: Message = Message { code: 6184, category: Category::Message, key: Key("Reusing_resolution_of_module_0_from_1_of_old_program_it_was_successfully_resolved_to_2_with_Package__6184"), text: "Reusing resolution of module '{0}' from '{1}' of old program, it was successfully resolved to '{2}' with Package ID '{3}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_SUCCESSFULLY_RESOLVED_TO_2_WITH_PACKAGE_ID_3: Message = Message { code: 6184, category: Category::Message, key: Key("Reusing_resolution_of_module_0_from_1_of_old_program_it_was_successfully_resolved_to_2_with_Package__6184"), text: "Reusing resolution of module '{0}' from '{1}' of old program, it was successfully resolved to '{2}' with Package ID '{3}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static ENABLE_STRICT_CHECKING_OF_FUNCTION_TYPES: Message = Message {
+static ENABLE_STRICT_CHECKING_OF_FUNCTION_TYPES: Message = Message {
     code: 6186,
     category: Category::Message,
     key: Key("Enable_strict_checking_of_function_types_6186"),
@@ -11280,7 +11358,7 @@ pub static ENABLE_STRICT_CHECKING_OF_FUNCTION_TYPES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ENABLE_STRICT_CHECKING_OF_PROPERTY_INITIALIZATION_IN_CLASSES: Message = Message {
+static ENABLE_STRICT_CHECKING_OF_PROPERTY_INITIALIZATION_IN_CLASSES: Message = Message {
     code: 6187,
     category: Category::Message,
     key: Key("Enable_strict_checking_of_property_initialization_in_classes_6187"),
@@ -11310,7 +11388,7 @@ pub static MULTIPLE_CONSECUTIVE_NUMERIC_SEPARATORS_ARE_NOT_PERMITTED: Message = 
     reports_deprecated: false,
 };
 
-pub static WHETHER_TO_KEEP_OUTDATED_CONSOLE_OUTPUT_IN_WATCH_MODE_INSTEAD_OF_CLEARING_THE_SCREEN:
+static WHETHER_TO_KEEP_OUTDATED_CONSOLE_OUTPUT_IN_WATCH_MODE_INSTEAD_OF_CLEARING_THE_SCREEN:
     Message = Message {
     code: 6191,
     category: Category::Message,
@@ -11353,7 +11431,7 @@ pub static FOUND_0_ERRORS_WATCHING_FOR_FILE_CHANGES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static RESOLVE_KEYOF_TO_STRING_VALUED_PROPERTY_NAMES_ONLY_NO_NUMBERS_OR_SYMBOLS: Message =
+static RESOLVE_KEYOF_TO_STRING_VALUED_PROPERTY_NAMES_ONLY_NO_NUMBERS_OR_SYMBOLS: Message =
     Message {
         code: 6195,
         category: Category::Message,
@@ -11374,7 +11452,7 @@ pub static X_0_IS_DECLARED_BUT_NEVER_USED: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INCLUDE_MODULES_IMPORTED_WITH_JSON_EXTENSION: Message = Message {
+static INCLUDE_MODULES_IMPORTED_WITH_JSON_EXTENSION: Message = Message {
     code: 6197,
     category: Category::Message,
     key: Key("Include_modules_imported_with_json_extension_6197"),
@@ -11404,7 +11482,7 @@ pub static ALL_VARIABLES_ARE_UNUSED: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DEFINITIONS_OF_THE_FOLLOWING_IDENTIFIERS_CONFLICT_WITH_THOSE_IN_ANOTHER_FILE_COLON_0:
+static DEFINITIONS_OF_THE_FOLLOWING_IDENTIFIERS_CONFLICT_WITH_THOSE_IN_ANOTHER_FILE_COLON_0:
     Message = Message {
     code: 6200,
     category: Category::Error,
@@ -11417,7 +11495,7 @@ pub static DEFINITIONS_OF_THE_FOLLOWING_IDENTIFIERS_CONFLICT_WITH_THOSE_IN_ANOTH
     reports_deprecated: false,
 };
 
-pub static CONFLICTS_ARE_IN_THIS_FILE: Message = Message {
+static CONFLICTS_ARE_IN_THIS_FILE: Message = Message {
     code: 6201,
     category: Category::Message,
     key: Key("Conflicts_are_in_this_file_6201"),
@@ -11543,7 +11621,7 @@ pub static DID_YOU_MEAN_TO_USE_NEW_WITH_THIS_EXPRESSION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ENABLE_STRICT_BIND_CALL_AND_APPLY_METHODS_ON_FUNCTIONS: Message = Message {
+static ENABLE_STRICT_BIND_CALL_AND_APPLY_METHODS_ON_FUNCTIONS: Message = Message {
     code: 6214,
     category: Category::Message,
     key: Key("Enable_strict_bind_call_and_apply_methods_on_functions_6214"),
@@ -11605,20 +11683,20 @@ pub static X_PACKAGE_JSON_HAD_A_FALSY_0_FIELD: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DISABLE_USE_OF_SOURCE_FILES_INSTEAD_OF_DECLARATION_FILES_FROM_REFERENCED_PROJECTS:
-    Message = Message {
-    code: 6221,
-    category: Category::Message,
-    key: Key(
-        "Disable_use_of_source_files_instead_of_declaration_files_from_referenced_projects_6221",
-    ),
-    text: "Disable use of source files instead of declaration files from referenced projects.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static DISABLE_USE_OF_SOURCE_FILES_INSTEAD_OF_DECLARATION_FILES_FROM_REFERENCED_PROJECTS: Message =
+    Message {
+        code: 6221,
+        category: Category::Message,
+        key: Key(
+            "Disable_use_of_source_files_instead_of_declaration_files_from_referenced_projects_6221",
+        ),
+        text: "Disable use of source files instead of declaration files from referenced projects.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
-pub static EMIT_CLASS_FIELDS_WITH_DEFINE_INSTEAD_OF_SET: Message = Message {
+static EMIT_CLASS_FIELDS_WITH_DEFINE_INSTEAD_OF_SET: Message = Message {
     code: 6222,
     category: Category::Message,
     key: Key("Emit_class_fields_with_Define_instead_of_Set_6222"),
@@ -11628,7 +11706,7 @@ pub static EMIT_CLASS_FIELDS_WITH_DEFINE_INSTEAD_OF_SET: Message = Message {
     reports_deprecated: false,
 };
 
-pub static GENERATES_A_CPU_PROFILE: Message = Message {
+static GENERATES_A_CPU_PROFILE: Message = Message {
     code: 6223,
     category: Category::Message,
     key: Key("Generates_a_CPU_profile_6223"),
@@ -11638,7 +11716,7 @@ pub static GENERATES_A_CPU_PROFILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DISABLE_SOLUTION_SEARCHING_FOR_THIS_PROJECT: Message = Message {
+static DISABLE_SOLUTION_SEARCHING_FOR_THIS_PROJECT: Message = Message {
     code: 6224,
     category: Category::Message,
     key: Key("Disable_solution_searching_for_this_project_6224"),
@@ -11648,11 +11726,11 @@ pub static DISABLE_SOLUTION_SEARCHING_FOR_THIS_PROJECT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SPECIFY_STRATEGY_FOR_WATCHING_FILE_COLON_FIXED_POLLING_INTERVAL_DEFAULT_PRIORITY_POLLING_INTERVAL_DYNAMIC_PRIORITY_POLLING_FIXED_CHUNK_SIZE_POLLING_USE_FS_EVENTS_USE_FS_EVENTS_ON_PARENT_DIRECTORY: Message = Message { code: 6225, category: Category::Message, key: Key("Specify_strategy_for_watching_file_Colon_FixedPollingInterval_default_PriorityPollingInterval_Dynami_6225"), text: "Specify strategy for watching file: 'FixedPollingInterval' (default), 'PriorityPollingInterval', 'DynamicPriorityPolling', 'FixedChunkSizePolling', 'UseFsEvents', 'UseFsEventsOnParentDirectory'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_STRATEGY_FOR_WATCHING_FILE_COLON_FIXED_POLLING_INTERVAL_DEFAULT_PRIORITY_POLLING_INTERVAL_DYNAMIC_PRIORITY_POLLING_FIXED_CHUNK_SIZE_POLLING_USE_FS_EVENTS_USE_FS_EVENTS_ON_PARENT_DIRECTORY: Message = Message { code: 6225, category: Category::Message, key: Key("Specify_strategy_for_watching_file_Colon_FixedPollingInterval_default_PriorityPollingInterval_Dynami_6225"), text: "Specify strategy for watching file: 'FixedPollingInterval' (default), 'PriorityPollingInterval', 'DynamicPriorityPolling', 'FixedChunkSizePolling', 'UseFsEvents', 'UseFsEventsOnParentDirectory'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static SPECIFY_STRATEGY_FOR_WATCHING_DIRECTORY_ON_PLATFORMS_THAT_DON_T_SUPPORT_RECURSIVE_WATCHING_NATIVELY_COLON_USE_FS_EVENTS_DEFAULT_FIXED_POLLING_INTERVAL_DYNAMIC_PRIORITY_POLLING_FIXED_CHUNK_SIZE_POLLING: Message = Message { code: 6226, category: Category::Message, key: Key("Specify_strategy_for_watching_directory_on_platforms_that_don_t_support_recursive_watching_natively__6226"), text: "Specify strategy for watching directory on platforms that don't support recursive watching natively: 'UseFsEvents' (default), 'FixedPollingInterval', 'DynamicPriorityPolling', 'FixedChunkSizePolling'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_STRATEGY_FOR_WATCHING_DIRECTORY_ON_PLATFORMS_THAT_DON_T_SUPPORT_RECURSIVE_WATCHING_NATIVELY_COLON_USE_FS_EVENTS_DEFAULT_FIXED_POLLING_INTERVAL_DYNAMIC_PRIORITY_POLLING_FIXED_CHUNK_SIZE_POLLING: Message = Message { code: 6226, category: Category::Message, key: Key("Specify_strategy_for_watching_directory_on_platforms_that_don_t_support_recursive_watching_natively__6226"), text: "Specify strategy for watching directory on platforms that don't support recursive watching natively: 'UseFsEvents' (default), 'FixedPollingInterval', 'DynamicPriorityPolling', 'FixedChunkSizePolling'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static SPECIFY_STRATEGY_FOR_CREATING_A_POLLING_WATCH_WHEN_IT_FAILS_TO_CREATE_USING_FILE_SYSTEM_EVENTS_COLON_FIXED_INTERVAL_DEFAULT_PRIORITY_INTERVAL_DYNAMIC_PRIORITY_FIXED_CHUNK_SIZE: Message = Message { code: 6227, category: Category::Message, key: Key("Specify_strategy_for_creating_a_polling_watch_when_it_fails_to_create_using_file_system_events_Colon_6227"), text: "Specify strategy for creating a polling watch when it fails to create using file system events: 'FixedInterval' (default), 'PriorityInterval', 'DynamicPriority', 'FixedChunkSize'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_STRATEGY_FOR_CREATING_A_POLLING_WATCH_WHEN_IT_FAILS_TO_CREATE_USING_FILE_SYSTEM_EVENTS_COLON_FIXED_INTERVAL_DEFAULT_PRIORITY_INTERVAL_DYNAMIC_PRIORITY_FIXED_CHUNK_SIZE: Message = Message { code: 6227, category: Category::Message, key: Key("Specify_strategy_for_creating_a_polling_watch_when_it_fails_to_create_using_file_system_events_Colon_6227"), text: "Specify strategy for creating a polling watch when it fails to create using file system events: 'FixedInterval' (default), 'PriorityInterval', 'DynamicPriority', 'FixedChunkSize'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static TAG_0_EXPECTS_AT_LEAST_1_ARGUMENTS_BUT_THE_JSX_FACTORY_2_PROVIDES_AT_MOST_3: Message =
     Message {
@@ -11694,7 +11772,7 @@ pub static THIS_IS_THE_DECLARATION_BEING_AUGMENTED_CONSIDER_MOVING_THE_AUGMENTIN
 
 pub static THIS_EXPRESSION_IS_NOT_CALLABLE_BECAUSE_IT_IS_A_GET_ACCESSOR_DID_YOU_MEAN_TO_USE_IT_WITHOUT: Message = Message { code: 6234, category: Category::Error, key: Key("This_expression_is_not_callable_because_it_is_a_get_accessor_Did_you_mean_to_use_it_without_6234"), text: "This expression is not callable because it is a 'get' accessor. Did you mean to use it without '()'?", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static DISABLE_LOADING_REFERENCED_PROJECTS: Message = Message {
+static DISABLE_LOADING_REFERENCED_PROJECTS: Message = Message {
     code: 6235,
     category: Category::Message,
     key: Key("Disable_loading_referenced_projects_6235"),
@@ -11724,7 +11802,7 @@ pub static GENERATES_AN_EVENT_TRACE_AND_A_LIST_OF_TYPES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SPECIFY_THE_MODULE_SPECIFIER_TO_BE_USED_TO_IMPORT_THE_JSX_AND_JSXS_FACTORY_FUNCTIONS_FROM_EG_REACT: Message = Message { code: 6238, category: Category::Error, key: Key("Specify_the_module_specifier_to_be_used_to_import_the_jsx_and_jsxs_factory_functions_from_eg_react_6238"), text: "Specify the module specifier to be used to import the 'jsx' and 'jsxs' factory functions from. eg, react", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_THE_MODULE_SPECIFIER_TO_BE_USED_TO_IMPORT_THE_JSX_AND_JSXS_FACTORY_FUNCTIONS_FROM_EG_REACT: Message = Message { code: 6238, category: Category::Error, key: Key("Specify_the_module_specifier_to_be_used_to_import_the_jsx_and_jsxs_factory_functions_from_eg_react_6238"), text: "Specify the module specifier to be used to import the 'jsx' and 'jsxs' factory functions from. eg, react", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static FILE_0_EXISTS_ACCORDING_TO_EARLIER_CACHED_LOOKUPS: Message = Message {
     code: 6239,
@@ -11746,7 +11824,7 @@ pub static FILE_0_DOES_NOT_EXIST_ACCORDING_TO_EARLIER_CACHED_LOOKUPS: Message = 
     reports_deprecated: false,
 };
 
-pub static RESOLUTION_FOR_TYPE_REFERENCE_DIRECTIVE_0_WAS_FOUND_IN_CACHE_FROM_LOCATION_1: Message =
+static RESOLUTION_FOR_TYPE_REFERENCE_DIRECTIVE_0_WAS_FOUND_IN_CACHE_FROM_LOCATION_1: Message =
     Message {
         code: 6241,
         category: Category::Message,
@@ -11759,7 +11837,7 @@ pub static RESOLUTION_FOR_TYPE_REFERENCE_DIRECTIVE_0_WAS_FOUND_IN_CACHE_FROM_LOC
         reports_deprecated: false,
     };
 
-pub static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_1: Message = Message {
+static RESOLVING_TYPE_REFERENCE_DIRECTIVE_0_CONTAINING_FILE_1: Message = Message {
     code: 6242,
     category: Category::Message,
     key: Key("Resolving_type_reference_directive_0_containing_file_1_6242"),
@@ -11961,7 +12039,7 @@ pub static FOUND_0_ERRORS_IN_1_FILES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static FILE_NAME_0_HAS_A_1_EXTENSION_LOOKING_UP_2_INSTEAD: Message = Message {
+static FILE_NAME_0_HAS_A_1_EXTENSION_LOOKING_UP_2_INSTEAD: Message = Message {
     code: 6262,
     category: Category::Message,
     key: Key("File_name_0_has_a_1_extension_looking_up_2_instead_6262"),
@@ -12082,9 +12160,9 @@ pub static RESOLUTION_OF_NON_RELATIVE_NAME_FAILED_TRYING_WITH_MODERN_NODE_RESOLU
 
 pub static THERE_ARE_TYPES_AT_0_BUT_THIS_RESULT_COULD_NOT_BE_RESOLVED_WHEN_RESPECTING_PACKAGE_JSON_EXPORTS_THE_1_LIBRARY_MAY_NEED_TO_UPDATE_ITS_PACKAGE_JSON_OR_TYPINGS: Message = Message { code: 6278, category: Category::Message, key: Key("There_are_types_at_0_but_this_result_could_not_be_resolved_when_respecting_package_json_exports_The__6278"), text: "There are types at '{0}', but this result could not be resolved when respecting package.json \"exports\". The '{1}' library may need to update its package.json or typings.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static RESOLUTION_OF_NON_RELATIVE_NAME_FAILED_TRYING_WITH_MODULE_RESOLUTION_BUNDLER_TO_SEE_IF_PROJECT_MAY_NEED_CONFIGURATION_UPDATE: Message = Message { code: 6279, category: Category::Message, key: Key("Resolution_of_non_relative_name_failed_trying_with_moduleResolution_bundler_to_see_if_project_may_ne_6279"), text: "Resolution of non-relative name failed; trying with '--moduleResolution bundler' to see if project may need configuration update.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static RESOLUTION_OF_NON_RELATIVE_NAME_FAILED_TRYING_WITH_MODULE_RESOLUTION_BUNDLER_TO_SEE_IF_PROJECT_MAY_NEED_CONFIGURATION_UPDATE: Message = Message { code: 6279, category: Category::Message, key: Key("Resolution_of_non_relative_name_failed_trying_with_moduleResolution_bundler_to_see_if_project_may_ne_6279"), text: "Resolution of non-relative name failed; trying with '--moduleResolution bundler' to see if project may need configuration update.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static THERE_ARE_TYPES_AT_0_BUT_THIS_RESULT_COULD_NOT_BE_RESOLVED_UNDER_YOUR_CURRENT_MODULE_RESOLUTION_SETTING_CONSIDER_UPDATING_TO_NODE16_NODENEXT_OR_BUNDLER: Message = Message { code: 6280, category: Category::Message, key: Key("There_are_types_at_0_but_this_result_could_not_be_resolved_under_your_current_moduleResolution_setti_6280"), text: "There are types at '{0}', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static THERE_ARE_TYPES_AT_0_BUT_THIS_RESULT_COULD_NOT_BE_RESOLVED_UNDER_YOUR_CURRENT_MODULE_RESOLUTION_SETTING_CONSIDER_UPDATING_TO_NODE16_NODENEXT_OR_BUNDLER: Message = Message { code: 6280, category: Category::Message, key: Key("There_are_types_at_0_but_this_result_could_not_be_resolved_under_your_current_moduleResolution_setti_6280"), text: "There are types at '{0}', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static X_PACKAGE_JSON_HAS_A_PEER_DEPENDENCIES_FIELD: Message = Message {
     code: 6281,
@@ -12116,7 +12194,7 @@ pub static FAILED_TO_FIND_PEER_DEPENDENCY_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static FILE_LAYOUT: Message = Message {
+static FILE_LAYOUT: Message = Message {
     code: 6284,
     category: Category::Message,
     key: Key("File_Layout_6284"),
@@ -12126,7 +12204,7 @@ pub static FILE_LAYOUT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ENVIRONMENT_SETTINGS: Message = Message {
+static ENVIRONMENT_SETTINGS: Message = Message {
     code: 6285,
     category: Category::Message,
     key: Key("Environment_Settings_6285"),
@@ -12136,7 +12214,7 @@ pub static ENVIRONMENT_SETTINGS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SEE_ALSO_HTTPS_COLON_SLASH_SLASHAKA_MS_SLASHTSCONFIG_SLASHMODULE: Message = Message {
+static SEE_ALSO_HTTPS_COLON_SLASH_SLASHAKA_MS_SLASHTSCONFIG_SLASHMODULE: Message = Message {
     code: 6286,
     category: Category::Message,
     key: Key("See_also_https_Colon_Slash_Slashaka_ms_Slashtsconfig_Slashmodule_6286"),
@@ -12146,7 +12224,7 @@ pub static SEE_ALSO_HTTPS_COLON_SLASH_SLASHAKA_MS_SLASHTSCONFIG_SLASHMODULE: Mes
     reports_deprecated: false,
 };
 
-pub static FOR_NODEJS_COLON: Message = Message {
+static FOR_NODEJS_COLON: Message = Message {
     code: 6287,
     category: Category::Message,
     key: Key("For_nodejs_Colon_6287"),
@@ -12156,7 +12234,7 @@ pub static FOR_NODEJS_COLON: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_AND_NPM_INSTALL_D_TYPES_SLASHNODE: Message = Message {
+static X_AND_NPM_INSTALL_D_TYPES_SLASHNODE: Message = Message {
     code: 6290,
     category: Category::Message,
     key: Key("and_npm_install_D_types_Slashnode_6290"),
@@ -12166,7 +12244,7 @@ pub static X_AND_NPM_INSTALL_D_TYPES_SLASHNODE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static OTHER_OUTPUTS: Message = Message {
+static OTHER_OUTPUTS: Message = Message {
     code: 6291,
     category: Category::Message,
     key: Key("Other_Outputs_6291"),
@@ -12176,7 +12254,7 @@ pub static OTHER_OUTPUTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static STRICTER_TYPECHECKING_OPTIONS: Message = Message {
+static STRICTER_TYPECHECKING_OPTIONS: Message = Message {
     code: 6292,
     category: Category::Message,
     key: Key("Stricter_Typechecking_Options_6292"),
@@ -12186,7 +12264,7 @@ pub static STRICTER_TYPECHECKING_OPTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static STYLE_OPTIONS: Message = Message {
+static STYLE_OPTIONS: Message = Message {
     code: 6293,
     category: Category::Message,
     key: Key("Style_Options_6293"),
@@ -12196,7 +12274,7 @@ pub static STYLE_OPTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static RECOMMENDED_OPTIONS: Message = Message {
+static RECOMMENDED_OPTIONS: Message = Message {
     code: 6294,
     category: Category::Message,
     key: Key("Recommended_Options_6294"),
@@ -12471,7 +12549,7 @@ pub static COMPOSITE_PROJECTS_MAY_NOT_DISABLE_INCREMENTAL_COMPILATION: Message =
     reports_deprecated: false,
 };
 
-pub static SPECIFY_FILE_TO_STORE_INCREMENTAL_COMPILATION_INFORMATION: Message = Message {
+static SPECIFY_FILE_TO_STORE_INCREMENTAL_COMPILATION_INFORMATION: Message = Message {
     code: 6380,
     category: Category::Message,
     key: Key("Specify_file_to_store_incremental_compilation_information_6380"),
@@ -12503,7 +12581,7 @@ pub static PROJECT_0_CAN_T_BE_BUILT_BECAUSE_ITS_DEPENDENCY_1_WAS_NOT_BUILT: Mess
     reports_deprecated: false,
 };
 
-pub static HAVE_RECOMPILES_IN_INCREMENTAL_AND_WATCH_ASSUME_THAT_CHANGES_WITHIN_A_FILE_WILL_ONLY_AFFECT_FILES_DIRECTLY_DEPENDING_ON_IT: Message = Message { code: 6384, category: Category::Message, key: Key("Have_recompiles_in_incremental_and_watch_assume_that_changes_within_a_file_will_only_affect_files_di_6384"), text: "Have recompiles in '--incremental' and '--watch' assume that changes within a file will only affect files directly depending on it.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static HAVE_RECOMPILES_IN_INCREMENTAL_AND_WATCH_ASSUME_THAT_CHANGES_WITHIN_A_FILE_WILL_ONLY_AFFECT_FILES_DIRECTLY_DEPENDING_ON_IT: Message = Message { code: 6384, category: Category::Message, key: Key("Have_recompiles_in_incremental_and_watch_assume_that_changes_within_a_file_will_only_affect_files_di_6384"), text: "Have recompiles in '--incremental' and '--watch' assume that changes within a file will only affect files directly depending on it.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static X_0_IS_DEPRECATED: Message = Message {
     code: 6385,
@@ -12515,7 +12593,7 @@ pub static X_0_IS_DEPRECATED: Message = Message {
     reports_deprecated: true,
 };
 
-pub static PERFORMANCE_TIMINGS_FOR_DIAGNOSTICS_OR_EXTENDED_DIAGNOSTICS_ARE_NOT_AVAILABLE_IN_THIS_SESSION_A_NATIVE_IMPLEMENTATION_OF_THE_WEB_PERFORMANCE_API_COULD_NOT_BE_FOUND: Message = Message { code: 6386, category: Category::Message, key: Key("Performance_timings_for_diagnostics_or_extendedDiagnostics_are_not_available_in_this_session_A_nativ_6386"), text: "Performance timings for '--diagnostics' or '--extendedDiagnostics' are not available in this session. A native implementation of the Web Performance API could not be found.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static PERFORMANCE_TIMINGS_FOR_DIAGNOSTICS_OR_EXTENDED_DIAGNOSTICS_ARE_NOT_AVAILABLE_IN_THIS_SESSION_A_NATIVE_IMPLEMENTATION_OF_THE_WEB_PERFORMANCE_API_COULD_NOT_BE_FOUND: Message = Message { code: 6386, category: Category::Message, key: Key("Performance_timings_for_diagnostics_or_extendedDiagnostics_are_not_available_in_this_session_A_nativ_6386"), text: "Performance timings for '--diagnostics' or '--extendedDiagnostics' are not available in this session. A native implementation of the Web Performance API could not be found.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static THE_SIGNATURE_0_OF_1_IS_DEPRECATED: Message = Message {
     code: 6387,
@@ -12537,7 +12615,7 @@ pub static PROJECT_0_IS_BEING_FORCIBLY_REBUILT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_NOT_RESOLVED: Message =
+static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_NOT_RESOLVED: Message =
     Message {
         code: 6389,
         category: Category::Message,
@@ -12548,23 +12626,34 @@ pub static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_NOT_RESOL
         reports_deprecated: false,
     };
 
-pub static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_SUCCESSFULLY_RESOLVED_TO_2: Message = Message { code: 6390, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_of_old_program_it_was_successfully_resolved__6390"), text: "Reusing resolution of type reference directive '{0}' from '{1}' of old program, it was successfully resolved to '{2}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_SUCCESSFULLY_RESOLVED_TO_2: Message = Message { code: 6390, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_of_old_program_it_was_successfully_resolved__6390"), text: "Reusing resolution of type reference directive '{0}' from '{1}' of old program, it was successfully resolved to '{2}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_SUCCESSFULLY_RESOLVED_TO_2_WITH_PACKAGE_ID_3: Message = Message { code: 6391, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_of_old_program_it_was_successfully_resolved__6391"), text: "Reusing resolution of type reference directive '{0}' from '{1}' of old program, it was successfully resolved to '{2}' with Package ID '{3}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_SUCCESSFULLY_RESOLVED_TO_2_WITH_PACKAGE_ID_3: Message = Message { code: 6391, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_of_old_program_it_was_successfully_resolved__6391"), text: "Reusing resolution of type reference directive '{0}' from '{1}' of old program, it was successfully resolved to '{2}' with Package ID '{3}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_NOT_RESOLVED: Message = Message { code: 6392, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_of_old_program_it_was_not_resolved_6392"), text: "Reusing resolution of type reference directive '{0}' from '{1}' of old program, it was not resolved.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_OF_OLD_PROGRAM_IT_WAS_NOT_RESOLVED: Message = Message { code: 6392, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_of_old_program_it_was_not_resolved_6392"), text: "Reusing resolution of type reference directive '{0}' from '{1}' of old program, it was not resolved.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_SUCCESSFULLY_RESOLVED_TO_3: Message = Message { code: 6393, category: Category::Message, key: Key("Reusing_resolution_of_module_0_from_1_found_in_cache_from_location_2_it_was_successfully_resolved_to_6393"), text: "Reusing resolution of module '{0}' from '{1}' found in cache from location '{2}', it was successfully resolved to '{3}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_SUCCESSFULLY_RESOLVED_TO_3: Message = Message { code: 6393, category: Category::Message, key: Key("Reusing_resolution_of_module_0_from_1_found_in_cache_from_location_2_it_was_successfully_resolved_to_6393"), text: "Reusing resolution of module '{0}' from '{1}' found in cache from location '{2}', it was successfully resolved to '{3}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_SUCCESSFULLY_RESOLVED_TO_3_WITH_PACKAGE_ID_4: Message = Message { code: 6394, category: Category::Message, key: Key("Reusing_resolution_of_module_0_from_1_found_in_cache_from_location_2_it_was_successfully_resolved_to_6394"), text: "Reusing resolution of module '{0}' from '{1}' found in cache from location '{2}', it was successfully resolved to '{3}' with Package ID '{4}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_SUCCESSFULLY_RESOLVED_TO_3_WITH_PACKAGE_ID_4: Message = Message { code: 6394, category: Category::Message, key: Key("Reusing_resolution_of_module_0_from_1_found_in_cache_from_location_2_it_was_successfully_resolved_to_6394"), text: "Reusing resolution of module '{0}' from '{1}' found in cache from location '{2}', it was successfully resolved to '{3}' with Package ID '{4}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_NOT_RESOLVED: Message = Message { code: 6395, category: Category::Message, key: Key("Reusing_resolution_of_module_0_from_1_found_in_cache_from_location_2_it_was_not_resolved_6395"), text: "Reusing resolution of module '{0}' from '{1}' found in cache from location '{2}', it was not resolved.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_MODULE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_NOT_RESOLVED:
+    Message = Message {
+    code: 6395,
+    category: Category::Message,
+    key: Key(
+        "Reusing_resolution_of_module_0_from_1_found_in_cache_from_location_2_it_was_not_resolved_6395",
+    ),
+    text: "Reusing resolution of module '{0}' from '{1}' found in cache from location '{2}', it was not resolved.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
-pub static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_SUCCESSFULLY_RESOLVED_TO_3: Message = Message { code: 6396, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_found_in_cache_from_location_2_it_was_succes_6396"), text: "Reusing resolution of type reference directive '{0}' from '{1}' found in cache from location '{2}', it was successfully resolved to '{3}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_SUCCESSFULLY_RESOLVED_TO_3: Message = Message { code: 6396, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_found_in_cache_from_location_2_it_was_succes_6396"), text: "Reusing resolution of type reference directive '{0}' from '{1}' found in cache from location '{2}', it was successfully resolved to '{3}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_SUCCESSFULLY_RESOLVED_TO_3_WITH_PACKAGE_ID_4: Message = Message { code: 6397, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_found_in_cache_from_location_2_it_was_succes_6397"), text: "Reusing resolution of type reference directive '{0}' from '{1}' found in cache from location '{2}', it was successfully resolved to '{3}' with Package ID '{4}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_SUCCESSFULLY_RESOLVED_TO_3_WITH_PACKAGE_ID_4: Message = Message { code: 6397, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_found_in_cache_from_location_2_it_was_succes_6397"), text: "Reusing resolution of type reference directive '{0}' from '{1}' found in cache from location '{2}', it was successfully resolved to '{3}' with Package ID '{4}'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_NOT_RESOLVED: Message = Message { code: 6398, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_found_in_cache_from_location_2_it_was_not_re_6398"), text: "Reusing resolution of type reference directive '{0}' from '{1}' found in cache from location '{2}', it was not resolved.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static REUSING_RESOLUTION_OF_TYPE_REFERENCE_DIRECTIVE_0_FROM_1_FOUND_IN_CACHE_FROM_LOCATION_2_IT_WAS_NOT_RESOLVED: Message = Message { code: 6398, category: Category::Message, key: Key("Reusing_resolution_of_type_reference_directive_0_from_1_found_in_cache_from_location_2_it_was_not_re_6398"), text: "Reusing resolution of type reference directive '{0}' from '{1}' found in cache from location '{2}', it was not resolved.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static PROJECT_0_IS_OUT_OF_DATE_BECAUSE_BUILDINFO_FILE_1_INDICATES_THAT_SOME_OF_THE_CHANGES_WERE_NOT_EMITTED: Message = Message { code: 6399, category: Category::Message, key: Key("Project_0_is_out_of_date_because_buildinfo_file_1_indicates_that_some_of_the_changes_were_not_emitte_6399"), text: "Project '{0}' is out of date because buildinfo file '{1}' indicates that some of the changes were not emitted", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -12762,7 +12851,7 @@ pub static MULTIPLE_MODULE_EXPORTS_ASSIGNMENTS_CANNOT_BE_SERIALIZED_FOR_DECLARAT
         reports_deprecated: false,
     };
 
-pub static NESTED_COMMON_JS_EXPORT_CONSTRUCTS_CANNOT_BE_SERIALIZED_FOR_DECLARATION_EMIT: Message =
+static NESTED_COMMON_JS_EXPORT_CONSTRUCTS_CANNOT_BE_SERIALIZED_FOR_DECLARATION_EMIT: Message =
     Message {
         code: 6425,
         category: Category::Error,
@@ -12830,16 +12919,15 @@ pub static FILE_0_IS_A_JAVA_SCRIPT_FILE_DID_YOU_MEAN_TO_ENABLE_THE_ALLOW_JS_OPTI
         reports_deprecated: false,
     };
 
-pub static PRINT_NAMES_OF_FILES_AND_THE_REASON_THEY_ARE_PART_OF_THE_COMPILATION: Message =
-    Message {
-        code: 6505,
-        category: Category::Message,
-        key: Key("Print_names_of_files_and_the_reason_they_are_part_of_the_compilation_6505"),
-        text: "Print names of files and the reason they are part of the compilation.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static PRINT_NAMES_OF_FILES_AND_THE_REASON_THEY_ARE_PART_OF_THE_COMPILATION: Message = Message {
+    code: 6505,
+    category: Category::Message,
+    key: Key("Print_names_of_files_and_the_reason_they_are_part_of_the_compilation_6505"),
+    text: "Print names of files and the reason they are part of the compilation.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static CONSIDER_ADDING_A_DECLARE_MODIFIER_TO_THIS_CLASS: Message = Message {
     code: 6506,
@@ -12915,7 +13003,18 @@ pub static SPECIFY_THE_BASE_DIRECTORY_TO_RESOLVE_NON_RELATIVE_MODULE_NAMES: Mess
     reports_deprecated: false,
 };
 
-pub static NO_LONGER_SUPPORTED_IN_EARLY_VERSIONS_MANUALLY_SET_THE_TEXT_ENCODING_FOR_READING_FILES: Message = Message { code: 6608, category: Category::Message, key: Key("No_longer_supported_In_early_versions_manually_set_the_text_encoding_for_reading_files_6608"), text: "No longer supported. In early versions, manually set the text encoding for reading files.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static NO_LONGER_SUPPORTED_IN_EARLY_VERSIONS_MANUALLY_SET_THE_TEXT_ENCODING_FOR_READING_FILES:
+    Message = Message {
+    code: 6608,
+    category: Category::Message,
+    key: Key(
+        "No_longer_supported_In_early_versions_manually_set_the_text_encoding_for_reading_files_6608",
+    ),
+    text: "No longer supported. In early versions, manually set the text encoding for reading files.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static ENABLE_ERROR_REPORTING_IN_TYPE_CHECKED_JAVA_SCRIPT_FILES: Message = Message {
     code: 6609,
@@ -12970,7 +13069,7 @@ pub static OUTPUT_COMPILER_PERFORMANCE_INFORMATION_AFTER_BUILDING: Message = Mes
     reports_deprecated: false,
 };
 
-pub static DISABLES_INFERENCE_FOR_TYPE_ACQUISITION_BY_LOOKING_AT_FILENAMES_IN_A_PROJECT: Message =
+static DISABLES_INFERENCE_FOR_TYPE_ACQUISITION_BY_LOOKING_AT_FILENAMES_IN_A_PROJECT: Message =
     Message {
         code: 6616,
         category: Category::Message,
@@ -13051,7 +13150,7 @@ pub static EMIT_DESIGN_TYPE_METADATA_FOR_DECORATED_DECLARATIONS_IN_SOURCE_FILES:
         reports_deprecated: false,
     };
 
-pub static DISABLE_THE_TYPE_ACQUISITION_FOR_JAVA_SCRIPT_PROJECTS: Message = Message {
+static DISABLE_THE_TYPE_ACQUISITION_FOR_JAVA_SCRIPT_PROJECTS: Message = Message {
     code: 6625,
     category: Category::Message,
     key: Key("Disable_the_type_acquisition_for_JavaScript_projects_6625"),
@@ -13063,7 +13162,7 @@ pub static DISABLE_THE_TYPE_ACQUISITION_FOR_JAVA_SCRIPT_PROJECTS: Message = Mess
 
 pub static EMIT_ADDITIONAL_JAVA_SCRIPT_TO_EASE_SUPPORT_FOR_IMPORTING_COMMON_JS_MODULES_THIS_ENABLES_ALLOW_SYNTHETIC_DEFAULT_IMPORTS_FOR_TYPE_COMPATIBILITY: Message = Message { code: 6626, category: Category::Message, key: Key("Emit_additional_JavaScript_to_ease_support_for_importing_CommonJS_modules_This_enables_allowSyntheti_6626"), text: "Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static FILTERS_RESULTS_FROM_THE_INCLUDE_OPTION: Message = Message {
+static FILTERS_RESULTS_FROM_THE_INCLUDE_OPTION: Message = Message {
     code: 6627,
     category: Category::Message,
     key: Key("Filters_results_from_the_include_option_6627"),
@@ -13073,7 +13172,7 @@ pub static FILTERS_RESULTS_FROM_THE_INCLUDE_OPTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_A_LIST_OF_DIRECTORIES_FROM_THE_WATCH_PROCESS: Message = Message {
+static REMOVE_A_LIST_OF_DIRECTORIES_FROM_THE_WATCH_PROCESS: Message = Message {
     code: 6628,
     category: Category::Message,
     key: Key("Remove_a_list_of_directories_from_the_watch_process_6628"),
@@ -13083,7 +13182,7 @@ pub static REMOVE_A_LIST_OF_DIRECTORIES_FROM_THE_WATCH_PROCESS: Message = Messag
     reports_deprecated: false,
 };
 
-pub static REMOVE_A_LIST_OF_FILES_FROM_THE_WATCH_MODE_S_PROCESSING: Message = Message {
+static REMOVE_A_LIST_OF_FILES_FROM_THE_WATCH_MODE_S_PROCESSING: Message = Message {
     code: 6629,
     category: Category::Message,
     key: Key("Remove_a_list_of_files_from_the_watch_mode_s_processing_6629"),
@@ -13125,22 +13224,22 @@ pub static OUTPUT_MORE_DETAILED_COMPILER_PERFORMANCE_INFORMATION_AFTER_BUILDING:
         reports_deprecated: false,
     };
 
-pub static SPECIFY_ONE_OR_MORE_PATH_OR_NODE_MODULE_REFERENCES_TO_BASE_CONFIGURATION_FILES_FROM_WHICH_SETTINGS_ARE_INHERITED: Message = Message { code: 6633, category: Category::Message, key: Key("Specify_one_or_more_path_or_node_module_references_to_base_configuration_files_from_which_settings_a_6633"), text: "Specify one or more path or node module references to base configuration files from which settings are inherited.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_ONE_OR_MORE_PATH_OR_NODE_MODULE_REFERENCES_TO_BASE_CONFIGURATION_FILES_FROM_WHICH_SETTINGS_ARE_INHERITED: Message = Message { code: 6633, category: Category::Message, key: Key("Specify_one_or_more_path_or_node_module_references_to_base_configuration_files_from_which_settings_a_6633"), text: "Specify one or more path or node module references to base configuration files from which settings are inherited.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static SPECIFY_WHAT_APPROACH_THE_WATCHER_SHOULD_USE_IF_THE_SYSTEM_RUNS_OUT_OF_NATIVE_FILE_WATCHERS: Message = Message { code: 6634, category: Category::Message, key: Key("Specify_what_approach_the_watcher_should_use_if_the_system_runs_out_of_native_file_watchers_6634"), text: "Specify what approach the watcher should use if the system runs out of native file watchers.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_WHAT_APPROACH_THE_WATCHER_SHOULD_USE_IF_THE_SYSTEM_RUNS_OUT_OF_NATIVE_FILE_WATCHERS: Message = Message { code: 6634, category: Category::Message, key: Key("Specify_what_approach_the_watcher_should_use_if_the_system_runs_out_of_native_file_watchers_6634"), text: "Specify what approach the watcher should use if the system runs out of native file watchers.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static INCLUDE_A_LIST_OF_FILES_THIS_DOES_NOT_SUPPORT_GLOB_PATTERNS_AS_OPPOSED_TO_INCLUDE:
-    Message = Message {
-    code: 6635,
-    category: Category::Message,
-    key: Key(
-        "Include_a_list_of_files_This_does_not_support_glob_patterns_as_opposed_to_include_6635",
-    ),
-    text: "Include a list of files. This does not support glob patterns, as opposed to `include`.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static INCLUDE_A_LIST_OF_FILES_THIS_DOES_NOT_SUPPORT_GLOB_PATTERNS_AS_OPPOSED_TO_INCLUDE: Message =
+    Message {
+        code: 6635,
+        category: Category::Message,
+        key: Key(
+            "Include_a_list_of_files_This_does_not_support_glob_patterns_as_opposed_to_include_6635",
+        ),
+        text: "Include a list of files. This does not support glob patterns, as opposed to `include`.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
 pub static BUILD_ALL_PROJECTS_INCLUDING_THOSE_THAT_APPEAR_TO_BE_UP_TO_DATE: Message = Message {
     code: 6636,
@@ -13184,7 +13283,7 @@ pub static SKIP_BUILDING_DOWNSTREAM_PROJECTS_ON_ERROR_IN_UPSTREAM_PROJECT: Messa
     reports_deprecated: false,
 };
 
-pub static SPECIFY_A_LIST_OF_GLOB_PATTERNS_THAT_MATCH_FILES_TO_BE_INCLUDED_IN_COMPILATION: Message =
+static SPECIFY_A_LIST_OF_GLOB_PATTERNS_THAT_MATCH_FILES_TO_BE_INCLUDED_IN_COMPILATION: Message =
     Message {
         code: 6641,
         category: Category::Message,
@@ -13258,18 +13357,18 @@ pub static SPECIFY_THE_JSX_FRAGMENT_REFERENCE_USED_FOR_FRAGMENTS_WHEN_TARGETING_
 
 pub static SPECIFY_MODULE_SPECIFIER_USED_TO_IMPORT_THE_JSX_FACTORY_FUNCTIONS_WHEN_USING_JSX_COLON_REACT_JSX_ASTERISK: Message = Message { code: 6649, category: Category::Message, key: Key("Specify_module_specifier_used_to_import_the_JSX_factory_functions_when_using_jsx_Colon_react_jsx_Ast_6649"), text: "Specify module specifier used to import the JSX factory functions when using 'jsx: react-jsx*'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static MAKE_KEYOF_ONLY_RETURN_STRINGS_INSTEAD_OF_STRING_NUMBERS_OR_SYMBOLS_LEGACY_OPTION:
-    Message = Message {
-    code: 6650,
-    category: Category::Message,
-    key: Key(
-        "Make_keyof_only_return_strings_instead_of_string_numbers_or_symbols_Legacy_option_6650",
-    ),
-    text: "Make keyof only return strings instead of string, numbers or symbols. Legacy option.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static MAKE_KEYOF_ONLY_RETURN_STRINGS_INSTEAD_OF_STRING_NUMBERS_OR_SYMBOLS_LEGACY_OPTION: Message =
+    Message {
+        code: 6650,
+        category: Category::Message,
+        key: Key(
+            "Make_keyof_only_return_strings_instead_of_string_numbers_or_symbols_Legacy_option_6650",
+        ),
+        text: "Make keyof only return strings instead of string, numbers or symbols. Legacy option.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
 pub static SPECIFY_A_SET_OF_BUNDLED_LIBRARY_DECLARATION_FILES_THAT_DESCRIBE_THE_TARGET_RUNTIME_ENVIRONMENT: Message = Message { code: 6651, category: Category::Message, key: Key("Specify_a_set_of_bundled_library_declaration_files_that_describe_the_target_runtime_environment_6651"), text: "Specify a set of bundled library declaration files that describe the target runtime environment.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -13441,7 +13540,7 @@ pub static ENABLE_ERROR_REPORTING_WHEN_THIS_IS_GIVEN_THE_TYPE_ANY: Message = Mes
     reports_deprecated: false,
 };
 
-pub static DISABLE_ADDING_USE_STRICT_DIRECTIVES_IN_EMITTED_JAVA_SCRIPT_FILES: Message = Message {
+static DISABLE_ADDING_USE_STRICT_DIRECTIVES_IN_EMITTED_JAVA_SCRIPT_FILES: Message = Message {
     code: 6669,
     category: Category::Message,
     key: Key("Disable_adding_use_strict_directives_in_emitted_JavaScript_files_6669"),
@@ -13474,7 +13573,7 @@ pub static ENFORCES_USING_INDEXED_ACCESSORS_FOR_KEYS_DECLARED_USING_AN_INDEXED_T
 
 pub static DISALLOW_IMPORT_S_REQUIRE_S_OR_REFERENCE_S_FROM_EXPANDING_THE_NUMBER_OF_FILES_TYPE_SCRIPT_SHOULD_ADD_TO_A_PROJECT: Message = Message { code: 6672, category: Category::Message, key: Key("Disallow_import_s_require_s_or_reference_s_from_expanding_the_number_of_files_TypeScript_should_add__6672"), text: "Disallow 'import's, 'require's or '<reference>'s from expanding the number of files TypeScript should add to a project.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static DISABLE_STRICT_CHECKING_OF_GENERIC_SIGNATURES_IN_FUNCTION_TYPES: Message = Message {
+static DISABLE_STRICT_CHECKING_OF_GENERIC_SIGNATURES_IN_FUNCTION_TYPES: Message = Message {
     code: 6673,
     category: Category::Message,
     key: Key("Disable_strict_checking_of_generic_signatures_in_function_types_6673"),
@@ -13514,7 +13613,7 @@ pub static RAISE_AN_ERROR_WHEN_A_FUNCTION_PARAMETER_ISN_T_READ: Message = Messag
     reports_deprecated: false,
 };
 
-pub static DEPRECATED_SETTING_USE_OUT_FILE_INSTEAD: Message = Message {
+static DEPRECATED_SETTING_USE_OUT_FILE_INSTEAD: Message = Message {
     code: 6677,
     category: Category::Message,
     key: Key("Deprecated_setting_Use_outFile_instead_6677"),
@@ -13596,7 +13695,18 @@ pub static ENABLE_COLOR_AND_FORMATTING_IN_TYPE_SCRIPT_S_OUTPUT_TO_MAKE_COMPILER_
 
 pub static SPECIFY_THE_OBJECT_INVOKED_FOR_CREATE_ELEMENT_THIS_ONLY_APPLIES_WHEN_TARGETING_REACT_JSX_EMIT: Message = Message { code: 6686, category: Category::Message, key: Key("Specify_the_object_invoked_for_createElement_This_only_applies_when_targeting_react_JSX_emit_6686"), text: "Specify the object invoked for 'createElement'. This only applies when targeting 'react' JSX emit.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static SPECIFY_AN_ARRAY_OF_OBJECTS_THAT_SPECIFY_PATHS_FOR_PROJECTS_USED_IN_PROJECT_REFERENCES: Message = Message { code: 6687, category: Category::Message, key: Key("Specify_an_array_of_objects_that_specify_paths_for_projects_Used_in_project_references_6687"), text: "Specify an array of objects that specify paths for projects. Used in project references.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_AN_ARRAY_OF_OBJECTS_THAT_SPECIFY_PATHS_FOR_PROJECTS_USED_IN_PROJECT_REFERENCES:
+    Message = Message {
+    code: 6687,
+    category: Category::Message,
+    key: Key(
+        "Specify_an_array_of_objects_that_specify_paths_for_projects_Used_in_project_references_6687",
+    ),
+    text: "Specify an array of objects that specify paths for projects. Used in project references.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static DISABLE_EMITTING_COMMENTS: Message = Message {
     code: 6688,
@@ -13728,31 +13838,33 @@ pub static DISABLE_EMITTING_DECLARATIONS_THAT_HAVE_INTERNAL_IN_THEIR_JSDOC_COMME
         reports_deprecated: false,
     };
 
-pub static DISABLE_REPORTING_OF_EXCESS_PROPERTY_ERRORS_DURING_THE_CREATION_OF_OBJECT_LITERALS:
-    Message = Message {
-    code: 6702,
-    category: Category::Message,
-    key: Key(
-        "Disable_reporting_of_excess_property_errors_during_the_creation_of_object_literals_6702",
-    ),
-    text: "Disable reporting of excess property errors during the creation of object literals.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static DISABLE_REPORTING_OF_EXCESS_PROPERTY_ERRORS_DURING_THE_CREATION_OF_OBJECT_LITERALS: Message =
+    Message {
+        code: 6702,
+        category: Category::Message,
+        key: Key(
+            "Disable_reporting_of_excess_property_errors_during_the_creation_of_object_literals_6702",
+        ),
+        text: "Disable reporting of excess property errors during the creation of object literals.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
-pub static SUPPRESS_NO_IMPLICIT_ANY_ERRORS_WHEN_INDEXING_OBJECTS_THAT_LACK_INDEX_SIGNATURES:
-    Message = Message {
-    code: 6703,
-    category: Category::Message,
-    key: Key("Suppress_noImplicitAny_errors_when_indexing_objects_that_lack_index_signatures_6703"),
-    text: "Suppress 'noImplicitAny' errors when indexing objects that lack index signatures.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static SUPPRESS_NO_IMPLICIT_ANY_ERRORS_WHEN_INDEXING_OBJECTS_THAT_LACK_INDEX_SIGNATURES: Message =
+    Message {
+        code: 6703,
+        category: Category::Message,
+        key: Key(
+            "Suppress_noImplicitAny_errors_when_indexing_objects_that_lack_index_signatures_6703",
+        ),
+        text: "Suppress 'noImplicitAny' errors when indexing objects that lack index signatures.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
-pub static SYNCHRONOUSLY_CALL_CALLBACKS_AND_UPDATE_THE_STATE_OF_DIRECTORY_WATCHERS_ON_PLATFORMS_THAT_DON_T_SUPPORT_RECURSIVE_WATCHING_NATIVELY: Message = Message { code: 6704, category: Category::Message, key: Key("Synchronously_call_callbacks_and_update_the_state_of_directory_watchers_on_platforms_that_don_t_supp_6704"), text: "Synchronously call callbacks and update the state of directory watchers on platforms that don`t support recursive watching natively.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SYNCHRONOUSLY_CALL_CALLBACKS_AND_UPDATE_THE_STATE_OF_DIRECTORY_WATCHERS_ON_PLATFORMS_THAT_DON_T_SUPPORT_RECURSIVE_WATCHING_NATIVELY: Message = Message { code: 6704, category: Category::Message, key: Key("Synchronously_call_callbacks_and_update_the_state_of_directory_watchers_on_platforms_that_don_t_supp_6704"), text: "Synchronously call callbacks and update the state of directory watchers on platforms that don`t support recursive watching natively.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static SET_THE_JAVA_SCRIPT_LANGUAGE_VERSION_FOR_EMITTED_JAVA_SCRIPT_AND_INCLUDE_COMPATIBLE_LIBRARY_DECLARATIONS: Message = Message { code: 6705, category: Category::Message, key: Key("Set_the_JavaScript_language_version_for_emitted_JavaScript_and_include_compatible_library_declaratio_6705"), text: "Set the JavaScript language version for emitted JavaScript and include compatible library declarations.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -13776,7 +13888,7 @@ pub static SPECIFY_THE_PATH_TO_TSBUILDINFO_INCREMENTAL_COMPILATION_FILE: Message
     reports_deprecated: false,
 };
 
-pub static SPECIFY_OPTIONS_FOR_AUTOMATIC_ACQUISITION_OF_DECLARATION_FILES: Message = Message {
+static SPECIFY_OPTIONS_FOR_AUTOMATIC_ACQUISITION_OF_DECLARATION_FILES: Message = Message {
     code: 6709,
     category: Category::Message,
     key: Key("Specify_options_for_automatic_acquisition_of_declaration_files_6709"),
@@ -13830,9 +13942,9 @@ pub static ENABLE_VERBOSE_LOGGING: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SPECIFY_HOW_DIRECTORIES_ARE_WATCHED_ON_SYSTEMS_THAT_LACK_RECURSIVE_FILE_WATCHING_FUNCTIONALITY: Message = Message { code: 6714, category: Category::Message, key: Key("Specify_how_directories_are_watched_on_systems_that_lack_recursive_file_watching_functionality_6714"), text: "Specify how directories are watched on systems that lack recursive file-watching functionality.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_HOW_DIRECTORIES_ARE_WATCHED_ON_SYSTEMS_THAT_LACK_RECURSIVE_FILE_WATCHING_FUNCTIONALITY: Message = Message { code: 6714, category: Category::Message, key: Key("Specify_how_directories_are_watched_on_systems_that_lack_recursive_file_watching_functionality_6714"), text: "Specify how directories are watched on systems that lack recursive file-watching functionality.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static SPECIFY_HOW_THE_TYPE_SCRIPT_WATCH_MODE_WORKS: Message = Message {
+static SPECIFY_HOW_THE_TYPE_SCRIPT_WATCH_MODE_WORKS: Message = Message {
     code: 6715,
     category: Category::Message,
     key: Key("Specify_how_the_TypeScript_watch_mode_works_6715"),
@@ -13842,7 +13954,7 @@ pub static SPECIFY_HOW_THE_TYPE_SCRIPT_WATCH_MODE_WORKS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REQUIRE_UNDECLARED_PROPERTIES_FROM_INDEX_SIGNATURES_TO_USE_ELEMENT_ACCESSES: Message =
+static REQUIRE_UNDECLARED_PROPERTIES_FROM_INDEX_SIGNATURES_TO_USE_ELEMENT_ACCESSES: Message =
     Message {
         code: 6717,
         category: Category::Message,
@@ -13855,7 +13967,7 @@ pub static REQUIRE_UNDECLARED_PROPERTIES_FROM_INDEX_SIGNATURES_TO_USE_ELEMENT_AC
         reports_deprecated: false,
     };
 
-pub static SPECIFY_EMIT_SLASHCHECKING_BEHAVIOR_FOR_IMPORTS_THAT_ARE_ONLY_USED_FOR_TYPES: Message =
+static SPECIFY_EMIT_SLASHCHECKING_BEHAVIOR_FOR_IMPORTS_THAT_ARE_ONLY_USED_FOR_TYPES: Message =
     Message {
         code: 6718,
         category: Category::Message,
@@ -13959,7 +14071,7 @@ pub static ENSURE_TYPES_ARE_ORDERED_STABLY_AND_DETERMINISTICALLY_ACROSS_COMPILAT
         reports_deprecated: false,
     };
 
-pub static X_ONE_OF_COLON: Message = Message {
+static X_ONE_OF_COLON: Message = Message {
     code: 6900,
     category: Category::Message,
     key: Key("one_of_Colon_6900"),
@@ -13969,7 +14081,7 @@ pub static X_ONE_OF_COLON: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_ONE_OR_MORE_COLON: Message = Message {
+static X_ONE_OR_MORE_COLON: Message = Message {
     code: 6901,
     category: Category::Message,
     key: Key("one_or_more_Colon_6901"),
@@ -13979,7 +14091,7 @@ pub static X_ONE_OR_MORE_COLON: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_TYPE_COLON: Message = Message {
+static X_TYPE_COLON: Message = Message {
     code: 6902,
     category: Category::Message,
     key: Key("type_Colon_6902"),
@@ -13989,7 +14101,7 @@ pub static X_TYPE_COLON: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_DEFAULT_COLON: Message = Message {
+static X_DEFAULT_COLON: Message = Message {
     code: 6903,
     category: Category::Message,
     key: Key("default_Colon_6903"),
@@ -14019,9 +14131,9 @@ pub static X_FALSE_UNLESS_COMPOSITE_IS_SET: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_NODE_MODULES_BOWER_COMPONENTS_JSPM_PACKAGES_PLUS_THE_VALUE_OF_OUT_DIR_IF_ONE_IS_SPECIFIED: Message = Message { code: 6907, category: Category::Message, key: Key("node_modules_bower_components_jspm_packages_plus_the_value_of_outDir_if_one_is_specified_6907"), text: "`[\"node_modules\", \"bower_components\", \"jspm_packages\"]`, plus the value of `outDir` if one is specified.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static X_NODE_MODULES_BOWER_COMPONENTS_JSPM_PACKAGES_PLUS_THE_VALUE_OF_OUT_DIR_IF_ONE_IS_SPECIFIED: Message = Message { code: 6907, category: Category::Message, key: Key("node_modules_bower_components_jspm_packages_plus_the_value_of_outDir_if_one_is_specified_6907"), text: "`[\"node_modules\", \"bower_components\", \"jspm_packages\"]`, plus the value of `outDir` if one is specified.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static X_IF_FILES_IS_SPECIFIED_OTHERWISE_ASTERISK_ASTERISK_SLASH_ASTERISK: Message = Message {
+static X_IF_FILES_IS_SPECIFIED_OTHERWISE_ASTERISK_ASTERISK_SLASH_ASTERISK: Message = Message {
     code: 6908,
     category: Category::Message,
     key: Key("if_files_is_specified_otherwise_Asterisk_Asterisk_Slash_Asterisk_6908"),
@@ -14031,7 +14143,7 @@ pub static X_IF_FILES_IS_SPECIFIED_OTHERWISE_ASTERISK_ASTERISK_SLASH_ASTERISK: M
     reports_deprecated: false,
 };
 
-pub static X_TRUE_IF_COMPOSITE_FALSE_OTHERWISE: Message = Message {
+static X_TRUE_IF_COMPOSITE_FALSE_OTHERWISE: Message = Message {
     code: 6909,
     category: Category::Message,
     key: Key("true_if_composite_false_otherwise_6909"),
@@ -14061,7 +14173,7 @@ pub static PLATFORM_SPECIFIC: Message = Message {
     reports_deprecated: false,
 };
 
-pub static YOU_CAN_LEARN_ABOUT_ALL_OF_THE_COMPILER_OPTIONS_AT_0: Message = Message {
+static YOU_CAN_LEARN_ABOUT_ALL_OF_THE_COMPILER_OPTIONS_AT_0: Message = Message {
     code: 6913,
     category: Category::Message,
     key: Key("You_can_learn_about_all_of_the_compiler_options_at_0_6913"),
@@ -14071,11 +14183,11 @@ pub static YOU_CAN_LEARN_ABOUT_ALL_OF_THE_COMPILER_OPTIONS_AT_0: Message = Messa
     reports_deprecated: false,
 };
 
-pub static INCLUDING_WATCH_W_WILL_START_WATCHING_THE_CURRENT_PROJECT_FOR_THE_FILE_CHANGES_ONCE_SET_YOU_CAN_CONFIG_WATCH_MODE_WITH_COLON: Message = Message { code: 6914, category: Category::Message, key: Key("Including_watch_w_will_start_watching_the_current_project_for_the_file_changes_Once_set_you_can_conf_6914"), text: "Including --watch, -w will start watching the current project for the file changes. Once set, you can config watch mode with:", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static INCLUDING_WATCH_W_WILL_START_WATCHING_THE_CURRENT_PROJECT_FOR_THE_FILE_CHANGES_ONCE_SET_YOU_CAN_CONFIG_WATCH_MODE_WITH_COLON: Message = Message { code: 6914, category: Category::Message, key: Key("Including_watch_w_will_start_watching_the_current_project_for_the_file_changes_Once_set_you_can_conf_6914"), text: "Including --watch, -w will start watching the current project for the file changes. Once set, you can config watch mode with:", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static USING_BUILD_B_WILL_MAKE_TSC_BEHAVE_MORE_LIKE_A_BUILD_ORCHESTRATOR_THAN_A_COMPILER_THIS_IS_USED_TO_TRIGGER_BUILDING_COMPOSITE_PROJECTS_WHICH_YOU_CAN_LEARN_MORE_ABOUT_AT_0: Message = Message { code: 6915, category: Category::Message, key: Key("Using_build_b_will_make_tsc_behave_more_like_a_build_orchestrator_than_a_compiler_This_is_used_to_tr_6915"), text: "Using --build, -b will make tsc behave more like a build orchestrator than a compiler. This is used to trigger building composite projects which you can learn more about at {0}", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static USING_BUILD_B_WILL_MAKE_TSC_BEHAVE_MORE_LIKE_A_BUILD_ORCHESTRATOR_THAN_A_COMPILER_THIS_IS_USED_TO_TRIGGER_BUILDING_COMPOSITE_PROJECTS_WHICH_YOU_CAN_LEARN_MORE_ABOUT_AT_0: Message = Message { code: 6915, category: Category::Message, key: Key("Using_build_b_will_make_tsc_behave_more_like_a_build_orchestrator_than_a_compiler_This_is_used_to_tr_6915"), text: "Using --build, -b will make tsc behave more like a build orchestrator than a compiler. This is used to trigger building composite projects which you can learn more about at {0}", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static COMMON_COMMANDS: Message = Message {
+static COMMON_COMMANDS: Message = Message {
     code: 6916,
     category: Category::Message,
     key: Key("COMMON_COMMANDS_6916"),
@@ -14085,7 +14197,7 @@ pub static COMMON_COMMANDS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ALL_COMPILER_OPTIONS: Message = Message {
+static ALL_COMPILER_OPTIONS: Message = Message {
     code: 6917,
     category: Category::Message,
     key: Key("ALL_COMPILER_OPTIONS_6917"),
@@ -14095,7 +14207,7 @@ pub static ALL_COMPILER_OPTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static WATCH_OPTIONS: Message = Message {
+static WATCH_OPTIONS: Message = Message {
     code: 6918,
     category: Category::Message,
     key: Key("WATCH_OPTIONS_6918"),
@@ -14105,7 +14217,7 @@ pub static WATCH_OPTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static BUILD_OPTIONS: Message = Message {
+static BUILD_OPTIONS: Message = Message {
     code: 6919,
     category: Category::Message,
     key: Key("BUILD_OPTIONS_6919"),
@@ -14115,7 +14227,7 @@ pub static BUILD_OPTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COMMON_COMPILER_OPTIONS: Message = Message {
+static COMMON_COMPILER_OPTIONS: Message = Message {
     code: 6920,
     category: Category::Message,
     key: Key("COMMON_COMPILER_OPTIONS_6920"),
@@ -14125,7 +14237,7 @@ pub static COMMON_COMPILER_OPTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COMMAND_LINE_FLAGS: Message = Message {
+static COMMAND_LINE_FLAGS: Message = Message {
     code: 6921,
     category: Category::Message,
     key: Key("COMMAND_LINE_FLAGS_6921"),
@@ -14135,7 +14247,7 @@ pub static COMMAND_LINE_FLAGS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_TSC_COLON_THE_TYPE_SCRIPT_COMPILER: Message = Message {
+static X_TSC_COLON_THE_TYPE_SCRIPT_COMPILER: Message = Message {
     code: 6922,
     category: Category::Message,
     key: Key("tsc_Colon_The_TypeScript_Compiler_6922"),
@@ -14145,7 +14257,7 @@ pub static X_TSC_COLON_THE_TYPE_SCRIPT_COMPILER: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COMPILES_THE_CURRENT_PROJECT_TSCONFIG_JSON_IN_THE_WORKING_DIRECTORY: Message = Message {
+static COMPILES_THE_CURRENT_PROJECT_TSCONFIG_JSON_IN_THE_WORKING_DIRECTORY: Message = Message {
     code: 6923,
     category: Category::Message,
     key: Key("Compiles_the_current_project_tsconfig_json_in_the_working_directory_6923"),
@@ -14155,20 +14267,20 @@ pub static COMPILES_THE_CURRENT_PROJECT_TSCONFIG_JSON_IN_THE_WORKING_DIRECTORY: 
     reports_deprecated: false,
 };
 
-pub static IGNORING_TSCONFIG_JSON_COMPILES_THE_SPECIFIED_FILES_WITH_DEFAULT_COMPILER_OPTIONS:
-    Message = Message {
-    code: 6924,
-    category: Category::Message,
-    key: Key(
-        "Ignoring_tsconfig_json_compiles_the_specified_files_with_default_compiler_options_6924",
-    ),
-    text: "Ignoring tsconfig.json, compiles the specified files with default compiler options.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static IGNORING_TSCONFIG_JSON_COMPILES_THE_SPECIFIED_FILES_WITH_DEFAULT_COMPILER_OPTIONS: Message =
+    Message {
+        code: 6924,
+        category: Category::Message,
+        key: Key(
+            "Ignoring_tsconfig_json_compiles_the_specified_files_with_default_compiler_options_6924",
+        ),
+        text: "Ignoring tsconfig.json, compiles the specified files with default compiler options.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
-pub static BUILD_A_COMPOSITE_PROJECT_IN_THE_WORKING_DIRECTORY: Message = Message {
+static BUILD_A_COMPOSITE_PROJECT_IN_THE_WORKING_DIRECTORY: Message = Message {
     code: 6925,
     category: Category::Message,
     key: Key("Build_a_composite_project_in_the_working_directory_6925"),
@@ -14178,7 +14290,7 @@ pub static BUILD_A_COMPOSITE_PROJECT_IN_THE_WORKING_DIRECTORY: Message = Message
     reports_deprecated: false,
 };
 
-pub static CREATES_A_TSCONFIG_JSON_WITH_THE_RECOMMENDED_SETTINGS_IN_THE_WORKING_DIRECTORY: Message =
+static CREATES_A_TSCONFIG_JSON_WITH_THE_RECOMMENDED_SETTINGS_IN_THE_WORKING_DIRECTORY: Message =
     Message {
         code: 6926,
         category: Category::Message,
@@ -14191,7 +14303,7 @@ pub static CREATES_A_TSCONFIG_JSON_WITH_THE_RECOMMENDED_SETTINGS_IN_THE_WORKING_
         reports_deprecated: false,
     };
 
-pub static COMPILES_THE_TYPE_SCRIPT_PROJECT_LOCATED_AT_THE_SPECIFIED_PATH: Message = Message {
+static COMPILES_THE_TYPE_SCRIPT_PROJECT_LOCATED_AT_THE_SPECIFIED_PATH: Message = Message {
     code: 6927,
     category: Category::Message,
     key: Key("Compiles_the_TypeScript_project_located_at_the_specified_path_6927"),
@@ -14201,7 +14313,7 @@ pub static COMPILES_THE_TYPE_SCRIPT_PROJECT_LOCATED_AT_THE_SPECIFIED_PATH: Messa
     reports_deprecated: false,
 };
 
-pub static AN_EXPANDED_VERSION_OF_THIS_INFORMATION_SHOWING_ALL_POSSIBLE_COMPILER_OPTIONS: Message =
+static AN_EXPANDED_VERSION_OF_THIS_INFORMATION_SHOWING_ALL_POSSIBLE_COMPILER_OPTIONS: Message =
     Message {
         code: 6928,
         category: Category::Message,
@@ -14214,7 +14326,7 @@ pub static AN_EXPANDED_VERSION_OF_THIS_INFORMATION_SHOWING_ALL_POSSIBLE_COMPILER
         reports_deprecated: false,
     };
 
-pub static COMPILES_THE_CURRENT_PROJECT_WITH_ADDITIONAL_SETTINGS: Message = Message {
+static COMPILES_THE_CURRENT_PROJECT_WITH_ADDITIONAL_SETTINGS: Message = Message {
     code: 6929,
     category: Category::Message,
     key: Key("Compiles_the_current_project_with_additional_settings_6929"),
@@ -14408,18 +14520,18 @@ pub static THIS_OVERLOAD_IMPLICITLY_RETURNS_THE_TYPE_0_BECAUSE_IT_LACKS_A_RETURN
 
 pub static CONSTRUCT_SIGNATURE_WHICH_LACKS_RETURN_TYPE_ANNOTATION_IMPLICITLY_HAS_AN_ANY_RETURN_TYPE: Message = Message { code: 7013, category: Category::Error, key: Key("Construct_signature_which_lacks_return_type_annotation_implicitly_has_an_any_return_type_7013"), text: "Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static FUNCTION_TYPE_WHICH_LACKS_RETURN_TYPE_ANNOTATION_IMPLICITLY_HAS_AN_0_RETURN_TYPE:
-    Message = Message {
-    code: 7014,
-    category: Category::Error,
-    key: Key(
-        "Function_type_which_lacks_return_type_annotation_implicitly_has_an_0_return_type_7014",
-    ),
-    text: "Function type, which lacks return-type annotation, implicitly has an '{0}' return type.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static FUNCTION_TYPE_WHICH_LACKS_RETURN_TYPE_ANNOTATION_IMPLICITLY_HAS_AN_0_RETURN_TYPE: Message =
+    Message {
+        code: 7014,
+        category: Category::Error,
+        key: Key(
+            "Function_type_which_lacks_return_type_annotation_implicitly_has_an_0_return_type_7014",
+        ),
+        text: "Function type, which lacks return-type annotation, implicitly has an '{0}' return type.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
 pub static ELEMENT_IMPLICITLY_HAS_AN_ANY_TYPE_BECAUSE_INDEX_EXPRESSION_IS_NOT_OF_TYPE_NUMBER:
     Message = Message {
@@ -14590,7 +14702,7 @@ pub static DYNAMIC_IMPORT_S_SPECIFIER_MUST_BE_OF_TYPE_STRING_BUT_HERE_HAS_TYPE_0
         reports_deprecated: false,
     };
 
-pub static ENABLES_EMIT_INTEROPERABILITY_BETWEEN_COMMON_JS_AND_ES_MODULES_VIA_CREATION_OF_NAMESPACE_OBJECTS_FOR_ALL_IMPORTS_IMPLIES_ALLOW_SYNTHETIC_DEFAULT_IMPORTS: Message = Message { code: 7037, category: Category::Message, key: Key("Enables_emit_interoperability_between_CommonJS_and_ES_Modules_via_creation_of_namespace_objects_for__7037"), text: "Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static ENABLES_EMIT_INTEROPERABILITY_BETWEEN_COMMON_JS_AND_ES_MODULES_VIA_CREATION_OF_NAMESPACE_OBJECTS_FOR_ALL_IMPORTS_IMPLIES_ALLOW_SYNTHETIC_DEFAULT_IMPORTS: Message = Message { code: 7037, category: Category::Message, key: Key("Enables_emit_interoperability_between_CommonJS_and_ES_Modules_via_creation_of_namespace_objects_for__7037"), text: "Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static TYPE_ORIGINATES_AT_THIS_IMPORT_A_NAMESPACE_STYLE_IMPORT_CANNOT_BE_CALLED_OR_CONSTRUCTED_AND_WILL_CAUSE_A_FAILURE_AT_RUNTIME_CONSIDER_USING_A_DEFAULT_IMPORT_OR_IMPORT_REQUIRE_HERE_INSTEAD: Message = Message { code: 7038, category: Category::Message, key: Key("Type_originates_at_this_import_A_namespace_style_import_cannot_be_called_or_constructed_and_will_cau_7038"), text: "Type originates at this import. A namespace-style import cannot be called or constructed, and will cause a failure at runtime. Consider using a default import or import require here instead.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
@@ -14665,13 +14777,13 @@ pub static MEMBER_0_IMPLICITLY_HAS_AN_1_TYPE_BUT_A_BETTER_TYPE_MAY_BE_INFERRED_F
         reports_deprecated: false,
     };
 
-pub static VARIABLE_0_IMPLICITLY_HAS_TYPE_1_IN_SOME_LOCATIONS_BUT_A_BETTER_TYPE_MAY_BE_INFERRED_FROM_USAGE: Message = Message { code: 7046, category: Category::Suggestion, key: Key("Variable_0_implicitly_has_type_1_in_some_locations_but_a_better_type_may_be_inferred_from_usage_7046"), text: "Variable '{0}' implicitly has type '{1}' in some locations, but a better type may be inferred from usage.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static VARIABLE_0_IMPLICITLY_HAS_TYPE_1_IN_SOME_LOCATIONS_BUT_A_BETTER_TYPE_MAY_BE_INFERRED_FROM_USAGE: Message = Message { code: 7046, category: Category::Suggestion, key: Key("Variable_0_implicitly_has_type_1_in_some_locations_but_a_better_type_may_be_inferred_from_usage_7046"), text: "Variable '{0}' implicitly has type '{1}' in some locations, but a better type may be inferred from usage.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static REST_PARAMETER_0_IMPLICITLY_HAS_AN_ANY_TYPE_BUT_A_BETTER_TYPE_MAY_BE_INFERRED_FROM_USAGE: Message = Message { code: 7047, category: Category::Suggestion, key: Key("Rest_parameter_0_implicitly_has_an_any_type_but_a_better_type_may_be_inferred_from_usage_7047"), text: "Rest parameter '{0}' implicitly has an 'any[]' type, but a better type may be inferred from usage.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static PROPERTY_0_IMPLICITLY_HAS_TYPE_ANY_BUT_A_BETTER_TYPE_FOR_ITS_GET_ACCESSOR_MAY_BE_INFERRED_FROM_USAGE: Message = Message { code: 7048, category: Category::Suggestion, key: Key("Property_0_implicitly_has_type_any_but_a_better_type_for_its_get_accessor_may_be_inferred_from_usage_7048"), text: "Property '{0}' implicitly has type 'any', but a better type for its get accessor may be inferred from usage.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static PROPERTY_0_IMPLICITLY_HAS_TYPE_ANY_BUT_A_BETTER_TYPE_FOR_ITS_GET_ACCESSOR_MAY_BE_INFERRED_FROM_USAGE: Message = Message { code: 7048, category: Category::Suggestion, key: Key("Property_0_implicitly_has_type_any_but_a_better_type_for_its_get_accessor_may_be_inferred_from_usage_7048"), text: "Property '{0}' implicitly has type 'any', but a better type for its get accessor may be inferred from usage.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static PROPERTY_0_IMPLICITLY_HAS_TYPE_ANY_BUT_A_BETTER_TYPE_FOR_ITS_SET_ACCESSOR_MAY_BE_INFERRED_FROM_USAGE: Message = Message { code: 7049, category: Category::Suggestion, key: Key("Property_0_implicitly_has_type_any_but_a_better_type_for_its_set_accessor_may_be_inferred_from_usage_7049"), text: "Property '{0}' implicitly has type 'any', but a better type for its set accessor may be inferred from usage.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static PROPERTY_0_IMPLICITLY_HAS_TYPE_ANY_BUT_A_BETTER_TYPE_FOR_ITS_SET_ACCESSOR_MAY_BE_INFERRED_FROM_USAGE: Message = Message { code: 7049, category: Category::Suggestion, key: Key("Property_0_implicitly_has_type_any_but_a_better_type_for_its_set_accessor_may_be_inferred_from_usage_7049"), text: "Property '{0}' implicitly has type 'any', but a better type for its set accessor may be inferred from usage.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static X_0_IMPLICITLY_HAS_AN_1_RETURN_TYPE_BUT_A_BETTER_TYPE_MAY_BE_INFERRED_FROM_USAGE:
     Message = Message {
@@ -14894,7 +15006,7 @@ pub static SIGNATURE_DECLARATIONS_CAN_ONLY_BE_USED_IN_TYPE_SCRIPT_FILES: Message
     reports_deprecated: false,
 };
 
-pub static REPORT_ERRORS_IN_JS_FILES: Message = Message {
+static REPORT_ERRORS_IN_JS_FILES: Message = Message {
     code: 8019,
     category: Category::Message,
     key: Key("Report_errors_in_js_files_8019"),
@@ -14914,9 +15026,9 @@ pub static JSDOC_TYPES_CAN_ONLY_BE_USED_INSIDE_DOCUMENTATION_COMMENTS: Message =
     reports_deprecated: false,
 };
 
-pub static JSDOC_TYPEDEF_TAG_SHOULD_EITHER_HAVE_A_TYPE_ANNOTATION_OR_BE_FOLLOWED_BY_PROPERTY_OR_MEMBER_TAGS: Message = Message { code: 8021, category: Category::Error, key: Key("JSDoc_typedef_tag_should_either_have_a_type_annotation_or_be_followed_by_property_or_member_tags_8021"), text: "JSDoc '@typedef' tag should either have a type annotation or be followed by '@property' or '@member' tags.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static JSDOC_TYPEDEF_TAG_SHOULD_EITHER_HAVE_A_TYPE_ANNOTATION_OR_BE_FOLLOWED_BY_PROPERTY_OR_MEMBER_TAGS: Message = Message { code: 8021, category: Category::Error, key: Key("JSDoc_typedef_tag_should_either_have_a_type_annotation_or_be_followed_by_property_or_member_tags_8021"), text: "JSDoc '@typedef' tag should either have a type annotation or be followed by '@property' or '@member' tags.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static JSDOC_0_IS_NOT_ATTACHED_TO_A_CLASS: Message = Message {
+static JSDOC_0_IS_NOT_ATTACHED_TO_A_CLASS: Message = Message {
     code: 8022,
     category: Category::Error,
     key: Key("JSDoc_0_is_not_attached_to_a_class_8022"),
@@ -14946,16 +15058,15 @@ pub static JSDOC_PARAM_TAG_HAS_NAME_0_BUT_THERE_IS_NO_PARAMETER_WITH_THAT_NAME: 
     reports_deprecated: false,
 };
 
-pub static CLASS_DECLARATIONS_CANNOT_HAVE_MORE_THAN_ONE_AUGMENTS_OR_EXTENDS_TAG: Message =
-    Message {
-        code: 8025,
-        category: Category::Error,
-        key: Key("Class_declarations_cannot_have_more_than_one_augments_or_extends_tag_8025"),
-        text: "Class declarations cannot have more than one '@augments' or '@extends' tag.",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static CLASS_DECLARATIONS_CANNOT_HAVE_MORE_THAN_ONE_AUGMENTS_OR_EXTENDS_TAG: Message = Message {
+    code: 8025,
+    category: Category::Error,
+    key: Key("Class_declarations_cannot_have_more_than_one_augments_or_extends_tag_8025"),
+    text: "Class declarations cannot have more than one '@augments' or '@extends' tag.",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
 pub static EXPECTED_0_TYPE_ARGUMENTS_PROVIDE_THESE_WITH_AN_EXTENDS_TAG: Message = Message {
     code: 8026,
@@ -14977,7 +15088,7 @@ pub static EXPECTED_0_1_TYPE_ARGUMENTS_PROVIDE_THESE_WITH_AN_EXTENDS_TAG: Messag
     reports_deprecated: false,
 };
 
-pub static JSDOC_MAY_ONLY_APPEAR_IN_THE_LAST_PARAMETER_OF_A_SIGNATURE: Message = Message {
+static JSDOC_MAY_ONLY_APPEAR_IN_THE_LAST_PARAMETER_OF_A_SIGNATURE: Message = Message {
     code: 8028,
     category: Category::Error,
     key: Key("JSDoc_may_only_appear_in_the_last_parameter_of_a_signature_8028"),
@@ -15086,9 +15197,9 @@ pub static FILE_RENAME_IS_NOT_SUPPORTED_BY_THE_EDITOR: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DECLARATION_EMIT_FOR_THIS_FILE_REQUIRES_USING_PRIVATE_NAME_0_AN_EXPLICIT_TYPE_ANNOTATION_MAY_UNBLOCK_DECLARATION_EMIT: Message = Message { code: 9005, category: Category::Error, key: Key("Declaration_emit_for_this_file_requires_using_private_name_0_An_explicit_type_annotation_may_unblock_9005"), text: "Declaration emit for this file requires using private name '{0}'. An explicit type annotation may unblock declaration emit.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static DECLARATION_EMIT_FOR_THIS_FILE_REQUIRES_USING_PRIVATE_NAME_0_AN_EXPLICIT_TYPE_ANNOTATION_MAY_UNBLOCK_DECLARATION_EMIT: Message = Message { code: 9005, category: Category::Error, key: Key("Declaration_emit_for_this_file_requires_using_private_name_0_An_explicit_type_annotation_may_unblock_9005"), text: "Declaration emit for this file requires using private name '{0}'. An explicit type annotation may unblock declaration emit.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static DECLARATION_EMIT_FOR_THIS_FILE_REQUIRES_USING_PRIVATE_NAME_0_FROM_MODULE_1_AN_EXPLICIT_TYPE_ANNOTATION_MAY_UNBLOCK_DECLARATION_EMIT: Message = Message { code: 9006, category: Category::Error, key: Key("Declaration_emit_for_this_file_requires_using_private_name_0_from_module_1_An_explicit_type_annotati_9006"), text: "Declaration emit for this file requires using private name '{0}' from module '{1}'. An explicit type annotation may unblock declaration emit.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static DECLARATION_EMIT_FOR_THIS_FILE_REQUIRES_USING_PRIVATE_NAME_0_FROM_MODULE_1_AN_EXPLICIT_TYPE_ANNOTATION_MAY_UNBLOCK_DECLARATION_EMIT: Message = Message { code: 9006, category: Category::Error, key: Key("Declaration_emit_for_this_file_requires_using_private_name_0_from_module_1_An_explicit_type_annotati_9006"), text: "Declaration emit for this file requires using private name '{0}' from module '{1}'. An explicit type annotation may unblock declaration emit.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static FUNCTION_MUST_HAVE_AN_EXPLICIT_RETURN_TYPE_ANNOTATION_WITH_ISOLATED_DECLARATIONS:
     Message = Message {
@@ -15707,18 +15818,18 @@ pub static COMPILER_RESERVES_NAME_0_WHEN_EMITTING_PRIVATE_IDENTIFIER_DOWNLEVEL: 
     reports_deprecated: false,
 };
 
-pub static PRIVATE_IDENTIFIERS_ARE_ONLY_AVAILABLE_WHEN_TARGETING_ECMA_SCRIPT_2015_AND_HIGHER:
-    Message = Message {
-    code: 18028,
-    category: Category::Error,
-    key: Key(
-        "Private_identifiers_are_only_available_when_targeting_ECMAScript_2015_and_higher_18028",
-    ),
-    text: "Private identifiers are only available when targeting ECMAScript 2015 and higher.",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static PRIVATE_IDENTIFIERS_ARE_ONLY_AVAILABLE_WHEN_TARGETING_ECMA_SCRIPT_2015_AND_HIGHER: Message =
+    Message {
+        code: 18028,
+        category: Category::Error,
+        key: Key(
+            "Private_identifiers_are_only_available_when_targeting_ECMAScript_2015_and_higher_18028",
+        ),
+        text: "Private identifiers are only available when targeting ECMAScript 2015 and higher.",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
 pub static PRIVATE_IDENTIFIERS_ARE_NOT_ALLOWED_IN_VARIABLE_DECLARATIONS: Message = Message {
     code: 18029,
@@ -15757,7 +15868,7 @@ pub static TYPE_0_IS_NOT_ASSIGNABLE_TO_TYPE_1_AS_REQUIRED_FOR_COMPUTED_ENUM_MEMB
         reports_deprecated: false,
     };
 
-pub static SPECIFY_THE_JSX_FRAGMENT_FACTORY_FUNCTION_TO_USE_WHEN_TARGETING_REACT_JSX_EMIT_WITH_JSX_FACTORY_COMPILER_OPTION_IS_SPECIFIED_E_G_FRAGMENT: Message = Message { code: 18034, category: Category::Message, key: Key("Specify_the_JSX_fragment_factory_function_to_use_when_targeting_react_JSX_emit_with_jsxFactory_compi_18034"), text: "Specify the JSX fragment factory function to use when targeting 'react' JSX emit with 'jsxFactory' compiler option is specified, e.g. 'Fragment'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static SPECIFY_THE_JSX_FRAGMENT_FACTORY_FUNCTION_TO_USE_WHEN_TARGETING_REACT_JSX_EMIT_WITH_JSX_FACTORY_COMPILER_OPTION_IS_SPECIFIED_E_G_FRAGMENT: Message = Message { code: 18034, category: Category::Message, key: Key("Specify_the_JSX_fragment_factory_function_to_use_when_targeting_react_JSX_emit_with_jsxFactory_compi_18034"), text: "Specify the JSX fragment factory function to use when targeting 'react' JSX emit with 'jsxFactory' compiler option is specified, e.g. 'Fragment'.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static INVALID_VALUE_FOR_JSX_FRAGMENT_FACTORY_0_IS_NOT_A_VALID_IDENTIFIER_OR_QUALIFIED_NAME:
     Message = Message {
@@ -15794,7 +15905,7 @@ pub static X_FOR_AWAIT_LOOPS_CANNOT_BE_USED_INSIDE_A_CLASS_STATIC_BLOCK: Message
     reports_deprecated: false,
 };
 
-pub static INVALID_USE_OF_0_IT_CANNOT_BE_USED_INSIDE_A_CLASS_STATIC_BLOCK: Message = Message {
+static INVALID_USE_OF_0_IT_CANNOT_BE_USED_INSIDE_A_CLASS_STATIC_BLOCK: Message = Message {
     code: 18039,
     category: Category::Error,
     key: Key("Invalid_use_of_0_It_cannot_be_used_inside_a_class_static_block_18039"),
@@ -15836,7 +15947,7 @@ pub static X_0_IS_AUTOMATICALLY_EXPORTED_HERE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static PROPERTIES_WITH_THE_ACCESSOR_MODIFIER_ARE_ONLY_AVAILABLE_WHEN_TARGETING_ECMA_SCRIPT_2015_AND_HIGHER: Message = Message { code: 18045, category: Category::Error, key: Key("Properties_with_the_accessor_modifier_are_only_available_when_targeting_ECMAScript_2015_and_higher_18045"), text: "Properties with the 'accessor' modifier are only available when targeting ECMAScript 2015 and higher.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
+static PROPERTIES_WITH_THE_ACCESSOR_MODIFIER_ARE_ONLY_AVAILABLE_WHEN_TARGETING_ECMA_SCRIPT_2015_AND_HIGHER: Message = Message { code: 18045, category: Category::Error, key: Key("Properties_with_the_accessor_modifier_are_only_available_when_targeting_ECMAScript_2015_and_higher_18045"), text: "Properties with the 'accessor' modifier are only available when targeting ECMAScript 2015 and higher.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
 pub static X_0_IS_OF_TYPE_UNKNOWN: Message = Message {
     code: 18046,
@@ -16458,7 +16569,7 @@ pub static CONTENT_MAPPER_EXTENSION_0_MUST_NOT_CONTAIN_PATH_SEPARATORS: Message 
 
 pub static X_NODENEXT_IF_MODULE_IS_NODENEXT_NODE16_IF_MODULE_IS_NODE16_OR_NODE18_OTHERWISE_BUNDLER: Message = Message { code: 69010, category: Category::Message, key: Key("nodenext_if_module_is_nodenext_node16_if_module_is_node16_or_node18_otherwise_bundler_69010"), text: "`nodenext` if `module` is `nodenext`; `node16` if `module` is `node16` or `node18`; otherwise, `bundler`.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static FILE_IS_A_COMMON_JS_MODULE_IT_MAY_BE_CONVERTED_TO_AN_ES_MODULE: Message = Message {
+static FILE_IS_A_COMMON_JS_MODULE_IT_MAY_BE_CONVERTED_TO_AN_ES_MODULE: Message = Message {
     code: 80001,
     category: Category::Suggestion,
     key: Key("File_is_a_CommonJS_module_it_may_be_converted_to_an_ES_module_80001"),
@@ -16468,7 +16579,7 @@ pub static FILE_IS_A_COMMON_JS_MODULE_IT_MAY_BE_CONVERTED_TO_AN_ES_MODULE: Messa
     reports_deprecated: false,
 };
 
-pub static THIS_CONSTRUCTOR_FUNCTION_MAY_BE_CONVERTED_TO_A_CLASS_DECLARATION: Message = Message {
+static THIS_CONSTRUCTOR_FUNCTION_MAY_BE_CONVERTED_TO_A_CLASS_DECLARATION: Message = Message {
     code: 80002,
     category: Category::Suggestion,
     key: Key("This_constructor_function_may_be_converted_to_a_class_declaration_80002"),
@@ -16478,7 +16589,7 @@ pub static THIS_CONSTRUCTOR_FUNCTION_MAY_BE_CONVERTED_TO_A_CLASS_DECLARATION: Me
     reports_deprecated: false,
 };
 
-pub static IMPORT_MAY_BE_CONVERTED_TO_A_DEFAULT_IMPORT: Message = Message {
+static IMPORT_MAY_BE_CONVERTED_TO_A_DEFAULT_IMPORT: Message = Message {
     code: 80003,
     category: Category::Suggestion,
     key: Key("Import_may_be_converted_to_a_default_import_80003"),
@@ -16488,7 +16599,7 @@ pub static IMPORT_MAY_BE_CONVERTED_TO_A_DEFAULT_IMPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static JSDOC_TYPES_MAY_BE_MOVED_TO_TYPE_SCRIPT_TYPES: Message = Message {
+static JSDOC_TYPES_MAY_BE_MOVED_TO_TYPE_SCRIPT_TYPES: Message = Message {
     code: 80004,
     category: Category::Suggestion,
     key: Key("JSDoc_types_may_be_moved_to_TypeScript_types_80004"),
@@ -16498,7 +16609,7 @@ pub static JSDOC_TYPES_MAY_BE_MOVED_TO_TYPE_SCRIPT_TYPES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static X_REQUIRE_CALL_MAY_BE_CONVERTED_TO_AN_IMPORT: Message = Message {
+static X_REQUIRE_CALL_MAY_BE_CONVERTED_TO_AN_IMPORT: Message = Message {
     code: 80005,
     category: Category::Suggestion,
     key: Key("require_call_may_be_converted_to_an_import_80005"),
@@ -16508,7 +16619,7 @@ pub static X_REQUIRE_CALL_MAY_BE_CONVERTED_TO_AN_IMPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static THIS_MAY_BE_CONVERTED_TO_AN_ASYNC_FUNCTION: Message = Message {
+static THIS_MAY_BE_CONVERTED_TO_AN_ASYNC_FUNCTION: Message = Message {
     code: 80006,
     category: Category::Suggestion,
     key: Key("This_may_be_converted_to_an_async_function_80006"),
@@ -16530,7 +16641,7 @@ pub static X_AWAIT_HAS_NO_EFFECT_ON_THE_TYPE_OF_THIS_EXPRESSION: Message = Messa
 
 pub static NUMERIC_LITERALS_WITH_ABSOLUTE_VALUES_EQUAL_TO_2_53_OR_GREATER_ARE_TOO_LARGE_TO_BE_REPRESENTED_ACCURATELY_AS_INTEGERS: Message = Message { code: 80008, category: Category::Suggestion, key: Key("Numeric_literals_with_absolute_values_equal_to_2_53_or_greater_are_too_large_to_be_represented_accur_80008"), text: "Numeric literals with absolute values equal to 2^53 or greater are too large to be represented accurately as integers.", reports_unnecessary: false, elided_in_compatibility_pyramid: false, reports_deprecated: false };
 
-pub static JSDOC_TYPEDEF_MAY_BE_CONVERTED_TO_TYPE_SCRIPT_TYPE: Message = Message {
+static JSDOC_TYPEDEF_MAY_BE_CONVERTED_TO_TYPE_SCRIPT_TYPE: Message = Message {
     code: 80009,
     category: Category::Suggestion,
     key: Key("JSDoc_typedef_may_be_converted_to_TypeScript_type_80009"),
@@ -16540,7 +16651,7 @@ pub static JSDOC_TYPEDEF_MAY_BE_CONVERTED_TO_TYPE_SCRIPT_TYPE: Message = Message
     reports_deprecated: false,
 };
 
-pub static JSDOC_TYPEDEFS_MAY_BE_CONVERTED_TO_TYPE_SCRIPT_TYPES: Message = Message {
+static JSDOC_TYPEDEFS_MAY_BE_CONVERTED_TO_TYPE_SCRIPT_TYPES: Message = Message {
     code: 80010,
     category: Category::Suggestion,
     key: Key("JSDoc_typedefs_may_be_converted_to_TypeScript_types_80010"),
@@ -16550,7 +16661,7 @@ pub static JSDOC_TYPEDEFS_MAY_BE_CONVERTED_TO_TYPE_SCRIPT_TYPES: Message = Messa
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_SUPER_CALL: Message = Message {
+static ADD_MISSING_SUPER_CALL: Message = Message {
     code: 90001,
     category: Category::Message,
     key: Key("Add_missing_super_call_90001"),
@@ -16560,7 +16671,7 @@ pub static ADD_MISSING_SUPER_CALL: Message = Message {
     reports_deprecated: false,
 };
 
-pub static MAKE_SUPER_CALL_THE_FIRST_STATEMENT_IN_THE_CONSTRUCTOR: Message = Message {
+static MAKE_SUPER_CALL_THE_FIRST_STATEMENT_IN_THE_CONSTRUCTOR: Message = Message {
     code: 90002,
     category: Category::Message,
     key: Key("Make_super_call_the_first_statement_in_the_constructor_90002"),
@@ -16570,7 +16681,7 @@ pub static MAKE_SUPER_CALL_THE_FIRST_STATEMENT_IN_THE_CONSTRUCTOR: Message = Mes
     reports_deprecated: false,
 };
 
-pub static CHANGE_EXTENDS_TO_IMPLEMENTS: Message = Message {
+static CHANGE_EXTENDS_TO_IMPLEMENTS: Message = Message {
     code: 90003,
     category: Category::Message,
     key: Key("Change_extends_to_implements_90003"),
@@ -16580,7 +16691,7 @@ pub static CHANGE_EXTENDS_TO_IMPLEMENTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_UNUSED_DECLARATION_FOR_COLON_0: Message = Message {
+static REMOVE_UNUSED_DECLARATION_FOR_COLON_0: Message = Message {
     code: 90004,
     category: Category::Message,
     key: Key("Remove_unused_declaration_for_Colon_0_90004"),
@@ -16590,7 +16701,7 @@ pub static REMOVE_UNUSED_DECLARATION_FOR_COLON_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_IMPORT_FROM_0: Message = Message {
+static REMOVE_IMPORT_FROM_0: Message = Message {
     code: 90005,
     category: Category::Message,
     key: Key("Remove_import_from_0_90005"),
@@ -16610,7 +16721,7 @@ pub static IMPLEMENT_INTERFACE_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static IMPLEMENT_INHERITED_ABSTRACT_CLASS: Message = Message {
+static IMPLEMENT_INHERITED_ABSTRACT_CLASS: Message = Message {
     code: 90007,
     category: Category::Message,
     key: Key("Implement_inherited_abstract_class_90007"),
@@ -16620,7 +16731,7 @@ pub static IMPLEMENT_INHERITED_ABSTRACT_CLASS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_0_TO_UNRESOLVED_VARIABLE: Message = Message {
+static ADD_0_TO_UNRESOLVED_VARIABLE: Message = Message {
     code: 90008,
     category: Category::Message,
     key: Key("Add_0_to_unresolved_variable_90008"),
@@ -16630,7 +16741,7 @@ pub static ADD_0_TO_UNRESOLVED_VARIABLE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_VARIABLE_STATEMENT: Message = Message {
+static REMOVE_VARIABLE_STATEMENT: Message = Message {
     code: 90010,
     category: Category::Message,
     key: Key("Remove_variable_statement_90010"),
@@ -16640,7 +16751,7 @@ pub static REMOVE_VARIABLE_STATEMENT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_TEMPLATE_TAG: Message = Message {
+static REMOVE_TEMPLATE_TAG: Message = Message {
     code: 90011,
     category: Category::Message,
     key: Key("Remove_template_tag_90011"),
@@ -16650,7 +16761,7 @@ pub static REMOVE_TEMPLATE_TAG: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_TYPE_PARAMETERS: Message = Message {
+static REMOVE_TYPE_PARAMETERS: Message = Message {
     code: 90012,
     category: Category::Message,
     key: Key("Remove_type_parameters_90012"),
@@ -16680,7 +16791,7 @@ pub static CHANGE_0_TO_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DECLARE_PROPERTY_0: Message = Message {
+static DECLARE_PROPERTY_0: Message = Message {
     code: 90016,
     category: Category::Message,
     key: Key("Declare_property_0_90016"),
@@ -16690,7 +16801,7 @@ pub static DECLARE_PROPERTY_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_INDEX_SIGNATURE_FOR_PROPERTY_0: Message = Message {
+static ADD_INDEX_SIGNATURE_FOR_PROPERTY_0: Message = Message {
     code: 90017,
     category: Category::Message,
     key: Key("Add_index_signature_for_property_0_90017"),
@@ -16700,7 +16811,7 @@ pub static ADD_INDEX_SIGNATURE_FOR_PROPERTY_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DISABLE_CHECKING_FOR_THIS_FILE: Message = Message {
+static DISABLE_CHECKING_FOR_THIS_FILE: Message = Message {
     code: 90018,
     category: Category::Message,
     key: Key("Disable_checking_for_this_file_90018"),
@@ -16710,7 +16821,7 @@ pub static DISABLE_CHECKING_FOR_THIS_FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static IGNORE_THIS_ERROR_MESSAGE: Message = Message {
+static IGNORE_THIS_ERROR_MESSAGE: Message = Message {
     code: 90019,
     category: Category::Message,
     key: Key("Ignore_this_error_message_90019"),
@@ -16720,7 +16831,7 @@ pub static IGNORE_THIS_ERROR_MESSAGE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INITIALIZE_PROPERTY_0_IN_THE_CONSTRUCTOR: Message = Message {
+static INITIALIZE_PROPERTY_0_IN_THE_CONSTRUCTOR: Message = Message {
     code: 90020,
     category: Category::Message,
     key: Key("Initialize_property_0_in_the_constructor_90020"),
@@ -16730,7 +16841,7 @@ pub static INITIALIZE_PROPERTY_0_IN_THE_CONSTRUCTOR: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INITIALIZE_STATIC_PROPERTY_0: Message = Message {
+static INITIALIZE_STATIC_PROPERTY_0: Message = Message {
     code: 90021,
     category: Category::Message,
     key: Key("Initialize_static_property_0_90021"),
@@ -16740,7 +16851,7 @@ pub static INITIALIZE_STATIC_PROPERTY_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CHANGE_SPELLING_TO_0: Message = Message {
+static CHANGE_SPELLING_TO_0: Message = Message {
     code: 90022,
     category: Category::Message,
     key: Key("Change_spelling_to_0_90022"),
@@ -16750,7 +16861,7 @@ pub static CHANGE_SPELLING_TO_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DECLARE_METHOD_0: Message = Message {
+static DECLARE_METHOD_0: Message = Message {
     code: 90023,
     category: Category::Message,
     key: Key("Declare_method_0_90023"),
@@ -16760,7 +16871,7 @@ pub static DECLARE_METHOD_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DECLARE_STATIC_METHOD_0: Message = Message {
+static DECLARE_STATIC_METHOD_0: Message = Message {
     code: 90024,
     category: Category::Message,
     key: Key("Declare_static_method_0_90024"),
@@ -16770,7 +16881,7 @@ pub static DECLARE_STATIC_METHOD_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static PREFIX_0_WITH_AN_UNDERSCORE: Message = Message {
+static PREFIX_0_WITH_AN_UNDERSCORE: Message = Message {
     code: 90025,
     category: Category::Message,
     key: Key("Prefix_0_with_an_underscore_90025"),
@@ -16780,7 +16891,7 @@ pub static PREFIX_0_WITH_AN_UNDERSCORE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REWRITE_AS_THE_INDEXED_ACCESS_TYPE_0: Message = Message {
+static REWRITE_AS_THE_INDEXED_ACCESS_TYPE_0: Message = Message {
     code: 90026,
     category: Category::Message,
     key: Key("Rewrite_as_the_indexed_access_type_0_90026"),
@@ -16790,7 +16901,7 @@ pub static REWRITE_AS_THE_INDEXED_ACCESS_TYPE_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DECLARE_STATIC_PROPERTY_0: Message = Message {
+static DECLARE_STATIC_PROPERTY_0: Message = Message {
     code: 90027,
     category: Category::Message,
     key: Key("Declare_static_property_0_90027"),
@@ -16800,7 +16911,7 @@ pub static DECLARE_STATIC_PROPERTY_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CALL_DECORATOR_EXPRESSION: Message = Message {
+static CALL_DECORATOR_EXPRESSION: Message = Message {
     code: 90028,
     category: Category::Message,
     key: Key("Call_decorator_expression_90028"),
@@ -16810,7 +16921,7 @@ pub static CALL_DECORATOR_EXPRESSION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ASYNC_MODIFIER_TO_CONTAINING_FUNCTION: Message = Message {
+static ADD_ASYNC_MODIFIER_TO_CONTAINING_FUNCTION: Message = Message {
     code: 90029,
     category: Category::Message,
     key: Key("Add_async_modifier_to_containing_function_90029"),
@@ -16820,7 +16931,7 @@ pub static ADD_ASYNC_MODIFIER_TO_CONTAINING_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REPLACE_INFER_0_WITH_UNKNOWN: Message = Message {
+static REPLACE_INFER_0_WITH_UNKNOWN: Message = Message {
     code: 90030,
     category: Category::Message,
     key: Key("Replace_infer_0_with_unknown_90030"),
@@ -16830,7 +16941,7 @@ pub static REPLACE_INFER_0_WITH_UNKNOWN: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REPLACE_ALL_UNUSED_INFER_WITH_UNKNOWN: Message = Message {
+static REPLACE_ALL_UNUSED_INFER_WITH_UNKNOWN: Message = Message {
     code: 90031,
     category: Category::Message,
     key: Key("Replace_all_unused_infer_with_unknown_90031"),
@@ -16840,7 +16951,7 @@ pub static REPLACE_ALL_UNUSED_INFER_WITH_UNKNOWN: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_PARAMETER_NAME: Message = Message {
+static ADD_PARAMETER_NAME: Message = Message {
     code: 90034,
     category: Category::Message,
     key: Key("Add_parameter_name_90034"),
@@ -16850,7 +16961,7 @@ pub static ADD_PARAMETER_NAME: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DECLARE_PRIVATE_PROPERTY_0: Message = Message {
+static DECLARE_PRIVATE_PROPERTY_0: Message = Message {
     code: 90035,
     category: Category::Message,
     key: Key("Declare_private_property_0_90035"),
@@ -16860,7 +16971,7 @@ pub static DECLARE_PRIVATE_PROPERTY_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REPLACE_0_WITH_PROMISE_1: Message = Message {
+static REPLACE_0_WITH_PROMISE_1: Message = Message {
     code: 90036,
     category: Category::Message,
     key: Key("Replace_0_with_Promise_1_90036"),
@@ -16870,7 +16981,7 @@ pub static REPLACE_0_WITH_PROMISE_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static FIX_ALL_INCORRECT_RETURN_TYPE_OF_AN_ASYNC_FUNCTIONS: Message = Message {
+static FIX_ALL_INCORRECT_RETURN_TYPE_OF_AN_ASYNC_FUNCTIONS: Message = Message {
     code: 90037,
     category: Category::Message,
     key: Key("Fix_all_incorrect_return_type_of_an_async_functions_90037"),
@@ -16880,7 +16991,7 @@ pub static FIX_ALL_INCORRECT_RETURN_TYPE_OF_AN_ASYNC_FUNCTIONS: Message = Messag
     reports_deprecated: false,
 };
 
-pub static DECLARE_PRIVATE_METHOD_0: Message = Message {
+static DECLARE_PRIVATE_METHOD_0: Message = Message {
     code: 90038,
     category: Category::Message,
     key: Key("Declare_private_method_0_90038"),
@@ -16890,7 +17001,7 @@ pub static DECLARE_PRIVATE_METHOD_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_UNUSED_DESTRUCTURING_DECLARATION: Message = Message {
+static REMOVE_UNUSED_DESTRUCTURING_DECLARATION: Message = Message {
     code: 90039,
     category: Category::Message,
     key: Key("Remove_unused_destructuring_declaration_90039"),
@@ -16900,7 +17011,7 @@ pub static REMOVE_UNUSED_DESTRUCTURING_DECLARATION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_UNUSED_DECLARATIONS_FOR_COLON_0: Message = Message {
+static REMOVE_UNUSED_DECLARATIONS_FOR_COLON_0: Message = Message {
     code: 90041,
     category: Category::Message,
     key: Key("Remove_unused_declarations_for_Colon_0_90041"),
@@ -16910,7 +17021,7 @@ pub static REMOVE_UNUSED_DECLARATIONS_FOR_COLON_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DECLARE_A_PRIVATE_FIELD_NAMED_0: Message = Message {
+static DECLARE_A_PRIVATE_FIELD_NAMED_0: Message = Message {
     code: 90053,
     category: Category::Message,
     key: Key("Declare_a_private_field_named_0_90053"),
@@ -16920,7 +17031,7 @@ pub static DECLARE_A_PRIVATE_FIELD_NAMED_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INCLUDES_IMPORTS_OF_TYPES_REFERENCED_BY_0: Message = Message {
+static INCLUDES_IMPORTS_OF_TYPES_REFERENCED_BY_0: Message = Message {
     code: 90054,
     category: Category::Message,
     key: Key("Includes_imports_of_types_referenced_by_0_90054"),
@@ -16970,7 +17081,7 @@ pub static UPDATE_IMPORT_FROM_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXPORT_0_FROM_MODULE_1: Message = Message {
+static EXPORT_0_FROM_MODULE_1: Message = Message {
     code: 90059,
     category: Category::Message,
     key: Key("Export_0_from_module_1_90059"),
@@ -16980,7 +17091,7 @@ pub static EXPORT_0_FROM_MODULE_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXPORT_ALL_REFERENCED_LOCALS: Message = Message {
+static EXPORT_ALL_REFERENCED_LOCALS: Message = Message {
     code: 90060,
     category: Category::Message,
     key: Key("Export_all_referenced_locals_90060"),
@@ -16990,7 +17101,7 @@ pub static EXPORT_ALL_REFERENCED_LOCALS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static UPDATE_MODIFIERS_OF_0: Message = Message {
+static UPDATE_MODIFIERS_OF_0: Message = Message {
     code: 90061,
     category: Category::Message,
     key: Key("Update_modifiers_of_0_90061"),
@@ -17100,7 +17211,7 @@ pub static ANNOTATE_TYPES_OF_PROPERTIES_EXPANDO_FUNCTION_IN_A_NAMESPACE: Message
     reports_deprecated: false,
 };
 
-pub static CONVERT_FUNCTION_TO_AN_ES2015_CLASS: Message = Message {
+static CONVERT_FUNCTION_TO_AN_ES2015_CLASS: Message = Message {
     code: 95001,
     category: Category::Message,
     key: Key("Convert_function_to_an_ES2015_class_95001"),
@@ -17110,7 +17221,7 @@ pub static CONVERT_FUNCTION_TO_AN_ES2015_CLASS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_0_TO_1_IN_0: Message = Message {
+static CONVERT_0_TO_1_IN_0: Message = Message {
     code: 95003,
     category: Category::Message,
     key: Key("Convert_0_to_1_in_0_95003"),
@@ -17120,7 +17231,7 @@ pub static CONVERT_0_TO_1_IN_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXTRACT_TO_0_IN_1: Message = Message {
+static EXTRACT_TO_0_IN_1: Message = Message {
     code: 95004,
     category: Category::Message,
     key: Key("Extract_to_0_in_1_95004"),
@@ -17130,7 +17241,7 @@ pub static EXTRACT_TO_0_IN_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXTRACT_FUNCTION: Message = Message {
+static EXTRACT_FUNCTION: Message = Message {
     code: 95005,
     category: Category::Message,
     key: Key("Extract_function_95005"),
@@ -17140,7 +17251,7 @@ pub static EXTRACT_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXTRACT_CONSTANT: Message = Message {
+static EXTRACT_CONSTANT: Message = Message {
     code: 95006,
     category: Category::Message,
     key: Key("Extract_constant_95006"),
@@ -17150,7 +17261,7 @@ pub static EXTRACT_CONSTANT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXTRACT_TO_0_IN_ENCLOSING_SCOPE: Message = Message {
+static EXTRACT_TO_0_IN_ENCLOSING_SCOPE: Message = Message {
     code: 95007,
     category: Category::Message,
     key: Key("Extract_to_0_in_enclosing_scope_95007"),
@@ -17160,7 +17271,7 @@ pub static EXTRACT_TO_0_IN_ENCLOSING_SCOPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXTRACT_TO_0_IN_1_SCOPE: Message = Message {
+static EXTRACT_TO_0_IN_1_SCOPE: Message = Message {
     code: 95008,
     category: Category::Message,
     key: Key("Extract_to_0_in_1_scope_95008"),
@@ -17170,7 +17281,7 @@ pub static EXTRACT_TO_0_IN_1_SCOPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ANNOTATE_WITH_TYPE_FROM_JSDOC: Message = Message {
+static ANNOTATE_WITH_TYPE_FROM_JSDOC: Message = Message {
     code: 95009,
     category: Category::Message,
     key: Key("Annotate_with_type_from_JSDoc_95009"),
@@ -17180,7 +17291,7 @@ pub static ANNOTATE_WITH_TYPE_FROM_JSDOC: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INFER_TYPE_OF_0_FROM_USAGE: Message = Message {
+static INFER_TYPE_OF_0_FROM_USAGE: Message = Message {
     code: 95011,
     category: Category::Message,
     key: Key("Infer_type_of_0_from_usage_95011"),
@@ -17190,7 +17301,7 @@ pub static INFER_TYPE_OF_0_FROM_USAGE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INFER_PARAMETER_TYPES_FROM_USAGE: Message = Message {
+static INFER_PARAMETER_TYPES_FROM_USAGE: Message = Message {
     code: 95012,
     category: Category::Message,
     key: Key("Infer_parameter_types_from_usage_95012"),
@@ -17200,7 +17311,7 @@ pub static INFER_PARAMETER_TYPES_FROM_USAGE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_TO_DEFAULT_IMPORT: Message = Message {
+static CONVERT_TO_DEFAULT_IMPORT: Message = Message {
     code: 95013,
     category: Category::Message,
     key: Key("Convert_to_default_import_95013"),
@@ -17210,7 +17321,7 @@ pub static CONVERT_TO_DEFAULT_IMPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INSTALL_0: Message = Message {
+static INSTALL_0: Message = Message {
     code: 95014,
     category: Category::Message,
     key: Key("Install_0_95014"),
@@ -17220,7 +17331,7 @@ pub static INSTALL_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REPLACE_IMPORT_WITH_0: Message = Message {
+static REPLACE_IMPORT_WITH_0: Message = Message {
     code: 95015,
     category: Category::Message,
     key: Key("Replace_import_with_0_95015"),
@@ -17230,7 +17341,7 @@ pub static REPLACE_IMPORT_WITH_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static USE_SYNTHETIC_DEFAULT_MEMBER: Message = Message {
+static USE_SYNTHETIC_DEFAULT_MEMBER: Message = Message {
     code: 95016,
     category: Category::Message,
     key: Key("Use_synthetic_default_member_95016"),
@@ -17240,7 +17351,7 @@ pub static USE_SYNTHETIC_DEFAULT_MEMBER: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_TO_ES_MODULE: Message = Message {
+static CONVERT_TO_ES_MODULE: Message = Message {
     code: 95017,
     category: Category::Message,
     key: Key("Convert_to_ES_module_95017"),
@@ -17250,7 +17361,7 @@ pub static CONVERT_TO_ES_MODULE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_UNDEFINED_TYPE_TO_PROPERTY_0: Message = Message {
+static ADD_UNDEFINED_TYPE_TO_PROPERTY_0: Message = Message {
     code: 95018,
     category: Category::Message,
     key: Key("Add_undefined_type_to_property_0_95018"),
@@ -17260,7 +17371,7 @@ pub static ADD_UNDEFINED_TYPE_TO_PROPERTY_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_INITIALIZER_TO_PROPERTY_0: Message = Message {
+static ADD_INITIALIZER_TO_PROPERTY_0: Message = Message {
     code: 95019,
     category: Category::Message,
     key: Key("Add_initializer_to_property_0_95019"),
@@ -17270,7 +17381,7 @@ pub static ADD_INITIALIZER_TO_PROPERTY_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_DEFINITE_ASSIGNMENT_ASSERTION_TO_PROPERTY_0: Message = Message {
+static ADD_DEFINITE_ASSIGNMENT_ASSERTION_TO_PROPERTY_0: Message = Message {
     code: 95020,
     category: Category::Message,
     key: Key("Add_definite_assignment_assertion_to_property_0_95020"),
@@ -17280,7 +17391,7 @@ pub static ADD_DEFINITE_ASSIGNMENT_ASSERTION_TO_PROPERTY_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_TYPE_LITERALS_TO_MAPPED_TYPE: Message = Message {
+static CONVERT_ALL_TYPE_LITERALS_TO_MAPPED_TYPE: Message = Message {
     code: 95021,
     category: Category::Message,
     key: Key("Convert_all_type_literals_to_mapped_type_95021"),
@@ -17290,7 +17401,7 @@ pub static CONVERT_ALL_TYPE_LITERALS_TO_MAPPED_TYPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_MISSING_MEMBERS: Message = Message {
+static ADD_ALL_MISSING_MEMBERS: Message = Message {
     code: 95022,
     category: Category::Message,
     key: Key("Add_all_missing_members_95022"),
@@ -17300,7 +17411,7 @@ pub static ADD_ALL_MISSING_MEMBERS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INFER_ALL_TYPES_FROM_USAGE: Message = Message {
+static INFER_ALL_TYPES_FROM_USAGE: Message = Message {
     code: 95023,
     category: Category::Message,
     key: Key("Infer_all_types_from_usage_95023"),
@@ -17310,7 +17421,7 @@ pub static INFER_ALL_TYPES_FROM_USAGE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DELETE_ALL_UNUSED_DECLARATIONS: Message = Message {
+static DELETE_ALL_UNUSED_DECLARATIONS: Message = Message {
     code: 95024,
     category: Category::Message,
     key: Key("Delete_all_unused_declarations_95024"),
@@ -17320,7 +17431,7 @@ pub static DELETE_ALL_UNUSED_DECLARATIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static PREFIX_ALL_UNUSED_DECLARATIONS_WITH_WHERE_POSSIBLE: Message = Message {
+static PREFIX_ALL_UNUSED_DECLARATIONS_WITH_WHERE_POSSIBLE: Message = Message {
     code: 95025,
     category: Category::Message,
     key: Key("Prefix_all_unused_declarations_with_where_possible_95025"),
@@ -17330,7 +17441,7 @@ pub static PREFIX_ALL_UNUSED_DECLARATIONS_WITH_WHERE_POSSIBLE: Message = Message
     reports_deprecated: false,
 };
 
-pub static FIX_ALL_DETECTED_SPELLING_ERRORS: Message = Message {
+static FIX_ALL_DETECTED_SPELLING_ERRORS: Message = Message {
     code: 95026,
     category: Category::Message,
     key: Key("Fix_all_detected_spelling_errors_95026"),
@@ -17340,7 +17451,7 @@ pub static FIX_ALL_DETECTED_SPELLING_ERRORS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_INITIALIZERS_TO_ALL_UNINITIALIZED_PROPERTIES: Message = Message {
+static ADD_INITIALIZERS_TO_ALL_UNINITIALIZED_PROPERTIES: Message = Message {
     code: 95027,
     category: Category::Message,
     key: Key("Add_initializers_to_all_uninitialized_properties_95027"),
@@ -17350,7 +17461,7 @@ pub static ADD_INITIALIZERS_TO_ALL_UNINITIALIZED_PROPERTIES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_DEFINITE_ASSIGNMENT_ASSERTIONS_TO_ALL_UNINITIALIZED_PROPERTIES: Message = Message {
+static ADD_DEFINITE_ASSIGNMENT_ASSERTIONS_TO_ALL_UNINITIALIZED_PROPERTIES: Message = Message {
     code: 95028,
     category: Category::Message,
     key: Key("Add_definite_assignment_assertions_to_all_uninitialized_properties_95028"),
@@ -17360,7 +17471,7 @@ pub static ADD_DEFINITE_ASSIGNMENT_ASSERTIONS_TO_ALL_UNINITIALIZED_PROPERTIES: M
     reports_deprecated: false,
 };
 
-pub static ADD_UNDEFINED_TYPE_TO_ALL_UNINITIALIZED_PROPERTIES: Message = Message {
+static ADD_UNDEFINED_TYPE_TO_ALL_UNINITIALIZED_PROPERTIES: Message = Message {
     code: 95029,
     category: Category::Message,
     key: Key("Add_undefined_type_to_all_uninitialized_properties_95029"),
@@ -17370,7 +17481,7 @@ pub static ADD_UNDEFINED_TYPE_TO_ALL_UNINITIALIZED_PROPERTIES: Message = Message
     reports_deprecated: false,
 };
 
-pub static CHANGE_ALL_JSDOC_STYLE_TYPES_TO_TYPE_SCRIPT: Message = Message {
+static CHANGE_ALL_JSDOC_STYLE_TYPES_TO_TYPE_SCRIPT: Message = Message {
     code: 95030,
     category: Category::Message,
     key: Key("Change_all_jsdoc_style_types_to_TypeScript_95030"),
@@ -17380,18 +17491,18 @@ pub static CHANGE_ALL_JSDOC_STYLE_TYPES_TO_TYPE_SCRIPT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CHANGE_ALL_JSDOC_STYLE_TYPES_TO_TYPE_SCRIPT_AND_ADD_UNDEFINED_TO_NULLABLE_TYPES:
-    Message = Message {
-    code: 95031,
-    category: Category::Message,
-    key: Key(
-        "Change_all_jsdoc_style_types_to_TypeScript_and_add_undefined_to_nullable_types_95031",
-    ),
-    text: "Change all jsdoc-style types to TypeScript (and add '| undefined' to nullable types)",
-    reports_unnecessary: false,
-    elided_in_compatibility_pyramid: false,
-    reports_deprecated: false,
-};
+static CHANGE_ALL_JSDOC_STYLE_TYPES_TO_TYPE_SCRIPT_AND_ADD_UNDEFINED_TO_NULLABLE_TYPES: Message =
+    Message {
+        code: 95031,
+        category: Category::Message,
+        key: Key(
+            "Change_all_jsdoc_style_types_to_TypeScript_and_add_undefined_to_nullable_types_95031",
+        ),
+        text: "Change all jsdoc-style types to TypeScript (and add '| undefined' to nullable types)",
+        reports_unnecessary: false,
+        elided_in_compatibility_pyramid: false,
+        reports_deprecated: false,
+    };
 
 pub static IMPLEMENT_ALL_UNIMPLEMENTED_INTERFACES: Message = Message {
     code: 95032,
@@ -17403,7 +17514,7 @@ pub static IMPLEMENT_ALL_UNIMPLEMENTED_INTERFACES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INSTALL_ALL_MISSING_TYPES_PACKAGES: Message = Message {
+static INSTALL_ALL_MISSING_TYPES_PACKAGES: Message = Message {
     code: 95033,
     category: Category::Message,
     key: Key("Install_all_missing_types_packages_95033"),
@@ -17413,7 +17524,7 @@ pub static INSTALL_ALL_MISSING_TYPES_PACKAGES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REWRITE_ALL_AS_INDEXED_ACCESS_TYPES: Message = Message {
+static REWRITE_ALL_AS_INDEXED_ACCESS_TYPES: Message = Message {
     code: 95034,
     category: Category::Message,
     key: Key("Rewrite_all_as_indexed_access_types_95034"),
@@ -17423,7 +17534,7 @@ pub static REWRITE_ALL_AS_INDEXED_ACCESS_TYPES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_TO_DEFAULT_IMPORTS: Message = Message {
+static CONVERT_ALL_TO_DEFAULT_IMPORTS: Message = Message {
     code: 95035,
     category: Category::Message,
     key: Key("Convert_all_to_default_imports_95035"),
@@ -17433,7 +17544,7 @@ pub static CONVERT_ALL_TO_DEFAULT_IMPORTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static MAKE_ALL_SUPER_CALLS_THE_FIRST_STATEMENT_IN_THEIR_CONSTRUCTOR: Message = Message {
+static MAKE_ALL_SUPER_CALLS_THE_FIRST_STATEMENT_IN_THEIR_CONSTRUCTOR: Message = Message {
     code: 95036,
     category: Category::Message,
     key: Key("Make_all_super_calls_the_first_statement_in_their_constructor_95036"),
@@ -17443,7 +17554,7 @@ pub static MAKE_ALL_SUPER_CALLS_THE_FIRST_STATEMENT_IN_THEIR_CONSTRUCTOR: Messag
     reports_deprecated: false,
 };
 
-pub static ADD_QUALIFIER_TO_ALL_UNRESOLVED_VARIABLES_MATCHING_A_MEMBER_NAME: Message = Message {
+static ADD_QUALIFIER_TO_ALL_UNRESOLVED_VARIABLES_MATCHING_A_MEMBER_NAME: Message = Message {
     code: 95037,
     category: Category::Message,
     key: Key("Add_qualifier_to_all_unresolved_variables_matching_a_member_name_95037"),
@@ -17453,7 +17564,7 @@ pub static ADD_QUALIFIER_TO_ALL_UNRESOLVED_VARIABLES_MATCHING_A_MEMBER_NAME: Mes
     reports_deprecated: false,
 };
 
-pub static CHANGE_ALL_EXTENDED_INTERFACES_TO_IMPLEMENTS: Message = Message {
+static CHANGE_ALL_EXTENDED_INTERFACES_TO_IMPLEMENTS: Message = Message {
     code: 95038,
     category: Category::Message,
     key: Key("Change_all_extended_interfaces_to_implements_95038"),
@@ -17463,7 +17574,7 @@ pub static CHANGE_ALL_EXTENDED_INTERFACES_TO_IMPLEMENTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_MISSING_SUPER_CALLS: Message = Message {
+static ADD_ALL_MISSING_SUPER_CALLS: Message = Message {
     code: 95039,
     category: Category::Message,
     key: Key("Add_all_missing_super_calls_95039"),
@@ -17473,7 +17584,7 @@ pub static ADD_ALL_MISSING_SUPER_CALLS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static IMPLEMENT_ALL_INHERITED_ABSTRACT_CLASSES: Message = Message {
+static IMPLEMENT_ALL_INHERITED_ABSTRACT_CLASSES: Message = Message {
     code: 95040,
     category: Category::Message,
     key: Key("Implement_all_inherited_abstract_classes_95040"),
@@ -17483,7 +17594,7 @@ pub static IMPLEMENT_ALL_INHERITED_ABSTRACT_CLASSES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_MISSING_ASYNC_MODIFIERS: Message = Message {
+static ADD_ALL_MISSING_ASYNC_MODIFIERS: Message = Message {
     code: 95041,
     category: Category::Message,
     key: Key("Add_all_missing_async_modifiers_95041"),
@@ -17493,7 +17604,7 @@ pub static ADD_ALL_MISSING_ASYNC_MODIFIERS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_TS_IGNORE_TO_ALL_ERROR_MESSAGES: Message = Message {
+static ADD_TS_IGNORE_TO_ALL_ERROR_MESSAGES: Message = Message {
     code: 95042,
     category: Category::Message,
     key: Key("Add_ts_ignore_to_all_error_messages_95042"),
@@ -17503,7 +17614,7 @@ pub static ADD_TS_IGNORE_TO_ALL_ERROR_MESSAGES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ANNOTATE_EVERYTHING_WITH_TYPES_FROM_JSDOC: Message = Message {
+static ANNOTATE_EVERYTHING_WITH_TYPES_FROM_JSDOC: Message = Message {
     code: 95043,
     category: Category::Message,
     key: Key("Annotate_everything_with_types_from_JSDoc_95043"),
@@ -17513,7 +17624,7 @@ pub static ANNOTATE_EVERYTHING_WITH_TYPES_FROM_JSDOC: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_TO_ALL_UNCALLED_DECORATORS: Message = Message {
+static ADD_TO_ALL_UNCALLED_DECORATORS: Message = Message {
     code: 95044,
     category: Category::Message,
     key: Key("Add_to_all_uncalled_decorators_95044"),
@@ -17523,7 +17634,7 @@ pub static ADD_TO_ALL_UNCALLED_DECORATORS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_CONSTRUCTOR_FUNCTIONS_TO_CLASSES: Message = Message {
+static CONVERT_ALL_CONSTRUCTOR_FUNCTIONS_TO_CLASSES: Message = Message {
     code: 95045,
     category: Category::Message,
     key: Key("Convert_all_constructor_functions_to_classes_95045"),
@@ -17533,7 +17644,7 @@ pub static CONVERT_ALL_CONSTRUCTOR_FUNCTIONS_TO_CLASSES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static GENERATE_GET_AND_SET_ACCESSORS: Message = Message {
+static GENERATE_GET_AND_SET_ACCESSORS: Message = Message {
     code: 95046,
     category: Category::Message,
     key: Key("Generate_get_and_set_accessors_95046"),
@@ -17543,7 +17654,7 @@ pub static GENERATE_GET_AND_SET_ACCESSORS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_REQUIRE_TO_IMPORT: Message = Message {
+static CONVERT_REQUIRE_TO_IMPORT: Message = Message {
     code: 95047,
     category: Category::Message,
     key: Key("Convert_require_to_import_95047"),
@@ -17553,7 +17664,7 @@ pub static CONVERT_REQUIRE_TO_IMPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_REQUIRE_TO_IMPORT: Message = Message {
+static CONVERT_ALL_REQUIRE_TO_IMPORT: Message = Message {
     code: 95048,
     category: Category::Message,
     key: Key("Convert_all_require_to_import_95048"),
@@ -17563,7 +17674,7 @@ pub static CONVERT_ALL_REQUIRE_TO_IMPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static MOVE_TO_A_NEW_FILE: Message = Message {
+static MOVE_TO_A_NEW_FILE: Message = Message {
     code: 95049,
     category: Category::Message,
     key: Key("Move_to_a_new_file_95049"),
@@ -17573,7 +17684,7 @@ pub static MOVE_TO_A_NEW_FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_UNREACHABLE_CODE: Message = Message {
+static REMOVE_UNREACHABLE_CODE: Message = Message {
     code: 95050,
     category: Category::Message,
     key: Key("Remove_unreachable_code_95050"),
@@ -17583,7 +17694,7 @@ pub static REMOVE_UNREACHABLE_CODE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_ALL_UNREACHABLE_CODE: Message = Message {
+static REMOVE_ALL_UNREACHABLE_CODE: Message = Message {
     code: 95051,
     category: Category::Message,
     key: Key("Remove_all_unreachable_code_95051"),
@@ -17593,7 +17704,7 @@ pub static REMOVE_ALL_UNREACHABLE_CODE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_TYPEOF: Message = Message {
+static ADD_MISSING_TYPEOF: Message = Message {
     code: 95052,
     category: Category::Message,
     key: Key("Add_missing_typeof_95052"),
@@ -17603,7 +17714,7 @@ pub static ADD_MISSING_TYPEOF: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_UNUSED_LABEL: Message = Message {
+static REMOVE_UNUSED_LABEL: Message = Message {
     code: 95053,
     category: Category::Message,
     key: Key("Remove_unused_label_95053"),
@@ -17613,7 +17724,7 @@ pub static REMOVE_UNUSED_LABEL: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_ALL_UNUSED_LABELS: Message = Message {
+static REMOVE_ALL_UNUSED_LABELS: Message = Message {
     code: 95054,
     category: Category::Message,
     key: Key("Remove_all_unused_labels_95054"),
@@ -17623,7 +17734,7 @@ pub static REMOVE_ALL_UNUSED_LABELS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_0_TO_MAPPED_OBJECT_TYPE: Message = Message {
+static CONVERT_0_TO_MAPPED_OBJECT_TYPE: Message = Message {
     code: 95055,
     category: Category::Message,
     key: Key("Convert_0_to_mapped_object_type_95055"),
@@ -17633,7 +17744,7 @@ pub static CONVERT_0_TO_MAPPED_OBJECT_TYPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_NAMESPACE_IMPORT_TO_NAMED_IMPORTS: Message = Message {
+static CONVERT_NAMESPACE_IMPORT_TO_NAMED_IMPORTS: Message = Message {
     code: 95056,
     category: Category::Message,
     key: Key("Convert_namespace_import_to_named_imports_95056"),
@@ -17643,7 +17754,7 @@ pub static CONVERT_NAMESPACE_IMPORT_TO_NAMED_IMPORTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_NAMED_IMPORTS_TO_NAMESPACE_IMPORT: Message = Message {
+static CONVERT_NAMED_IMPORTS_TO_NAMESPACE_IMPORT: Message = Message {
     code: 95057,
     category: Category::Message,
     key: Key("Convert_named_imports_to_namespace_import_95057"),
@@ -17653,7 +17764,7 @@ pub static CONVERT_NAMED_IMPORTS_TO_NAMESPACE_IMPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_OR_REMOVE_BRACES_IN_AN_ARROW_FUNCTION: Message = Message {
+static ADD_OR_REMOVE_BRACES_IN_AN_ARROW_FUNCTION: Message = Message {
     code: 95058,
     category: Category::Message,
     key: Key("Add_or_remove_braces_in_an_arrow_function_95058"),
@@ -17663,7 +17774,7 @@ pub static ADD_OR_REMOVE_BRACES_IN_AN_ARROW_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_BRACES_TO_ARROW_FUNCTION: Message = Message {
+static ADD_BRACES_TO_ARROW_FUNCTION: Message = Message {
     code: 95059,
     category: Category::Message,
     key: Key("Add_braces_to_arrow_function_95059"),
@@ -17673,7 +17784,7 @@ pub static ADD_BRACES_TO_ARROW_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_BRACES_FROM_ARROW_FUNCTION: Message = Message {
+static REMOVE_BRACES_FROM_ARROW_FUNCTION: Message = Message {
     code: 95060,
     category: Category::Message,
     key: Key("Remove_braces_from_arrow_function_95060"),
@@ -17683,7 +17794,7 @@ pub static REMOVE_BRACES_FROM_ARROW_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_DEFAULT_EXPORT_TO_NAMED_EXPORT: Message = Message {
+static CONVERT_DEFAULT_EXPORT_TO_NAMED_EXPORT: Message = Message {
     code: 95061,
     category: Category::Message,
     key: Key("Convert_default_export_to_named_export_95061"),
@@ -17693,7 +17804,7 @@ pub static CONVERT_DEFAULT_EXPORT_TO_NAMED_EXPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_NAMED_EXPORT_TO_DEFAULT_EXPORT: Message = Message {
+static CONVERT_NAMED_EXPORT_TO_DEFAULT_EXPORT: Message = Message {
     code: 95062,
     category: Category::Message,
     key: Key("Convert_named_export_to_default_export_95062"),
@@ -17703,7 +17814,7 @@ pub static CONVERT_NAMED_EXPORT_TO_DEFAULT_EXPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_ENUM_MEMBER_0: Message = Message {
+static ADD_MISSING_ENUM_MEMBER_0: Message = Message {
     code: 95063,
     category: Category::Message,
     key: Key("Add_missing_enum_member_0_95063"),
@@ -17723,7 +17834,7 @@ pub static ADD_ALL_MISSING_IMPORTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_TO_ASYNC_FUNCTION: Message = Message {
+static CONVERT_TO_ASYNC_FUNCTION: Message = Message {
     code: 95065,
     category: Category::Message,
     key: Key("Convert_to_async_function_95065"),
@@ -17733,7 +17844,7 @@ pub static CONVERT_TO_ASYNC_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_TO_ASYNC_FUNCTIONS: Message = Message {
+static CONVERT_ALL_TO_ASYNC_FUNCTIONS: Message = Message {
     code: 95066,
     category: Category::Message,
     key: Key("Convert_all_to_async_functions_95066"),
@@ -17743,7 +17854,7 @@ pub static CONVERT_ALL_TO_ASYNC_FUNCTIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_CALL_PARENTHESES: Message = Message {
+static ADD_MISSING_CALL_PARENTHESES: Message = Message {
     code: 95067,
     category: Category::Message,
     key: Key("Add_missing_call_parentheses_95067"),
@@ -17753,7 +17864,7 @@ pub static ADD_MISSING_CALL_PARENTHESES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_MISSING_CALL_PARENTHESES: Message = Message {
+static ADD_ALL_MISSING_CALL_PARENTHESES: Message = Message {
     code: 95068,
     category: Category::Message,
     key: Key("Add_all_missing_call_parentheses_95068"),
@@ -17763,7 +17874,7 @@ pub static ADD_ALL_MISSING_CALL_PARENTHESES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_UNKNOWN_CONVERSION_FOR_NON_OVERLAPPING_TYPES: Message = Message {
+static ADD_UNKNOWN_CONVERSION_FOR_NON_OVERLAPPING_TYPES: Message = Message {
     code: 95069,
     category: Category::Message,
     key: Key("Add_unknown_conversion_for_non_overlapping_types_95069"),
@@ -17773,7 +17884,7 @@ pub static ADD_UNKNOWN_CONVERSION_FOR_NON_OVERLAPPING_TYPES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_UNKNOWN_TO_ALL_CONVERSIONS_OF_NON_OVERLAPPING_TYPES: Message = Message {
+static ADD_UNKNOWN_TO_ALL_CONVERSIONS_OF_NON_OVERLAPPING_TYPES: Message = Message {
     code: 95070,
     category: Category::Message,
     key: Key("Add_unknown_to_all_conversions_of_non_overlapping_types_95070"),
@@ -17783,7 +17894,7 @@ pub static ADD_UNKNOWN_TO_ALL_CONVERSIONS_OF_NON_OVERLAPPING_TYPES: Message = Me
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_NEW_OPERATOR_TO_CALL: Message = Message {
+static ADD_MISSING_NEW_OPERATOR_TO_CALL: Message = Message {
     code: 95071,
     category: Category::Message,
     key: Key("Add_missing_new_operator_to_call_95071"),
@@ -17793,7 +17904,7 @@ pub static ADD_MISSING_NEW_OPERATOR_TO_CALL: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_NEW_OPERATOR_TO_ALL_CALLS: Message = Message {
+static ADD_MISSING_NEW_OPERATOR_TO_ALL_CALLS: Message = Message {
     code: 95072,
     category: Category::Message,
     key: Key("Add_missing_new_operator_to_all_calls_95072"),
@@ -17803,7 +17914,7 @@ pub static ADD_MISSING_NEW_OPERATOR_TO_ALL_CALLS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_NAMES_TO_ALL_PARAMETERS_WITHOUT_NAMES: Message = Message {
+static ADD_NAMES_TO_ALL_PARAMETERS_WITHOUT_NAMES: Message = Message {
     code: 95073,
     category: Category::Message,
     key: Key("Add_names_to_all_parameters_without_names_95073"),
@@ -17813,18 +17924,17 @@ pub static ADD_NAMES_TO_ALL_PARAMETERS_WITHOUT_NAMES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ENABLE_THE_EXPERIMENTAL_DECORATORS_OPTION_IN_YOUR_CONFIGURATION_FILE: Message =
-    Message {
-        code: 95074,
-        category: Category::Message,
-        key: Key("Enable_the_experimentalDecorators_option_in_your_configuration_file_95074"),
-        text: "Enable the 'experimentalDecorators' option in your configuration file",
-        reports_unnecessary: false,
-        elided_in_compatibility_pyramid: false,
-        reports_deprecated: false,
-    };
+static ENABLE_THE_EXPERIMENTAL_DECORATORS_OPTION_IN_YOUR_CONFIGURATION_FILE: Message = Message {
+    code: 95074,
+    category: Category::Message,
+    key: Key("Enable_the_experimentalDecorators_option_in_your_configuration_file_95074"),
+    text: "Enable the 'experimentalDecorators' option in your configuration file",
+    reports_unnecessary: false,
+    elided_in_compatibility_pyramid: false,
+    reports_deprecated: false,
+};
 
-pub static CONVERT_PARAMETERS_TO_DESTRUCTURED_OBJECT: Message = Message {
+static CONVERT_PARAMETERS_TO_DESTRUCTURED_OBJECT: Message = Message {
     code: 95075,
     category: Category::Message,
     key: Key("Convert_parameters_to_destructured_object_95075"),
@@ -17834,7 +17944,7 @@ pub static CONVERT_PARAMETERS_TO_DESTRUCTURED_OBJECT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXTRACT_TYPE: Message = Message {
+static EXTRACT_TYPE: Message = Message {
     code: 95077,
     category: Category::Message,
     key: Key("Extract_type_95077"),
@@ -17844,7 +17954,7 @@ pub static EXTRACT_TYPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXTRACT_TO_TYPE_ALIAS: Message = Message {
+static EXTRACT_TO_TYPE_ALIAS: Message = Message {
     code: 95078,
     category: Category::Message,
     key: Key("Extract_to_type_alias_95078"),
@@ -17854,7 +17964,7 @@ pub static EXTRACT_TO_TYPE_ALIAS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXTRACT_TO_TYPEDEF: Message = Message {
+static EXTRACT_TO_TYPEDEF: Message = Message {
     code: 95079,
     category: Category::Message,
     key: Key("Extract_to_typedef_95079"),
@@ -17864,7 +17974,7 @@ pub static EXTRACT_TO_TYPEDEF: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INFER_THIS_TYPE_OF_0_FROM_USAGE: Message = Message {
+static INFER_THIS_TYPE_OF_0_FROM_USAGE: Message = Message {
     code: 95080,
     category: Category::Message,
     key: Key("Infer_this_type_of_0_from_usage_95080"),
@@ -17874,7 +17984,7 @@ pub static INFER_THIS_TYPE_OF_0_FROM_USAGE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_CONST_TO_UNRESOLVED_VARIABLE: Message = Message {
+static ADD_CONST_TO_UNRESOLVED_VARIABLE: Message = Message {
     code: 95081,
     category: Category::Message,
     key: Key("Add_const_to_unresolved_variable_95081"),
@@ -17884,7 +17994,7 @@ pub static ADD_CONST_TO_UNRESOLVED_VARIABLE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_CONST_TO_ALL_UNRESOLVED_VARIABLES: Message = Message {
+static ADD_CONST_TO_ALL_UNRESOLVED_VARIABLES: Message = Message {
     code: 95082,
     category: Category::Message,
     key: Key("Add_const_to_all_unresolved_variables_95082"),
@@ -17894,7 +18004,7 @@ pub static ADD_CONST_TO_ALL_UNRESOLVED_VARIABLES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_AWAIT: Message = Message {
+static ADD_AWAIT: Message = Message {
     code: 95083,
     category: Category::Message,
     key: Key("Add_await_95083"),
@@ -17904,7 +18014,7 @@ pub static ADD_AWAIT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_AWAIT_TO_INITIALIZER_FOR_0: Message = Message {
+static ADD_AWAIT_TO_INITIALIZER_FOR_0: Message = Message {
     code: 95084,
     category: Category::Message,
     key: Key("Add_await_to_initializer_for_0_95084"),
@@ -17914,7 +18024,7 @@ pub static ADD_AWAIT_TO_INITIALIZER_FOR_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static FIX_ALL_EXPRESSIONS_POSSIBLY_MISSING_AWAIT: Message = Message {
+static FIX_ALL_EXPRESSIONS_POSSIBLY_MISSING_AWAIT: Message = Message {
     code: 95085,
     category: Category::Message,
     key: Key("Fix_all_expressions_possibly_missing_await_95085"),
@@ -17924,7 +18034,7 @@ pub static FIX_ALL_EXPRESSIONS_POSSIBLY_MISSING_AWAIT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_UNNECESSARY_AWAIT: Message = Message {
+static REMOVE_UNNECESSARY_AWAIT: Message = Message {
     code: 95086,
     category: Category::Message,
     key: Key("Remove_unnecessary_await_95086"),
@@ -17934,7 +18044,7 @@ pub static REMOVE_UNNECESSARY_AWAIT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_ALL_UNNECESSARY_USES_OF_AWAIT: Message = Message {
+static REMOVE_ALL_UNNECESSARY_USES_OF_AWAIT: Message = Message {
     code: 95087,
     category: Category::Message,
     key: Key("Remove_all_unnecessary_uses_of_await_95087"),
@@ -17944,7 +18054,7 @@ pub static REMOVE_ALL_UNNECESSARY_USES_OF_AWAIT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ENABLE_THE_JSX_FLAG_IN_YOUR_CONFIGURATION_FILE: Message = Message {
+static ENABLE_THE_JSX_FLAG_IN_YOUR_CONFIGURATION_FILE: Message = Message {
     code: 95088,
     category: Category::Message,
     key: Key("Enable_the_jsx_flag_in_your_configuration_file_95088"),
@@ -17954,7 +18064,7 @@ pub static ENABLE_THE_JSX_FLAG_IN_YOUR_CONFIGURATION_FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_AWAIT_TO_INITIALIZERS: Message = Message {
+static ADD_AWAIT_TO_INITIALIZERS: Message = Message {
     code: 95089,
     category: Category::Message,
     key: Key("Add_await_to_initializers_95089"),
@@ -17964,7 +18074,7 @@ pub static ADD_AWAIT_TO_INITIALIZERS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static EXTRACT_TO_INTERFACE: Message = Message {
+static EXTRACT_TO_INTERFACE: Message = Message {
     code: 95090,
     category: Category::Message,
     key: Key("Extract_to_interface_95090"),
@@ -17974,7 +18084,7 @@ pub static EXTRACT_TO_INTERFACE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_TO_A_BIGINT_NUMERIC_LITERAL: Message = Message {
+static CONVERT_TO_A_BIGINT_NUMERIC_LITERAL: Message = Message {
     code: 95091,
     category: Category::Message,
     key: Key("Convert_to_a_bigint_numeric_literal_95091"),
@@ -17984,7 +18094,7 @@ pub static CONVERT_TO_A_BIGINT_NUMERIC_LITERAL: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_TO_BIGINT_NUMERIC_LITERALS: Message = Message {
+static CONVERT_ALL_TO_BIGINT_NUMERIC_LITERALS: Message = Message {
     code: 95092,
     category: Category::Message,
     key: Key("Convert_all_to_bigint_numeric_literals_95092"),
@@ -17994,7 +18104,7 @@ pub static CONVERT_ALL_TO_BIGINT_NUMERIC_LITERALS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_CONST_TO_LET: Message = Message {
+static CONVERT_CONST_TO_LET: Message = Message {
     code: 95093,
     category: Category::Message,
     key: Key("Convert_const_to_let_95093"),
@@ -18004,7 +18114,7 @@ pub static CONVERT_CONST_TO_LET: Message = Message {
     reports_deprecated: false,
 };
 
-pub static PREFIX_WITH_DECLARE: Message = Message {
+static PREFIX_WITH_DECLARE: Message = Message {
     code: 95094,
     category: Category::Message,
     key: Key("Prefix_with_declare_95094"),
@@ -18014,7 +18124,7 @@ pub static PREFIX_WITH_DECLARE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static PREFIX_ALL_INCORRECT_PROPERTY_DECLARATIONS_WITH_DECLARE: Message = Message {
+static PREFIX_ALL_INCORRECT_PROPERTY_DECLARATIONS_WITH_DECLARE: Message = Message {
     code: 95095,
     category: Category::Message,
     key: Key("Prefix_all_incorrect_property_declarations_with_declare_95095"),
@@ -18024,7 +18134,7 @@ pub static PREFIX_ALL_INCORRECT_PROPERTY_DECLARATIONS_WITH_DECLARE: Message = Me
     reports_deprecated: false,
 };
 
-pub static CONVERT_TO_TEMPLATE_STRING: Message = Message {
+static CONVERT_TO_TEMPLATE_STRING: Message = Message {
     code: 95096,
     category: Category::Message,
     key: Key("Convert_to_template_string_95096"),
@@ -18034,7 +18144,7 @@ pub static CONVERT_TO_TEMPLATE_STRING: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_EXPORT_TO_MAKE_THIS_FILE_INTO_A_MODULE: Message = Message {
+static ADD_EXPORT_TO_MAKE_THIS_FILE_INTO_A_MODULE: Message = Message {
     code: 95097,
     category: Category::Message,
     key: Key("Add_export_to_make_this_file_into_a_module_95097"),
@@ -18044,7 +18154,7 @@ pub static ADD_EXPORT_TO_MAKE_THIS_FILE_INTO_A_MODULE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SET_THE_TARGET_OPTION_IN_YOUR_CONFIGURATION_FILE_TO_0: Message = Message {
+static SET_THE_TARGET_OPTION_IN_YOUR_CONFIGURATION_FILE_TO_0: Message = Message {
     code: 95098,
     category: Category::Message,
     key: Key("Set_the_target_option_in_your_configuration_file_to_0_95098"),
@@ -18054,7 +18164,7 @@ pub static SET_THE_TARGET_OPTION_IN_YOUR_CONFIGURATION_FILE_TO_0: Message = Mess
     reports_deprecated: false,
 };
 
-pub static SET_THE_MODULE_OPTION_IN_YOUR_CONFIGURATION_FILE_TO_0: Message = Message {
+static SET_THE_MODULE_OPTION_IN_YOUR_CONFIGURATION_FILE_TO_0: Message = Message {
     code: 95099,
     category: Category::Message,
     key: Key("Set_the_module_option_in_your_configuration_file_to_0_95099"),
@@ -18064,7 +18174,7 @@ pub static SET_THE_MODULE_OPTION_IN_YOUR_CONFIGURATION_FILE_TO_0: Message = Mess
     reports_deprecated: false,
 };
 
-pub static CONVERT_INVALID_CHARACTER_TO_ITS_HTML_ENTITY_CODE: Message = Message {
+static CONVERT_INVALID_CHARACTER_TO_ITS_HTML_ENTITY_CODE: Message = Message {
     code: 95100,
     category: Category::Message,
     key: Key("Convert_invalid_character_to_its_html_entity_code_95100"),
@@ -18074,7 +18184,7 @@ pub static CONVERT_INVALID_CHARACTER_TO_ITS_HTML_ENTITY_CODE: Message = Message 
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_INVALID_CHARACTERS_TO_HTML_ENTITY_CODE: Message = Message {
+static CONVERT_ALL_INVALID_CHARACTERS_TO_HTML_ENTITY_CODE: Message = Message {
     code: 95101,
     category: Category::Message,
     key: Key("Convert_all_invalid_characters_to_HTML_entity_code_95101"),
@@ -18084,7 +18194,7 @@ pub static CONVERT_ALL_INVALID_CHARACTERS_TO_HTML_ENTITY_CODE: Message = Message
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_CONST_TO_LET: Message = Message {
+static CONVERT_ALL_CONST_TO_LET: Message = Message {
     code: 95102,
     category: Category::Message,
     key: Key("Convert_all_const_to_let_95102"),
@@ -18094,7 +18204,7 @@ pub static CONVERT_ALL_CONST_TO_LET: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_FUNCTION_EXPRESSION_0_TO_ARROW_FUNCTION: Message = Message {
+static CONVERT_FUNCTION_EXPRESSION_0_TO_ARROW_FUNCTION: Message = Message {
     code: 95105,
     category: Category::Message,
     key: Key("Convert_function_expression_0_to_arrow_function_95105"),
@@ -18104,7 +18214,7 @@ pub static CONVERT_FUNCTION_EXPRESSION_0_TO_ARROW_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_FUNCTION_DECLARATION_0_TO_ARROW_FUNCTION: Message = Message {
+static CONVERT_FUNCTION_DECLARATION_0_TO_ARROW_FUNCTION: Message = Message {
     code: 95106,
     category: Category::Message,
     key: Key("Convert_function_declaration_0_to_arrow_function_95106"),
@@ -18114,7 +18224,7 @@ pub static CONVERT_FUNCTION_DECLARATION_0_TO_ARROW_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static FIX_ALL_IMPLICIT_THIS_ERRORS: Message = Message {
+static FIX_ALL_IMPLICIT_THIS_ERRORS: Message = Message {
     code: 95107,
     category: Category::Message,
     key: Key("Fix_all_implicit_this_errors_95107"),
@@ -18124,7 +18234,7 @@ pub static FIX_ALL_IMPLICIT_THIS_ERRORS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static WRAP_INVALID_CHARACTER_IN_AN_EXPRESSION_CONTAINER: Message = Message {
+static WRAP_INVALID_CHARACTER_IN_AN_EXPRESSION_CONTAINER: Message = Message {
     code: 95108,
     category: Category::Message,
     key: Key("Wrap_invalid_character_in_an_expression_container_95108"),
@@ -18134,7 +18244,7 @@ pub static WRAP_INVALID_CHARACTER_IN_AN_EXPRESSION_CONTAINER: Message = Message 
     reports_deprecated: false,
 };
 
-pub static WRAP_ALL_INVALID_CHARACTERS_IN_AN_EXPRESSION_CONTAINER: Message = Message {
+static WRAP_ALL_INVALID_CHARACTERS_IN_AN_EXPRESSION_CONTAINER: Message = Message {
     code: 95109,
     category: Category::Message,
     key: Key("Wrap_all_invalid_characters_in_an_expression_container_95109"),
@@ -18144,7 +18254,7 @@ pub static WRAP_ALL_INVALID_CHARACTERS_IN_AN_EXPRESSION_CONTAINER: Message = Mes
     reports_deprecated: false,
 };
 
-pub static VISIT_HTTPS_COLON_SLASH_SLASHAKA_MS_SLASHTSCONFIG_TO_READ_MORE_ABOUT_THIS_FILE: Message =
+static VISIT_HTTPS_COLON_SLASH_SLASHAKA_MS_SLASHTSCONFIG_TO_READ_MORE_ABOUT_THIS_FILE: Message =
     Message {
         code: 95110,
         category: Category::Message,
@@ -18157,7 +18267,7 @@ pub static VISIT_HTTPS_COLON_SLASH_SLASHAKA_MS_SLASHTSCONFIG_TO_READ_MORE_ABOUT_
         reports_deprecated: false,
     };
 
-pub static ADD_A_RETURN_STATEMENT: Message = Message {
+static ADD_A_RETURN_STATEMENT: Message = Message {
     code: 95111,
     category: Category::Message,
     key: Key("Add_a_return_statement_95111"),
@@ -18167,7 +18277,7 @@ pub static ADD_A_RETURN_STATEMENT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_BRACES_FROM_ARROW_FUNCTION_BODY: Message = Message {
+static REMOVE_BRACES_FROM_ARROW_FUNCTION_BODY: Message = Message {
     code: 95112,
     category: Category::Message,
     key: Key("Remove_braces_from_arrow_function_body_95112"),
@@ -18177,7 +18287,7 @@ pub static REMOVE_BRACES_FROM_ARROW_FUNCTION_BODY: Message = Message {
     reports_deprecated: false,
 };
 
-pub static WRAP_THE_FOLLOWING_BODY_WITH_PARENTHESES_WHICH_SHOULD_BE_AN_OBJECT_LITERAL: Message =
+static WRAP_THE_FOLLOWING_BODY_WITH_PARENTHESES_WHICH_SHOULD_BE_AN_OBJECT_LITERAL: Message =
     Message {
         code: 95113,
         category: Category::Message,
@@ -18190,7 +18300,7 @@ pub static WRAP_THE_FOLLOWING_BODY_WITH_PARENTHESES_WHICH_SHOULD_BE_AN_OBJECT_LI
         reports_deprecated: false,
     };
 
-pub static ADD_ALL_MISSING_RETURN_STATEMENT: Message = Message {
+static ADD_ALL_MISSING_RETURN_STATEMENT: Message = Message {
     code: 95114,
     category: Category::Message,
     key: Key("Add_all_missing_return_statement_95114"),
@@ -18200,7 +18310,7 @@ pub static ADD_ALL_MISSING_RETURN_STATEMENT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_BRACES_FROM_ALL_ARROW_FUNCTION_BODIES_WITH_RELEVANT_ISSUES: Message = Message {
+static REMOVE_BRACES_FROM_ALL_ARROW_FUNCTION_BODIES_WITH_RELEVANT_ISSUES: Message = Message {
     code: 95115,
     category: Category::Message,
     key: Key("Remove_braces_from_all_arrow_function_bodies_with_relevant_issues_95115"),
@@ -18210,7 +18320,7 @@ pub static REMOVE_BRACES_FROM_ALL_ARROW_FUNCTION_BODIES_WITH_RELEVANT_ISSUES: Me
     reports_deprecated: false,
 };
 
-pub static WRAP_ALL_OBJECT_LITERAL_WITH_PARENTHESES: Message = Message {
+static WRAP_ALL_OBJECT_LITERAL_WITH_PARENTHESES: Message = Message {
     code: 95116,
     category: Category::Message,
     key: Key("Wrap_all_object_literal_with_parentheses_95116"),
@@ -18220,7 +18330,7 @@ pub static WRAP_ALL_OBJECT_LITERAL_WITH_PARENTHESES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static MOVE_LABELED_TUPLE_ELEMENT_MODIFIERS_TO_LABELS: Message = Message {
+static MOVE_LABELED_TUPLE_ELEMENT_MODIFIERS_TO_LABELS: Message = Message {
     code: 95117,
     category: Category::Message,
     key: Key("Move_labeled_tuple_element_modifiers_to_labels_95117"),
@@ -18230,7 +18340,7 @@ pub static MOVE_LABELED_TUPLE_ELEMENT_MODIFIERS_TO_LABELS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_OVERLOAD_LIST_TO_SINGLE_SIGNATURE: Message = Message {
+static CONVERT_OVERLOAD_LIST_TO_SINGLE_SIGNATURE: Message = Message {
     code: 95118,
     category: Category::Message,
     key: Key("Convert_overload_list_to_single_signature_95118"),
@@ -18240,7 +18350,7 @@ pub static CONVERT_OVERLOAD_LIST_TO_SINGLE_SIGNATURE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static GENERATE_GET_AND_SET_ACCESSORS_FOR_ALL_OVERRIDING_PROPERTIES: Message = Message {
+static GENERATE_GET_AND_SET_ACCESSORS_FOR_ALL_OVERRIDING_PROPERTIES: Message = Message {
     code: 95119,
     category: Category::Message,
     key: Key("Generate_get_and_set_accessors_for_all_overriding_properties_95119"),
@@ -18250,7 +18360,7 @@ pub static GENERATE_GET_AND_SET_ACCESSORS_FOR_ALL_OVERRIDING_PROPERTIES: Message
     reports_deprecated: false,
 };
 
-pub static WRAP_IN_JSX_FRAGMENT: Message = Message {
+static WRAP_IN_JSX_FRAGMENT: Message = Message {
     code: 95120,
     category: Category::Message,
     key: Key("Wrap_in_JSX_fragment_95120"),
@@ -18260,7 +18370,7 @@ pub static WRAP_IN_JSX_FRAGMENT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static WRAP_ALL_UNPARENTED_JSX_IN_JSX_FRAGMENT: Message = Message {
+static WRAP_ALL_UNPARENTED_JSX_IN_JSX_FRAGMENT: Message = Message {
     code: 95121,
     category: Category::Message,
     key: Key("Wrap_all_unparented_JSX_in_JSX_fragment_95121"),
@@ -18270,7 +18380,7 @@ pub static WRAP_ALL_UNPARENTED_JSX_IN_JSX_FRAGMENT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_ARROW_FUNCTION_OR_FUNCTION_EXPRESSION: Message = Message {
+static CONVERT_ARROW_FUNCTION_OR_FUNCTION_EXPRESSION: Message = Message {
     code: 95122,
     category: Category::Message,
     key: Key("Convert_arrow_function_or_function_expression_95122"),
@@ -18280,7 +18390,7 @@ pub static CONVERT_ARROW_FUNCTION_OR_FUNCTION_EXPRESSION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_TO_ANONYMOUS_FUNCTION: Message = Message {
+static CONVERT_TO_ANONYMOUS_FUNCTION: Message = Message {
     code: 95123,
     category: Category::Message,
     key: Key("Convert_to_anonymous_function_95123"),
@@ -18290,7 +18400,7 @@ pub static CONVERT_TO_ANONYMOUS_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_TO_NAMED_FUNCTION: Message = Message {
+static CONVERT_TO_NAMED_FUNCTION: Message = Message {
     code: 95124,
     category: Category::Message,
     key: Key("Convert_to_named_function_95124"),
@@ -18300,7 +18410,7 @@ pub static CONVERT_TO_NAMED_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_TO_ARROW_FUNCTION: Message = Message {
+static CONVERT_TO_ARROW_FUNCTION: Message = Message {
     code: 95125,
     category: Category::Message,
     key: Key("Convert_to_arrow_function_95125"),
@@ -18310,7 +18420,7 @@ pub static CONVERT_TO_ARROW_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_PARENTHESES: Message = Message {
+static REMOVE_PARENTHESES: Message = Message {
     code: 95126,
     category: Category::Message,
     key: Key("Remove_parentheses_95126"),
@@ -18320,7 +18430,7 @@ pub static REMOVE_PARENTHESES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_FIND_A_CONTAINING_ARROW_FUNCTION: Message = Message {
+static COULD_NOT_FIND_A_CONTAINING_ARROW_FUNCTION: Message = Message {
     code: 95127,
     category: Category::Message,
     key: Key("Could_not_find_a_containing_arrow_function_95127"),
@@ -18330,7 +18440,7 @@ pub static COULD_NOT_FIND_A_CONTAINING_ARROW_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONTAINING_FUNCTION_IS_NOT_AN_ARROW_FUNCTION: Message = Message {
+static CONTAINING_FUNCTION_IS_NOT_AN_ARROW_FUNCTION: Message = Message {
     code: 95128,
     category: Category::Message,
     key: Key("Containing_function_is_not_an_arrow_function_95128"),
@@ -18340,7 +18450,7 @@ pub static CONTAINING_FUNCTION_IS_NOT_AN_ARROW_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_FIND_EXPORT_STATEMENT: Message = Message {
+static COULD_NOT_FIND_EXPORT_STATEMENT: Message = Message {
     code: 95129,
     category: Category::Message,
     key: Key("Could_not_find_export_statement_95129"),
@@ -18350,7 +18460,7 @@ pub static COULD_NOT_FIND_EXPORT_STATEMENT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static THIS_FILE_ALREADY_HAS_A_DEFAULT_EXPORT: Message = Message {
+static THIS_FILE_ALREADY_HAS_A_DEFAULT_EXPORT: Message = Message {
     code: 95130,
     category: Category::Message,
     key: Key("This_file_already_has_a_default_export_95130"),
@@ -18360,7 +18470,7 @@ pub static THIS_FILE_ALREADY_HAS_A_DEFAULT_EXPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_FIND_IMPORT_CLAUSE: Message = Message {
+static COULD_NOT_FIND_IMPORT_CLAUSE: Message = Message {
     code: 95131,
     category: Category::Message,
     key: Key("Could_not_find_import_clause_95131"),
@@ -18370,7 +18480,7 @@ pub static COULD_NOT_FIND_IMPORT_CLAUSE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_FIND_NAMESPACE_IMPORT_OR_NAMED_IMPORTS: Message = Message {
+static COULD_NOT_FIND_NAMESPACE_IMPORT_OR_NAMED_IMPORTS: Message = Message {
     code: 95132,
     category: Category::Message,
     key: Key("Could_not_find_namespace_import_or_named_imports_95132"),
@@ -18380,7 +18490,7 @@ pub static COULD_NOT_FIND_NAMESPACE_IMPORT_OR_NAMED_IMPORTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SELECTION_IS_NOT_A_VALID_TYPE_NODE: Message = Message {
+static SELECTION_IS_NOT_A_VALID_TYPE_NODE: Message = Message {
     code: 95133,
     category: Category::Message,
     key: Key("Selection_is_not_a_valid_type_node_95133"),
@@ -18390,7 +18500,7 @@ pub static SELECTION_IS_NOT_A_VALID_TYPE_NODE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static NO_TYPE_COULD_BE_EXTRACTED_FROM_THIS_TYPE_NODE: Message = Message {
+static NO_TYPE_COULD_BE_EXTRACTED_FROM_THIS_TYPE_NODE: Message = Message {
     code: 95134,
     category: Category::Message,
     key: Key("No_type_could_be_extracted_from_this_type_node_95134"),
@@ -18400,7 +18510,7 @@ pub static NO_TYPE_COULD_BE_EXTRACTED_FROM_THIS_TYPE_NODE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_FIND_PROPERTY_FOR_WHICH_TO_GENERATE_ACCESSOR: Message = Message {
+static COULD_NOT_FIND_PROPERTY_FOR_WHICH_TO_GENERATE_ACCESSOR: Message = Message {
     code: 95135,
     category: Category::Message,
     key: Key("Could_not_find_property_for_which_to_generate_accessor_95135"),
@@ -18410,7 +18520,7 @@ pub static COULD_NOT_FIND_PROPERTY_FOR_WHICH_TO_GENERATE_ACCESSOR: Message = Mes
     reports_deprecated: false,
 };
 
-pub static NAME_IS_NOT_VALID: Message = Message {
+static NAME_IS_NOT_VALID: Message = Message {
     code: 95136,
     category: Category::Message,
     key: Key("Name_is_not_valid_95136"),
@@ -18420,7 +18530,7 @@ pub static NAME_IS_NOT_VALID: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CAN_ONLY_CONVERT_PROPERTY_WITH_MODIFIER: Message = Message {
+static CAN_ONLY_CONVERT_PROPERTY_WITH_MODIFIER: Message = Message {
     code: 95137,
     category: Category::Message,
     key: Key("Can_only_convert_property_with_modifier_95137"),
@@ -18430,7 +18540,7 @@ pub static CAN_ONLY_CONVERT_PROPERTY_WITH_MODIFIER: Message = Message {
     reports_deprecated: false,
 };
 
-pub static SWITCH_EACH_MISUSED_0_TO_1: Message = Message {
+static SWITCH_EACH_MISUSED_0_TO_1: Message = Message {
     code: 95138,
     category: Category::Message,
     key: Key("Switch_each_misused_0_to_1_95138"),
@@ -18440,7 +18550,7 @@ pub static SWITCH_EACH_MISUSED_0_TO_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_TO_OPTIONAL_CHAIN_EXPRESSION: Message = Message {
+static CONVERT_TO_OPTIONAL_CHAIN_EXPRESSION: Message = Message {
     code: 95139,
     category: Category::Message,
     key: Key("Convert_to_optional_chain_expression_95139"),
@@ -18450,7 +18560,7 @@ pub static CONVERT_TO_OPTIONAL_CHAIN_EXPRESSION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_FIND_CONVERTIBLE_ACCESS_EXPRESSION: Message = Message {
+static COULD_NOT_FIND_CONVERTIBLE_ACCESS_EXPRESSION: Message = Message {
     code: 95140,
     category: Category::Message,
     key: Key("Could_not_find_convertible_access_expression_95140"),
@@ -18460,7 +18570,7 @@ pub static COULD_NOT_FIND_CONVERTIBLE_ACCESS_EXPRESSION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_FIND_MATCHING_ACCESS_EXPRESSIONS: Message = Message {
+static COULD_NOT_FIND_MATCHING_ACCESS_EXPRESSIONS: Message = Message {
     code: 95141,
     category: Category::Message,
     key: Key("Could_not_find_matching_access_expressions_95141"),
@@ -18470,7 +18580,7 @@ pub static COULD_NOT_FIND_MATCHING_ACCESS_EXPRESSIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CAN_ONLY_CONVERT_LOGICAL_AND_ACCESS_CHAINS: Message = Message {
+static CAN_ONLY_CONVERT_LOGICAL_AND_ACCESS_CHAINS: Message = Message {
     code: 95142,
     category: Category::Message,
     key: Key("Can_only_convert_logical_AND_access_chains_95142"),
@@ -18480,7 +18590,7 @@ pub static CAN_ONLY_CONVERT_LOGICAL_AND_ACCESS_CHAINS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_VOID_TO_PROMISE_RESOLVED_WITHOUT_A_VALUE: Message = Message {
+static ADD_VOID_TO_PROMISE_RESOLVED_WITHOUT_A_VALUE: Message = Message {
     code: 95143,
     category: Category::Message,
     key: Key("Add_void_to_Promise_resolved_without_a_value_95143"),
@@ -18490,7 +18600,7 @@ pub static ADD_VOID_TO_PROMISE_RESOLVED_WITHOUT_A_VALUE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_VOID_TO_ALL_PROMISES_RESOLVED_WITHOUT_A_VALUE: Message = Message {
+static ADD_VOID_TO_ALL_PROMISES_RESOLVED_WITHOUT_A_VALUE: Message = Message {
     code: 95144,
     category: Category::Message,
     key: Key("Add_void_to_all_Promises_resolved_without_a_value_95144"),
@@ -18500,7 +18610,7 @@ pub static ADD_VOID_TO_ALL_PROMISES_RESOLVED_WITHOUT_A_VALUE: Message = Message 
     reports_deprecated: false,
 };
 
-pub static USE_ELEMENT_ACCESS_FOR_0: Message = Message {
+static USE_ELEMENT_ACCESS_FOR_0: Message = Message {
     code: 95145,
     category: Category::Message,
     key: Key("Use_element_access_for_0_95145"),
@@ -18510,7 +18620,7 @@ pub static USE_ELEMENT_ACCESS_FOR_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static USE_ELEMENT_ACCESS_FOR_ALL_UNDECLARED_PROPERTIES: Message = Message {
+static USE_ELEMENT_ACCESS_FOR_ALL_UNDECLARED_PROPERTIES: Message = Message {
     code: 95146,
     category: Category::Message,
     key: Key("Use_element_access_for_all_undeclared_properties_95146"),
@@ -18520,7 +18630,7 @@ pub static USE_ELEMENT_ACCESS_FOR_ALL_UNDECLARED_PROPERTIES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DELETE_ALL_UNUSED_IMPORTS: Message = Message {
+static DELETE_ALL_UNUSED_IMPORTS: Message = Message {
     code: 95147,
     category: Category::Message,
     key: Key("Delete_all_unused_imports_95147"),
@@ -18530,7 +18640,7 @@ pub static DELETE_ALL_UNUSED_IMPORTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INFER_FUNCTION_RETURN_TYPE: Message = Message {
+static INFER_FUNCTION_RETURN_TYPE: Message = Message {
     code: 95148,
     category: Category::Message,
     key: Key("Infer_function_return_type_95148"),
@@ -18540,7 +18650,7 @@ pub static INFER_FUNCTION_RETURN_TYPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static RETURN_TYPE_MUST_BE_INFERRED_FROM_A_FUNCTION: Message = Message {
+static RETURN_TYPE_MUST_BE_INFERRED_FROM_A_FUNCTION: Message = Message {
     code: 95149,
     category: Category::Message,
     key: Key("Return_type_must_be_inferred_from_a_function_95149"),
@@ -18550,7 +18660,7 @@ pub static RETURN_TYPE_MUST_BE_INFERRED_FROM_A_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_DETERMINE_FUNCTION_RETURN_TYPE: Message = Message {
+static COULD_NOT_DETERMINE_FUNCTION_RETURN_TYPE: Message = Message {
     code: 95150,
     category: Category::Message,
     key: Key("Could_not_determine_function_return_type_95150"),
@@ -18560,7 +18670,7 @@ pub static COULD_NOT_DETERMINE_FUNCTION_RETURN_TYPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_CONVERT_TO_ARROW_FUNCTION: Message = Message {
+static COULD_NOT_CONVERT_TO_ARROW_FUNCTION: Message = Message {
     code: 95151,
     category: Category::Message,
     key: Key("Could_not_convert_to_arrow_function_95151"),
@@ -18570,7 +18680,7 @@ pub static COULD_NOT_CONVERT_TO_ARROW_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_CONVERT_TO_NAMED_FUNCTION: Message = Message {
+static COULD_NOT_CONVERT_TO_NAMED_FUNCTION: Message = Message {
     code: 95152,
     category: Category::Message,
     key: Key("Could_not_convert_to_named_function_95152"),
@@ -18580,7 +18690,7 @@ pub static COULD_NOT_CONVERT_TO_NAMED_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_CONVERT_TO_ANONYMOUS_FUNCTION: Message = Message {
+static COULD_NOT_CONVERT_TO_ANONYMOUS_FUNCTION: Message = Message {
     code: 95153,
     category: Category::Message,
     key: Key("Could_not_convert_to_anonymous_function_95153"),
@@ -18590,7 +18700,7 @@ pub static COULD_NOT_CONVERT_TO_ANONYMOUS_FUNCTION: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CAN_ONLY_CONVERT_STRING_CONCATENATIONS_AND_STRING_LITERALS: Message = Message {
+static CAN_ONLY_CONVERT_STRING_CONCATENATIONS_AND_STRING_LITERALS: Message = Message {
     code: 95154,
     category: Category::Message,
     key: Key("Can_only_convert_string_concatenations_and_string_literals_95154"),
@@ -18600,7 +18710,7 @@ pub static CAN_ONLY_CONVERT_STRING_CONCATENATIONS_AND_STRING_LITERALS: Message =
     reports_deprecated: false,
 };
 
-pub static SELECTION_IS_NOT_A_VALID_STATEMENT_OR_STATEMENTS: Message = Message {
+static SELECTION_IS_NOT_A_VALID_STATEMENT_OR_STATEMENTS: Message = Message {
     code: 95155,
     category: Category::Message,
     key: Key("Selection_is_not_a_valid_statement_or_statements_95155"),
@@ -18610,7 +18720,7 @@ pub static SELECTION_IS_NOT_A_VALID_STATEMENT_OR_STATEMENTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_FUNCTION_DECLARATION_0: Message = Message {
+static ADD_MISSING_FUNCTION_DECLARATION_0: Message = Message {
     code: 95156,
     category: Category::Message,
     key: Key("Add_missing_function_declaration_0_95156"),
@@ -18620,7 +18730,7 @@ pub static ADD_MISSING_FUNCTION_DECLARATION_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_MISSING_FUNCTION_DECLARATIONS: Message = Message {
+static ADD_ALL_MISSING_FUNCTION_DECLARATIONS: Message = Message {
     code: 95157,
     category: Category::Message,
     key: Key("Add_all_missing_function_declarations_95157"),
@@ -18640,7 +18750,7 @@ pub static METHOD_NOT_IMPLEMENTED: Message = Message {
     reports_deprecated: false,
 };
 
-pub static FUNCTION_NOT_IMPLEMENTED: Message = Message {
+static FUNCTION_NOT_IMPLEMENTED: Message = Message {
     code: 95159,
     category: Category::Message,
     key: Key("Function_not_implemented_95159"),
@@ -18650,7 +18760,7 @@ pub static FUNCTION_NOT_IMPLEMENTED: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_OVERRIDE_MODIFIER: Message = Message {
+static ADD_OVERRIDE_MODIFIER: Message = Message {
     code: 95160,
     category: Category::Message,
     key: Key("Add_override_modifier_95160"),
@@ -18660,7 +18770,7 @@ pub static ADD_OVERRIDE_MODIFIER: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_OVERRIDE_MODIFIER: Message = Message {
+static REMOVE_OVERRIDE_MODIFIER: Message = Message {
     code: 95161,
     category: Category::Message,
     key: Key("Remove_override_modifier_95161"),
@@ -18670,7 +18780,7 @@ pub static REMOVE_OVERRIDE_MODIFIER: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_MISSING_OVERRIDE_MODIFIERS: Message = Message {
+static ADD_ALL_MISSING_OVERRIDE_MODIFIERS: Message = Message {
     code: 95162,
     category: Category::Message,
     key: Key("Add_all_missing_override_modifiers_95162"),
@@ -18680,7 +18790,7 @@ pub static ADD_ALL_MISSING_OVERRIDE_MODIFIERS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static REMOVE_ALL_UNNECESSARY_OVERRIDE_MODIFIERS: Message = Message {
+static REMOVE_ALL_UNNECESSARY_OVERRIDE_MODIFIERS: Message = Message {
     code: 95163,
     category: Category::Message,
     key: Key("Remove_all_unnecessary_override_modifiers_95163"),
@@ -18690,7 +18800,7 @@ pub static REMOVE_ALL_UNNECESSARY_OVERRIDE_MODIFIERS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CAN_ONLY_CONVERT_NAMED_EXPORT: Message = Message {
+static CAN_ONLY_CONVERT_NAMED_EXPORT: Message = Message {
     code: 95164,
     category: Category::Message,
     key: Key("Can_only_convert_named_export_95164"),
@@ -18700,7 +18810,7 @@ pub static CAN_ONLY_CONVERT_NAMED_EXPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_PROPERTIES: Message = Message {
+static ADD_MISSING_PROPERTIES: Message = Message {
     code: 95165,
     category: Category::Message,
     key: Key("Add_missing_properties_95165"),
@@ -18710,7 +18820,7 @@ pub static ADD_MISSING_PROPERTIES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_MISSING_PROPERTIES: Message = Message {
+static ADD_ALL_MISSING_PROPERTIES: Message = Message {
     code: 95166,
     category: Category::Message,
     key: Key("Add_all_missing_properties_95166"),
@@ -18720,7 +18830,7 @@ pub static ADD_ALL_MISSING_PROPERTIES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_ATTRIBUTES: Message = Message {
+static ADD_MISSING_ATTRIBUTES: Message = Message {
     code: 95167,
     category: Category::Message,
     key: Key("Add_missing_attributes_95167"),
@@ -18730,7 +18840,7 @@ pub static ADD_MISSING_ATTRIBUTES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_MISSING_ATTRIBUTES: Message = Message {
+static ADD_ALL_MISSING_ATTRIBUTES: Message = Message {
     code: 95168,
     category: Category::Message,
     key: Key("Add_all_missing_attributes_95168"),
@@ -18740,7 +18850,7 @@ pub static ADD_ALL_MISSING_ATTRIBUTES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_UNDEFINED_TO_OPTIONAL_PROPERTY_TYPE: Message = Message {
+static ADD_UNDEFINED_TO_OPTIONAL_PROPERTY_TYPE: Message = Message {
     code: 95169,
     category: Category::Message,
     key: Key("Add_undefined_to_optional_property_type_95169"),
@@ -18750,7 +18860,7 @@ pub static ADD_UNDEFINED_TO_OPTIONAL_PROPERTY_TYPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_NAMED_IMPORTS_TO_DEFAULT_IMPORT: Message = Message {
+static CONVERT_NAMED_IMPORTS_TO_DEFAULT_IMPORT: Message = Message {
     code: 95170,
     category: Category::Message,
     key: Key("Convert_named_imports_to_default_import_95170"),
@@ -18760,7 +18870,7 @@ pub static CONVERT_NAMED_IMPORTS_TO_DEFAULT_IMPORT: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DELETE_UNUSED_PARAM_TAG_0: Message = Message {
+static DELETE_UNUSED_PARAM_TAG_0: Message = Message {
     code: 95171,
     category: Category::Message,
     key: Key("Delete_unused_param_tag_0_95171"),
@@ -18770,7 +18880,7 @@ pub static DELETE_UNUSED_PARAM_TAG_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static DELETE_ALL_UNUSED_PARAM_TAGS: Message = Message {
+static DELETE_ALL_UNUSED_PARAM_TAGS: Message = Message {
     code: 95172,
     category: Category::Message,
     key: Key("Delete_all_unused_param_tags_95172"),
@@ -18780,7 +18890,7 @@ pub static DELETE_ALL_UNUSED_PARAM_TAGS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static RENAME_PARAM_TAG_NAME_0_TO_1: Message = Message {
+static RENAME_PARAM_TAG_NAME_0_TO_1: Message = Message {
     code: 95173,
     category: Category::Message,
     key: Key("Rename_param_tag_name_0_to_1_95173"),
@@ -18790,7 +18900,7 @@ pub static RENAME_PARAM_TAG_NAME_0_TO_1: Message = Message {
     reports_deprecated: false,
 };
 
-pub static USE_0: Message = Message {
+static USE_0: Message = Message {
     code: 95174,
     category: Category::Message,
     key: Key("Use_0_95174"),
@@ -18800,7 +18910,7 @@ pub static USE_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static USE_NUMBER_IS_NA_N_IN_ALL_CONDITIONS: Message = Message {
+static USE_NUMBER_IS_NA_N_IN_ALL_CONDITIONS: Message = Message {
     code: 95175,
     category: Category::Message,
     key: Key("Use_Number_isNaN_in_all_conditions_95175"),
@@ -18810,7 +18920,7 @@ pub static USE_NUMBER_IS_NA_N_IN_ALL_CONDITIONS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_TYPEDEF_TO_TYPE_SCRIPT_TYPE: Message = Message {
+static CONVERT_TYPEDEF_TO_TYPE_SCRIPT_TYPE: Message = Message {
     code: 95176,
     category: Category::Message,
     key: Key("Convert_typedef_to_TypeScript_type_95176"),
@@ -18820,7 +18930,7 @@ pub static CONVERT_TYPEDEF_TO_TYPE_SCRIPT_TYPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CONVERT_ALL_TYPEDEF_TO_TYPE_SCRIPT_TYPES: Message = Message {
+static CONVERT_ALL_TYPEDEF_TO_TYPE_SCRIPT_TYPES: Message = Message {
     code: 95177,
     category: Category::Message,
     key: Key("Convert_all_typedef_to_TypeScript_types_95177"),
@@ -18830,7 +18940,7 @@ pub static CONVERT_ALL_TYPEDEF_TO_TYPE_SCRIPT_TYPES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static MOVE_TO_FILE: Message = Message {
+static MOVE_TO_FILE: Message = Message {
     code: 95178,
     category: Category::Message,
     key: Key("Move_to_file_95178"),
@@ -18840,7 +18950,7 @@ pub static MOVE_TO_FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CANNOT_MOVE_TO_FILE_SELECTED_FILE_IS_INVALID: Message = Message {
+static CANNOT_MOVE_TO_FILE_SELECTED_FILE_IS_INVALID: Message = Message {
     code: 95179,
     category: Category::Message,
     key: Key("Cannot_move_to_file_selected_file_is_invalid_95179"),
@@ -18850,7 +18960,7 @@ pub static CANNOT_MOVE_TO_FILE_SELECTED_FILE_IS_INVALID: Message = Message {
     reports_deprecated: false,
 };
 
-pub static USE_IMPORT_TYPE: Message = Message {
+static USE_IMPORT_TYPE: Message = Message {
     code: 95180,
     category: Category::Message,
     key: Key("Use_import_type_95180"),
@@ -18860,7 +18970,7 @@ pub static USE_IMPORT_TYPE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static USE_TYPE_0: Message = Message {
+static USE_TYPE_0: Message = Message {
     code: 95181,
     category: Category::Message,
     key: Key("Use_type_0_95181"),
@@ -18870,7 +18980,7 @@ pub static USE_TYPE_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static FIX_ALL_WITH_TYPE_ONLY_IMPORTS: Message = Message {
+static FIX_ALL_WITH_TYPE_ONLY_IMPORTS: Message = Message {
     code: 95182,
     category: Category::Message,
     key: Key("Fix_all_with_type_only_imports_95182"),
@@ -18880,7 +18990,7 @@ pub static FIX_ALL_WITH_TYPE_ONLY_IMPORTS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static CANNOT_MOVE_STATEMENTS_TO_THE_SELECTED_FILE: Message = Message {
+static CANNOT_MOVE_STATEMENTS_TO_THE_SELECTED_FILE: Message = Message {
     code: 95183,
     category: Category::Message,
     key: Key("Cannot_move_statements_to_the_selected_file_95183"),
@@ -18890,7 +19000,7 @@ pub static CANNOT_MOVE_STATEMENTS_TO_THE_SELECTED_FILE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INLINE_VARIABLE: Message = Message {
+static INLINE_VARIABLE: Message = Message {
     code: 95184,
     category: Category::Message,
     key: Key("Inline_variable_95184"),
@@ -18900,7 +19010,7 @@ pub static INLINE_VARIABLE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static COULD_NOT_FIND_VARIABLE_TO_INLINE: Message = Message {
+static COULD_NOT_FIND_VARIABLE_TO_INLINE: Message = Message {
     code: 95185,
     category: Category::Message,
     key: Key("Could_not_find_variable_to_inline_95185"),
@@ -18910,7 +19020,7 @@ pub static COULD_NOT_FIND_VARIABLE_TO_INLINE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static VARIABLES_WITH_MULTIPLE_DECLARATIONS_CANNOT_BE_INLINED: Message = Message {
+static VARIABLES_WITH_MULTIPLE_DECLARATIONS_CANNOT_BE_INLINED: Message = Message {
     code: 95186,
     category: Category::Message,
     key: Key("Variables_with_multiple_declarations_cannot_be_inlined_95186"),
@@ -18920,7 +19030,7 @@ pub static VARIABLES_WITH_MULTIPLE_DECLARATIONS_CANNOT_BE_INLINED: Message = Mes
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_COMMA_FOR_OBJECT_MEMBER_COMPLETION_0: Message = Message {
+static ADD_MISSING_COMMA_FOR_OBJECT_MEMBER_COMPLETION_0: Message = Message {
     code: 95187,
     category: Category::Message,
     key: Key("Add_missing_comma_for_object_member_completion_0_95187"),
@@ -18930,7 +19040,7 @@ pub static ADD_MISSING_COMMA_FOR_OBJECT_MEMBER_COMPLETION_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_PARAMETER_TO_0: Message = Message {
+static ADD_MISSING_PARAMETER_TO_0: Message = Message {
     code: 95188,
     category: Category::Message,
     key: Key("Add_missing_parameter_to_0_95188"),
@@ -18940,7 +19050,7 @@ pub static ADD_MISSING_PARAMETER_TO_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_MISSING_PARAMETERS_TO_0: Message = Message {
+static ADD_MISSING_PARAMETERS_TO_0: Message = Message {
     code: 95189,
     category: Category::Message,
     key: Key("Add_missing_parameters_to_0_95189"),
@@ -18950,7 +19060,7 @@ pub static ADD_MISSING_PARAMETERS_TO_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_MISSING_PARAMETERS: Message = Message {
+static ADD_ALL_MISSING_PARAMETERS: Message = Message {
     code: 95190,
     category: Category::Message,
     key: Key("Add_all_missing_parameters_95190"),
@@ -18960,7 +19070,7 @@ pub static ADD_ALL_MISSING_PARAMETERS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_OPTIONAL_PARAMETER_TO_0: Message = Message {
+static ADD_OPTIONAL_PARAMETER_TO_0: Message = Message {
     code: 95191,
     category: Category::Message,
     key: Key("Add_optional_parameter_to_0_95191"),
@@ -18970,7 +19080,7 @@ pub static ADD_OPTIONAL_PARAMETER_TO_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_OPTIONAL_PARAMETERS_TO_0: Message = Message {
+static ADD_OPTIONAL_PARAMETERS_TO_0: Message = Message {
     code: 95192,
     category: Category::Message,
     key: Key("Add_optional_parameters_to_0_95192"),
@@ -18980,7 +19090,7 @@ pub static ADD_OPTIONAL_PARAMETERS_TO_0: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_ALL_OPTIONAL_PARAMETERS: Message = Message {
+static ADD_ALL_OPTIONAL_PARAMETERS: Message = Message {
     code: 95193,
     category: Category::Message,
     key: Key("Add_all_optional_parameters_95193"),
@@ -18990,7 +19100,7 @@ pub static ADD_ALL_OPTIONAL_PARAMETERS: Message = Message {
     reports_deprecated: false,
 };
 
-pub static WRAP_IN_PARENTHESES: Message = Message {
+static WRAP_IN_PARENTHESES: Message = Message {
     code: 95194,
     category: Category::Message,
     key: Key("Wrap_in_parentheses_95194"),
@@ -19000,7 +19110,7 @@ pub static WRAP_IN_PARENTHESES: Message = Message {
     reports_deprecated: false,
 };
 
-pub static WRAP_ALL_INVALID_DECORATOR_EXPRESSIONS_IN_PARENTHESES: Message = Message {
+static WRAP_ALL_INVALID_DECORATOR_EXPRESSIONS_IN_PARENTHESES: Message = Message {
     code: 95195,
     category: Category::Message,
     key: Key("Wrap_all_invalid_decorator_expressions_in_parentheses_95195"),
@@ -19010,7 +19120,7 @@ pub static WRAP_ALL_INVALID_DECORATOR_EXPRESSIONS_IN_PARENTHESES: Message = Mess
     reports_deprecated: false,
 };
 
-pub static ADD_RESOLUTION_MODE_IMPORT_ATTRIBUTE: Message = Message {
+static ADD_RESOLUTION_MODE_IMPORT_ATTRIBUTE: Message = Message {
     code: 95196,
     category: Category::Message,
     key: Key("Add_resolution_mode_import_attribute_95196"),
@@ -19020,7 +19130,7 @@ pub static ADD_RESOLUTION_MODE_IMPORT_ATTRIBUTE: Message = Message {
     reports_deprecated: false,
 };
 
-pub static ADD_RESOLUTION_MODE_IMPORT_ATTRIBUTE_TO_ALL_TYPE_ONLY_IMPORTS_THAT_NEED_IT: Message =
+static ADD_RESOLUTION_MODE_IMPORT_ATTRIBUTE_TO_ALL_TYPE_ONLY_IMPORTS_THAT_NEED_IT: Message =
     Message {
         code: 95197,
         category: Category::Message,
@@ -19083,7 +19193,7 @@ pub static LOADING: Message = Message {
     reports_deprecated: false,
 };
 
-pub static INSTALLING_TYPES_FOR_0: Message = Message {
+static INSTALLING_TYPES_FOR_0: Message = Message {
     code: 95203,
     category: Category::Message,
     key: Key("Installing_types_for_0_95203"),

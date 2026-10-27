@@ -20,7 +20,11 @@ impl ModifierVisitor {
 }
 
 // modifiervisitor.go:21
-pub fn extract_modifiers(
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Only the public API is re-exported; implementation helpers remain crate-private."
+)]
+pub(crate) fn extract_modifiers(
     emit_context: P<EmitContext>,
     modifiers: Option<P<ModifierList>>,
     allowed: ModifierFlags,

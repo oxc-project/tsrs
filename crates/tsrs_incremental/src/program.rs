@@ -102,10 +102,6 @@ impl Program {
         })
     }
 
-    pub fn get_testing_data(&self) -> Option<&Mutex<TestingData>> {
-        self.testing_data.as_ref()
-    }
-
     // sys.go OnProgram: `*refresh*` when the cached entry is not the one the old program had (by pointer).
     pub fn testing_semantic_diagnostics_state(&self, path: &Path) -> SemanticDiagnosticsState {
         let Some(diagnostics) = self.snapshot.semantic_diagnostics_per_file.load(path) else {

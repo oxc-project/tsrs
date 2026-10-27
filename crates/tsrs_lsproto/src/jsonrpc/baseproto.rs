@@ -19,7 +19,7 @@ pub struct Reader<R: Read> {
 
 // baseproto.go:27
 // NewReader creates a new Reader.
-pub fn new_reader<R: Read>(r: R) -> Reader<R> {
+pub(crate) fn new_reader<R: Read>(r: R) -> Reader<R> {
     Reader { r: BufReader::with_capacity(4096, r) }
 }
 
@@ -137,7 +137,7 @@ pub struct Writer<W: Write> {
 
 // baseproto.go:84
 // NewWriter creates a new Writer.
-pub fn new_writer<W: Write>(w: W) -> Writer<W> {
+pub(crate) fn new_writer<W: Write>(w: W) -> Writer<W> {
     Writer { w: BufWriter::with_capacity(4096, w) }
 }
 

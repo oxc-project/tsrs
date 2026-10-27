@@ -2,22 +2,21 @@
 
 pub type Rune = u32;
 
-pub struct Range16 {
+pub(crate) struct Range16 {
     pub(crate) lo: u16,
     pub(crate) hi: u16,
     pub(crate) stride: u16,
 }
 
-pub struct Range32 {
+pub(crate) struct Range32 {
     pub(crate) lo: u32,
     pub(crate) hi: u32,
     pub(crate) stride: u32,
 }
 
-pub struct RangeTable {
+pub(crate) struct RangeTable {
     pub(crate) r16: &'static [Range16],
     pub(crate) r32: &'static [Range32],
-    pub latin_offset: usize,
 }
 
 const LINEAR_MAX: usize = 18;
@@ -85,7 +84,7 @@ fn is32(ranges: &[Range32], r: u32) -> bool {
 }
 
 /// Go `unicode.Is`.
-pub fn unicode_is(table: &RangeTable, r: Rune) -> bool {
+pub(crate) fn unicode_is(table: &RangeTable, r: Rune) -> bool {
     let r16 = table.r16;
     if !r16.is_empty() && r <= u32::from(r16[r16.len() - 1].hi) {
         return is16(r16, r as u16);

@@ -327,12 +327,10 @@ impl SymbolTrackerSharedState {
 
 // tracker.go:255
 pub fn new_symbol_tracker(
-    host: &'static dyn DeclarationEmitHost,
     resolver: Resolver,
     state: P<SymbolTrackerSharedState>,
 ) -> P<SymbolTrackerImpl> {
     P::new(SymbolTrackerImpl {
-        host,
         resolver,
         state,
         fallback_stack: RefCell::new(Vec::new()),

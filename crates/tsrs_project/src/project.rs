@@ -35,7 +35,7 @@ use tsrs_core::arena::Region;
 
 const INFERRED_PROJECT_NAME: &str = "/dev/null/inferred"; // lowercase so toPath is a no-op regardless of settings
 const SYNTHETIC_PROJECT_PREFIX: &str = "/dev/null/synthetic/";
-pub const HR: &str = "-----------------------------------------------";
+pub(crate) const HR: &str = "-----------------------------------------------";
 
 #[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
 pub struct ID(pub String);
@@ -44,11 +44,6 @@ pub struct ID(pub String);
 pub struct ConfiguredProjectID(pub(crate) Path);
 
 impl ConfiguredProjectID {
-    // project.go:36
-    pub fn path(&self) -> Path {
-        self.0.clone()
-    }
-
     // project.go:54
     pub fn as_id(&self) -> ID {
         ID(self.0.to_string())
@@ -58,9 +53,9 @@ impl ConfiguredProjectID {
 #[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
 pub struct InferredProjectID(String);
 
-pub type ModuleResolverFactoryRef = Option<Arc<dyn ModuleResolverFactory>>;
+pub(crate) type ModuleResolverFactoryRef = Option<Arc<dyn ModuleResolverFactory>>;
 
-pub fn inferred_project_id() -> InferredProjectID {
+pub(crate) fn inferred_project_id() -> InferredProjectID {
     InferredProjectID(INFERRED_PROJECT_NAME.to_string())
 }
 
@@ -95,10 +90,6 @@ impl SyntheticProjectID {
 }
 
 impl ID {
-    pub fn string(&self) -> String {
-        self.0.clone()
-    }
-
     // project.go:58
     pub(crate) fn configured(&self) -> Option<ConfiguredProjectID> {
         parse_configured_project_id(&Path::new(self.0.clone()))
@@ -223,7 +214,7 @@ pub struct Project {
 }
 
 // project.go:180
-pub fn new_configured_project(
+pub(crate) fn new_configured_project(
     config_file_name: &str,
     config_file_path: &Path,
     builder: &ProjectCollectionBuilder,
@@ -245,7 +236,7 @@ pub fn new_configured_project(
 }
 
 // project.go:196
-pub fn new_inferred_project(
+pub(crate) fn new_inferred_project(
     current_directory: &str,
     compiler_options: Option<P<CompilerOptions>>,
     root_file_names: Vec<String>,
@@ -293,7 +284,7 @@ pub fn new_inferred_project(
 }
 
 // project.go:234
-pub fn new_synthetic_project(
+pub(crate) fn new_synthetic_project(
     id: &SyntheticProjectID,
     current_directory: &str,
     compiler_options: P<CompilerOptions>,
@@ -322,7 +313,7 @@ pub fn new_synthetic_project(
 // project.go:258
 // `errors` is the `Errors` slice Go assigns on the returned command line right after creating it (Rust's
 // command line is immutable once allocated).
-pub fn new_inferred_project_command_line(
+pub(crate) fn new_inferred_project_command_line(
     compiler_options: P<CompilerOptions>,
     root_file_names: Vec<String>,
     project_references: Vec<ProjectReference>,
@@ -420,7 +411,7 @@ fn new_project(
 }
 
 // The result of `CreateProgram`.
-pub struct CreateProgramResult {
+pub(crate) struct CreateProgramResult {
     pub(crate) program: &'static Program,
     pub(crate) update_kind: ProgramUpdateKind,
     // Go reads the pool back with `program.GetCheckerPool().(*checkerPool)`; the program keeps the pool behind
@@ -804,27 +795,6 @@ impl Project {
 
     // project.go:651
     // ShouldTriggerATA determines if ATA should be triggered for this project.
-    pub fn should_trigger_ata(&self, snapshot_id: u64) -> bool {
-        if self.program.is_none() || self.command_line.is_none() {
-            return false;
-        }
-
-        let type_acquisition = self.get_type_acquisition();
-        if !type_acquisition.as_ref().is_some_and(|ta| ta.enable.is_true()) {
-            return false;
-        }
-
-        let Some(installed_typings_info) = &self.installed_typings_info else {
-            return true;
-        };
-        if self.program_last_update == snapshot_id
-            && self.program_update_kind == ProgramUpdateKind::NewFiles
-        {
-            return true;
-        }
-
-        !installed_typings_info.equals(&self.compute_typings_info())
-    }
 
     // project.go:668
     pub(crate) fn compute_typings_info(&self) -> ata::TypingsInfo {

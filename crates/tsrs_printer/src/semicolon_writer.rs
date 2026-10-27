@@ -107,6 +107,11 @@ impl EmitTextWriter for TrailingSemicolonDeferringWriter {
         self.inner.string()
     }
 
+    fn take_string(&mut self) -> String {
+        self.has_pending_semicolon = false;
+        self.inner.take_string()
+    }
+
     fn raw_write(&mut self, s: &str) {
         self.commit_semicolon();
         self.inner.raw_write(s);

@@ -863,6 +863,7 @@ fn test_omit_trailing_semicolon() {
         None,
     );
     assert_eq!(omit_printer.emit(method_signature, Some(file)), "m(): void");
+    assert_eq!(omit_printer.emit(method_signature, Some(file)), "m(): void");
 
     let for_file = parse_type_script("for (;;) {}", false);
     let got = omit_printer.emit_source_file(for_file);

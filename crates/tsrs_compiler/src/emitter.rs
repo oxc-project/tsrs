@@ -610,7 +610,7 @@ mod emit {
             }
 
             // Write the output file
-            let mut text = writer.string();
+            let mut text = writer.take_string();
             if options.emit_bom.is_true() {
                 text = stringutil::add_utf8_byte_order_mark(&text);
             }
@@ -634,9 +634,6 @@ mod emit {
                 }
                 Ok(()) => {}
             }
-
-            // Reset state
-            writer.clear();
         }
 
         // emitter.go:436

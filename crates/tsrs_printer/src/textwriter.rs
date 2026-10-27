@@ -61,7 +61,8 @@ impl TextWriter {
     fn write_text(&mut self, s: &str) {
         if !s.is_empty() {
             if self.line_start {
-                self.builder.push_str(&get_indent_string(self.indent, self.indent_size));
+                self.builder
+                    .extend(std::iter::repeat_n(' ', self.indent as usize * self.indent_size));
                 self.line_start = false;
             }
             self.builder.push_str(s);
@@ -121,6 +122,12 @@ impl EmitTextWriter for TextWriter {
 
     fn string(&self) -> String {
         self.builder.clone()
+    }
+
+    fn take_string(&mut self) -> String {
+        let text = std::mem::take(&mut self.builder);
+        self.clear();
+        text
     }
 
     fn get_text_pos(&self) -> u32 {

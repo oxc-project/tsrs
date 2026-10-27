@@ -202,16 +202,26 @@ node bench/dts/dts.mjs run --runs 10 --warmup 2
 
 `run` writes `results.json`, `report.md` and each tool's first output to `bench/results/dts-<time>/`; `--projects`,
 `--tools` and `--out-dir` narrow or redirect it, and `node bench/dts/dts.mjs report <results.json>` re-renders the
-tables. GNU `time` (`/usr/bin/time`) is required; on Linux, `perf` adds retired instructions.
+tables. GNU `time` (`/usr/bin/time`) and, for the single-CPU rows, Linux `taskset` are required; on Linux,
+`perf` adds retired instructions.
 
 Each sample is a fresh process that reads the sources and writes the bundle to disk; the `bundle` example wraps
-`build`/`build_entries` with the CLI's allocator and stack. Tools run interleaved, in a rotating order. The tools:
+`build`/`build_entries` with the CLI's allocator and stack. Tools run interleaved, in a rotating order. The report
+gives process wall time and in-process time (build through output writes, without process or runtime startup).
 
-| Tool | Type checks |
-| --- | --- |
-| `tsrs`, `tsrs-reuse` | Source and emitted declarations, always; `-reuse` sets `reuse_diagnostics`. |
-| `rolldown-tsc`, `rolldown-tsgo` | None: the `tsc` generator (TypeScript 6) only emits, the `tsgo` generator (TypeScript 7) passes `--noCheck`. |
-| `check-tsc+rolldown-tsc`, `check-tsgo+rolldown-tsgo` | `tsc --noEmit` first, then the bundle: the same work as tsrs. |
+The comparison rows do the same work as the crate: one pass that type-checks the sources, emits declarations and
+bundles them, failing on any error. rolldown-plugin-dts always passes `--noCheck` to tsgo, so these rows run tsgo
+through a generated wrapper that drops it; tsgo then checks while emitting, and a type error fails the rolldown
+build. The crate's Program is single-threaded, so one row also passes `--singleThreaded`, and that row and the
+crate's rows run under `taskset` on one core. The crate additionally checks its emitted declarations, which the
+rolldown rows do not.
+
+| Tool | Type checks | CPUs |
+| --- | --- | --- |
+| `tsrs`, `tsrs-reuse` | Sources and emitted declarations; `-reuse` sets `reuse_diagnostics` | 1 |
+| `rolldown-tsgo-check-1` | Sources, by tsgo 7 while emitting, `--singleThreaded` | 1 |
+| `rolldown-tsgo-check` | Sources, by tsgo 7 while emitting | all |
+| `rolldown-tsgo`, `rolldown-tsc` | None: the plugin's defaults (`--noCheck`; the tsc 6 generator only emits). A reference, since the crate has no mode without checking | all |
 
 After timing, each tool's output is checked as a consumer would see it (all output declarations as roots, strict,
 library checking on), and each entry's exports, with their value/type/namespace meanings, are compared with the

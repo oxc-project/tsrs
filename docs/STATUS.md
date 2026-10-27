@@ -5,6 +5,22 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 0.20.1
+
+The package version is `0.20.1-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.
+The [release notes](releases/0.20.1.md) cover the `NoInfer` checker revert, unsigned WebAssembly host pointers,
+collection storage changes, checker-thread reuse, shared build modification-time caches and inline reads of
+small include trees (#800, #804, #808, #812, #814, #815, #816).
+
+The release workflow publishes all nine npm packages with the `latest` tag, marks the GitHub release as latest
+and then deploys the playground (#801). Individual optimization measurements are linked from the release notes;
+the earlier conformance results below remain attributed to the revisions where they were recorded.
+
+Local preparation validation passes the dev CLI/runner build, Clippy across all targets, source and script
+checks, release-version consistency, and CLI compilation smoke checks in default and fast modes. `Cargo.lock`
+changes only the 42 workspace package versions. Compiler conformance was not rerun because the local reference
+checkout did not match the pinned commit; packaged-release validation remains with the release workflow.
+
 ## 0.20.0 beta
 
 The beta package version is `0.20.0-ts7.1.0-beta`, targeting TypeScript `7.1.0-beta` at `3e9236361fa9`.

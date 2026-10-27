@@ -105,7 +105,7 @@ What the transport provides (no change to core's `Handler` signature needed):
 
 Core (owns the session and adapter): take session-wide locks and exclusive checker leases through these
 helpers in any path that can reach the callback filesystem, or release them before filesystem access.
-`tests/reentrancy.rs` proves the policy with a session-shaped handler on both protocols (nested request
+`tests/integration/reentrancy.rs` proves the policy with a session-shaped handler on both protocols (nested request
 needing the held lock errors, nested request not needing it succeeds at depth 1, plain contention waits,
 closing while a handler waits on a callback returns and releases the lock), all under a 20 s watchdog.
 Handlers that ignore the cancellation token can still delay `run`'s final join (Go also waits).
@@ -114,7 +114,7 @@ Handlers that ignore the cancellation token can still delay `run`'s final join (
 
 Request filesystem layering belongs to `tsrs_api::requestfs`, the implementation used by the API session.
 Its Go-fixture differential and real-filesystem tests run without feature flags in
-`crates/tsrs_api/tests/requestfs_differential.rs`. This transport crate validates the raw JSON before dispatch.
+`crates/tsrs_api/tests/integration/requestfs_differential.rs`. This transport crate validates the raw JSON before dispatch.
 
 ## Strict JSON (`strictjson`)
 
@@ -127,22 +127,22 @@ and builds the value in one scan, so duplicates are rejected like Go's `unmarsha
 
 ## Tests
 
-- `tests/go_frames.rs`: byte-exact writes and reads against frames produced by the pinned Go code.
-- `tests/conn.rs`: real OS pipes: split frames, frame limits, callbacks, nested requests, remote
+- `tests/integration/go_frames.rs`: byte-exact writes and reads against frames produced by the pinned Go code.
+- `tests/integration/conn.rs`: real OS pipes: split frames, frame limits, callbacks, nested requests, remote
   errors, EOF with calls pending, protocol violations.
-- `tests/node_roundtrip.rs` + `tests/node/roundtrip.test.mjs` (15 node tests): the pinned Node `sync`
+- `tests/integration/node_roundtrip.rs` + `tests/node/roundtrip.test.mjs` (15 node tests): the pinned Node `sync`
   and `async` clients (from `ts-ref`, `node --conditions=@typescript/source`) against
   `examples/transport_test_server.rs`, including fs callbacks with every serverFS sentinel, callback
   re-entry, astral text, lone surrogates (rejected like Go), 5 MiB payloads, timing, server exit, and
   `--pipe` sockets. On Unix `--pipe` creates a private directory containing a `socket` file; on Windows it
   creates a named pipe restricted to the current user. Mandatory: it fails with install instructions when node
   or ts-ref is missing.
-  Rust-only: `cargo test -p tsrs_api_transport --lib --test conn --test go_frames --test strictjson_oracle --test reentrancy`.
-- `tests/strictjson_oracle.rs`: 38 inputs decoded by a Go binary built at the pinned commit
+  Rust-only: `cargo test -p tsrs_api_transport --test integration -- --skip node_roundtrip`.
+- `tests/integration/strictjson_oracle.rs`: 38 inputs decoded by a Go binary built at the pinned commit
   (duplicate names at any depth, lone/unpaired surrogates, invalid UTF-8, valid astral pairs): same
   accept/reject decisions and identical error text for callback responses, JSON-RPC messages and
   request-filesystem params.
-- `tests/reentrancy.rs`: see Re-entrancy.
+- `tests/integration/reentrancy.rs`: see Re-entrancy.
 
 ## Deliberate differences from Go
 

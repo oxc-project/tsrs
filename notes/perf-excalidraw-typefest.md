@@ -216,8 +216,8 @@ depending on which checker checks what:
 - `concat-all.spec.ts(36,48)`
 - `merge-all.spec.ts(45,48)`
 
-For example, one run prints "The types returned by '[bufferTime](...)[groupBy]'" and another prints
-"'[bufferTime](...)[bufferTime](...)[groupBy]'". The output differs:
+For example, one run prints `The types returned by '[bufferTime](...)[groupBy]'` and another prints
+`'[bufferTime](...)[bufferTime](...)[groupBy]'`. The output differs:
 
 - between 1 and 16 checkers
 - between `random:1`, `random:2` and `random:3`

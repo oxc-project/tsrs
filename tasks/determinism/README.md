@@ -29,7 +29,7 @@ not bless differences between tsrs configurations.
 Run from the repository root:
 
 ```sh
-pnpm install --frozen-lockfile
+vp install --frozen-lockfile
 cargo build --profile dev -p tsrs_cli -p tsrs_testrunner -p tsrs_determinism
 target/debug/tsrs_determinism plan
 target/debug/tsrs_determinism check

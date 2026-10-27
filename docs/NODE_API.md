@@ -2,7 +2,7 @@
 
 ## JavaScript API
 
-Install the beta with `pnpm add -D tsrs@0.20.0-ts7.1.0-beta`. `require("tsrs")` exports `version`, `typescriptVersion` and
+Install the beta with `pnpm add -D tsrs@0.20.1-ts7.1.0-beta`. `require("tsrs")` exports `version`, `typescriptVersion` and
 `typescriptCommit`.
 
 The package also ships TypeScript 7's programmatic API, copied from microsoft/TypeScript
@@ -86,7 +86,7 @@ protocol or a one-shot CLI wrapper, and it is not compatible with TS5 `createPro
 Status: shipped (in the npm package since 0.3.0, docs/STATUS.md), with the gaps below. The matrix at the end is
 the source of truth: `supported`
 means a core Rust test against a real compiler session exercises it; `partial` means it is implemented
-and dispatched but only covered by the upstream Node suites, a lane's own unit tests, or has a documented
+and dispatched but only covered by the upstream Node suites, component-level checks, or has a documented
 divergence. Unimplemented methods return an explicit `api: unsupported: ...` error, never a fake success.
 
 The [recorded beta SDK inventory](../npm/sdk/METHODS.md) has 968/968 passing tests on both tsgo and tsrs,
@@ -121,7 +121,7 @@ The API was developed in parallel lanes; the names stay in use below and in the 
 | codec | `crates/tsrs_api_codec` (AST binary encoder/decoder, string table, node index tables, source-file id) |
 | checker | `crates/tsrs_api/src/checker.rs`, `crates/tsrs_api/src/checker/**`, necessary checker exports |
 | sdk | `npm/**` (ported `sync` / `async` client, AST package, Node tests) |
-| parity | `tools/node-api/**`, `.github/workflows/node-api.yml.bak` (automation disabled) |
+| parity | `tools/node-api/**`, the `node-api-clients` job in `.github/workflows/ci.yml`; the older standalone `node-api.yml.bak` workflow is disabled |
 
 ## Integration contract (Rust)
 

@@ -8,16 +8,16 @@ and formatting through the TypeScript 7 language-server protocol. The recorded 0
 ## Editor setup
 
 `tsrs --lsp -stdio` speaks the same protocol as `tsgo --lsp -stdio` (Go's flag parsing: `-stdio` and `--stdio` both
-work; only stdio is supported, like Go). Build it with `cargo build --release -p tsrs_cli` (binary
-`target/release/tsrs`) or install the npm package (`tsrs`, binary `tsrs`). The configurations below follow the
+work; only stdio is supported, like Go). Build it with `cargo build --profile dev -p tsrs_cli` (binary
+`target/debug/tsrs`) or install the npm package (`tsrs`, binary `tsrs`). The configurations below follow the
 editors' documented mechanisms.
 
 **VS Code** — the TypeScript 7 extension (`TypeScriptTeam.native-preview`, source in
 `ts-ref/packages/vscode-typescript`) starts `<tsdk>/tsgo --lsp --stdio` (`tsgo.exe` on Windows) when
 `js/ts.tsdk.path` points at a directory that contains an executable named `tsgo` or `tsc` (`.exe` on Windows;
 `src/util.ts`: `tsdkConfigSources`, `packagedExeBaseNames`).
-The 0.20.0 beta includes `tsdk/tsgo` for macOS and Linux. Install the published beta with
-`pnpm add -D tsrs@0.20.0-ts7.1.0-beta` and commit this `.vscode/settings.json` so each teammate's editor uses the
+Since 0.20.0, the package includes `tsdk/tsgo` for macOS and Linux. Install it with
+`pnpm add -D tsrs@0.20.1-ts7.1.0-beta` and commit this `.vscode/settings.json` so each teammate's editor uses the
 version in the project's lockfile:
 
 ```jsonc
@@ -57,7 +57,7 @@ discovery instead. The macOS/Linux `tsrs/tsdk` launcher delegates to the same pl
 For an older npm release or a local build on macOS/Linux, create a symlink instead:
 
 ```sh
-mkdir -p ~/.tsrs-tsdk && ln -sf "$PWD/target/release/tsrs" ~/.tsrs-tsdk/tsgo
+mkdir -p ~/.tsrs-tsdk && ln -sf "$PWD/target/debug/tsrs" ~/.tsrs-tsdk/tsgo
 ```
 
 Then set `js/ts.tsdk.path` in user settings to that directory's absolute path, such as `/Users/<you>/.tsrs-tsdk`.
@@ -69,7 +69,7 @@ contributes any. `tsrs -p` and `tsrs -b` do run them.
 
 ```lua
 vim.lsp.config('tsrs', {
-  cmd = { 'tsrs', '--lsp', '-stdio' },          -- or the absolute path to target/release/tsrs
+  cmd = { 'tsrs', '--lsp', '-stdio' },          -- or the absolute path to target/debug/tsrs
   filetypes = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
   root_markers = { 'tsconfig.json', 'jsconfig.json', 'package.json', '.git' },
 })

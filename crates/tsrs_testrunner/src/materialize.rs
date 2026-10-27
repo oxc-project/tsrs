@@ -48,6 +48,7 @@ fn write_file(root: &Path, virtual_path: &str, content: &str) -> std::io::Result
     std::fs::write(dest, content)
 }
 
+#[cfg(unix)]
 fn relative(from_dir: &str, to: &str) -> String {
     let from: Vec<&str> = from_dir.split('/').filter(|s| !s.is_empty()).collect();
     let to_parts: Vec<&str> = to.split('/').filter(|s| !s.is_empty()).collect();
@@ -117,12 +118,12 @@ pub fn materialize(
         .map_err(|e| e.to_string())?;
     }
     std::fs::create_dir_all(root.join(cwd.trim_start_matches('/'))).map_err(|e| e.to_string())?;
+    #[cfg(unix)]
     for (link, target) in &payload.symlinks {
         let link = tspath::get_normalized_absolute_path(link, &cwd);
         let target = tspath::get_normalized_absolute_path(target, &cwd);
         let dest = root.join(link.trim_start_matches('/'));
         std::fs::create_dir_all(dest.parent().unwrap()).map_err(|e| e.to_string())?;
-        #[cfg(unix)]
         std::os::unix::fs::symlink(relative(&tspath::get_directory_path(&link), &target), &dest)
             .map_err(|e| e.to_string())?;
     }

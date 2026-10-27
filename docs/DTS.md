@@ -51,11 +51,13 @@ condition holds; the evidence distinguishes compiler ownership limits, pinned up
 
 ### Build-scoped allocation lifetime
 
-[`build_impl`](../crates/tsrs_dts/src/lib.rs) retains an outer arena region when diagnostic reuse is active, until
-both Programs and their snapshots are released. Allocations escaping nested checker/emit scratch scopes would
-otherwise fall back to the thread's leak arena; see the ownership contract in
+[`build_impl`](../crates/tsrs_dts/src/lib.rs) enters an outer arena region before any compilation and releases it
+after both Programs and their snapshots. Allocations escaping nested checker/emit scratch scopes would otherwise
+fall back to the thread's leak arena; see the ownership contract in
 [`tsrs_core::arena`](../crates/tsrs_core/src/arena.rs). Remove this region when escaping allocations have owners
-that reclaim them without invalidating Program or snapshot pointers. Total build reclamation has not been measured.
+that reclaim them without invalidating Program or snapshot pointers. In 40 repeated debug builds of a 40-module
+project, resident memory grew about 6.7 MiB per build when the region existed only with diagnostic reuse, and about
+2 MiB per build with it always entered; the remaining growth is not yet attributed.
 
 ### Diagnostic ordering fallback
 

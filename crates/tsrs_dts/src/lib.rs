@@ -139,17 +139,11 @@ fn build_impl(
 
     // TODO: Give escaping allocations owners that reclaim them after each build,
     // then remove this root. See docs/DTS.md, "Workarounds and constraints".
-    let invocation;
-    #[expect(
-        clippy::collection_is_never_read,
-        reason = "the optional region guard is retained for its drop effect and must outlive Programs"
-    )]
-    let _invocation_scope;
+    let invocation = tsrs_core::arena::Region::new_scratch(1 << 20);
+    let _invocation_scope = invocation.enter();
     let fs = references::compile(options, fs)?;
     let source = project::source_program(options, Arc::clone(&fs))?;
     let reuse = options.reuse_diagnostics && diagnostics::eligible(source.program());
-    invocation = reuse.then(|| tsrs_core::arena::Region::new_scratch(1 << 20));
-    _invocation_scope = invocation.as_ref().map(tsrs_core::arena::Region::enter);
     let diagnostics = reuse.then(|| diagnostics::Diagnostics::new(source.program()));
     let context = tsrs_compiler::Context::background();
     let captured = if let Some(diagnostics) = &diagnostics {

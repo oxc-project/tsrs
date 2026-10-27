@@ -78,7 +78,7 @@ function stackPointerInit(bytes) {
                     i++;
                     const v = sleb();
                     i++; // end
-                    if (type === 0x7f && mut === 1) return v;
+                    if (type === 0x7f && mut === 1) return v >>> 0;
                 } else {
                     while (bytes[i++] !== 0x0b);
                 }

@@ -50,7 +50,7 @@ function prepare(module, request, host, io) {
     let instance;
     let memory;
     const view = () => new DataView(memory.buffer);
-    const bytes = (ptr = 0, len) => new Uint8Array(memory.buffer, ptr >>> 0, len);
+    const bytes = (ptr = 0, len) => new Uint8Array(memory.buffer, ptr >>> 0, len === undefined ? undefined : len >>> 0);
     const env = Object.entries(io.env ?? {}).map(([k, v]) => encoder.encode(`${k}=${v}\0`));
     const stdout = io.stdout ?? (() => {});
     const stderr = io.stderr ?? (() => {});
@@ -59,38 +59,41 @@ function prepare(module, request, host, io) {
 
     const wasi = {
         args_sizes_get(argc, size) {
-            view().setUint32(argc, 0, true);
-            view().setUint32(size, 0, true);
+            view().setUint32(argc >>> 0, 0, true);
+            view().setUint32(size >>> 0, 0, true);
             return ESUCCESS;
         },
         args_get() {
             return ESUCCESS;
         },
         environ_sizes_get(count, size) {
-            view().setUint32(count, env.length, true);
-            view().setUint32(size, env.reduce((n, e) => n + e.length, 0), true);
+            view().setUint32(count >>> 0, env.length, true);
+            view().setUint32(size >>> 0, env.reduce((n, e) => n + e.length, 0), true);
             return ESUCCESS;
         },
         environ_get(ptrs, buf) {
-            let p = buf;
+            ptrs >>>= 0;
+            let p = buf >>> 0;
             env.forEach((e, i) => {
                 view().setUint32(ptrs + i * 4, p, true);
-                bytes().set(e, p);
+                bytes(p).set(e);
                 p += e.length;
             });
             return ESUCCESS;
         },
         clock_time_get(id, _precision, out) {
-            view().setBigUint64(out, nowNs(id === 0), true);
+            view().setBigUint64(out >>> 0, nowNs(id === 0), true);
             return ESUCCESS;
         },
         clock_res_get(_id, out) {
-            view().setBigUint64(out, 1000n, true);
+            view().setBigUint64(out >>> 0, 1000n, true);
             return ESUCCESS;
         },
         random_get(ptr, len) {
+            ptr >>>= 0;
+            len >>>= 0;
             for (let off = 0; off < len; off += 65536) {
-                crypto.getRandomValues(new Uint8Array(memory.buffer, ptr + off, Math.min(65536, len - off)));
+                crypto.getRandomValues(bytes(ptr + off, Math.min(65536, len - off)));
             }
             return ESUCCESS;
         },
@@ -98,21 +101,24 @@ function prepare(module, request, host, io) {
             if (fd !== 1 && fd !== 2) {
                 return EBADF;
             }
+            iovs >>>= 0;
+            count >>>= 0;
             let total = 0;
             for (let i = 0; i < count; i++) {
                 const ptr = view().getUint32(iovs + i * 8, true);
                 const len = view().getUint32(iovs + i * 8 + 4, true);
-                const chunk = bytes().slice(ptr, ptr + len);
+                const chunk = bytes(ptr, len).slice();
                 (fd === 1 ? stdout : stderr)(chunk);
                 total += len;
             }
-            view().setUint32(written, total, true);
+            view().setUint32(written >>> 0, total, true);
             return ESUCCESS;
         },
         fd_fdstat_get(fd, out) {
             if (fd > 2) {
                 return EBADF;
             }
+            out >>>= 0;
             // filetype: 2 = character device (a tty), 0 = unknown.
             const v = view();
             for (let i = 0; i < 24; i++) {
@@ -153,6 +159,8 @@ function prepare(module, request, host, io) {
         return staged.length;
     };
     const fsCall = (op, ptr, len) => {
+        ptr >>>= 0;
+        len >>>= 0;
         try {
             switch (op) {
                 case OP_READ:
@@ -212,11 +220,11 @@ function prepare(module, request, host, io) {
         const fields = [request.cwd, String(request.flags ?? 0), ...request.args];
         const req = encoder.encode(fields.join("\0"));
         const ptr = instance.exports.tsrs_input(req.length);
-        bytes().set(req, ptr);
+        bytes(ptr, req.length).set(req);
         io.beforeRun?.(memory);
         exitCode = instance.exports.tsrs_run();
         const out = instance.exports.tsrs_output();
-        reply = bytes().slice(out, out + instance.exports.tsrs_output_len());
+        reply = bytes(out, instance.exports.tsrs_output_len()).slice();
     } catch (e) {
         if (e instanceof WasiExit) {
             exitCode = e.code;

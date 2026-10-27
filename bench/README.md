@@ -24,7 +24,7 @@ recorded settings and labels. Generic `count` and `measure` wrappers run the sup
 | `run` | Prepared projects, compiler versions or binary, settings and Hyperfine 2 | One ignored `bench/results/<timestamp>/` bundle |
 | `release` | Prepared projects, npm release tags and Hyperfine 2 | One ignored bundle comparing TypeScript, tsrs and tsrs `--fast` |
 | `merge` | Complete per-project bundles | One validated combined bundle |
-| `render` | A complete bundle or `publication.json` | `RESULTS.md`, three SVGs, `publication.json` and render manifest |
+| `render` | A complete bundle or `publication.json` | `RESULTS.md`, `benchmark.svg`, `publication.json` and render manifest |
 | `verify-images` | `publication.json` and an existing publication directory | Re-renders from the JSON and compares every SVG and the report |
 | `compare`, `watch`, `count` | Compiler commands and settings | Versioned bundles with individual samples and logs |
 | `history`, `regressions` | Saved bundles or historical JSON | Reports on stdout; `regressions --comment` is opt-in |
@@ -33,16 +33,16 @@ recorded settings and labels. Generic `count` and `measure` wrappers run the sup
 
 `watch` samples the process RSS every 50 ms while it runs, so its reported peak may miss a short spike. Compile, compare and count peaks come from Hyperfine's process measurement.
 
-## Reproduce the published SVGs without benchmarking
+## Reproduce the published chart without benchmarking
 
-Each publication commits `bench/publication.json`, `bench/RESULTS.md`, and three SVGs: the `benchmark.svg` bar chart and the light and dark `large-projects` speed-vs-memory charts. The JSON contains full-precision chart values and labels, so reproduction requires no compiler, project checkout, Hyperfine, or benchmark machine. From the repository root, with Node 24:
+Each publication commits `bench/publication.json`, `bench/RESULTS.md`, and the `bench/benchmark.svg` bar chart. The JSON contains full-precision chart values and labels, so reproduction requires no compiler, project checkout, Hyperfine, or benchmark machine. From the repository root, with Node 24:
 
 ```bash
 node bench/bench.mjs render bench/publication.json --output-dir bench/.work/reproduced
 node bench/bench.mjs verify-images bench/publication.json --against bench
 ```
 
-The first command writes fresh SVGs and a report to `bench/.work/reproduced/`. The second independently renders from the JSON and compares all three SVGs and `RESULTS.md` byte for byte with the committed files in `bench/`. A successful check prints `Reproduced 3 SVGs and RESULTS.md`.
+The first command writes a fresh chart and report to `bench/.work/reproduced/`. The second independently renders from the JSON and compares `benchmark.svg` and `RESULTS.md` byte for byte with the committed files in `bench/`. A successful check prints `Reproduced benchmark.svg, RESULTS.md`.
 
 The JSON records hashes of the renderer source and lockfile. SVG text uses the viewer's default system fonts, so rendering needs no bundled font files. If `render` reports that the renderer source differs, reproduce from its recorded Git revision in a separate worktree. This leaves your current checkout intact:
 
@@ -70,11 +70,11 @@ bundle=$(node bench/bench.mjs release \
 node bench/bench.mjs render "$bundle" --output-dir bench/.work/release-publication
 ```
 
-By default each command is `-p <project> --noEmit --incremental false --pretty false`, with `--fast` added for the fast tsrs run. It passes no `--checkers` and sets no `GOMAXPROCS` or `RAYON_NUM_THREADS`, so each compiler uses its own default checker count on every core. `--checkers 1,2,4,8 --workers 8` instead measures fixed checker counts on a fixed number of threads; the speed-vs-memory chart then joins each project's checker counts. Values are medians of `--runs` interleaved runs (10) and `--typescript-runs` for TypeScript (5). Before every timed run the runner waits until other processes use at most `--quiet-cores` CPU cores (1.5), for up to `--quiet-wait` seconds (180), and records the runs that started after the wait expired. The bar chart covers every selected project; the speed-vs-memory chart shows default tsrs against TypeScript for `--scatter-projects`, at most seven.
+By default each command is `-p <project> --noEmit --incremental false --pretty false`, with `--fast` added for the fast tsrs run. It passes no `--checkers` and sets no `GOMAXPROCS` or `RAYON_NUM_THREADS`, so each compiler uses its own default checker count on every core. `--checkers 4 --workers 8` instead measures a fixed checker count on a fixed number of threads. Values are medians of `--runs` interleaved runs (10) and `--typescript-runs` for TypeScript (5). Before every timed run the runner waits until other processes use at most `--quiet-cores` CPU cores (1.5), for up to `--quiet-wait` seconds (180), and records the runs that started after the wait expired. The bar chart covers every selected project.
 
 ## Generate a fresh local publication
 
-This measures compilers on **your machine** and creates a new set of three SVGs. It does not reproduce CI's numerical results. Requirements: Node 24, pnpm, npm, git, Rust, and Hyperfine 2 with hardware counters. On macOS ARM64, the runner can download a checksum-verified Hyperfine 2.0.0 binary; elsewhere install Hyperfine 2 or pass `--hyperfine /path/to/hyperfine`. TypeScript 7 native packages support macOS/Linux ARM64/x64.
+This measures compilers on **your machine** and creates a new chart and report. It does not reproduce CI's numerical results. Requirements: Node 24, pnpm, npm, git, Rust, and Hyperfine 2 with hardware counters. On macOS ARM64, the runner can download a checksum-verified Hyperfine 2.0.0 binary; elsewhere install Hyperfine 2 or pass `--hyperfine /path/to/hyperfine`. TypeScript 7 native packages support macOS/Linux ARM64/x64.
 
 This complete example measures the public `webpack` project against a local release build of tsrs and TypeScript 7.0.2:
 
@@ -94,7 +94,7 @@ node bench/bench.mjs verify-images \
   --against bench/.work/local-publication
 ```
 
-Open the `.svg` files in `bench/.work/local-publication/`. The complete run bundle, including Hyperfine exports and compiler logs, is at the path in `bundle`. Its generated `publication.json` can recreate these images later with `render`.
+Open `benchmark.svg` in `bench/.work/local-publication/`. The complete run bundle, including Hyperfine exports and compiler logs, is at the path in `bundle`. Its generated `publication.json` can recreate the chart later with `render`.
 
 For the full project list, run `node bench/bench.mjs plan --projects all` and replace `--projects webpack` with `--projects all`. CI measures all projects with TypeScript nightly, TypeScript 7.0.2, and a PGO + BOLT tsrs build on a fixed 8-vCPU runner. To compare a published tsrs package instead of a local binary, replace `--tsrs target/release/tsrs` with `--tsrs-version latest`. Package tags resolve once per run; the bundle records exact versions and binary hashes.
 
@@ -121,7 +121,7 @@ node bench/bench.mjs verify-images \
 
 ## CI and retained data
 
-`update-benchmarks.yml` runs on relevant pull requests or by manual dispatch; automatic runs on pushes to main are disabled. It builds a PGO + BOLT tsrs binary and Hyperfine 2, prepares each pinned project and measures TypeScript nightly, TypeScript 7.0.2 and tsrs on the same 8-vCPU runner specification. Each project uses four checkers, eight worker CPUs, three warmups and ten measured runs. The publish job merges the partial bundles, renders SVGs, re-renders from `publication.json` and verifies the outputs. Pull requests retain the report, charts, and raw samples as workflow artifacts; manual runs on main also open a draft PR for the compact publication data and images. Artifacts remain available for 14 days.
+`update-benchmarks.yml` runs on relevant pull requests or by manual dispatch; automatic runs on pushes to main are disabled. It builds a PGO + BOLT tsrs binary and Hyperfine 2, prepares each pinned project and measures TypeScript nightly, TypeScript 7.0.2 and tsrs on the same 8-vCPU runner specification. Each project uses four checkers, eight worker CPUs, three warmups and ten measured runs. The publish job merges the partial bundles, renders the chart and report, re-renders from `publication.json` and verifies the outputs. Pull requests retain the report, charts, and raw samples as workflow artifacts; manual runs on main also open a draft PR for the compact publication data and images. Artifacts remain available for 14 days.
 
 `merge` requires matching compiler builds, settings and machine details, and rejects duplicate projects. Source partials remain in the merged artifact. Raw samples and project checkouts remain ignored by git.
 

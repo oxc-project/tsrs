@@ -14,8 +14,8 @@ const usage = `Benchmark tools (Node 24)
   node bench/bench.mjs run [--projects names] [--typescript-versions versions] [--tsrs binary | --tsrs-version tag]
                          [--checkers N] [--workers N] [--memory-gib N] [--runs N] [--warmup N]
                          [--work-dir path] [--out-dir path] [--hyperfine path] [--dry-run]
-  node bench/bench.mjs release [--projects names] [--scatter-projects names] [--typescript-version tag] [--tsrs-version tag]
-                         [--checkers default|N,...] [--detail-checkers default|N] [--workers N] [--runs N] [--typescript-runs N]
+  node bench/bench.mjs release [--projects names] [--typescript-version tag] [--tsrs-version tag]
+                         [--checkers default|N] [--workers N] [--runs N] [--typescript-runs N]
                          [--quiet-cores N] [--quiet-wait seconds] [--work-dir path] [--out-dir path] [--hyperfine path]
   node bench/bench.mjs merge <bundle...> --output-dir path
   node bench/bench.mjs render <bundle|publication.json> --output-dir path
@@ -36,7 +36,7 @@ async function verifyImages(input, against) {
   const { render } = await import('./render.mjs');
   const names = Object.keys((await render(input, destination)).assets);
   for (const name of names) requireValue(await fileSha(path.join(destination, name)) === await fileSha(path.join(against, name)), `Image reproduction differs: ${name}`);
-  process.stdout.write(`Reproduced ${names.filter(name => name.endsWith('.svg')).length} SVGs and RESULTS.md from ${input}\n`);
+  process.stdout.write(`Reproduced ${names.join(', ')} from ${input}\n`);
 }
 
 async function count(options) {
@@ -58,7 +58,7 @@ async function main() {
   const [command, ...args] = process.argv.slice(2);
   if (!command || ['help', '--help', '-h'].includes(command)) { process.stdout.write(usage); return; }
   if (command === 'machine') { process.stdout.write(JSON.stringify(machine()) + '\n'); return; }
-  const { options, positional } = parseArgs(args, ['projects', 'repos', 'typescript-versions', 'scatter-projects']);
+  const { options, positional } = parseArgs(args, ['projects', 'repos', 'typescript-versions']);
   const work = path.resolve(options['work-dir'] ?? path.join(BENCH, '.work'));
   if (command === 'plan' || command === 'prepare' || command === 'run') {
     const cfg = await catalog();

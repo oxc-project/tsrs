@@ -14,10 +14,7 @@
     "workers": null,
     "runs": 10,
     "typescriptRuns": 5,
-    "scatterCheckers": [
-      "default"
-    ],
-    "detailCheckers": "default",
+    "checkers": "default",
     "quietCores": 1.5,
     "quietWaitSeconds": 900
   },
@@ -55,7 +52,6 @@
       "project": "src",
       "commit": "9cf0128b9822dcd8a533f08ef7312956a4390301",
       "overlaySha256": null,
-      "scatter": true,
       "checkers": [
         "default"
       ]
@@ -65,7 +61,6 @@
       "project": "docs",
       "commit": "6780195595c12252a130aa5ae5c5bd461229c6b7",
       "overlaySha256": null,
-      "scatter": true,
       "checkers": [
         "default"
       ]
@@ -75,7 +70,6 @@
       "project": "apps/server",
       "commit": "9bd1d8009a6b7c50f9dd9458e2bf27d481ff3b43",
       "overlaySha256": null,
-      "scatter": true,
       "checkers": [
         "default"
       ]
@@ -85,7 +79,6 @@
       "project": "apps/studio",
       "commit": "12afe399995143a2cc699eabbbd29596f4e64945",
       "overlaySha256": null,
-      "scatter": true,
       "checkers": [
         "default"
       ]
@@ -95,7 +88,6 @@
       "project": ".",
       "commit": "d469960fdfc461e2d5795a3fa48a58a52a91ecaf",
       "overlaySha256": null,
-      "scatter": true,
       "checkers": [
         "default"
       ]
@@ -105,7 +97,6 @@
       "project": "packages/typeorm",
       "commit": "fe92394287516feeada6e9c308ebe22deca2458e",
       "overlaySha256": "db6224934f2a60f5",
-      "scatter": true,
       "checkers": [
         "default"
       ]
@@ -115,7 +106,6 @@
       "project": "pkgs/core",
       "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
       "overlaySha256": null,
-      "scatter": true,
       "checkers": [
         "default"
       ]
@@ -125,7 +115,6 @@
       "project": ".",
       "commit": "85b8d54f6ce49f4d0f199e90513b1e5d5fa22196",
       "overlaySha256": null,
-      "scatter": false,
       "checkers": [
         "default"
       ]
@@ -135,7 +124,6 @@
       "project": ".",
       "commit": "fbee62e7c1586315ed478c2fedf530d7e0ff5a3e",
       "overlaySha256": null,
-      "scatter": false,
       "checkers": [
         "default"
       ]
@@ -145,7 +133,6 @@
       "project": "apps/web/tsconfig.typecheck.json",
       "commit": "ec45c28e4d20bd9daf3191c991b67981aabf5db8",
       "overlaySha256": "635fefae1e3bede6",
-      "scatter": false,
       "checkers": [
         "default"
       ]
@@ -155,7 +142,6 @@
       "project": "apps/web",
       "commit": "54343aa685ae8f33159d2f485ec4a57bad5c574a",
       "overlaySha256": "bd8a78fb6c563ab5",
-      "scatter": false,
       "checkers": [
         "default"
       ]
@@ -700,14 +686,14 @@
   ],
   "sourceBundleSha256": "c3d7230cff0cee8afd7adc12be11c664e5492b4aca51bc41d45b6acc55e513cb",
   "renderer": {
-    "revision": "7e3c274562c17a58c83af0afcc75134325c46458",
+    "revision": "0e309fdc04abf2c640b2ff6a79e5a9e1ceee47ad",
     "files": {
-      "render.mjs": "1bcb61138d924bf83c8a581e57d900e92340e142c7aa4e7960550053c6f6571f",
+      "render.mjs": "30b0e596b934780dd92a6896ed950101720446f46237f992edc20d1f6d51787b",
       "results.mjs": "8fc9f5c6ff0546647346388069e4fbbf0cc15c0e6fe26d440893edc2a4317a72",
       "lib.mjs": "9575f389d7eef9336abc42b3e83dea9d7cd8b589899dcd119e386de3944eed1f",
-      "release.mjs": "f2df5e87f249faef8fbfda16841ec03f7c3a6c3bc262036fdd3fc83b653105d3",
+      "release.mjs": "c7a285faf5df06d1aae50a699cdb5c9e399ecaf1f2b5fe6dcb2d451f21120167",
       "pnpm-lock.yaml": "48110ed5c03db98e9e397964e936a48f332226a063026c7f200290cd31438af1"
     },
-    "sha256": "3e801867813fb7fd6203e02c0b758dc0783bfdb9b3dde67a76543697ba38a113"
+    "sha256": "b9c5a513f83c636aa9505e72a291c7aab62a4314444245a913f853d4b2534efe"
   }
 }

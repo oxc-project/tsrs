@@ -5,10 +5,7 @@ import { releaseAssets } from './release.mjs';
 import { readPublication, rendererIdentity } from './results.mjs';
 
 const COLORS = { tsrs: '#0d6a73', bun: '#c2255c', typescript_1: '#3178c6', typescript_2: '#76a7d7', typescript_3: '#18405f' };
-const THEMES = {
-  light: { bg: '#f4f3ec', fg: '#16171d', muted: '#6f6876', grid: '#dcdad0', panel: '#ffffff' },
-  dark: { bg: '#16171d', fg: '#ffffff', muted: '#b0a8b9', grid: '#3b3440', panel: '#22232a' },
-};
+const PALETTE = { bg: '#f4f3ec', fg: '#16171d', muted: '#6f6876', grid: '#dcdad0', panel: '#ffffff' };
 const GIB = 2 ** 30;
 const esc = value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 const num = value => Number(value.toFixed(2));
@@ -24,12 +21,11 @@ function fittedLabel(parts, value, x, y, preferredSize, maxWidth, fill, options 
 
 function rect(parts, x, y, width, height, fill, extra = '') { parts.push(`<rect x="${num(x)}" y="${num(y)}" width="${num(width)}" height="${num(height)}" fill="${fill}" ${extra}/>`); }
 function line(parts, x1, y1, x2, y2, color, width = 1) { parts.push(`<line x1="${num(x1)}" y1="${num(y1)}" x2="${num(x2)}" y2="${num(y2)}" stroke="${color}" stroke-width="${width}"/>`); }
-function circle(parts, x, y, radius, color) { parts.push(`<circle cx="${num(x)}" cy="${num(y)}" r="${radius}" fill="${color}"/>`); }
 
-function svg(width, height, title, description, draw, theme = 'light') {
-  const palette = THEMES[theme], parts = [];
-  rect(parts, 0, 0, width, height, palette.bg);
-  draw(parts, palette);
+function svg(width, height, title, description, draw) {
+  const parts = [];
+  rect(parts, 0, 0, width, height, PALETTE.bg);
+  draw(parts, PALETTE);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="system-ui, sans-serif" role="img" aria-labelledby="title description">\n<title id="title">${esc(title)}</title>\n<desc id="description">${esc(description)}</desc>\n${parts.join('\n')}\n</svg>\n`;
 }
 
@@ -72,41 +68,12 @@ function barChart(data) {
   });
 }
 
-function scatterChart(data, theme) {
-  const reference = data.compilerOrder.find(id => id !== 'tsrs');
-  requireValue(reference, 'A TypeScript compiler is required for the scatter chart');
-  const points = data.projects.map(p => {
-    const a = row(data, p.name, 'tsrs'), b = row(data, p.name, reference);
-    return { name: p.name, speed: b.wallSeconds / a.wallSeconds, memory: b.peakRssBytes / a.peakRssBytes };
-  });
-  const width = 1200, height = 830, left = 140, top = 150, plotWidth = 900, plotHeight = 560;
-  const xmax = Math.max(1, ...points.map(p => p.speed)) * 1.15, ymax = Math.max(1, ...points.map(p => p.memory)) * 1.15;
-  const description = points.map(p => `${p.name}: ${compilerLabel(data, 'tsrs')} ${p.speed.toFixed(2)} times faster and ${p.memory.toFixed(2)} times less peak memory than ${compilerLabel(data, reference)}`).join('. ') + '.';
-  return svg(width, height, `${compilerLabel(data, 'tsrs')} vs ${compilerLabel(data, reference)}`, description, (parts, palette) => {
-    titleBlock(parts, palette, width, `${compilerLabel(data, 'tsrs')} vs ${compilerLabel(data, reference)}`, `Mean wall time and peak memory on ${data.machine.label}. Higher and farther right is better.`);
-    for (let i = 0; i <= 5; i++) {
-      const x = left + i * plotWidth / 5, y = top + i * plotHeight / 5;
-      line(parts, x, top, x, top + plotHeight, palette.grid);
-      line(parts, left, y, left + plotWidth, y, palette.grid);
-      label(parts, `${(i * xmax / 5).toFixed(1)}×`, x, top + plotHeight + 24, 11, palette.muted, { anchor: 'middle' });
-      label(parts, `${((5 - i) * ymax / 5).toFixed(1)}×`, left - 15, y + 4, 11, palette.muted, { anchor: 'end' });
-    }
-    for (const point of points) {
-      const x = left + point.speed / xmax * plotWidth, y = top + plotHeight - point.memory / ymax * plotHeight;
-      circle(parts, x, y, 7, color('tsrs'));
-      label(parts, point.name, x + 12, y - 8, 11, palette.fg);
-    }
-    label(parts, 'Wall-time speedup (TypeScript / tsrs)', left + plotWidth / 2, height - 44, 14, palette.fg, { anchor: 'middle' });
-    label(parts, 'Peak-memory ratio (TypeScript / tsrs)', left, 132, 12, palette.muted);
-  }, theme);
-}
-
 function report(data) {
   const lines = ['# Benchmark results', '', `Measured ${data.measuredAt} on ${data.machine.label}.`, '', `Arithmetic means of ${data.settings.runs} runs after ${data.settings.warmup} warmups per compiler and project. Projects are never averaged together.`, '', `${data.settings.checkers} checkers and ${data.settings.workers} worker CPUs per compiler.`, ''];
   if (data.settings.tsrsFast) lines.push('tsrs runs in fast mode (`TSRS_FAST=1`); TypeScript keeps its own checker behavior.', '');
   if (data.measuredCommit) lines.push(`tsrs commit: \`${data.measuredCommit}\`.`, '');
   if (data.runUrl) lines.push(`[Benchmark run and raw-data artifacts](${data.runUrl}).`, '');
-  lines.push('[Methodology](README.md).', '', '![All measured compiler versions](benchmark.svg)', '', '<picture>', '  <source media="(prefers-color-scheme: dark)" srcset="large-projects-dark.svg">', '  <img alt="Type-check speedup against peak-memory ratio" src="large-projects.svg">', '</picture>', '', '| Project | Compiler | Wall time | Peak memory | Instructions | Files | Diagnostics |', '| --- | --- | ---: | ---: | ---: | ---: | ---: |');
+  lines.push('[Methodology](README.md).', '', '![All measured compiler versions](benchmark.svg)', '', '| Project | Compiler | Wall time | Peak memory | Instructions | Files | Diagnostics |', '| --- | --- | ---: | ---: | ---: | ---: | ---: |');
   for (const project of data.projects) for (const id of data.compilerOrder) {
     const item = row(data, project.name, id);
     lines.push(`| ${project.name} | ${compilerLabel(data, id)} | ${item.wallSeconds.toFixed(3)} s | ${(item.peakRssBytes / GIB).toFixed(3)} GiB | ${item.instructions == null ? 'n/a' : Math.round(item.instructions).toLocaleString('en-US')} | ${item.files ?? 'n/a'} | ${item.diagnostics ?? 'n/a'} |`);
@@ -124,8 +91,6 @@ export async function render(input, output, { commit, runUrl } = {}) {
   await mkdir(output, { recursive: true });
   const assets = data.kind === 'release-publication' ? releaseAssets(data) : {
     'benchmark.svg': barChart(data),
-    'large-projects.svg': scatterChart(data, 'light'),
-    'large-projects-dark.svg': scatterChart(data, 'dark'),
     'RESULTS.md': report(data),
   };
   await writeJson(path.join(output, 'publication.json'), data);

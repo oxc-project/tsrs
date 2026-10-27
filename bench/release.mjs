@@ -10,7 +10,6 @@ const CRASH = /^(?:panic: |fatal error: |thread '.*' panicked at )/m;
 const OPTION_ERRORS_BEFORE_CHECK = new Set(['TS6379']);
 const DEFAULT_MODE = 'default';
 export const RELEASE_PROJECTS = { vscode: 'vscode', 'mui-docs': 'mui-docs', 't3code-server': 't3code-server', 'supabase-studio': 'supabase', playwright: 'playwright', typeorm: 'typeorm', 'date-fns': 'date-fns', nuxt: 'nuxt', 'xstate-main': 'xstate', 'formbricks-web': 'formbricks', 'cal-diy': 'cal-diy' };
-const SCATTER_PROJECTS = ['vscode', 'mui-docs', 't3code-server', 'supabase-studio', 'playwright', 'typeorm', 'date-fns'];
 
 function integer(value, fallback, minimum = 1) {
   const n = value === undefined ? fallback : Number(value);
@@ -79,20 +78,15 @@ export async function release(options) {
   const cfg = await catalog();
   const names = values(options.projects, Object.keys(RELEASE_PROJECTS));
   requireValue(names.length && new Set(names).size === names.length, 'Select distinct projects');
-  const scatter = values(options['scatter-projects'], SCATTER_PROJECTS.filter(name => names.includes(name)));
-  requireValue(scatter.every(name => names.includes(name)) && scatter.length <= 7, 'Scatter projects must be at most seven measured projects');
   const projects = names.map(name => {
     const project = cfg.projects.find(p => p.name === name);
     requireValue(project, `Unknown project ${name}`);
     return structuredClone(project);
   });
-  const scatterCheckers = values(options.checkers, [DEFAULT_MODE]).map(checkerMode);
   const settings = {
     workers: options.workers === undefined ? null : integer(options.workers), runs: integer(options.runs, 10), typescriptRuns: integer(options['typescript-runs'], 5),
-    scatterCheckers, detailCheckers: checkerMode(options['detail-checkers'] ?? scatterCheckers.at(-1)),
-    quietCores: positive(options['quiet-cores'], 1.5), quietWaitSeconds: integer(options['quiet-wait'], 180, 0),
+    checkers: checkerMode(options.checkers ?? DEFAULT_MODE), quietCores: positive(options['quiet-cores'], 1.5), quietWaitSeconds: integer(options['quiet-wait'], 180, 0),
   };
-  requireValue(settings.scatterCheckers.includes(settings.detailCheckers), '--checkers must include --detail-checkers');
   const work = path.resolve(options['work-dir'] ?? path.join(BENCH, '.work'));
   const out = path.join(path.resolve(options['out-dir'] ?? path.join(BENCH, 'results')), stamp());
   await prepare(cfg, projects, work);
@@ -114,8 +108,8 @@ export async function release(options) {
   const scratch = path.join(out, 'sample.json');
   for (const project of projects) {
     const { cwd, config } = projectPath(project, work);
-    const modes = scatter.includes(project.name) ? settings.scatterCheckers : [settings.detailCheckers];
-    run.projects.push({ name: project.name, project: project.project, commit: project.commit, overlay_sha256: project.overlay_sha256 ?? null, scatter: scatter.includes(project.name), checkers: modes });
+    const modes = [settings.checkers];
+    run.projects.push({ name: project.name, project: project.project, commit: project.commit, overlay_sha256: project.overlay_sha256 ?? null, checkers: modes });
     run.preflight[project.name] = {};
     for (const checkers of modes) {
       run.preflight[project.name][checkers] = {};
@@ -172,10 +166,12 @@ export function releasePublication(run, sourceBundleSha256, renderer) {
     for (const key of check.errorKeys) { const code = key.match(/TS\d+$/)[0]; codes[code] = (codes[code] ?? 0) + 1; }
     rows.push({ project: project.name, checkers, compiler, wallSeconds: median(samples.map(s => s.wallSeconds)), peakRssBytes: median(samples.map(s => s.peakRssBytes)), instructions: median(samples.map(s => s.instructions)), runs: samples.length, exitCode: check.exitCode, diagnostics: check.errors, diagnosticCodes: Object.fromEntries(Object.entries(codes).sort(([a], [b]) => a.localeCompare(b))), diagnosticsSha256: sha(JSON.stringify(check.errorKeys)).slice(0, 16) });
   }
+  const { workers, runs, typescriptRuns, quietCores, quietWaitSeconds } = run.settings;
   return {
-    schemaVersion: 1, kind: 'release-publication', measuredAt: run.startedAt, completedAt: run.completedAt, machine: run.machine, settings: run.settings,
+    schemaVersion: 1, kind: 'release-publication', measuredAt: run.startedAt, completedAt: run.completedAt, machine: run.machine,
+    settings: { workers, runs, typescriptRuns, checkers: run.settings.checkers ?? run.settings.detailCheckers, quietCores, quietWaitSeconds },
     environment: run.environment, hyperfine: run.hyperfine.version, compilers: run.compilers,
-    projects: run.projects.map(p => ({ name: p.name, project: p.project, commit: p.commit, overlaySha256: p.overlay_sha256 ?? null, scatter: p.scatter, checkers: p.checkers })),
+    projects: run.projects.map(p => ({ name: p.name, project: p.project, commit: p.commit, overlaySha256: p.overlay_sha256 ?? null, checkers: p.checkers })),
     samples: { total: run.samples.length, contended: run.samples.filter(s => !s.quiet).length },
     rows, sourceBundleSha256, renderer,
   };
@@ -187,23 +183,14 @@ export function validateReleasePublication(publication, source) {
     const rows = publication.rows.filter(r => r.project === project.name && r.checkers === checkers && r.compiler === compiler);
     requireValue(rows.length === 1 && ['wallSeconds', 'peakRssBytes'].every(k => Number.isFinite(rows[0][k]) && rows[0][k] > 0), `${source}: invalid row ${project.name}/${checkers}/${compiler}`);
   }
-  requireValue(publication.projects.some(p => p.scatter), `${source}: no scatter projects`);
 }
 
 const FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif";
-const THEMES = {
-  light: { background: '#f4f3ec', border: '#dcdad0', text: '#16171d', muted: '#6f6876', grid: '#e2e0d6', axis: '#16171d', dot: '#16171d', projects: ['#6c3bff', '#e8590c', '#2f9e44', '#d4a017', '#867e8e', '#a0522d', '#7b8a00'] },
-  dark: { background: '#16171d', border: '#3b3440', text: '#ffffff', muted: '#a49cab', grid: '#2a2630', axis: '#867e8e', dot: '#0c0912', projects: ['#b39aff', '#ff922b', '#51cf66', '#fcc419', '#b0a8b9', '#e0a07a', '#c0cf3a'] },
-};
 const BAR_COLORS = { background: '#f4f3ec', border: '#dcdad0', text: '#16171d', muted: '#6f6876', rule: '#e2e0d6', axis: '#bdbab0', tsrs_fast: '#f38020', tsrs: '#faae40', typescript: '#3178c6' };
-const WIDTH = 1200, HEIGHT = 884;
-const PLOT_LEFT = 130, PLOT_RIGHT = 1140, PLOT_TOP = 205, PLOT_BOTTOM = 720;
-const LEGEND_Y = 139, LEGEND_ROW = 34, LEGEND_GAP = 36;
+const WIDTH = 1200;
 const BAR_TOP = 214, BAR_HEIGHT = 12, BAR_GAP = 5, BAR_PITCH = 76;
-const SPEED_TICKS = [0.1, 0.2, 0.3, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50];
 
 const f1 = value => value.toFixed(1);
-const g = value => String(Number(value.toPrecision(6)));
 const escText = value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const escAttr = value => escText(value).replaceAll('"', '&quot;');
 
@@ -232,16 +219,6 @@ function textWidth(value, size) {
   return size * [...value].reduce((sum, char) => sum + ('ijlrtf-. '.includes(char) ? 0.3 : 0.56), 0);
 }
 
-function ink(fill) {
-  const channels = [1, 3, 5].map(i => Number.parseInt(fill.slice(i, i + 2), 16) / 255).map(c => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2] > 0.18 ? '#16171d' : '#ffffff';
-}
-
-function niceStep(span) {
-  const magnitude = 10 ** Math.floor(Math.log10(span / 8));
-  return [1, 2, 5, 10].map(m => m * magnitude).find(step => span / step <= 8);
-}
-
 function typescriptName(version) {
   const [release, prerelease = ''] = version.split(/-(.*)/s);
   const minor = release.split('.').slice(0, 2).join('.');
@@ -256,16 +233,13 @@ function context(data) {
   const typescript = typescriptName(data.compilers.typescript.version);
   const { machine, settings } = data;
   const date = data.measuredAt.slice(0, 10);
-  const releases = `TypeScript: typescript@${data.compilers.typescript.version}. tsrs: tsrs@${data.compilers.tsrs.version}, npm release binary`;
   const article = /^[aeiou8]/i.test(machine.cpu) ? 'an' : 'a';
   return {
     data, cells, typescript, date, time: `${date} ${data.measuredAt.slice(11, 16)} UTC`,
     label: name => RELEASE_PROJECTS[name] ?? name,
     names: { typescript, tsrs: 'tsrs (default)', tsrs_fast: 'tsrs --fast' },
     machinePhrase: `${article} ${machine.cpu}${settings.workers ? ` limited to ${settings.workers} threads` : ` (${machine.cpus} cores)`}`,
-    machineLine: `${machine.cpu}, ${machine.cpus} cores, ${machine.memory_gb} GB${settings.workers ? `; GOMAXPROCS and RAYON_NUM_THREADS ${settings.workers}` : ''}`,
     reps: `median of ${settings.runs} interleaved runs (${settings.typescriptRuns} for TypeScript)`,
-    scatterFooter: `${releases}, default mode. Measured ${date}.`,
   };
 }
 
@@ -286,105 +260,13 @@ function header(svg, colors, title, kind, subtitle) {
   return drawing;
 }
 
-function footer(drawing, colors, height, ctx, first) {
-  text(drawing, 48, height - 50, first, 14, 400, colors.muted);
-  text(drawing, 48, height - 28, `${ctx.machineLine}. Wall time and peak RSS, ${ctx.reps}.`, 14, 400, colors.muted);
-}
-
-function legendEntry(parent, colors, x, y, fill, label) {
-  element(parent, 'circle', { cx: f1(x), cy: y, r: 9, fill, stroke: colors.dot, 'stroke-width': 1.5 });
-  text(parent, f1(x + 20), y + 7, label, 19, 500);
-}
-
-function scatterChart(ctx, theme) {
-  const colors = THEMES[theme], { data } = ctx, checkerCounts = data.settings.scatterCheckers;
-  const sweep = checkerCounts.length > 1 || checkerCounts[0] !== DEFAULT_MODE;
-  const names = data.projects.filter(p => p.scatter).map(p => p.name);
-  const series = Object.fromEntries(names.map(name => [name, checkerCounts.map(checkers => {
-    const cell = ctx.cells[name][checkers];
-    return { checkers, speed: cell.typescript.wallSeconds / cell.tsrs.wallSeconds, memory: cell.typescript.peakRssBytes / cell.tsrs.peakRssBytes, cell };
-  })]));
-  const all = Object.values(series).flat();
-  const speeds = all.map(p => p.speed), memories = all.map(p => p.memory);
-  const speedMin = Math.min(...speeds), memoryMin = Math.min(...memories), memoryMax = Math.max(...memories);
-  const xStart = speedMin >= 1 ? 1 : SPEED_TICKS.findLast(tick => tick <= speedMin / 1.08) ?? speedMin / 1.08;
-  const xEnd = SPEED_TICKS.find(tick => tick > 1 && tick >= Math.max(...speeds) * 1.08) ?? SPEED_TICKS.at(-1);
-  const yStep = niceStep(Math.max(memoryMax - Math.min(memoryMin, 1), 0.5) * 8 / 10);
-  const yEnd = 1 + Math.ceil(Math.max(memoryMax - 1, 0.5) / yStep + 0.5) * yStep;
-  const yStart = memoryMin >= 1 ? 1 : Math.max(0, 1 - Math.ceil((1 - memoryMin) / yStep + 0.5) * yStep);
-  const xOf = value => PLOT_LEFT + (PLOT_RIGHT - PLOT_LEFT) * Math.log(value / xStart) / Math.log(xEnd / xStart);
-  const rows = [[]];
-  for (const name of names) {
-    const width = 20 + textWidth(ctx.label(name), 19);
-    if (rows.at(-1).length && rows.at(-1).reduce((sum, [, w]) => sum + w + LEGEND_GAP, 0) + width > WIDTH - 96) rows.push([]);
-    rows.at(-1).push([name, width]);
-  }
-  const plotTop = PLOT_TOP + LEGEND_ROW * (rows.length - 1);
-  const yOf = value => PLOT_BOTTOM - (PLOT_BOTTOM - plotTop) * (value - yStart) / (yEnd - yStart);
-  const projectColors = Object.fromEntries(names.map((name, i) => [name, colors.projects[i]]));
-  const counts = `${checkerCounts.slice(0, -1).join(', ')}${checkerCounts.length > 1 ? ' and ' : ''}${checkerCounts.at(-1)}`;
-  const format = row => `${row.wallSeconds.toFixed(2)} s, ${(row.peakRssBytes / GIB).toFixed(2)} GiB`;
-  const details = names.map(name => `${ctx.label(name)}: ${series[name].map(p => `${sweep ? `--checkers ${p.checkers}: ` : ''}${p.speed.toFixed(1)}x faster, ${p.memory.toFixed(1)}x less memory (TypeScript ${format(p.cell.typescript)}; tsrs ${format(p.cell.tsrs)})`).join('; ')}.`);
-  const title = `tsrs vs ${ctx.typescript}`;
-  const axes = xStart === 1 && yStart === 1 ? 'Both axes start at 1x, parity with TypeScript' : 'Dashed lines mark 1x, parity with TypeScript; points below 1x are slower or use more memory than TypeScript';
-  const description = `How many times faster default tsrs type-checks than ${ctx.typescript}, against how many times less peak memory it uses, both compilers ${sweep ? `at --checkers ${counts}` : 'with default settings'} on ${ctx.machinePhrase}. ${axes}; the speed axis is logarithmic. Up and to the right is better. ${details.join(' ')} ${ctx.reps[0].toUpperCase()}${ctx.reps.slice(1)}. ${ctx.scatterFooter} Machine: ${ctx.machineLine}.`;
-  const metadata = `Generated by bench/release.mjs; modes: ${checkerCounts.map(c => (c === DEFAULT_MODE ? c : `checkers${c}`)).join(', ')}; typescript@${data.compilers.typescript.version}; tsrs@${data.compilers.tsrs.version}; measured: ${ctx.time}. Details: https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md`;
-  const svg = root(WIDTH, HEIGHT, title, description, metadata, colors);
-  const drawing = header(svg, colors, title, 'Speed vs peak memory', `Both compilers ${sweep ? 'at the same checker count' : 'with default settings'} on ${ctx.machinePhrase}`);
-  if (sweep) {
-    const key = element(drawing, 'g', { 'data-role': 'key' });
-    const keyText = `parallel checker threads (--checkers ${checkerCounts.join(', ')})`;
-    const keyX = WIDTH - 48 - textWidth(keyText, 17);
-    text(key, f1(keyX), 98, keyText, 17, 400, colors.muted);
-    element(key, 'circle', { cx: f1(keyX - 22), cy: 92, r: 13, fill: colors.background, stroke: colors.text, 'stroke-width': 1.5 });
-    text(key, f1(keyX - 22), 97, 'n', 14, 700, colors.text, 'middle');
-  }
-  const legend = element(drawing, 'g', { 'data-role': 'legend' });
-  for (const [row, items] of rows.entries()) {
-    let x = WIDTH - 48;
-    for (const [name, width] of items.toReversed()) {
-      x -= width;
-      legendEntry(legend, colors, x, LEGEND_Y + row * LEGEND_ROW, projectColors[name], ctx.label(name));
-      x -= LEGEND_GAP;
-    }
-  }
-  const grid = element(drawing, 'g', { 'data-role': 'grid' });
-  for (let k = 0; k <= Math.round((yEnd - yStart) / yStep); k++) {
-    const value = yStart + k * yStep, y = yOf(value);
-    if (k) element(grid, 'line', { x1: PLOT_LEFT, y1: f1(y), x2: PLOT_RIGHT, y2: f1(y), stroke: colors.grid, 'stroke-width': 1.5 });
-    text(grid, PLOT_LEFT - 18, f1(y + 7), `${g(value)}x`, 19, 400, colors.muted, 'end');
-  }
-  for (const value of SPEED_TICKS.filter(tick => tick >= xStart && tick <= xEnd)) {
-    const x = xOf(value);
-    element(grid, 'line', { x1: f1(x), y1: PLOT_BOTTOM, x2: f1(x), y2: PLOT_BOTTOM + 8, stroke: colors.axis, 'stroke-width': 1.5 });
-    text(grid, f1(x), PLOT_BOTTOM + 36, `${g(value)}x`, 19, 400, colors.muted, 'middle');
-  }
-  if (xStart < 1) element(grid, 'line', { 'data-role': 'parity', x1: f1(xOf(1)), y1: plotTop, x2: f1(xOf(1)), y2: PLOT_BOTTOM, stroke: colors.axis, 'stroke-width': 1.5, 'stroke-dasharray': '6 6' });
-  if (yStart < 1) element(grid, 'line', { 'data-role': 'parity', x1: PLOT_LEFT, y1: f1(yOf(1)), x2: PLOT_RIGHT, y2: f1(yOf(1)), stroke: colors.axis, 'stroke-width': 1.5, 'stroke-dasharray': '6 6' });
-  element(grid, 'path', { d: `M${PLOT_LEFT} ${plotTop}V${PLOT_BOTTOM}H${PLOT_RIGHT}`, fill: 'none', stroke: colors.axis, 'stroke-width': 1.5 });
-  text(grid, (PLOT_LEFT + PLOT_RIGHT) / 2, PLOT_BOTTOM + 84, `Times faster than ${ctx.typescript}, log scale`, 21, 400, undefined, 'middle');
-  text(grid, 0, 0, `Times less peak memory than ${ctx.typescript}`, 21, 400, undefined, 'middle').attrs.transform = `translate(${PLOT_LEFT - 78} ${(plotTop + PLOT_BOTTOM) / 2}) rotate(-90)`;
-  const plot = element(drawing, 'g', { 'data-role': 'points' });
-  if (sweep) for (const name of names) element(plot, 'polyline', { 'data-project': name, fill: 'none', stroke: projectColors[name], 'stroke-width': 3.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', points: series[name].map(p => `${f1(xOf(p.speed))},${f1(yOf(p.memory))}`).join(' ') });
-  for (const name of names) {
-    const group = element(plot, 'g', { 'data-project': name });
-    for (const point of series[name]) {
-      const x = xOf(point.speed), y = yOf(point.memory);
-      element(group, 'circle', { 'data-checkers': point.checkers, 'data-speedup': Number(point.speed.toPrecision(6)), 'data-memory': Number(point.memory.toPrecision(6)), cx: f1(x), cy: f1(y), r: sweep ? 13 : 11, fill: projectColors[name], stroke: colors.dot, 'stroke-width': 1.5 });
-      if (sweep) text(group, f1(x), f1(y + 5), String(point.checkers), 14, 700, ink(projectColors[name]), 'middle');
-    }
-  }
-  footer(drawing, colors, HEIGHT, ctx, ctx.scatterFooter);
-  return serialize(svg) + '\n';
-}
-
 function times(reference, value, better, worse) {
   const r = reference / value;
   return r >= 1 ? `${r.toFixed(1)}× ${better}` : `${(1 / r).toFixed(1)}× ${worse}`;
 }
 
 function barChart(ctx) {
-  const colors = BAR_COLORS, { data, cells, names } = ctx, checkers = data.settings.detailCheckers;
+  const colors = BAR_COLORS, { data, cells, names } = ctx, checkers = data.settings.checkers;
   const compilers = ['tsrs_fast', 'tsrs', 'typescript'];
   const order = data.projects.map(p => p.name).filter(name => cells[name][checkers]).sort((a, b) => cells[b][checkers].typescript.wallSeconds - cells[a][checkers].typescript.wallSeconds);
   const panels = [
@@ -440,29 +322,20 @@ function seconds(value) { return `${value.toFixed(2)} s`; }
 function memory(bytes) { return bytes >= 1000 * 2 ** 20 ? `${(bytes / GIB).toFixed(2)} GiB` : `${Math.round(bytes / 2 ** 20)} MiB`; }
 function ratio(reference, value, better, worse) { const r = reference / value; return r >= 1 ? `${r.toFixed(2)}x ${better}` : `${(1 / r).toFixed(2)}x ${worse}`; }
 
-function picture(name, alt) {
-  return ['<picture>', `  <source media="(prefers-color-scheme: dark)" srcset="${name}-dark.svg">`, `  <img alt="${alt}" src="${name}.svg">`, '</picture>', ''];
-}
-
 function report(ctx) {
-  const { data, cells, names } = ctx, { settings, machine, compilers } = data, checkers = settings.detailCheckers;
+  const { data, cells, names } = ctx, { settings, machine, compilers } = data, { checkers } = settings;
   const reference = compilers.tsrs.version_output?.match(/microsoft\/TypeScript@([0-9a-f]+)/)?.[1];
   const order = data.projects.map(p => p.name).sort((a, b) => cells[b][checkers].typescript.wallSeconds - cells[a][checkers].typescript.wallSeconds);
-  const scatter = data.projects.filter(p => p.scatter).map(p => p.name);
-  const sweep = settings.scatterCheckers.length > 1;
-  const modes = [...new Set([...settings.scatterCheckers, checkers])];
-  const counted = modes.some(mode => mode !== DEFAULT_MODE);
-  const phrase = mode => (mode === DEFAULT_MODE ? 'with default settings' : `at \`--checkers ${mode}\``);
+  const counted = checkers !== DEFAULT_MODE;
   const threads = settings.workers ? `, with \`GOMAXPROCS\` and \`RAYON_NUM_THREADS\` set to ${settings.workers}.` : '.';
-  const defaults = modes.includes(DEFAULT_MODE) ? ` Default-settings runs pass no \`--checkers\`${settings.workers ? '' : ' and set no thread limit'}, so each compiler picks its own checker count${settings.workers ? '' : ` and uses all ${machine.cpus} cores`}.` : '';
+  const defaults = counted ? '' : ` Default-settings runs pass no \`--checkers\`${settings.workers ? '' : ' and set no thread limit'}, so each compiler picks its own checker count${settings.workers ? '' : ` and uses all ${machine.cpus} cores`}.`;
   const lines = [
     '# Benchmark results', '',
     '<!-- Generated by `node bench/bench.mjs render`; edit bench/release.mjs, not this file. -->', '',
     `npm release binaries, measured ${ctx.date}: TypeScript ${compilers.typescript.version} (\`${compilers.typescript.package}\`) and tsrs ${compilers.tsrs.version} (\`${compilers.tsrs.package}\`)${reference ? `, which ports microsoft/TypeScript@${reference}` : ''}. tsrs runs in its default mode and with the fast preset (\`--fast\`).`, '',
     `Each command is \`-p <project> --noEmit --incremental false --pretty false${counted ? ' [--checkers N]' : ''}\`, plus \`--fast\` for tsrs --fast, on ${/^[aeiou8]/i.test(machine.cpu) ? 'an' : 'a'} ${machine.cpu} (${machine.cpus} cores, ${machine.memory_gb} GB, ${machine.platform})${threads}${defaults} Values are medians of ${settings.runs} interleaved runs (${settings.typescriptRuns} for TypeScript), measured with ${data.hyperfine.replace(/^hyperfine/, 'Hyperfine')}. An untimed run of every command first warms the file cache and records its diagnostics. Each timed run waits until other processes use at most ${settings.quietCores} CPU cores, for up to ${settings.quietWaitSeconds} s; ${data.samples.contended} of ${data.samples.total} runs started after that wait expired.`, '',
-    `The bar chart and first tables compare all three ${phrase(checkers)}. The speed-vs-memory chart compares default tsrs with TypeScript${sweep ? ` at \`--checkers ${settings.scatterCheckers.join(', ')}\`` : `, both ${phrase(settings.scatterCheckers[0])}`}. Pinned projects are in [projects.json](projects.json); see the [methodology](README.md).`, '',
+    `The bar chart and tables compare all three ${counted ? `at \`--checkers ${checkers}\`` : 'with default settings'}. Pinned projects are in [projects.json](projects.json); see the [methodology](README.md).`, '',
     '![Check time and peak memory by project](benchmark.svg)', '',
-    ...picture('large-projects', 'Default tsrs type-check speedup against peak-memory ratio'),
     checkers === DEFAULT_MODE ? '## Default settings' : `## \`--checkers ${checkers}\``, '',
   ];
   for (const [title, metric, format, better, worse] of [['Wall time', 'wallSeconds', seconds, 'faster', 'slower'], ['Peak memory', 'peakRssBytes', memory, 'less', 'more']]) {
@@ -473,19 +346,10 @@ function report(ctx) {
     }
     lines.push('');
   }
-  if (sweep) lines.push('## Checker scaling', '', `The speed-vs-memory chart's projects at every measured checker count.`, '');
-  for (const [title, metric, format, better, worse] of sweep ? [['Wall time', 'wallSeconds', seconds, 'faster', 'slower'], ['Peak memory', 'peakRssBytes', memory, 'less', 'more']] : []) {
-    lines.push(`**${title}**`, '', `| project | checkers | ${names.typescript} | tsrs | tsrs --fast | tsrs vs TypeScript | tsrs --fast vs TypeScript |`, '| --- | ---: | ---: | ---: | ---: | ---: | ---: |');
-    for (const name of scatter) for (const n of settings.scatterCheckers) {
-      const cell = cells[name][n];
-      lines.push(`| ${name} | ${n} | ${format(cell.typescript[metric])} | ${format(cell.tsrs[metric])} | ${format(cell.tsrs_fast[metric])} | ${ratio(cell.typescript[metric], cell.tsrs[metric], better, worse)} | ${ratio(cell.typescript[metric], cell.tsrs_fast[metric], better, worse)} |`);
-    }
-    lines.push('');
-  }
   const differences = data.projects.flatMap(p => p.checkers.flatMap(n => ['tsrs', 'tsrs_fast'].filter(c => cells[p.name][n][c].diagnosticsSha256 !== cells[p.name][n].typescript.diagnosticsSha256).map(c => `${p.name} (${n === DEFAULT_MODE ? 'default settings' : `\`--checkers ${n}\``}, ${names[c]}: ${cells[p.name][n][c].diagnostics}, TypeScript: ${cells[p.name][n].typescript.diagnostics})`)));
   const counts = order.map(name => `${name} ${cells[name][checkers].typescript.diagnostics}`).join(', ');
   lines.push('## Diagnostics', '');
-  lines.push(differences.length ? `TypeScript, tsrs and tsrs --fast differ on ${differences.join('; ')}. The other runs report identical diagnostics.` : `TypeScript, tsrs and tsrs --fast report identical diagnostics (file, position and code) for every project${sweep ? ' and checker count' : ''}. Errors${checkers === DEFAULT_MODE ? '' : ` at \`--checkers ${checkers}\``}: ${counts}.`, '');
+  lines.push(differences.length ? `TypeScript, tsrs and tsrs --fast differ on ${differences.join('; ')}. The other runs report identical diagnostics.` : `TypeScript, tsrs and tsrs --fast report identical diagnostics (file, position and code) for every project. Errors${checkers === DEFAULT_MODE ? '' : ` at \`--checkers ${checkers}\``}: ${counts}.`, '');
   const early = data.projects.filter(p => { const codes = Object.keys(cells[p.name][checkers].typescript.diagnosticCodes ?? {}); return codes.length && codes.every(code => OPTION_ERRORS_BEFORE_CHECK.has(code)); });
   for (const project of early) lines.push(`${project.name} reports only ${Object.keys(cells[project.name][checkers].typescript.diagnosticCodes).join(', ')}: a composite project cannot disable incremental compilation. This option error stops all three compilers before semantic checking, so the ${project.name} times cover loading, parsing and binding.`, '');
   return lines.join('\n');
@@ -495,8 +359,6 @@ export function releaseAssets(data) {
   const ctx = context(data);
   return {
     'benchmark.svg': barChart(ctx),
-    'large-projects.svg': scatterChart(ctx, 'light'),
-    'large-projects-dark.svg': scatterChart(ctx, 'dark'),
     'RESULTS.md': report(ctx),
   };
 }

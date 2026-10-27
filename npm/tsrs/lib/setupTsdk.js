@@ -42,7 +42,6 @@ if (process.platform === "win32") {
     catch (error) {
         console.error(`tsrs: could not prepare the Windows VS Code SDK: ${error.message}\n` +
             "Close any running tsrs language server, then run node node_modules/tsrs/lib/setupTsdk.js to retry.");
-        // An omitted optional dependency or locked SDK must not prevent CLI/API installation.
-        if (!process.argv.includes("--optional")) process.exitCode = 1;
+        process.exitCode = 1;
     }
 }

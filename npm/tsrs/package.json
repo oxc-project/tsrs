@@ -33,9 +33,6 @@
     "bin": {
         "tsrs": "./bin/tsrs"
     },
-    "scripts": {
-        "postinstall": "node ./lib/setupTsdk.js --optional"
-    },
     "exports": {
         "./package.json": "./package.json",
         "./schemas/tsconfig.schema.json": "./schemas/tsconfig.schema.json",

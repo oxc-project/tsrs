@@ -16,8 +16,8 @@ editors' documented mechanisms.
 `ts-ref/packages/vscode-typescript`) starts `<tsdk>/tsgo --lsp --stdio` (`tsgo.exe` on Windows) when
 `js/ts.tsdk.path` points at a directory that contains an executable named `tsgo` or `tsc` (`.exe` on Windows;
 `src/util.ts`: `tsdkConfigSources`, `packagedExeBaseNames`).
-The 0.20.0 beta includes `tsdk/tsgo` for macOS and Linux. Current source builds also prepare
-`tsdk/tsgo.exe` on Windows x64 during installation. Install the published beta with
+The 0.20.0 beta includes `tsdk/tsgo` for macOS and Linux. Current source builds also provide an explicit
+setup command for `tsdk/tsgo.exe` on Windows x64. Install the published beta with
 `pnpm add -D tsrs@0.20.0-ts7.1.0-beta` and commit this `.vscode/settings.json` so each teammate's editor uses the
 version in the project's lockfile:
 
@@ -31,15 +31,15 @@ version in the project's lockfile:
 
 The extension asks for workspace trust and consent before running a workspace SDK. The launcher uses the
 installed package's platform binary, just like `pnpm exec tsrs`; it does not add a `tsgo` command to
-`node_modules/.bin`. On Windows, the install script links the native binary and its default libraries into
-`tsdk` (copies them if hard links are unavailable). Windows support is pending the next npm release.
-If your package manager blocks install scripts, run this after installing or upgrading a release with
-Windows SDK support:
+`node_modules/.bin`. Windows support is pending the next npm release. After installing or upgrading a
+release with Windows SDK support, run this setup command on Windows:
 
 ```sh
 node node_modules/tsrs/lib/setupTsdk.js
 ```
 
+The command links the native binary and its default libraries into `tsdk` (copies them if hard links
+are unavailable).
 Close the language server before upgrading or rerunning setup if Windows reports that the executable is in use.
 
 For an older npm release or a local build on macOS/Linux, create a symlink instead:

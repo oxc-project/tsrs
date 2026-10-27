@@ -39,9 +39,6 @@ const run = (cmd, argv, opts = {}) => {
 };
 try {
     fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name: "tsrs-consumer", private: true, type: "module" }));
-    const mainTarball = manifest.packages.find(p => p.name === "tsrs").tarball;
-    const buildKey = `tsrs@file:${path.relative(dir, mainTarball).split(path.sep).join("/")}`;
-    fs.writeFileSync(path.join(dir, "pnpm-workspace.yaml"), `allowBuilds:\n  ${JSON.stringify(buildKey)}: true\n`);
     run("pnpm", ["add", "--offline", ...tarballs], { shell: process.platform === "win32" });
 
     const pkg = JSON.parse(fs.readFileSync(path.join(dir, "node_modules/tsrs/package.json"), "utf8"));
@@ -67,12 +64,12 @@ try {
     const cliVersion = run(bin, ["--version"], { shell: process.platform === "win32" }).trim();
     console.log(cliVersion);
 
-    // Also exercise the explicit setup path for package managers that block postinstall.
+    // Windows SDK setup is explicit; running it again must be safe.
     const setup = path.join(dir, "node_modules/tsrs/lib/setupTsdk.js");
     const sdk = path.join(dir, "node_modules/tsrs/tsdk", process.platform === "win32" ? "tsgo.exe" : "tsgo");
-    if (!fs.existsSync(sdk)) throw new Error("SDK missing after installation");
     run(process.execPath, [setup]);
     run(process.execPath, [setup]);
+    if (!fs.existsSync(sdk)) throw new Error("SDK missing after setup");
     if (run(sdk, ["--version"]).trim() !== cliVersion) throw new Error("SDK version differs from the CLI");
     fs.writeFileSync(path.join(dir, "bad.ts"), 'const x: number = "no";\n');
     const sdkBad = spawnSync(sdk, ["--noEmit", "--ignoreConfig", "bad.ts"], { cwd: dir, encoding: "utf8" });

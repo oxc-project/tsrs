@@ -7,10 +7,11 @@
 //! checker of the type-check pass has finished its files and its thread is still alive: the moment memory
 //! peaks) and `exit`. `TSRS_MEM_SPLIT=purge` also makes the allocator purge its freed memory after `check
 //! end` and prints the split again. Linux reads `/proc/self/smaps` and `/proc/self/status`; elsewhere
-//! only the arena and heap lines print.
+//! only the arena and heap lines print. A build (`tsc -b`) prints only `exit`: its programs run side by side
+//! (`program_points`).
 
 use std::fmt::Write;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use crate::arena::Arena;
@@ -38,9 +39,49 @@ pub fn purge_after_check() -> bool {
     mode() == 2
 }
 
+/// Live `ConcurrentPrograms` guards.
+static CONCURRENT: AtomicUsize = AtomicUsize::new(0);
+
+/// Whether a program reports its `parse end` and `check end` points: the stat is on and no other program runs.
+///
+/// A report walks every thread's heap pages (`mi_heap_visit_blocks` collects their freed blocks) and reads every
+/// thread arena, which is sound only while no other thread allocates: one builder of a build reporting while another
+/// builder's checkers run corrupts the heap.
+pub fn program_points() -> bool {
+    // Relaxed: set before the builder threads start and cleared after they are joined, which orders it.
+    enabled() && CONCURRENT.load(Ordering::Relaxed) == 0
+}
+
+/// Turns the per-program points off (`program_points`) until the guard drops.
+///
+/// For the builders of a build, which run their programs alongside each other and the thread that reports them. The
+/// guard drops once the builders are joined.
+pub fn concurrent_programs() -> ConcurrentPrograms {
+    // Relaxed: see `program_points`.
+    CONCURRENT.fetch_add(1, Ordering::Relaxed);
+    ConcurrentPrograms(())
+}
+
+/// The guard of `concurrent_programs`.
+pub struct ConcurrentPrograms(());
+
+impl Drop for ConcurrentPrograms {
+    fn drop(&mut self) {
+        // Relaxed: see `program_points`.
+        CONCURRENT.fetch_sub(1, Ordering::Relaxed);
+        // Relaxed: see `EXITED_THREADS`.
+        EXITED_THREADS.store(true, Ordering::Relaxed);
+    }
+}
+
+/// Whether threads that allocated have exited (a build's builders): the allocator keeps their pages as abandoned, owned
+/// by no thread. Read by the reports that run after they were joined, which orders it.
+static EXITED_THREADS: AtomicBool = AtomicBool::new(false);
+
 struct ArenaRef(&'static Arena);
 // SAFETY: `report` reads an arena only while the threads that allocate are parked (the barrier at `check end`, a
-// joined work group, an idle pool), which orders the reads after the owner's writes.
+// joined work group, an idle pool), which orders the reads after the owner's writes: a program's points only while no
+// other program runs (`program_points`), `exit` after a build joined its builders and drained its free thread.
 unsafe impl Send for ArenaRef {}
 
 static ARENAS: Mutex<Vec<ArenaRef>> = Mutex::new(Vec::new());
@@ -191,7 +232,17 @@ pub fn report(what: &str) {
     #[cfg(compressed_ptrs)]
     let _ =
         writeln!(out, "  reservation: {} MiB in chunks", mib(crate::reserve::reserved_in_use()));
-    let heap = HEAP_STATS.get().map(|f| f());
+    // The walk collects the freed blocks of every page, abandoned ones included, which is sound while no other thread
+    // runs; mimalloc's debug build (a dev-profile tsrs) asserts that the walker owns each page it collects.
+    // Relaxed: see `EXITED_THREADS`.
+    let skip_walk = cfg!(debug_assertions) && EXITED_THREADS.load(Ordering::Relaxed);
+    let heap = if skip_walk { None } else { HEAP_STATS.get().map(|f| f()) };
+    if skip_walk {
+        let _ = writeln!(
+            out,
+            "  heap (allocator walk): skipped, abandoned pages of exited threads (debug build)"
+        );
+    }
     if let Some(h) = heap {
         let _ = writeln!(
             out,

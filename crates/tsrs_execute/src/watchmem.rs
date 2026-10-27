@@ -138,6 +138,19 @@ impl Freer {
         });
     }
 
+    /// Waits until the frees queued so far are done: for `TSRS_MEM_SPLIT`, whose `exit` report walks every thread's
+    /// heap pages, which the free thread would change under it.
+    pub(crate) fn wait(&self) {
+        if self.tx.get().is_none() {
+            return;
+        }
+        let (tx, rx) = mpsc::channel();
+        self.run(move || {
+            let _ = tx.send(());
+        });
+        let _ = rx.recv();
+    }
+
     pub(crate) fn run(&self, job: impl FnOnce() + Send + 'static) {
         if self.in_place {
             job();

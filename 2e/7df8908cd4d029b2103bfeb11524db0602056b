@@ -1,0 +1,19 @@
+crates/tsrs_checker/src/checker_12.rs
+  s_dc69f4488b866e::t_b4e7ff73317ff9 3099
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2e7df8908cd4d029b2103bfeb11524db0602056b",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

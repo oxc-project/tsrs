@@ -7,7 +7,18 @@ version = 2
 
 [licenses]
 version = 2
-allow = ["Apache-2.0", "MIT", "BSL-1.0", "Unicode-3.0", "Unlicense"]
+allow = [
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Unlicense",
+]
 confidence-threshold = 0.9
 
 [licenses.private]

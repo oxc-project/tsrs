@@ -44,6 +44,7 @@ cargo build --profile dev -p tsrs_cli -p tsrs_testrunner
 cargo check                                      # must be 0 errors, 0 warnings (CI sets build.warnings=deny)
 cargo check -p tsrs_wasm --target wasm32-wasip1   # the WebAssembly build still compiles (notes/wasm-build.md)
 cargo clippy --all-targets --config 'build.warnings="deny"'
+cargo deny --locked check                         # dependency advisories, licenses, bans and sources (cargo-deny 0.20.2)
 tools/lint/source.mjs                              # unsafe Send/Sync inventory, comments on weakened atomic orderings
 tools/gen-check.sh                                # generated code matches its generator (change the generator, then --write)
 ```
@@ -147,6 +148,8 @@ does.
 - Changes target `main`. CI (`.github/workflows/ci.yml`, on GitHub Actions) runs on pushes
   to `main`, on pull requests (drafts too), on merge groups and by manual dispatch, and must pass. Fork pull requests
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
+  The separate `Cargo Deny` workflow checks dependency advisories, licenses, bans and sources on Cargo manifest,
+  lockfile and policy changes, on merge groups, and by manual dispatch.
 - CI builds the CLI and conformance runner once with `--profile ci` in `build-correctness`; conformance, regressions
   and determinism use those same binaries. The Linux checks have separate Rust caches: `lint` runs Clippy and source checks;
   `workspace-tests` runs all workspace tests with warnings denied; `conformance` runs beside it with compiler

@@ -370,6 +370,7 @@ crates/tsrs_execute/src/build/orchestrator.rs	free_api_orchestrator	from_raw	own
 crates/tsrs_execute/src/build/orchestrator.rs	new_orchestrator	leak	ownership		safe-api-possible	paired with free_api_orchestrator; a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_execute/src/build/orchestrator.rs	new_orchestrator	leak	ownership	#2	safe-api-possible	paired with free_api_orchestrator; a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_execute/src/execute.rs	parse_config_host	leak	ownership		keep	process-lifetime by design; one allocation, no growth (tsc host; the server does not use it)
+crates/tsrs_execute/src/sys.rs	clear_std_write_nonblock	block	logic	`fcntl` operates on well-known fd numbers 1 and 2. We ignore errors	unknown	
 crates/tsrs_execute/src/sys.rs	exit_on_broken_pipe	block	boundary	signal and raise take integer arguments only; the default action of SIGPIPE ends the process.	keep	libc call with plain-data arguments
 crates/tsrs_execute/src/tsc/compile.rs	format_local_time_03_04_05_pm	block	boundary	`libc::tm` is C integers (and, on some platforms, a nullable `char *`), for which all zeros is valid.	keep	libc call with plain-data arguments
 crates/tsrs_execute/src/tsc/compile.rs	format_local_time_03_04_05_pm	block	boundary	both pointers are to live locals; localtime_r reads `secs` and writes only into `tm`.	keep	libc call with plain-data arguments

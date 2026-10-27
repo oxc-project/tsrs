@@ -19,6 +19,7 @@ mod lazy_dts_build;
 mod lsp_edit_resolutions;
 mod merged_interface_check_site;
 mod npm_lib_path;
+mod nonblocking_stdout;
 mod recycle_checkers;
 mod server_signals;
 mod split_check;

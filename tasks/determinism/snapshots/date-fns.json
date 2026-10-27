@@ -9,18 +9,17 @@
     "binary_sha256": "29f5eb8daa5c8cf6ef1c0cb79fbcf47c0cfdf26edabdf148bb779d0b2d56cebc"
   },
   "input": {
-    "overlay": null,
+    "overlay": "e2cf3e6c2f4c32bb",
     "project": {
       "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
       "install": "pnpm --pm-on-fail=ignore dlx pnpm@11.22.0 install --frozen-lockfile --ignore-scripts && node_modules/.bin/tsc --build pkgs/tz pkgs/utc pkgs/docs",
       "name": "date-fns",
+      "overlay": "bench/overlays/date-fns",
       "project": "pkgs/core",
       "repo": "https://github.com/date-fns/date-fns.git"
     },
     "suite": null
   },
-  "exit_code": 2,
-  "diagnostics": [
-    "pkgs/core/tsconfig.json(8,3): error TS6379: Composite projects may not disable incremental compilation."
-  ]
+  "exit_code": 0,
+  "diagnostics": []
 }

@@ -12,7 +12,7 @@
     "overlay": "635fefae1e3bede6",
     "project": {
       "commit": "ec45c28e4d20bd9daf3191c991b67981aabf5db8",
-      "install": "export PATH=\"$PWD/node_modules/.bin:$PATH\" DATABASE_URL=postgresql://bench@localhost:5432/bench TURBO_TELEMETRY_DISABLED=1 && pnpm install --frozen-lockfile --ignore-scripts && turbo run build --filter='@formbricks/web^...' --output-logs=errors-only",
+      "install": "export PATH=\"$PWD/node_modules/.bin:$PATH\" DATABASE_URL=postgresql://bench@localhost:5432/bench TURBO_TELEMETRY_DISABLED=1 pnpm_config_pm_on_fail=ignore && pnpm dlx pnpm@11.7.0 install --frozen-lockfile --ignore-scripts && turbo run build --filter='@formbricks/web^...' --env-mode=loose --output-logs=errors-only",
       "name": "formbricks-web",
       "overlay": "bench/overlays/formbricks-web",
       "project": "apps/web/tsconfig.typecheck.json",

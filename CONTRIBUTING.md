@@ -161,7 +161,7 @@ does.
   then runs type checking, emit, incremental builds, watch edits and LSP edits through `tasks/thread_sanitizer`.
   Reports and failures are retained in its artifact; any sanitizer report or failed workload fails the job.
   See [the determinism task](tasks/determinism/README.md) for snapshot updates. Regression output must still match
-  the checked-in reference output; `fourslash` runs the server framing checks, gate checks, and
+  the checked-in reference output; `fourslash` runs the gate checks and
   [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate); `node-api-clients` runs the pinned upstream
   sync and async client suites against both compilers.
   Source checks overlap Rust setup and Clippy in `lint`. Setup and checkout actions in `test` and `fourslash`

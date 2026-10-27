@@ -275,7 +275,7 @@ jobs:
             [ "$status" = 2 ] || { echo "expected exit 2 for a type error, got $status"; exit 1; }
           fi
 
-      - name: Installed-package smoke (CLI and Node API)
+      - name: Installed-package smoke (CLI, SDK LSP and Node API)
         shell: bash
         run: |
           node npm/build.mjs --artifacts out --pack
@@ -394,7 +394,7 @@ jobs:
           if ($LASTEXITCODE -ne 2) { throw "expected exit 2 for a type error, got $LASTEXITCODE" }
           exit 0
 
-      - name: Installed-package smoke (CLI)
+      - name: Installed-package smoke (CLI and SDK LSP)
         shell: pwsh
         run: |
           node npm/build.mjs --artifacts out --pack

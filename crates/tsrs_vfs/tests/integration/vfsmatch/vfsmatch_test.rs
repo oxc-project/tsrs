@@ -928,6 +928,26 @@ fn test_read_directory_empty_includes() {
     run_read_directory_cases(&cases);
 }
 
+// More directory listings than prefetch_listings reads on the calling thread, so the rest of the tree is read on
+// rayon; the visit must still return every match in its own order, with the excluded directories left out.
+#[test]
+fn test_match_files_past_the_inline_prefetch() {
+    let mut files = Vec::new();
+    let mut expected = Vec::new();
+    for i in 0..100 {
+        files.push((format!("/dev/d{i:03}/a.ts"), ""));
+        files.push((format!("/dev/d{i:03}/sub/b.ts"), ""));
+        expected.push(format!("/dev/d{i:03}/a.ts"));
+        if !(50..60).contains(&i) {
+            expected.push(format!("/dev/d{i:03}/sub/b.ts"));
+        }
+    }
+    let host = from_map(files, true);
+    let got =
+        match_files("/dev", &[".ts"], &["d05*/sub"], &["**/*"], true, "/", UNLIMITED_DEPTH, &host);
+    assert_eq!(got, expected);
+}
+
 // TestReadDirectorySymlinkCycle tests that cyclic symlinks don't cause infinite loops.
 // The cycle is detected by the vfs package using Realpath for cycle detection.
 // This means directories with cyclic symlinks will be skipped during traversal.

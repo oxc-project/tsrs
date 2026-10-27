@@ -77,7 +77,6 @@ fn run() -> Result<String, String> {
         tsrs_dts::build_entries(&options, &args.entries, fs)
     }
     .map_err(|error| error.to_string())?;
-    let build_ms = started.elapsed().as_secs_f64() * 1000.0;
     let mut bytes = 0;
     for (name, text) in &result.files {
         let path = args.out_dir.join(Path::new(name));
@@ -88,6 +87,8 @@ fn run() -> Result<String, String> {
         std::fs::write(&path, text).map_err(|error| format!("{}: {error}", path.display()))?;
         bytes += text.len();
     }
+    // Like the rolldown runner: from the start of the build until every output is written.
+    let build_ms = started.elapsed().as_secs_f64() * 1000.0;
     Ok(format!(
         r#"{{"build_ms":{build_ms:.3},"files":{},"bytes":{bytes},"emitted_declarations":{},"retained_statements":{},"removed_statements":{}}}"#,
         result.files.len(),

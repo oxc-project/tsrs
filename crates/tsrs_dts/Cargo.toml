@@ -27,6 +27,13 @@ tsrs_vfs.workspace = true
 tsrs_tsoptions.workspace = true
 tsrs_contentmapper.workspace = true
 
+[dev-dependencies]
+mimalloc-safe.workspace = true
+
+[[example]]
+name = "bundle"
+path = "examples/bundle.rs"
+
 [[example]]
 name = "vue-test-host"
 path = "tests/support/vue_host.rs"

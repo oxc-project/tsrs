@@ -1,0 +1,70 @@
+{
+  "comment": "Published npm packages that ship their TypeScript sources. Every tool bundles the same entries with the same generated tsconfig.bench.json; `entries` maps an output declaration name to a path inside the package. Inputs must check cleanly under the typescript7 version in package.json (the version tsrs ports); docs/DTS.md#benchmark lists the packages and entries left out.",
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2024", "DOM"],
+    "types": [],
+    "declaration": true,
+    "skipLibCheck": false
+  },
+  "projects": [
+    {
+      "name": "immer",
+      "package": "immer@10.1.1",
+      "tarball": "https://registry.npmjs.org/immer/-/immer-10.1.1.tgz",
+      "integrity": "sha512-s2MPrmjovJcoMaHtx6K11Ra7oD05NT97w1IC5zpMkT6Atjr7H8LjaDd81iIxUYpMKSRRNMJE703M1Fhr/TctHw==",
+      "compilerOptions": { "lib": ["ES2024"], "types": ["node"] },
+      "entries": { "immer.d.ts": "src/immer.ts" }
+    },
+    {
+      "name": "query-core",
+      "package": "@tanstack/query-core@5.105.0",
+      "tarball": "https://registry.npmjs.org/@tanstack/query-core/-/query-core-5.105.0.tgz",
+      "integrity": "sha512-7p56vRmT/z4UJ6sctGIdl5WRUQyUv53IUpUwEKi2g97zMbO7zh8ZsCLffGAvCPBR4xD72e3VXsDyLwXHhoNTMQ==",
+      "compilerOptions": { "types": ["node"] },
+      "entries": { "index.d.ts": "src/index.ts" }
+    },
+    {
+      "name": "trpc-server",
+      "package": "@trpc/server@11.19.0",
+      "tarball": "https://registry.npmjs.org/@trpc/server/-/server-11.19.0.tgz",
+      "integrity": "sha512-7C1goiDurz82yFKtZUbEzjXd0Rg/jyisaIZQhdvus+1l7E6mwcEYZXjZ1US/HF8kOyz1LERL8UN3bcboJtjcyQ==",
+      "compilerOptions": { "lib": ["ESNext", "DOM"], "types": ["node"], "paths": { "@trpc/server/*": ["./src/*"] } },
+      "entries": {
+        "index.d.ts": "src/index.ts",
+        "http.d.ts": "src/http.ts",
+        "observable.d.ts": "src/observable/index.ts",
+        "rpc.d.ts": "src/rpc.ts",
+        "shared.d.ts": "src/shared.ts",
+        "unstable-core-do-not-import.d.ts": "src/unstable-core-do-not-import.ts"
+      }
+    },
+    {
+      "name": "zod",
+      "package": "zod@4.4.3",
+      "tarball": "https://registry.npmjs.org/zod/-/zod-4.4.3.tgz",
+      "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==",
+      "entries": {
+        "index.d.ts": "src/index.ts",
+        "mini.d.ts": "src/mini/index.ts",
+        "core.d.ts": "src/v4/core/index.ts"
+      }
+    },
+    {
+      "name": "rxjs",
+      "package": "rxjs@7.8.2",
+      "tarball": "https://registry.npmjs.org/rxjs/-/rxjs-7.8.2.tgz",
+      "integrity": "sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==",
+      "entries": {
+        "index.d.ts": "src/index.ts",
+        "operators.d.ts": "src/operators/index.ts",
+        "ajax.d.ts": "src/ajax/index.ts",
+        "fetch.d.ts": "src/fetch/index.ts",
+        "testing.d.ts": "src/testing/index.ts"
+      }
+    }
+  ]
+}

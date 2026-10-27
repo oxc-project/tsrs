@@ -22,6 +22,7 @@
         "bench:measure": "node bench/measure.mjs",
         "bench:count": "node bench/count.mjs",
         "bench:wallclock": "node bench/wallclock.mjs",
+        "bench:dts": "node bench/dts/dts.mjs",
         "gen": "bash tools/gen-check.sh",
         "gen:ast": "node tools/gen-ast/gen-ast.ts",
         "gen:flags": "node tools/gen-ast/gen-flags.ts",

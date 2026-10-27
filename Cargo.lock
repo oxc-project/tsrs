@@ -1200,6 +1200,7 @@ dependencies = [
 name = "tsrs_dts"
 version = "0.20.0"
 dependencies = [
+ "mimalloc-safe",
  "rustc-hash",
  "tsrs_ast",
  "tsrs_checker",

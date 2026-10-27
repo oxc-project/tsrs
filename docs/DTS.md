@@ -185,6 +185,43 @@ cargo test --profile dev --locked -p tsrs_dts --test integration type_only
 Direct Cargo runs enable fixture comparisons with `TSRS_DTS_COMPARE_APIS=1` and `TSRS_DTS_COMPARE_REUSE=1`.
 The `vp run` commands also work as `node tools/dts-test.mjs` with the same options.
 
+## Benchmark
+
+`bench/dts/` compares the crate with [rolldown](https://rolldown.rs) +
+[rolldown-plugin-dts](https://github.com/sxzz/rolldown-plugin-dts), the declaration pipeline tsdown uses, on
+published npm packages that ship their TypeScript sources: immer, @tanstack/query-core, @trpc/server, zod and
+rxjs. [`projects.json`](../bench/dts/projects.json) pins each tarball by integrity, its entries and the one
+tsconfig every tool reads; [`package.json`](../bench/dts/package.json) and its lockfile pin the comparison tools.
+Results and findings are in [notes/dts-vs-rolldown.md](../notes/dts-vs-rolldown.md).
+
+```bash
+cargo build --release -p tsrs_dts --example bundle
+node bench/dts/dts.mjs prepare            # tools and packages into bench/.work/dts, then a preflight check
+node bench/dts/dts.mjs run --runs 10 --warmup 2
+```
+
+`run` writes `results.json`, `report.md` and each tool's first output to `bench/results/dts-<time>/`; `--projects`,
+`--tools` and `--out-dir` narrow or redirect it, and `node bench/dts/dts.mjs report <results.json>` re-renders the
+tables. GNU `time` (`/usr/bin/time`) is required; on Linux, `perf` adds retired instructions.
+
+Each sample is a fresh process that reads the sources and writes the bundle to disk; the `bundle` example wraps
+`build`/`build_entries` with the CLI's allocator and stack. Tools run interleaved, in a rotating order. The tools:
+
+| Tool | Type checks |
+| --- | --- |
+| `tsrs`, `tsrs-reuse` | Source and emitted declarations, always; `-reuse` sets `reuse_diagnostics`. |
+| `rolldown-tsc`, `rolldown-tsgo` | None: the `tsc` generator (TypeScript 6) only emits, the `tsgo` generator (TypeScript 7) passes `--noCheck`. |
+| `check-tsc+rolldown-tsc`, `check-tsgo+rolldown-tsgo` | `tsc --noEmit` first, then the bundle: the same work as tsrs. |
+
+After timing, each tool's output is checked as a consumer would see it (all output declarations as roots, strict,
+library checking on), and each entry's exports, with their value/type/namespace meanings, are compared with the
+source entry's through the TypeScript API.
+
+Inputs must check cleanly under the TypeScript 7 version tsrs ports, because the crate rejects any diagnostic.
+`prepare` stops on a failing preflight. effect 3.22.4 and 4.0.6 fail it under 7.1.0-beta (3 and 1 errors; both
+check under TypeScript 6 or 7.0.2, respectively), and rxjs's `webSocket` entry fails on the TypeScript 5.7
+`ArrayBuffer` lib change, so those are left out.
+
 ## Adding cases
 
 - Put local regressions in `tests/fixtures/<name>/` and register them in `tests/support/local_cases.rs`.

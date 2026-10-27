@@ -1,0 +1,13 @@
+{
+  "name": "tsrs-dts-bench-tools",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Pinned comparison tools and package dependencies for bench/dts; installed into bench/.work/dts by `node bench/dts/dts.mjs prepare`.",
+  "dependencies": {
+    "@types/node": "22.20.5",
+    "rolldown": "1.2.15",
+    "rolldown-plugin-dts": "0.28.8",
+    "typescript": "6.0.3",
+    "typescript7": "npm:typescript@7.1.0-beta"
+  }
+}

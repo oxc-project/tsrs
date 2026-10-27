@@ -193,9 +193,10 @@ Record the reference commit, project revision and compiler flags with each cache
 The measurements in [the earlier project-types note](../notes/fix-project-types.md) used an older TypeScript pin
 and do not establish equivalence at the current pin.
 
-A `TSRS_LAZY_MEMBERS=0 tsrs-test types-dump` may substitute for a Go dump only after its output has been verified
-against the pinned Go oracle for the same inputs and baseline kind. Keep `$PRIVATE_PROJECT` read-only as described
-below, and keep private paths and cache contents out of tracked files.
+A reference-default `tsrs-test types-dump` (`TSRS_FAST` unset or `0`, with no per-feature overrides) may substitute
+for a Go dump only after its output has been verified against the pinned Go oracle for the same inputs and baseline
+kind. Keep `$PRIVATE_PROJECT` read-only as described below, and keep private paths and cache contents out of tracked
+files.
 
 - Quick tier: `tsrs-test types-dump -p tsconfig.json --out <dir> --mode types --text none --sample
   <repo>/target/project-types-sample.txt` (run from `$PRIVATE_PROJECT`), then `tools/project-types-compare.mjs

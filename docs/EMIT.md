@@ -126,10 +126,10 @@ made safely and output paths that collide with another input. The conformance ru
 ### Checker history
 
 Go's inferred declaration types can depend on checker assignment and cache history.
-tsrs's default mode removes several of those dependencies, with known exceptions recorded in the
-[compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do). For a strict reference comparison, use
-`--checkerAssignment go --checkers 4 --noLazyMembers` against tsgo with `--checkers 4`; see
-[the remaining history dependencies](../notes/open-history-dependence.md).
+tsrs's default settings preserve that behavior. The opt-in fast preset removes several of those dependencies, with
+known exceptions recorded in the [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do). For a strict
+reference comparison, run tsrs with `--fast false` and no per-feature overrides, and give both compilers the same
+checker count and input order; see [the remaining history dependencies](../notes/open-history-dependence.md).
 
 ### Incremental programs
 

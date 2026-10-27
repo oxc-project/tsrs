@@ -175,7 +175,7 @@ tsrs-only variables that change behavior:
 
 | variable | default | effect |
 | --- | --- | --- |
-| `TSRS_FAST` | off | Only `1` enables the fast preset; an explicit `--fast` value takes precedence |
+| `TSRS_FAST` | off | Only `1` enables the fast preset; an explicit `--fast` value takes precedence. `--lsp` and `--api` processes that inherit it use lazy members and canonical history |
 | `TSRS_CHECKER_ASSIGNMENT` | `go`; `locality` in fast mode | Explicit assignments override the preset and disable stealing; `go` uses tsgo's file split and checker history |
 | `TSRS_MAX_MEMORY` | off | Same as `--maxMemory` |
 | `TSRS_LAZY_MEMBERS` | off; on in fast mode | Same as `--lazyMembers` / `--noLazyMembers`; explicit CLI flags win |

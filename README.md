@@ -29,7 +29,7 @@ runtime differences and unsupported features.
 
 ## Fast mode
 
-The following defaults and opt-in preset are **unreleased** and available in source builds.
+The following defaults and opt-in preset are available in **0.20.0** and later.
 
 By default, tsrs follows the pinned TypeScript compiler's checker settings: four checkers (capped by file count),
 Go's file assignment and checker history, and eager type members. Enable the fast preset with `--fast` or
@@ -84,6 +84,9 @@ Fast mode has these side effects:
   vary between runs.
 - **Switching modes can require a fresh check.** Incremental and build caches with incompatible checker-history
   or lazy-member settings are discarded, so the next build can take longer.
+
+The chart below is a historical snapshot from before the 0.20.0 defaults; see
+[benchmark results](https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md) for its settings.
 
 <a href="https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md">
   <picture>

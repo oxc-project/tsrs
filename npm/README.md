@@ -19,7 +19,7 @@ The repository's root `README.md` is also the main package README. `npm/build.mj
 
 ## Compiler defaults and fast mode
 
-The unreleased source build uses the pinned TypeScript checker defaults. `--fast` or `TSRS_FAST=1` opts into
+Since 0.20.0, tsrs uses the pinned TypeScript checker defaults. `--fast` or `TSRS_FAST=1` opts into
 adaptive checker counts, lazy members, additional caches and eligible memory-saving modes; `--fast false`
 overrides the environment preset. Known cases can change diagnostics and exit status, resource use and compiler
 counters; switching modes can invalidate incremental caches. The launcher forwards CLI arguments and environment
@@ -253,7 +253,7 @@ pnpm exec tsrs -p path/to/project --noEmit --extendedDiagnostics
 #    (`--noEmit` for a typecheck-only script).
 ```
 
-Without `--checkers`, current source builds use four checkers, as tsgo does, capped by file count. With `--fast`
+Without `--checkers`, tsrs 0.20.0 and later use four checkers, as tsgo does, capped by file count. With `--fast`
 or `TSRS_FAST=1`, the count adapts to the machine: every core up to 16, then the greater of 16 and half the cores,
 clamped to 4–32; a program with fewer than 32 type-checked files per checker gets fewer, down to 4, and never more
 checkers than files. `--build` uses 4 per project in both modes; `--singleThreaded` uses one.

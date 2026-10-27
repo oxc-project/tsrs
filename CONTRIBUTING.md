@@ -128,8 +128,8 @@ and local parity cases against both the Go oracle and tsrs.
 
 A change must not lose passing tests: compare `target/test-results/pass.txt` before and after
 (`comm -23 <(sort before.txt) <(sort target/test-results/pass.txt)` must print nothing). `docs/DEBUGGING.md`
-describes the full workflow, the opt-out mode (`TSRS_LAZY_MEMBERS=0`) that must stay reference-identical, and the
-Go oracle programs in `tools/oracle/`.
+describes the full workflow, the reference defaults (`TSRS_FAST` unset and no per-feature overrides) that must stay
+reference-identical, and the Go oracle programs in `tools/oracle/`.
 
 For a bug outside the suite, add a reproduction under `testdata/regressions/<name>/` (`a.ts`, `tsconfig.json`, and
 `expected.txt`). Run the pinned reference binary from the case directory with `-p . --pretty false --singleThreaded`.

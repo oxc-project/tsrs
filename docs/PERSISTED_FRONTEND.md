@@ -280,7 +280,7 @@ segment).
 2. **Suite** (`tsrs-test run --suite all --baselines types,symbols`).
    - Runs: cache off, then cache on cold (populating), then cache on warm (all hits). The whole
      `target/test-results` trees must be identical across the three.
-   - Modes: default, `TSRS_LAZY_MEMBERS=0`, and `TS_TEST_PROGRAM_SINGLE_THREADED=false`.
+   - Modes: reference defaults, `TSRS_FAST=1`, and `TS_TEST_PROGRAM_SINGLE_THREADED=false`.
    - Also: fourslash with the cache on, and the `.js` / declaration emit baselines.
 3. **Private monorepo.**
    - Diagnostics and `--extendedDiagnostics` counters must be identical with the cache on and off, with 1 and 4

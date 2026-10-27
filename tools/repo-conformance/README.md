@@ -38,7 +38,7 @@ and ten configs in all; 180 seconds for setup (60 for cloning); 120 seconds for 
 compiler per config. tsrs is not run when tsgo fails or times out. Timeouts kill child processes too.
 
 Each project is compared in two modes. Default mode runs both compilers as users do, with no extra flags, so the
-project's own options (including `checkers`) apply to both. The source build now uses Go's checker defaults;
+project's own options (including `checkers`) apply to both. Since 0.20.0, tsrs uses Go's checker defaults;
 this comparison does not opt into `--fast`. Strict mode runs tsgo again with `--checkers 4`, its
 default count (`internal/compiler/checkerpool.go`: one checker under `singleThreaded`, never more than the file count),
 and `tsrs --checkerAssignment go --checkers 4 --noLazyMembers`, which explicitly fixes the checker count, assignment,

@@ -103,6 +103,23 @@ impl Symbol {
         s
     }
 
+    /// A symbol table's stand-in for `target` stored under `name`, another name than the target's (Go
+    /// `SymbolFlagsNameProxy`). It is internal to `SymbolTable`, which returns `target` for it, and it gets no id: it
+    /// is never seen outside the table.
+    fn new_name_proxy(name: &'static str, target: P<Symbol>) -> P<Symbol> {
+        let allocation = P::new(SymbolWithData {
+            symbol: Symbol {
+                flags: OwnedCell::new(SymbolFlags::empty()),
+                check_flags_and_kind: OwnedCell::new(0),
+                id: AtomicU32::new(0),
+                parent_or_tables: OwnedCell::new(target.key()),
+            },
+            data: SymbolData { name: OwnedTaggedStrCell::new(name), ..Default::default() },
+        });
+        // SAFETY: SymbolWithData is repr(C) with the 8-aligned Symbol header first.
+        unsafe { allocation.cast::<Symbol>() }
+    }
+
     /// A transient symbol with its own flags, check flags and id, sharing the source's data.
     /// Go `newSharedDataSymbol` stores the same `symbolData` pointer on both symbols.
     pub fn new_shared_data(source: P<Symbol>) -> P<Symbol> {
@@ -406,8 +423,10 @@ pub fn get_source_file_of_symbol(symbol: P<Symbol>) -> Option<P<SourceFile>> {
 // An entry does not store its key: the key is almost always the symbol's own name (on the private monorepo all but 1 of 16.7M
 // inserts; symbol names never change), so an entry is one word: the symbol plus a fingerprint of the key (its
 // length up to 63 and 12 bits of its hash), which rejects non-matching entries without reading the symbol (see
-// `SymbolMapEntry`). A key with other text than its symbol's name is kept in `SymbolMapExtra::odd_keys`. Keys
-// are compared by text, so returning the symbol's name where the caller stored an equal string is unobservable.
+// `SymbolMapEntry`). A key with other text than its symbol's name is stored as a name proxy: a symbol named by the
+// key whose parent is the symbol (Go `SymbolFlagsNameProxy`), marked by a bit of the entry, so a lookup reads the
+// proxy only for such a key. Keys are compared by text, so returning the symbol's name where the caller stored an
+// equal string is unobservable.
 
 #[derive(Default)]
 pub struct SymbolTable(FrozenCell<SymbolMap>);
@@ -548,7 +567,8 @@ unsafe impl Send for EntryVec {}
 // SAFETY: as for the `Vec` it stands for: through `&EntryVec` the plain-word entries are only read.
 unsafe impl Sync for EntryVec {}
 
-/// One word: the symbol in the low 45 bits (`P::pack`), then the odd-key flag (the key is in `odd_keys`), the key length capped at 63 (6 bits)
+/// One word: the symbol in the low 45 bits (`P::pack`), then the proxy flag (the stored symbol is a name proxy for the
+/// key), the key length capped at 63 (6 bits)
 /// and the top 12 bits of `hash_name(key)`. 8 bytes instead of 16 (pointer + 32-bit hash + length): symbol table
 /// entries are 465 MB of capacity on the private monorepo.
 #[derive(Clone, Copy)]
@@ -585,7 +605,7 @@ impl KeyPrint {
 impl SymbolMapEntry {
     const ADDR_BITS: u32 = tsrs_core::PACK_BITS;
     const ADDR_MASK: u64 = (1 << Self::ADDR_BITS) - 1;
-    const ODD_BIT: u64 = 1 << Self::ADDR_BITS;
+    const PROXY_BIT: u64 = 1 << Self::ADDR_BITS;
     const LEN_SHIFT: u32 = Self::ADDR_BITS + 1;
     const LEN_MASK: u64 = (1 << 6) - 1;
     const HASH_SHIFT: u32 = Self::LEN_SHIFT + 6;
@@ -596,25 +616,52 @@ impl SymbolMapEntry {
         symbol.pack()
     }
 
+    /// An entry for `symbol` under `key`, through a name proxy when the key is not the symbol's name.
     #[inline]
-    fn new(symbol: P<Symbol>, print: KeyPrint) -> SymbolMapEntry {
-        SymbolMapEntry(Self::addr_bits(symbol) | (print.0 << Self::LEN_SHIFT))
+    fn new(key: &'static str, symbol: P<Symbol>, print: KeyPrint) -> SymbolMapEntry {
+        let mut e = SymbolMapEntry(print.0 << Self::LEN_SHIFT);
+        e.set_symbol(key, symbol);
+        e
     }
 
+    /// The symbol stored in the entry: the entry's symbol, or the name proxy standing for it.
+    #[inline]
+    fn stored(self) -> P<Symbol> {
+        // SAFETY: the low bits were stored from a live `P<Symbol>` (arena symbols are never freed or moved).
+        unsafe { P::unpack(self.0 & Self::ADDR_MASK) }
+    }
+
+    /// The entry's symbol.
     #[inline]
     fn symbol(self) -> P<Symbol> {
-        // SAFETY: the low bits were stored from a live `P<Symbol>` (arena symbols are never freed or moved).
-        unsafe { P::unpack(self.0) }
+        let stored = self.stored();
+        if self.is_proxy() {
+            // SAFETY: a name proxy's field holds the key of the symbol it stands for (a live symbol).
+            return unsafe { P::from_key(stored.parent_or_tables.get()) };
+        }
+        stored
+    }
+
+    /// The entry's key: the stored symbol's name, which is the key for a name proxy too.
+    #[inline]
+    fn key(self) -> &'static str {
+        self.stored().name()
+    }
+
+    /// Stores `symbol` for `key`, through a name proxy when the key is not the symbol's name.
+    #[inline]
+    fn set_symbol(&mut self, key: &'static str, symbol: P<Symbol>) {
+        let (stored, proxy) = if same_text(symbol.name(), key) {
+            (symbol, 0)
+        } else {
+            (Symbol::new_name_proxy(key, symbol), Self::PROXY_BIT)
+        };
+        self.0 = self.0 & !(Self::ADDR_MASK | Self::PROXY_BIT) | Self::addr_bits(stored) | proxy;
     }
 
     #[inline]
-    fn set_symbol(&mut self, symbol: P<Symbol>) {
-        self.0 = self.0 & !Self::ADDR_MASK | Self::addr_bits(symbol);
-    }
-
-    #[inline]
-    fn is_odd(self) -> bool {
-        self.0 & Self::ODD_BIT != 0
+    fn is_proxy(self) -> bool {
+        self.0 & Self::PROXY_BIT != 0
     }
 
     #[inline]
@@ -628,11 +675,10 @@ impl SymbolMapEntry {
 #[derive(Default, Clone)]
 struct SymbolMapExtra {
     index: Option<HashTable<u32>>, // positions in `entries`; present once len > SYMBOL_TABLE_LINEAR_MAX
-    odd_keys: Vec<(u32, &'static str)>, // (position, key) of the entries whose key is not their symbol's name
 }
 
 /// `SymbolMap::extra`: one word holding either a boxed `SymbolMapExtra` (an even address) or, in a table without
-/// one (a linear table whose keys are all their symbols' names: nearly every table), a 64-bit Bloom filter of its
+/// one (a linear table: nearly every table), a 64-bit Bloom filter of its
 /// keys' hashes (two bits per key) whose bit 0 is set as the tag. A lookup the filter rejects returns without
 /// reading the entries, which are a second cache line: over half of all lookups are misses in small tables
 /// (a property lookup tries each type on the apparent-type chain, down to `Object`'s members), and the entries of
@@ -781,16 +827,6 @@ fn short_text_eq(a: &[u8], b: &[u8]) -> bool {
     }
 }
 
-/// `SymbolMap::key` from the parts it reads (for the index's rehash, which borrows the index).
-#[inline]
-fn key_at(entries: &[SymbolMapEntry], odd_keys: &[(u32, &'static str)], i: usize) -> &'static str {
-    let e = entries[i];
-    if !e.is_odd() {
-        return e.symbol().name();
-    }
-    odd_keys.iter().find(|&&(j, _)| j as usize == i).unwrap().1
-}
-
 /// The index's hash of an entry: hashbrown takes the bucket from the low bits (the name hash's low bits) and its
 /// 7-bit tag from the top bits, here name hash bits 13-19, which neither the bucket of a table below 8192 buckets
 /// nor the entry fingerprint (bits 20-31) uses. One shifted `orr`, no constant to load.
@@ -803,10 +839,7 @@ fn index_hash(hash: u32) -> u64 {
 impl SymbolMap {
     fn with_capacity(n: usize) -> SymbolMap {
         let extra = if n > SYMBOL_TABLE_LINEAR_MAX {
-            ExtraSlot::boxed(SymbolMapExtra {
-                index: Some(HashTable::with_capacity(n)),
-                odd_keys: Vec::new(),
-            })
+            ExtraSlot::boxed(SymbolMapExtra { index: Some(HashTable::with_capacity(n)) })
         } else {
             ExtraSlot::default()
         };
@@ -821,11 +854,7 @@ impl SymbolMap {
     /// The stored key of entry `i`.
     #[inline]
     fn key(&self, i: usize) -> &'static str {
-        let e = self.entries[i];
-        if !e.is_odd() {
-            return e.symbol().name();
-        }
-        key_at(&self.entries, &self.extra.get().unwrap().odd_keys, i)
+        self.entries[i].key()
     }
 
     /// Whether entry `i`'s key is `name` (whose fingerprint is `print`).
@@ -870,15 +899,12 @@ impl SymbolMap {
                 .find(index_hash(hash), |&i| self.entries[i as usize].print() == print)?
                 as usize,
         };
-        let e = self.entries[i];
-        if !e.is_odd() {
-            let key = e.symbol().name();
-            if key.len() == name.len()
-                && (std::ptr::eq(key.as_ptr(), name.as_ptr())
-                    || name.len() <= 16 && short_text_eq(key.as_bytes(), name.as_bytes()))
-            {
-                return Some(i);
-            }
+        let key = self.entries[i].key();
+        if key.len() == name.len()
+            && (std::ptr::eq(key.as_ptr(), name.as_ptr())
+                || name.len() <= 16 && short_text_eq(key.as_bytes(), name.as_bytes()))
+        {
+            return Some(i);
         }
         self.search_text(name, hash, i)
     }
@@ -900,19 +926,12 @@ impl SymbolMap {
         }
     }
 
-    fn add_odd_key(&mut self, i: usize, key: &'static str) {
-        self.entries[i].0 |= SymbolMapEntry::ODD_BIT;
-        self.extra.get_or_insert().odd_keys.push((i as u32, key));
-    }
-
     fn insert(&mut self, name: &'static str, symbol: P<Symbol>) {
         let hash = hash_name(name);
         if let Some(i) = if self.extra.may_contain(hash) { self.search(name, hash) } else { None } {
             // Go keeps the stored key; it is no longer the new symbol's name when that differs.
-            self.entries[i].set_symbol(symbol);
-            if !self.entries[i].is_odd() && !same_text(symbol.name(), name) {
-                self.add_odd_key(i, name);
-            }
+            let key = self.entries[i].key();
+            self.entries[i].set_symbol(key, symbol);
             return;
         }
         let i = self.entries.len();
@@ -925,15 +944,12 @@ impl SymbolMap {
             // symbols (locals of small functions, members of small object literals).
             self.entries.reserve_exact(1);
         }
-        self.entries.push(SymbolMapEntry::new(symbol, KeyPrint::of(name, hash)));
+        self.entries.push(SymbolMapEntry::new(name, symbol, KeyPrint::of(name, hash)));
         self.extra.add_to_filter(hash);
-        if !same_text(symbol.name(), name) {
-            self.add_odd_key(i, name);
-        }
-        if let Some(SymbolMapExtra { index: Some(index), odd_keys }) = self.extra.get_mut() {
+        if let Some(SymbolMapExtra { index: Some(index) }) = self.extra.get_mut() {
             let entries = &self.entries;
             index.insert_unique(index_hash(hash), i as u32, |&m| {
-                index_hash(hash_name(key_at(entries, odd_keys, m as usize)))
+                index_hash(hash_name(entries[m as usize].key()))
             });
         } else if self.entries.len() > SYMBOL_TABLE_LINEAR_MAX {
             self.build_index();
@@ -959,19 +975,11 @@ impl SymbolMap {
             return;
         };
         let hash = self.entry_hash(i);
-        if let Some(extra) = self.extra.get_mut() {
-            if let Some(index) = &mut extra.index {
-                if let Ok(entry) = index.find_entry(index_hash(hash), |&j| j as usize == i) {
-                    entry.remove();
-                }
-                for j in index.iter_mut() {
-                    if *j as usize > i {
-                        *j -= 1;
-                    }
-                }
+        if let Some(SymbolMapExtra { index: Some(index) }) = self.extra.get_mut() {
+            if let Ok(entry) = index.find_entry(index_hash(hash), |&j| j as usize == i) {
+                entry.remove();
             }
-            extra.odd_keys.retain(|&(j, _)| j as usize != i);
-            for (j, _) in &mut extra.odd_keys {
+            for j in index.iter_mut() {
                 if *j as usize > i {
                     *j -= 1;
                 }

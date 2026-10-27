@@ -1,0 +1,13 @@
+{
+  "extends": "@date-fns/dev/config/tsconfig",
+  "references": [
+    { "path": "../tz" },
+    { "path": "../utc" },
+    { "path": "../docs" }
+  ],
+  "compilerOptions": {
+    "types": ["node"],
+    "composite": false,
+    "declaration": true
+  }
+}

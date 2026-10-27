@@ -71,7 +71,7 @@
       "repo": "https://github.com/formbricks/formbricks.git",
       "commit": "ec45c28e4d20bd9daf3191c991b67981aabf5db8",
       "project": "apps/web/tsconfig.typecheck.json",
-      "install": "export PATH=\"$PWD/node_modules/.bin:$PATH\" DATABASE_URL=postgresql://bench@localhost:5432/bench TURBO_TELEMETRY_DISABLED=1 && pnpm install --frozen-lockfile --ignore-scripts && turbo run build --filter='@formbricks/web^...' --output-logs=errors-only",
+      "install": "export PATH=\"$PWD/node_modules/.bin:$PATH\" DATABASE_URL=postgresql://bench@localhost:5432/bench TURBO_TELEMETRY_DISABLED=1 pnpm_config_pm_on_fail=ignore && pnpm dlx pnpm@11.7.0 install --frozen-lockfile --ignore-scripts && turbo run build --filter='@formbricks/web^...' --env-mode=loose --output-logs=errors-only",
       "overlay": "bench/overlays/formbricks-web"
     },
     {
@@ -150,7 +150,8 @@
       "repo": "https://github.com/date-fns/date-fns.git",
       "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
       "project": "pkgs/core",
-      "install": "pnpm --pm-on-fail=ignore dlx pnpm@11.22.0 install --frozen-lockfile --ignore-scripts && node_modules/.bin/tsc --build pkgs/tz pkgs/utc pkgs/docs"
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@11.22.0 install --frozen-lockfile --ignore-scripts && node_modules/.bin/tsc --build pkgs/tz pkgs/utc pkgs/docs",
+      "overlay": "bench/overlays/date-fns"
     }
   ]
 }

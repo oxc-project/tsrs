@@ -210,18 +210,20 @@ Each sample is a fresh process that reads the sources and writes the bundle to d
 gives process wall time and in-process time (build through output writes, without process or runtime startup).
 
 The comparison rows do the same work as the crate: one pass that type-checks the sources, emits declarations and
-bundles them, failing on any error. rolldown-plugin-dts always passes `--noCheck` to tsgo, so these rows run tsgo
-through a generated wrapper that drops it; tsgo then checks while emitting, and a type error fails the rolldown
-build. The crate's Program is single-threaded, so one row also passes `--singleThreaded`, and that row and the
-crate's rows run under `taskset` on one core. The crate additionally checks its emitted declarations, which the
-rolldown rows do not.
+bundles them, failing on any error. rolldown-plugin-dts's tsgo generator accepts any tsgo-compatible compiler, so
+it runs both TypeScript 7 and the tsrs CLI (`--tsrs-cli`, default `target/release/tsrs`). The tsrs CLI uses the
+crate's checker and declaration emitter, so its rows differ from the crate only in how declarations are bundled.
+The plugin always passes `--noCheck`; the checking rows run the compiler through a generated wrapper that drops it,
+so the compiler checks while emitting and a type error fails the rolldown build. The crate's Program is
+single-threaded, so the `-1` rows also pass `--singleThreaded`, and they and the crate's rows run under `taskset`
+on one core. The crate additionally checks its emitted declarations, which the rolldown rows do not.
 
 | Tool | Type checks | CPUs |
 | --- | --- | --- |
 | `tsrs`, `tsrs-reuse` | Sources and emitted declarations; `-reuse` sets `reuse_diagnostics` | 1 |
-| `rolldown-tsgo-check-1` | Sources, by tsgo 7 while emitting, `--singleThreaded` | 1 |
-| `rolldown-tsgo-check` | Sources, by tsgo 7 while emitting | all |
-| `rolldown-tsgo`, `rolldown-tsc` | None: the plugin's defaults (`--noCheck`; the tsc 6 generator only emits). A reference, since the crate has no mode without checking | all |
+| `rolldown-tsrs-check-1`, `rolldown-tsgo-check-1` | Sources, by the tsrs CLI or tsgo 7 while emitting, `--singleThreaded` | 1 |
+| `rolldown-tsrs-check`, `rolldown-tsgo-check` | Sources, by the tsrs CLI or tsgo 7 while emitting | all |
+| `rolldown-tsrs`, `rolldown-tsgo`, `rolldown-tsc` | None: `--noCheck`, or the tsc 6 generator, which only emits. A reference, since the crate has no mode without checking | all |
 
 After timing, each tool's output is checked as a consumer would see it (all output declarations as roots, strict,
 library checking on), and each entry's exports, with their value/type/namespace meanings, are compared with the

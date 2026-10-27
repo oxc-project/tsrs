@@ -12,7 +12,7 @@ const CATALOG = json(path.join(HERE, "projects.json"));
 const usage = `Declaration bundler benchmark: tsrs_dts against rolldown + rolldown-plugin-dts.
 
   node bench/dts/dts.mjs prepare [--projects a,b] [--work-dir dir]
-  node bench/dts/dts.mjs run [--projects a,b] [--tools a,b] [--runs N] [--warmup N] [--tsrs binary]
+  node bench/dts/dts.mjs run [--projects a,b] [--tools a,b] [--runs N] [--warmup N] [--tsrs binary] [--tsrs-cli binary]
                              [--work-dir dir] [--out-dir dir]
   node bench/dts/dts.mjs report <results.json>
 
@@ -21,40 +21,35 @@ Tools: `;
 // Every tool reads the same tsconfig.bench.json and entries and writes its bundle to disk.
 //
 // "same" tools do the same work as tsrs_dts: one pass that type-checks the sources, emits declarations and
-// bundles them, failing on any error. tsrs_dts runs its whole Program single-threaded, so `rolldown-tsgo-check-1`
-// gives tsgo `--singleThreaded` too; `rolldown-tsgo-check` keeps tsgo's default parallelism. rolldown-plugin-dts
-// always passes `--noCheck` to tsgo, so these two run tsgo through a wrapper that drops it (tsgoWrapper).
-// tsrs_dts additionally checks its emitted declarations, which no rolldown tool does.
+// bundles them, failing on any error. rolldown-plugin-dts's tsgo generator runs any tsgo-compatible compiler:
+// TypeScript 7 (`compiler: "tsgo"`) or the tsrs CLI (`compiler: "tsrs"`), which uses the same checker and
+// declaration emitter as tsrs_dts, so its rows differ from tsrs_dts only in how the declarations are bundled.
+// The plugin always passes `--noCheck`; the checking rows run the compiler through a wrapper that drops it
+// (compilerWrapper). tsrs_dts runs its whole Program single-threaded, so the `-1` rows pass --singleThreaded
+// too. tsrs_dts additionally checks its emitted declarations, which no rolldown tool does.
 //
-// `cpus: "1"` tools run under `taskset` on one core, so Node, rolldown's thread pool and Go's runtime threads
-// share the single CPU tsrs_dts gets; `cpus: "all"` tools use every core.
+// `cpus: "1"` tools run under `taskset` on one core, so Node, rolldown's thread pool and the compiler's
+// runtime threads share the single CPU tsrs_dts gets; `cpus: "all"` tools use every core.
 //
-// "emit" tools are the plugin's defaults and never type-check: its tsc generator only emits, its tsgo generator
-// passes --noCheck. tsrs_dts has no mode without checking, so these rows are a reference, not a comparison.
+// "emit" tools never type-check: the plugin's tsgo generator passes --noCheck, its tsc generator only emits.
+// tsrs_dts has no mode without checking, so these rows are a reference, not a comparison.
+const rolldown = (compiler, group, cpus, check) => ({
+    label: `rolldown + plugin-dts, ${compiler}${check ? " checking" : " --noCheck"}`,
+    group,
+    cpus,
+    generator: "tsgo",
+    compiler,
+    wrapper: { check, singleThreaded: cpus === "1" },
+});
 const TOOLS = {
     tsrs: { label: "tsrs_dts", group: "same", cpus: "1" },
     "tsrs-reuse": { label: "tsrs_dts, reuse diagnostics", group: "same", cpus: "1" },
-    "rolldown-tsgo-check-1": {
-        label: "rolldown + plugin-dts, tsgo checking",
-        group: "same",
-        cpus: "1",
-        generator: "tsgo",
-        tsgo: { check: true, singleThreaded: true },
-    },
-    "rolldown-tsgo-check": {
-        label: "rolldown + plugin-dts, tsgo checking",
-        group: "same",
-        cpus: "all",
-        generator: "tsgo",
-        tsgo: { check: true, singleThreaded: false },
-    },
-    "rolldown-tsgo": {
-        label: "rolldown + plugin-dts, tsgo --noCheck",
-        group: "emit",
-        cpus: "all",
-        generator: "tsgo",
-        tsgo: { check: false, singleThreaded: false },
-    },
+    "rolldown-tsrs-check-1": rolldown("tsrs", "same", "1", true),
+    "rolldown-tsrs-check": rolldown("tsrs", "same", "all", true),
+    "rolldown-tsgo-check-1": rolldown("tsgo", "same", "1", true),
+    "rolldown-tsgo-check": rolldown("tsgo", "same", "all", true),
+    "rolldown-tsrs": rolldown("tsrs", "emit", "all", false),
+    "rolldown-tsgo": rolldown("tsgo", "emit", "all", false),
     "rolldown-tsc": { label: "rolldown + plugin-dts, tsc 6", group: "emit", cpus: "all", generator: "tsc" },
 };
 const GROUPS = {
@@ -63,22 +58,22 @@ const GROUPS = {
 };
 
 // rolldown-plugin-dts runs `<tsgo> --noEmit false --declaration --emitDeclarationOnly -p <tsconfig> --outDir <tmp>
-// --rootDir <dir> --noCheck`. The wrapper removes --noCheck, so tsgo checks while emitting and exits non-zero
-// on an error, which fails the plugin's build; it can also add --singleThreaded.
-function tsgoWrapper(work, tsgo, { check, singleThreaded }) {
-    if (!check && !singleThreaded) return tsgo;
-    const file = path.join(work, `tsgo${check ? "-check" : ""}${singleThreaded ? "-1" : ""}.sh`);
+// --rootDir <dir> --noCheck`. The wrapper removes --noCheck, so the compiler checks while emitting and exits
+// non-zero on an error, which fails the plugin's build; it can also add --singleThreaded.
+function compilerWrapper(work, name, executable, { check, singleThreaded }) {
+    if (!check && !singleThreaded) return executable;
+    const file = path.join(work, `${name}${check ? "-check" : ""}${singleThreaded ? "-1" : ""}.sh`);
     write(
         file,
         [
             "#!/bin/sh",
-            "# Generated by bench/dts/dts.mjs; see tsgoWrapper.",
+            "# Generated by bench/dts/dts.mjs; see compilerWrapper.",
             "for arg do",
             "    shift",
             ...(check ? ['    [ "$arg" = --noCheck ] && continue'] : []),
             '    set -- "$@" "$arg"',
             "done",
-            `exec ${shellJoin([tsgo])} "$@"${singleThreaded ? " --singleThreaded" : ""}`,
+            `exec ${shellJoin([executable])} "$@"${singleThreaded ? " --singleThreaded" : ""}`,
             "",
         ].join("\n"),
     );
@@ -151,7 +146,7 @@ async function prepare(options) {
 }
 
 async function commandFor(tool, project, context) {
-    const { work, outDir, tsrs, tsgo } = context;
+    const { work, outDir, tsrs, compilers } = context;
     const config = tsconfigPath(work, project);
     const entries = entryArgs(work, project);
     if (tool === "tsrs" || tool === "tsrs-reuse")
@@ -168,7 +163,9 @@ async function commandFor(tool, project, context) {
         outDir,
         "--generator",
         generator,
-        ...(generator === "tsgo" ? ["--tsgo", tsgoWrapper(work, tsgo, TOOLS[tool].tsgo)] : []),
+        ...(generator === "tsgo"
+            ? ["--tsgo", compilerWrapper(work, TOOLS[tool].compiler, compilers[TOOLS[tool].compiler], TOOLS[tool].wrapper)]
+            : []),
         ...entries,
     ];
 }
@@ -266,6 +263,10 @@ async function runBenchmark(options) {
     for (const project of projects)
         requireValue(fs.existsSync(tsconfigPath(work, project)), `${project.name} is not prepared; run prepare first`);
     const tsgo = await typescript7(work);
+    const tsrsCli = path.resolve(options["tsrs-cli"]);
+    if (tools.some((tool) => TOOLS[tool].compiler === "tsrs"))
+        requireValue(fs.existsSync(tsrsCli), `${tsrsCli} is missing; build it with cargo build --release -p tsrs_cli`);
+    const compilers = { tsgo, tsrs: tsrsCli };
     // Pin single-CPU tools to the last core, away from CPU 0's interrupt handling.
     const core = os.cpus().length - 1;
     if (tools.some((tool) => TOOLS[tool].cpus === "1"))
@@ -285,6 +286,7 @@ async function runBenchmark(options) {
         machine: machine(),
         versions: versions(work),
         tsrs: tools.some((tool) => tool.startsWith("tsrs")) ? { path: tsrs, sha256: sha256(tsrs) } : null,
+        tsrs_cli: tools.some((tool) => TOOLS[tool].compiler === "tsrs") ? { path: tsrsCli, sha256: sha256(tsrsCli) } : null,
         settings: { runs: options.runs, warmup: options.warmup, instructions: perf, pinned_cpu: core },
         tools: Object.fromEntries(tools.map((tool) => [tool, TOOLS[tool]])),
         projects: projects.map((project) => ({ ...project, compilerOptions: compilerOptions(project) })),
@@ -306,7 +308,7 @@ async function runBenchmark(options) {
         const outDir = path.join(scratch, project.name, tool);
         fs.rmSync(outDir, { recursive: true, force: true });
         fs.mkdirSync(outDir, { recursive: true });
-        const command = await commandFor(tool, project, { work, outDir, tsrs, tsgo });
+        const command = await commandFor(tool, project, { work, outDir, tsrs, compilers });
         if (TOOLS[tool].cpus === "1") command.unshift("taskset", "-c", String(core));
         const measured = measure(command, { cwd: projectDir(work, project), timeout: 1800, instructions: perf });
         const status = measured.code === 0 ? "ok" : `exit ${measured.code}`;
@@ -450,6 +452,7 @@ main(async () => {
         runs: 5,
         warmup: 1,
         tsrs: path.join(ROOT, "target/release/examples/bundle"),
+        "tsrs-cli": path.join(ROOT, "target/release/tsrs"),
         "work-dir": path.join(ROOT, "bench/.work/dts"),
         "out-dir": null,
     }, rest);

@@ -6,7 +6,7 @@ npm release binaries, measured 2026-10-27: TypeScript 7.1.0-beta (`@typescript/t
 
 Each command is `-p <project> --noEmit --incremental false --pretty false`, plus `--fast` for tsrs --fast, on an Apple M3 Max (14 cores, 36 GB, Darwin arm64). Default-settings runs pass no `--checkers` and set no thread limit, so each compiler picks its own checker count and uses all 14 cores. Values are medians of 10 interleaved runs (5 for TypeScript), measured with Hyperfine 2.0.0. An untimed run of every command first warms the file cache and records its diagnostics. Each timed run waits until other processes use at most 1.5 CPU cores, for up to 900 s; 0 of 475 runs started after that wait expired.
 
-The bar chart and tables compare all three with default settings. Pinned projects are in [projects.json](projects.json); see the [methodology](README.md).
+The bar chart and tables compare all three with default settings. The chart shows the 6 projects with the largest tsrs --fast wall-time speedup over TypeScript; the tables include all 19 projects. Pinned projects are in [projects.json](projects.json); see the [methodology](README.md).
 
 ![Check time and peak memory by project](benchmark.svg)
 

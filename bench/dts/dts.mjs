@@ -372,6 +372,7 @@ function report(results) {
             `rolldown ${v.rolldown}, rolldown-plugin-dts ${v["rolldown-plugin-dts"]}, typescript ${v.typescript}, ` +
             `typescript 7 ${v.typescript7}, Node ${v.node}. tsrs commit ${results.commit.slice(0, 12)}. ` +
             `${results.settings.runs} measured runs after ${results.settings.warmup} warmup(s); medians, with min–max for wall time. ` +
+            `Wall / tsrs_dts is the median per-round ratio (min–max), then the rounds in which tsrs_dts was faster. ` +
             `CPUs "1" rows run under taskset on CPU ${results.settings.pinned_cpu}. In-process ms spans the build and output writes, ` +
             `excluding process and runtime startup.`,
         "",
@@ -379,9 +380,11 @@ function report(results) {
     for (const project of results.projects) {
         const entries = Object.keys(project.entries).length;
         lines.push(`### ${project.name} (${project.package}, ${entries} ${entries === 1 ? "entry" : "entries"})`, "");
-        const base = stats(
-            results.samples.filter((s) => s.project === project.name && s.tool === "tsrs" && s.status === "ok"),
-            (s) => s.wall_s,
+        // Tools run interleaved, so each round gives a ratio measured under the same host conditions.
+        const base = new Map(
+            results.samples
+                .filter((s) => s.project === project.name && s.tool === "tsrs" && s.status === "ok")
+                .map((s) => [s.run, s.wall_s]),
         );
         const instructions = results.settings.instructions;
         for (const [group, title] of Object.entries(GROUPS)) {
@@ -404,7 +407,13 @@ function report(results) {
                     continue;
                 }
                 const wall = stats(ok, (s) => s.wall_s * 1000);
-                const ratio = base ? `${(wall.median / (base.median * 1000)).toFixed(2)}×` : "";
+                const pairs = ok.filter((s) => base.has(s.run)).map((s) => s.wall_s / base.get(s.run));
+                const paired = stats(pairs, (r) => r);
+                const ratio =
+                    tool === "tsrs" || !paired
+                        ? ""
+                        : `${paired.median.toFixed(2)}× (${paired.min.toFixed(2)}–${paired.max.toFixed(2)}), ` +
+                          `${pairs.filter((r) => r > 1).length}/${pairs.length}`;
                 const inProcess = stats(ok, (s) => s.summary?.build_ms);
                 const consumer = output ? (output.consumer.ok ? "pass" : `${output.consumer.errors} errors`) : "";
                 const exported = output ? (output.consumer.exports.matches ? "yes" : `${output.consumer.exports.count} differ`) : "";

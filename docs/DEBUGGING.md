@@ -249,6 +249,12 @@ notes/mem-linux-residency-32.md). `TSRS_MEM_SPLIT=purge` also has mimalloc purge
 with interleaved timed reps when the disabled `.github/workflows/perf-probe.yml.bak` is restored to `perf-probe.yml`
 (`ubuntu-24.04` by default).
 
+A report walks every heap page and reads every thread arena, so it runs only while no other thread allocates. The
+`parse end` and `check end` points report only a program alone in its process: `tsc -b` and watch sessions, whose
+programs share it, report at `exit` only, and free their programs in place so that the report sees them freed. Builds
+with debug assertions omit the heap walk (`heap: not walked`): mimalloc's debug build asserts that the walking thread
+owns each page it visits.
+
 ## Optional build features
 
 For tooling builds, append these arguments to `cargo build --profile dev -p tsrs_cli` (use `--release` for

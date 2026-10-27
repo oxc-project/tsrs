@@ -17,6 +17,7 @@ mod generate_trace;
 mod isolated;
 mod lazy_dts_build;
 mod lsp_edit_resolutions;
+mod mem_split_build;
 mod merged_interface_check_site;
 mod npm_lib_path;
 mod recycle_checkers;

@@ -53,7 +53,8 @@ fn mimalloc_heap_stats() -> tsrs_core::memsplit::HeapStats {
         true
     }
     let mut stats = tsrs_core::memsplit::HeapStats::default();
-    // SAFETY: a null heap is the main heap; the visitor only reads the areas. The callers' other threads are parked.
+    // SAFETY: a null heap is the main heap; the visitor only reads the areas. No other thread allocates during a
+    // report (`tsrs_core::memsplit::report`).
     unsafe { mi_heap_visit_blocks(std::ptr::null_mut(), false, visit, (&raw mut stats).cast()) };
     stats
 }

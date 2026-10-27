@@ -56,8 +56,8 @@ mod pipe_os {
 
 /// One accepted bidirectional stream.
 pub struct Stream {
-    reader: Box<dyn Read + Send>,
-    writer: Box<dyn Write + Send>,
+    pub reader: Box<dyn Read + Send>,
+    pub writer: Box<dyn Write + Send>,
     /// Shuts the stream down so a blocked reader wakes (sockets). None for stdio.
     pub closer: Option<Box<dyn Fn() + Send + Sync>>,
 }

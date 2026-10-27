@@ -85,15 +85,11 @@ Fast mode has these side effects:
 - **Switching modes can require a fresh check.** Incremental and build caches with incompatible checker-history
   or lazy-member settings are discarded, so the next build can take longer.
 
-The chart below is a historical snapshot from before the 0.20.0 defaults; see
-[benchmark results](https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md) for its settings.
+The chart below compares the 0.20.0 beta npm binaries, with and without `--fast`, against TypeScript 7.1 beta at
+default settings; see [benchmark results](https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md) for the method.
 
 <a href="https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/oxc-project/tsrs/main/bench/large-projects-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/oxc-project/tsrs/main/bench/large-projects.svg">
-    <img alt="tsrs vs the TypeScript nightly: relative type-checking speed and peak memory by project" src="https://raw.githubusercontent.com/oxc-project/tsrs/main/bench/large-projects.svg">
-  </picture>
+  <img alt="tsrs --fast, tsrs and TypeScript 7.1 beta: check time and peak memory by project" src="https://raw.githubusercontent.com/oxc-project/tsrs/main/bench/benchmark.svg">
 </a>
 
 ## Extra features

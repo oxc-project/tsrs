@@ -1,0 +1,8 @@
+[
+  { "name": "valid", "codes": [] },
+  { "name": "wrong-prop", "codes": [2322] },
+  { "name": "wrong-event", "codes": [2551] },
+  { "name": "wrong-slot", "codes": [2551] },
+  { "name": "missing-component", "codes": [2307, 7006] },
+  { "name": "script-error", "codes": [2322] }
+]

@@ -160,6 +160,21 @@ impl Checker {
         self.get_target_symbol(symbol)
     }
 
+    /// Returns the type-only star declaration restricting an export, if any.
+    ///
+    /// Resolves the module's exports before reading their cached restrictions.
+    /// An ordinary export path or a direct export can override a type-only star.
+    /// Named type-only aliases are queried separately with
+    /// `Self::get_type_only_alias_declaration_ex`.
+    pub fn get_type_only_export_star_declaration(
+        &mut self,
+        module: P<Symbol>,
+        name: &str,
+    ) -> Option<P<Node>> {
+        self.get_exports_of_module(module);
+        self.module_symbol_links.get(module).type_only_export_star_map.get(name)
+    }
+
     // exports.go:135
     pub fn resolve_external_module_name_exported(
         &mut self,

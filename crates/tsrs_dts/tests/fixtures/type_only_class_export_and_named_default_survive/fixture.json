@@ -1,0 +1,9 @@
+{
+  "entries": [
+    "index.ts"
+  ],
+  "contains": [
+    "type ",
+    "as default"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": [],
+    "outDir": "/must-not-write",
+    "declarationDir": "/must-not-write-types"
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

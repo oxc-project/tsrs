@@ -1,0 +1,1 @@
+export class Client { private brand!: void; value = 1 } export namespace Client { export interface Options { name: string } } interface Item { value: string } export namespace Space { export interface Box { item: Item } export namespace Nested { export type Value = Item } }

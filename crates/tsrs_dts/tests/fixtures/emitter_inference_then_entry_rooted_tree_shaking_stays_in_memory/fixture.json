@@ -1,0 +1,12 @@
+{
+  "entries": [
+    "index.ts"
+  ],
+  "contains": [
+    "live: boolean"
+  ],
+  "absent": [
+    "unused"
+  ],
+  "removed": true
+}

@@ -1,0 +1,46 @@
+{
+  "repository": "https://github.com/Swatinem/rollup-plugin-dts",
+  "revision": "20c8afb5021ba876fdf18c63ba00bae1f4d867e8",
+  "files": [
+    {
+      "fixture": "externals-link",
+      "path": "node_modules/d3-drag-local/package.json",
+      "source": "tests/d3-drag-local/package.json",
+      "gitBlob": "51e3aa335d9c3686d3a32f501395f98d2f83c20e",
+      "sha256": "b7871c8e1a68c0672a159a08baa32b3ac6249ec1dea9caa01dd25e3ea46e3171",
+      "bytes": 30
+    },
+    {
+      "fixture": "externals-link",
+      "path": "node_modules/d3-drag-local/index.d.ts",
+      "source": "tests/d3-drag-local/index.d.ts",
+      "gitBlob": "52d4b6f764c1f377fed8ccfe3d1858ce27387c04",
+      "sha256": "a0281594b45595ddf3d82b4314ed28f3d0b53fbb87a49a6e56f05aa4a3992e4f",
+      "bytes": 171
+    },
+    {
+      "fixture": "inline-external-node-next-module",
+      "path": "node_modules/package-a/package.json",
+      "source": "tests/testcases/inline-external-node-next-module/node_modules/package-a/package.json",
+      "gitBlob": "14562e90c68759e4536416b06f054a7e5433ab84",
+      "sha256": "1cb78e16a3bd5a5ea858a734436bbd385042ba9039390e34176968fd79a9a503",
+      "bytes": 164
+    },
+    {
+      "fixture": "inline-external-node-next-module",
+      "path": "node_modules/package-a/types/file.d.ts",
+      "source": "tests/testcases/inline-external-node-next-module/node_modules/package-a/types/file.d.ts",
+      "gitBlob": "c155820bf7733bd4200954d121892bbc9d070206",
+      "sha256": "f84d912a12e59c69e63ad03cc4de6a79a5eb3b3bba0950040cf52375fa7ba958",
+      "bytes": 26
+    },
+    {
+      "fixture": "inline-external-node-next-module",
+      "path": "node_modules/package-a/files/file.js",
+      "source": "tests/testcases/inline-external-node-next-module/node_modules/package-a/files/file.js",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}

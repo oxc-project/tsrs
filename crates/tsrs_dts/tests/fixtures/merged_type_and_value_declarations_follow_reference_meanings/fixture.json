@@ -1,0 +1,9 @@
+{
+  "entries": [
+    "index.ts"
+  ],
+  "absent": [
+    "DROP_VALUE",
+    "DROP_TYPE"
+  ]
+}

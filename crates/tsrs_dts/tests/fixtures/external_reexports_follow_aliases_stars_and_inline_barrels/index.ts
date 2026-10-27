@@ -1,0 +1,1 @@
+export { Renamed, Client, create, count } from './barrel.js'; import type { Renamed } from './barrel.js'; export interface API { item: Renamed } export type Inline = import('./barrel.js').Renamed; export type Module = typeof import('./barrel.js');

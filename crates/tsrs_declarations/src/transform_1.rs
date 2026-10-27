@@ -436,7 +436,7 @@ impl DeclarationTransformer {
 }
 
 // transform.go:382
-pub(crate) fn create_empty_exports(factory: &NodeFactory) -> P<Node> {
+pub fn create_empty_exports(factory: &NodeFactory) -> P<Node> {
     factory.new_export_declaration(
         None, /*isTypeOnly*/
         false,

@@ -1,0 +1,36 @@
+[package]
+name = "tsrs_dts"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "In-memory declaration emission and symbol-based bundling on tsrs"
+
+[lints]
+workspace = true
+
+[dependencies]
+rustc-hash.workspace = true
+tsrs_ast.workspace = true
+tsrs_checker.workspace = true
+tsrs_compiler.workspace = true
+tsrs_incremental.workspace = true
+tsrs_execute.workspace = true
+tsrs_core.workspace = true
+tsrs_declarations.workspace = true
+tsrs_modulespecifiers.workspace = true
+tsrs_printer.workspace = true
+tsrs_sourcemap.workspace = true
+tsrs_scanner.workspace = true
+tsrs_vfs.workspace = true
+tsrs_tsoptions.workspace = true
+tsrs_contentmapper.workspace = true
+
+[[example]]
+name = "vue-test-host"
+path = "tests/support/vue_host.rs"
+
+[lib]
+test = false
+doctest = false

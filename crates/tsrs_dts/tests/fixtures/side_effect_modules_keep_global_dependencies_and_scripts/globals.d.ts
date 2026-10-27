@@ -1,0 +1,1 @@
+interface GlobalItem { id: number }

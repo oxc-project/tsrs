@@ -1,0 +1,8 @@
+{
+  "declarations": 3,
+  "nodenext": false,
+  "entries": [
+    "index.d.ts",
+    "utils.d.ts"
+  ]
+}

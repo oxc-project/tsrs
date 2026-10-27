@@ -1,0 +1,5 @@
+{
+  "contains": ["preserve=\"true\"", "extends Disposable"],
+  "absent": ["esnext.intl", "Unused"],
+  "occurrences": { "/// <reference lib=\"esnext.disposable\"": 1 }
+}

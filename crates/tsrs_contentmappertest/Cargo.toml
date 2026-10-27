@@ -11,7 +11,7 @@ workspace = true
 
 # Go's testutil/contentmappertest: the in-process content mappers that the tsc/tsbuild scenario tests
 # drive through tsrs_contentmapper (notes/contentmappers.md). The spawner serves them over a Unix
-# socket pair (tsrs_ipc::pipe).
+# socket pair or loopback TCP on Windows (tsrs_ipc::pipe).
 [dependencies]
 tsrs_core.workspace = true
 tsrs_diagnostics.workspace = true

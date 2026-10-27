@@ -1,5 +1,9 @@
 use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
 use std::sync::Arc;
+
+#[cfg(not(unix))]
+pub use tcp_pipe as pipe;
 
 // Go io.ReadWriteCloser, the stream a connection runs over. A content mapper's comes from its Spawner
 // (hostimpl.go:349, cmd/tsc/sys.go spawnProcess): Read is the child's stdout, Write its stdin, and Close tears the
@@ -56,6 +60,35 @@ impl Closer for SocketCloser {
     fn close(&self) -> std::io::Result<()> {
         match self.0.shutdown(std::net::Shutdown::Both) {
             // macOS reports a second shutdown, or one after the peer's, as ENOTCONN; Go's Close is idempotent.
+            Err(err) if err.kind() == std::io::ErrorKind::NotConnected => Ok(()),
+            result => result,
+        }
+    }
+}
+
+// Windows has no UnixStream::pair. Loopback TCP gives the test spawner the same duplex stream and lets Close
+// interrupt a blocked reader, which dropping one of several cloned handles would not do.
+pub fn tcp_pipe() -> std::io::Result<(ReadWriteCloser, ReadWriteCloser)> {
+    let listener = TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0))?;
+    let client = TcpStream::connect(listener.local_addr()?)?;
+    let (server, _) = listener.accept()?;
+    Ok((tcp_read_write_closer(client)?, tcp_read_write_closer(server)?))
+}
+
+fn tcp_read_write_closer(stream: TcpStream) -> std::io::Result<ReadWriteCloser> {
+    stream.set_nodelay(true)?;
+    Ok(ReadWriteCloser {
+        reader: Box::new(stream.try_clone()?),
+        writer: Box::new(stream.try_clone()?),
+        closer: Arc::new(TcpCloser(stream)),
+    })
+}
+
+struct TcpCloser(TcpStream);
+
+impl Closer for TcpCloser {
+    fn close(&self) -> std::io::Result<()> {
+        match self.0.shutdown(std::net::Shutdown::Both) {
             Err(err) if err.kind() == std::io::ErrorKind::NotConnected => Ok(()),
             result => result,
         }

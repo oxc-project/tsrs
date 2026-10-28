@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/unbound_method.rs
+  s_dc69f4488b866e::t_d031781c6e4463 78-81,87-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "ed4f6bb04b7d3dd54d9fc6b8acfc58777c566c68",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

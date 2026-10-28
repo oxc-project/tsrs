@@ -1,0 +1,19 @@
+testdata/lint/no-for-in-array/baseline.json
+  s_dc69f4488b866e::t_831a511ddf2348 3-6,8-17,19-28,30-39,41-49,52,54-89,91-126,128-163,165-200,202-237,239-274,276-311,313-348,350-385,387-422,424-459,461-496,498-533,535-570,572-607,609-791,793,795-796
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b5531916afc0b3033c01fb1b695702c1ca311219",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

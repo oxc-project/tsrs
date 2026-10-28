@@ -97,6 +97,8 @@ impl Symbol {
     /// `SymbolFlagsNameProxy`). It is internal to `SymbolTable`, which returns `target` for it, and it gets no id: it
     /// is never seen outside the table. It is allocated where the table at `table` lives, which may outlive the
     /// current allocation target.
+    #[cold]
+    #[inline(never)]
     fn new_name_proxy(name: &'static str, target: P<Symbol>, table: usize) -> P<Symbol> {
         let _owner = tsrs_core::arena::enter_table_owner(table);
         let proxy = Symbol::alloc(SymbolFlags::empty(), name);
@@ -636,11 +638,18 @@ impl SymbolMapEntry {
     fn symbol(self) -> P<Symbol> {
         let stored = self.stored();
         if self.is_proxy() {
-            // SAFETY: a name proxy's field holds the key of the symbol it stands for (a live symbol). Not `parent()`,
-            // whose shared-data and tables checks inlined into every lookup cost about 1% of instructions.
-            return unsafe { P::from_key(stored.parent_or_tables.get()) };
+            return Self::proxy_target(stored);
         }
         stored
+    }
+
+    /// The symbol a name proxy stands for, out of line: lookups and iteration keep only the bit test.
+    #[cold]
+    #[inline(never)]
+    fn proxy_target(proxy: P<Symbol>) -> P<Symbol> {
+        // SAFETY: a name proxy's field holds the key of the symbol it stands for (a live symbol). Not `parent()`,
+        // whose shared-data and tables checks inlined into every lookup cost about 1% of instructions.
+        unsafe { P::from_key(proxy.parent_or_tables.get()) }
     }
 
     /// The entry's key: the stored symbol's name, which is the key for a name proxy too.
@@ -932,9 +941,9 @@ impl SymbolMap {
         let table = std::ptr::from_ref(self) as usize;
         let hash = hash_name(name);
         if let Some(i) = if self.extra.may_contain(hash) { self.search(name, hash) } else { None } {
-            // Go keeps the stored key; it is no longer the new symbol's name when that differs.
-            let key = self.entries[i].key();
-            self.entries[i].set_symbol(key, symbol, table);
+            // Go keeps the stored key; it is no longer the new symbol's name when that differs. `name` has the
+            // stored key's text.
+            self.entries[i].set_symbol(name, symbol, table);
             return;
         }
         let i = self.entries.len();

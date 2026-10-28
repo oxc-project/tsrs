@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/no_misused_promises.rs
+  s_dc69f4488b866e::t_bbcd464d0e63be 125-128,325-328,593-604,631-632,634-635,640-645,701-713,715-718,723
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "dbde413491a741f8b497e2b1e8e3e5e169297d80",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

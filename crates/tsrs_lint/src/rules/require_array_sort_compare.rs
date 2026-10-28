@@ -69,7 +69,10 @@ impl Rule for RequireArraySortCompare {
                 return;
             }
         }
-        if union_type_parts(&callee_obj_type).iter().all(|&t| context.checker.is_array_type(t)) {
+        if union_type_parts(&callee_obj_type)
+            .iter()
+            .all(|&t| context.checker.is_array_type(t) || t.is_tuple_type())
+        {
             context.report_node(node, build_require_compare_message());
         }
     }

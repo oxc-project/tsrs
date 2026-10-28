@@ -1,0 +1,41 @@
+crates/tsrs_compiler/src/programregions.rs
+  s_dc69f4488b866e::t_39dbb70f32dd23 16
+crates/tsrs_compiler/tests/integration/main.rs
+  s_dc69f4488b866e::t_ce3ff65ee2fdd5 7
+crates/tsrs_compiler/tests/integration/programregions_test.rs
+  s_dc69f4488b866e::t_77c2e54ae62e97 1-46
+crates/tsrs_lint/Cargo.toml
+  s_dc69f4488b866e::t_730b0be89b4865 30,33
+crates/tsrs_lint/src/engine.rs
+  s_dc69f4488b866e::t_1d4bd012180712 38,43-48,132,137,157,386,599-600,602
+crates/tsrs_lint/src/type_matches_specifier.rs
+  s_dc69f4488b866e::t_50d4a6ef036154 150-155,175-178,188-193
+crates/tsrs_lint/src/utils.rs
+  s_dc69f4488b866e::t_4c7162b9b11cd4 123-129,136-139,214-217,363-364,366-370
+crates/tsrs_lint/tests/integration/engine_test.rs
+  s_dc69f4488b866e::t_e333dd89bef701 1-115
+crates/tsrs_lint/tests/integration/main.rs
+  s_dc69f4488b866e::t_a45541a575ad31 1
+tools/lint/unsafe_sites.tsv
+  s_dc69f4488b866e::t_55c50ece96afd4 437
+tools/tsgolint/export.mjs
+  s_dc69f4488b866e::t_8f1d7cf5b70441 1-7,9-10,12,31-33,67-76,78-80,82-85,87-93,95-101,103-105,107-219
+tools/tsgolint/run-baselines.mjs
+  s_dc69f4488b866e::t_f0c7ea27cdcf00 1-258
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "19fd9ffddcb849870e2cab1ab9a9f2bab684427f",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

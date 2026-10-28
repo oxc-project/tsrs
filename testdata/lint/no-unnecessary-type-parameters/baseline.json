@@ -1059,6 +1059,83 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Pair<T> = [T, T];\ndeclare function makePair<K, T>(kind: K): K extends string ? Pair<T> : never;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Pair<T> = [T, T];\ndeclare function makePair<K, T>(kind: K): K extends string ? never : Pair<T>;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Pair<T> = [T, T];\ndeclare function makePair<K, T>(kind: K): K extends string ? Pair<(T)> : never;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Outcome<T, E> = { value: T } | { error: E };\ntype Flatten<R> = R extends Outcome<infer T, infer E> ? Outcome<T, E> : never;\ndeclare function flatten<T, E extends Error>(value: T): T extends Outcome<unknown, Error>\n  ? Flatten<Outcome<T, E>>\n  : T;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "declare function makeQualifiedArray<T>(): globalThis.Array<T>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nexport {};\ntype Array<T> = [T, T];\ndeclare function makePair<K, T>(kind: K): K extends string ? Array<T> : never;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nexport {};\ntype ReadonlyArray<T> = readonly [T, T];\ndeclare function makePair<K, T>(kind: K): K extends string ? ReadonlyArray<T> : never;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [
@@ -7457,6 +7534,376 @@
                   }
                 }
               ]
+            }
+          ]
+        },
+        {
+          "Code": "declare function takeArray<T>(input: Array<T>): void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "sole",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceUsagesWithConstraint",
+                  "Output": "declare function takeArray(input: Array<unknown>): void;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceUsagesWithConstraint",
+                    "description": "Replace all usages of type parameter with its constraint."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 43,
+                        "end": 44
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 26,
+                        "end": 29
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This is the only usage of type parameter T in the signature.",
+                  "range": {
+                    "pos": 43,
+                    "end": 44
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-parameters",
+              "message": {
+                "id": "sole",
+                "description": "Type parameter T is used only once in the function signature."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 27,
+                "end": 28
+              }
+            }
+          ]
+        },
+        {
+          "Code": "declare function makeReadonlyArray<T>(): ReadonlyArray<T>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "sole",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceUsagesWithConstraint",
+                  "Output": "declare function makeReadonlyArray(): ReadonlyArray<unknown>;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 55,
+                    "end": 56
+                  },
+                  "label": "This is the only usage of type parameter T in the signature."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-parameters",
+              "message": {
+                "id": "sole",
+                "description": "Type parameter T is used only once in the function signature."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 35,
+                "end": 36
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceUsagesWithConstraint",
+                    "description": "Replace all usages of type parameter with its constraint."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "end": 56,
+                        "pos": 55
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 34,
+                        "end": 37
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "declare function takeQualifiedArray<T>(input: globalThis.Array<T>): void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "sole",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceUsagesWithConstraint",
+                  "Output": "declare function takeQualifiedArray(input: globalThis.Array<unknown>): void;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-parameters",
+              "message": {
+                "id": "sole",
+                "description": "Type parameter T is used only once in the function signature."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 36,
+                "end": 37
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceUsagesWithConstraint",
+                    "description": "Replace all usages of type parameter with its constraint."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 63,
+                        "end": 64
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 35,
+                        "end": 38
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This is the only usage of type parameter T in the signature.",
+                  "range": {
+                    "pos": 63,
+                    "end": 64
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "declare function takeQualifiedReadonlyArray<T>(input: globalThis.ReadonlyArray<T>): void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "sole",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceUsagesWithConstraint",
+                  "Output": "declare function takeQualifiedReadonlyArray(input: globalThis.ReadonlyArray<unknown>): void;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-parameters",
+              "message": {
+                "id": "sole",
+                "description": "Type parameter T is used only once in the function signature."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 45
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceUsagesWithConstraint",
+                    "description": "Replace all usages of type parameter with its constraint."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 79,
+                        "end": 80
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 43,
+                        "end": 46
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This is the only usage of type parameter T in the signature.",
+                  "range": {
+                    "pos": 79,
+                    "end": 80
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "declare function makeQualifiedReadonlyArray<T>(): globalThis.ReadonlyArray<T>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "sole",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceUsagesWithConstraint",
+                  "Output": "declare function makeQualifiedReadonlyArray(): globalThis.ReadonlyArray<unknown>;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "sole",
+                "description": "Type parameter T is used only once in the function signature."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 45
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceUsagesWithConstraint",
+                    "description": "Replace all usages of type parameter with its constraint."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 75,
+                        "end": 76
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 43,
+                        "end": 46
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This is the only usage of type parameter T in the signature.",
+                  "range": {
+                    "pos": 75,
+                    "end": 76
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-parameters"
             }
           ]
         }

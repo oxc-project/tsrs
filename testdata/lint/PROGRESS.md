@@ -32,7 +32,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | no-unnecessary-template-expression | Updated to Go HEAD | 183 current cases; string constraints, type templates, comments, canonical literals and raw escaping fixes |
 | no-unnecessary-type-conversion | Updated to Go HEAD | 77 current cases; primitive calls, unary/concatenation conversions, enum exclusions and satisfies suggestions |
 | no-unnecessary-type-arguments | Updated to Go HEAD | 110 current cases, 1 upstream skips; default type identity, constructor inference, calls, heritage and JSX fixes |
-| no-unnecessary-type-parameters | Updated to Go HEAD | 175 current cases; signature/class usage counts, recursive types, predicates and constraint replacement suggestions; upstream terminal-reference fix plus five regression/control sources in all four fix modes |
+| no-unnecessary-type-parameters | Updated to Go HEAD | 187 current cases; signature/class usage counts, generic type argument reuse, recursive types, predicates and constraint replacement suggestions; upstream terminal-reference fix plus five regression/control sources in all four fix modes |
 | no-unnecessary-type-assertion | Updated to Go HEAD | 376 current cases; contextual/generic typing, non-null flow guards, const options and comment-preserving assertion fixes |
 | no-useless-default-assignment | Updated to Go HEAD | 93 current cases; object/tuple binding sources, contextual parameters, undefined defaults and optional-syntax fixes |
 | no-unsafe-argument | Updated to Go HEAD | 43 current cases; recursive generic assignments, array/tuple spreads, rest consumption and tagged-template parameters |

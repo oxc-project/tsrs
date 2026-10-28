@@ -65,17 +65,58 @@ fn start_of_body(node: P<Node>) -> u32 {
     }
 }
 
-fn repeated_in_ast(parameter: P<Node>, references: &[P<Node>], body_start: u32) -> bool {
-    references
-        .iter()
-        .filter(|&&reference| {
-            !(source_pos(reference) < source_end(parameter)
-                && source_end(reference) > source_pos(parameter))
-                && source_pos(reference) <= body_start
-        })
-        .take(2)
-        .count()
-        >= 2
+fn repeated_in_ast(
+    context: &mut RuleContext<'_>,
+    parameter: P<Node>,
+    references: &[P<Node>],
+    body_start: u32,
+) -> bool {
+    let mut total = 0;
+    for &reference in references {
+        // References inside the type parameter declaration itself don't count.
+        if source_pos(reference) < source_end(parameter)
+            && source_end(reference) > source_pos(parameter)
+        {
+            continue;
+        }
+        // References in the body don't count for fast-path usage checks.
+        if source_pos(reference) > body_start {
+            continue;
+        }
+        // A type argument can be reused by the generic type even when it occurs
+        // only once in this signature. Leave arrays to the type-aware check.
+        if let Some(mut argument) =
+            reference.parent().filter(|&parent| ast::is_type_reference_node(parent))
+        {
+            while let Some(parent) =
+                argument.parent().filter(|&parent| ast::is_parenthesized_type_node(parent))
+            {
+                argument = parent;
+            }
+            if let Some(parent) = argument.parent()
+                && matches!(
+                    parent.kind(),
+                    Kind::TypeReference
+                        | Kind::ExpressionWithTypeArguments
+                        | Kind::ImportType
+                        | Kind::TypeQuery
+                )
+            {
+                let is_array = ast::is_type_reference_node(parent) && {
+                    let t = context.checker.get_type_at_location(parent);
+                    context.checker.is_array_type(t)
+                };
+                if !is_array && parent.type_arguments().contains(&argument) {
+                    return true;
+                }
+            }
+        }
+        total += 1;
+        if total >= 2 {
+            return true;
+        }
+    }
+    false
 }
 
 fn removal_range(context: &RuleContext<'_>, parameters: &[P<Node>], target: P<Node>) -> Range {
@@ -409,7 +450,7 @@ fn check_node(context: &mut RuleContext<'_>, node: P<Node>, descriptor: &str) {
         let mut references = Vec::with_capacity(8);
         collect_references(context, node, symbol, name, &mut references);
         goslices::sort_func(&mut references, |a, b| source_pos(*a).cmp(&source_pos(*b)));
-        if !repeated_in_ast(parameter, &references, body_start) {
+        if !repeated_in_ast(context, parameter, &references, body_start) {
             candidates.push(Candidate { node: parameter, name, symbol, references });
         }
     }

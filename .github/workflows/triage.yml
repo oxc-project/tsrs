@@ -86,8 +86,7 @@ jobs:
           write-token: ${{ steps.app-token.outputs.token }}
           cloudflare-api-key: ${{ secrets.CLOUDFLARE_API_KEY }}
           cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Verified streaming and tool round trips with the pinned action runtime.
-          triage-model: cloudflare-workers-ai/@cf/zai-org/glm-5.2
+          triage-model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.7-code
           verification-model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6
           triage-skill: .agents/skills/triage
           pr-skill: .agents/skills/pr-writer

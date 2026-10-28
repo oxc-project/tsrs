@@ -29,15 +29,15 @@ version in the project's lockfile:
 ```
 
 The native `tsrs` (`tsrs.exe` on Windows) and default libraries ship together at each `@tsrs/<platform>`
-package root. The CLI and Node API resolve `tsrs[.exe]`. Current source builds also include an identical
-`tsgo.exe` in Windows packages for VS Code's native SDK discovery, pending the next npm release.
+package root. The CLI and Node API resolve `tsrs[.exe]`. Version 0.20.1 adds an identical `tsgo.exe` to Windows
+packages for VS Code's native SDK discovery.
 
-On **Windows x64**, use the native platform package's root directory. For a release with Windows SDK support, add
+On **Windows x64**, use the native platform package's root directory. Add
 `@tsrs/win32-x64` as a direct optional dependency at the same version as `tsrs`, so npm and pnpm both expose
-the project-local path. Replace `VERSION` with that version and keep both packages at the same version when upgrading:
+the project-local path. Keep both packages at the same version when upgrading:
 
 ```sh
-pnpm add -O --save-exact @tsrs/win32-x64@VERSION
+pnpm add -O --save-exact @tsrs/win32-x64@0.20.1-ts7.1.0-beta
 ```
 
 Use these VS Code settings on Windows:

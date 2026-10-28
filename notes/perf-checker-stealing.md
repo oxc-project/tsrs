@@ -1,5 +1,10 @@
 # perf-checker-stealing: dynamic scheduling of files over checkers
 
+This records the scheduler's introduction. Since 0.20.0, ordinary compilation uses Go's assignment and history;
+`--fast` opts into locality scheduling and work stealing. Later investigations found output differences outside
+the corpora used here; see [checker-history cases](open-history-dependence.md) and
+[current options](../docs/USAGE.md#performance-options).
+
 With a static assignment the slowest checker decides the check time. notes/perf-checker-scaling.md measured it 19%
 above the mean at 8 checkers and 28% at 12 on the 38k-file codebase. Since output no longer depends on which checker
 checks a file (notes/perf-order-independence.md), files can move at run time. This note compares two back-ends: checker

@@ -1,5 +1,8 @@
 # perf-heavy-files-infer-memo: the same inference walk made again and again
 
+The default mode in this record predates 0.20.0. Additional inference caches now belong to the opt-in fast
+preset; see [current options and overrides](../docs/USAGE.md#performance-options).
+
 The check phase of vscode, t3code-server, mui-docs and formbricks-web at 16-32 checkers is bounded by a few files
 (the task brief, 2026-10-07). This note is about the one of them whose cost is the algorithm itself, vscode's
 `src/vs/platform/agentHost/test/node/mapSessionEvents.test.ts` (0.35 s in a 0.78 s check at 16 checkers on the 64-vCPU

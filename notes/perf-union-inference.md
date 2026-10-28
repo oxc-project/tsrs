@@ -1,5 +1,9 @@
 # Union front cache and the generic-call inference memo (2026-10-05)
 
+The cache defaults and acceptance threshold below are historical. Since 0.20.0, additional checker caches are
+part of the opt-in fast preset; see [current options](../docs/USAGE.md#performance-options). The
+[current measurement policy](../AGENTS.md#performance-and-memory-changes) has no fixed percentage threshold.
+
 Tasks 2 and 3 of the flow-memo handoff (notes/perf-flow-union-inference.md; their briefs are not kept), under the round-3
 rule (notes/perf-round3.md): caches Go does not have are allowed. Diagnostics, determinism, emit and the conformance
 baselines must not change, and anything on by default that departs from Go is off under `--checkerAssignment go`.

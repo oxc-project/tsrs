@@ -1,3 +1,5 @@
+# Fast-mode performance audit (2026-10-27)
+
 Performance audit, 2026-10-27. The published chart measures npm 0.20.0, not the current checkout. The benchmark commands do enable fast mode, and an independent timer agrees with Hyperfine. The large difference between projects comes from checker scaling, duplicated checker work, heavy individual files, and front-end work shared by both modes.
 
 The automatic fast checker count is too aggressive for t3code-server on this 14-core M3 Max (10 performance cores and 4 efficiency cores). In seven interleaved rounds, 10 checkers beat 14 in six rounds. Their median time is 2.6% lower, instructions about 25.5% lower, and peak RSS about 21.4% lower. Four checkers trade a little wall time for substantially lower memory. This is workload-specific: VS Code benefits substantially from 14 checkers.

@@ -1,5 +1,8 @@
 # Upstream TypeScript since the pin, and the remaining tsc gaps (2026-10-08)
 
+This inventory is a snapshot at the revisions below. Later TypeScript upgrades and completed ports are recorded
+in the [release history](../docs/STATUS.md); use the [capability table](../docs/COMPATIBILITY.md) for current gaps.
+
 Two questions: what has microsoft/TypeScript changed in the Go compiler since tsrs's pin, and what does tsrs still not
 port against the pinned version. Report only; no code changes. tsrs at `f250e637` (origin/main on 2026-10-08).
 

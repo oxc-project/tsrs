@@ -1,6 +1,9 @@
-checker: remember complete flow-analysis results across walks of the same reference
+# checker: remember complete flow-analysis results across walks of the same reference
 
-**Status:** written up only, not opened upstream. Prototyped in tsrs (`crates/tsrs_checker/src/flowmemo.rs`,
+Archived proposal and implementation record. Since 0.20.0, additional flow caching belongs to the opt-in
+fast preset; see [current options and overrides](../docs/USAGE.md#performance-options).
+
+**Recorded status:** written up only, not opened upstream. Prototyped in tsrs (`crates/tsrs_checker/src/flowmemo.rs`,
 notes/perf-flow-union-inference.md), where it is on by default and produces byte-identical output.
 
 ## The pattern

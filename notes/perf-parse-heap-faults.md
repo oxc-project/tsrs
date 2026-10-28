@@ -195,7 +195,7 @@ buffers, and mimalloc's commit and purge policy does not decide when the kernel'
   (`mi_manage_os_memory_ex`). Two reasons:
   - `MADV_POPULATE_WRITE` is itself served under `mmap_lock` (read).
   - At the shipped 32 threads the parse is not fault-bound (4.4% of samples in faults, almost none asleep).
-  
+
   The cost it would target exists only past ~40 threads, and the user-space touch removes that more cheaply. A
   populated region would also need sizing per project, since pre-touching memory a small project never uses raises
   its RSS.
@@ -269,4 +269,3 @@ All Depot runs are `perf-probe.yml` unless named. Each probe built the variants 
 | 7j6fhr6vsj | round 4: touch + cap 48 against main (merge base built on the runner), vscode and formbricks-web; `mmap_lock` writers |
 | q1fjxdfh1m, lcf8ts20w5 | round 5 on two runners: touch + cap 48, touch at 40, main at 40 and 48 |
 | r3d1mx85np | `pr-verify.yml`: cap 40 without the touch against main, 10 projects |
-

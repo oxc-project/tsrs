@@ -9,8 +9,9 @@ see the [compatibility table](COMPATIBILITY.md); detailed investigations are ind
 
 The package version is `0.20.1-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.
 The [release notes](releases/0.20.1.md) cover the `NoInfer` checker revert, unsigned WebAssembly host pointers,
-collection storage changes, checker-thread reuse, shared build modification-time caches and inline reads of
-small include trees (#800, #804, #808, #812, #814, #815, #816).
+Windows SDK discovery and content-mapper command lookup, blocking npm launcher streams, collection storage
+changes, checker-thread reuse, shared build modification-time caches, inline reads of small include trees and
+fewer temporary printer allocations (#800, #804, #808, #812, #814, #815, #816, #822, #826, #828, #831).
 
 The release workflow publishes all nine npm packages with the `latest` tag, marks the GitHub release as latest
 and then deploys the playground (#801). Individual optimization measurements are linked from the release notes;
@@ -78,9 +79,9 @@ build mode; build mode keeps four checkers per project. Switching history or laz
 incompatible persisted diagnostics in either direction.
 
 Fast mode can change diagnostics and exit status in known history/depth-limit cases, use more memory with more
-checkers, and change compiler counters between runs. Compiler checking options stay as configured. The
-[README](../README.md#fast-mode) summarizes these side effects; [usage](USAGE.md#precedence-and-scope) explains
-scope and precedence, including individual overrides that remain active under `--fast false`.
+checkers, and change compiler counters between runs. Compiler checking options stay as configured.
+[Usage](USAGE.md#performance-options) explains these effects, scope and precedence, including individual
+overrides that remain active under `--fast false`.
 
 Dev-profile validation against `3e9236361fa9` retains all 13,700 error, 12,998 type, 12,998 symbol, 13,626 emit,
 149 JavaScript-map and 156 source-map-record passes in both modes. Initial timeouts passed on focused retries with

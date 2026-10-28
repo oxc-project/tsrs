@@ -1,6 +1,10 @@
-checker: how deep an elaboration goes depends on which path first created a type reference
+# checker: how deep an elaboration goes depends on which path first created a type reference
 
-**Status:** written up only, not opened upstream. Found by tsrs on rxjs (notes/open-history-dependence.md section 3).
+> Archived report draft. Modes and source locations below describe the investigation.
+> See [current checker defaults](../docs/DEFAULTS.md#command-line) and the
+> [checker-history record](open-history-dependence.md) for context.
+
+**Recorded status:** written up only, not opened upstream. Found by tsrs on rxjs (notes/open-history-dependence.md section 3).
 tsrs does not change it: `--checkerAssignment go` prints what tsgo prints at every checker count, and the default mode
 has no fix that keeps tsgo's single-checker output.
 

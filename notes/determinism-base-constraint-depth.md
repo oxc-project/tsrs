@@ -1,6 +1,10 @@
-checker: a base constraint cut short by the depth guard is cached for every later caller
+# checker: a base constraint cut short by the depth guard is cached for every later caller
 
-**Status:** written up only, not opened upstream. Found by tsrs on TanStack/router (notes/open-history-dependence.md).
+> Archived report draft. Modes and source locations below describe the investigation.
+> See [current checker defaults](../docs/DEFAULTS.md#command-line) and the
+> [checker-history record](open-history-dependence.md) for context.
+
+**Recorded status:** written up only, not opened upstream. Found by tsrs on TanStack/router (notes/open-history-dependence.md).
 tsrs does not fix it: the fixes measured there either cost up to 4% of instructions or leave part of the dependence.
 
 `getResolvedBaseConstraint` (checker.go:27917) explores ten levels of nested constraints, then stops at a type whose

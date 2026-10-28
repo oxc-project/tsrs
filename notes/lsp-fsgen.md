@@ -1,5 +1,9 @@
 # lsp-fsgen: fourslash generator, harness and runner (`tools/gen-fourslash`, `tsrs_fourslash`)
 
+Historical record: the translated Rust harness and generator described here have been removed. The
+[Go fourslash runner](../tools/go-fourslash/README.md) now runs upstream assertions against Rust language-server
+subprocesses; see that guide for current commands and validation.
+
 `tools/gen-fourslash` (Go, `go/types`) turns every Go fourslash test into a Rust function in
 `crates/tsrs_fourslash/src/tests/gen/gen_NN.rs` (one `pub mod` per Go file, one `pub fn` per Go function) plus a
 registry in `gen/mod.rs` (name, Go file, line, fn, skip reason). The optimized `tsrs_fourslash_harness` crate

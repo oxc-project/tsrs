@@ -582,6 +582,7 @@ impl SourceFileParser<'_> {
         &self,
         parse_options: SourceFileParseOptions,
     ) -> Option<P<SourceFile>> {
+        let _file_region = crate::programregions::enter_file(self.opts.regions.as_deref());
         if tspath::file_extension_is_one_of(
             &parse_options.file_name,
             &str_slice(self.content_mapper_extensions),

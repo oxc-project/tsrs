@@ -1,0 +1,154 @@
+crates/tsrs_checker/src/checker.rs
+  s_dc69f4488b866e::t_cd4d2ad9bc9a7d 1344
+crates/tsrs_checker/src/checker_09.rs
+  s_dc69f4488b866e::t_807a3af5b0a028 958,2748,3147,4026
+crates/tsrs_checker/src/checker_11.rs
+  s_dc69f4488b866e::t_b765afa07babd4 550,948,2695,3658
+crates/tsrs_checker/src/checker_12.rs
+  s_dc69f4488b866e::t_c245b400302fba 35,285
+  s_dc69f4488b866e::t_b4e7ff73317ff9 3099
+crates/tsrs_checker/src/checker_13.rs
+  s_dc69f4488b866e::t_9f0c138cafe945 3456
+crates/tsrs_checker/src/checker_14.rs
+  s_dc69f4488b866e::t_201201d731782f 2240
+  s_dc69f4488b866e::t_7bd392491309ec 2961
+crates/tsrs_checker/src/checker_15.rs
+  s_dc69f4488b866e::t_75b66f7359440e 1923
+  s_dc69f4488b866e::t_e8d56aa1353d8b 1122
+crates/tsrs_checker/src/flow.rs
+  s_dc69f4488b866e::t_80baf2abbb33c3 3090,3637
+crates/tsrs_checker/src/lib.rs
+  s_dc69f4488b866e::t_adcb07c06aa934 181
+crates/tsrs_lint/src/engine.rs
+  s_dc69f4488b866e::t_fd76f70605dcef 235-236,238
+  s_dc69f4488b866e::t_1d4bd012180712 38,43-48,132,137,157,385,598-599,601
+crates/tsrs_lint/src/payload.rs
+  s_dc69f4488b866e::t_03e052a989522b 31,56,70,91,102
+  s_dc69f4488b866e::t_9530a6d0297349 3,5,28-30
+crates/tsrs_lint/src/protocol.rs
+  s_dc69f4488b866e::t_b350d7f6a8396d 5,69,74,88,97,100,104,119,123
+crates/tsrs_lint/src/rules/consistent_return.rs
+  s_dc69f4488b866e::t_9a2a3b0e0563f1 121,202
+  s_dc69f4488b866e::t_5d335836206657 14-17,20-32,44,140-141,177,191,210-214
+crates/tsrs_checker/src/checker_02.rs
+  s_dc69f4488b866e::t_685362855c7ce3 42
+crates/tsrs_lint/src/rules/no_array_delete.rs
+  s_dc69f4488b866e::t_4da22cf9e38425 34
+crates/tsrs_checker/src/checker_04.rs
+  s_dc69f4488b866e::t_3da8dddd0dacfd 3350
+crates/tsrs_checker/src/checker_07.rs
+  s_dc69f4488b866e::t_43540e2ad2cfa7 2125
+crates/tsrs_checker/src/checker_08.rs
+  s_dc69f4488b866e::t_644fb8f9476eba 2365
+crates/tsrs_ast/src/precedence.rs
+  s_dc69f4488b866e::t_b8df2364bdd794 107
+crates/tsrs_lint/src/rules/no_meaningless_void_operator.rs
+  s_dc69f4488b866e::t_861eac6f03aae3 37
+crates/tsrs_compiler/src/programregions.rs
+  s_dc69f4488b866e::t_39dbb70f32dd23 16
+crates/tsrs_compiler/tests/integration/main.rs
+  s_dc69f4488b866e::t_ce3ff65ee2fdd5 7
+crates/tsrs_compiler/tests/integration/programregions_test.rs
+  s_dc69f4488b866e::t_77c2e54ae62e97 1-46
+crates/tsrs_lint/Cargo.toml
+  s_dc69f4488b866e::t_730b0be89b4865 29,32
+  s_dc69f4488b866e::t_598b192e922a49 14
+crates/tsrs_lint/src/type_matches_specifier.rs
+  s_dc69f4488b866e::t_50d4a6ef036154 150-155,175-178,188-193
+crates/tsrs_lint/src/utils.rs
+  s_dc69f4488b866e::t_4c7162b9b11cd4 123-129,136-139,214-217,363-364,366-370
+crates/tsrs_lint/tests/integration/engine_test.rs
+  s_dc69f4488b866e::t_e333dd89bef701 1-115
+crates/tsrs_lint/tests/integration/main.rs
+  s_dc69f4488b866e::t_a45541a575ad31 2
+  s_dc69f4488b866e::t_bbb1d7caf6232c 1,3-5
+tools/lint/unsafe_sites.tsv
+  s_dc69f4488b866e::t_55c50ece96afd4 437
+tools/tsgolint/export.mjs
+  s_dc69f4488b866e::t_8f1d7cf5b70441 1-7,9-10,12,31-33,67-76,78-80,82-85,87-93,95-101,103-105,107-219
+tools/tsgolint/run-baselines.mjs
+  s_dc69f4488b866e::t_f0c7ea27cdcf00 1-258
+crates/tsrs_lint/src/rules/dot_notation.rs
+  s_dc69f4488b866e::t_5aecdff34227f1 186-192,227-234,261-269,459-469
+crates/tsrs_lint/src/rules/no_deprecated.rs
+  s_dc69f4488b866e::t_1352141571129c 111-114,125,129-130,263-281,283-288,290-296
+crates/tsrs_lint/src/rules/no_misused_promises.rs
+  s_dc69f4488b866e::t_bbcd464d0e63be 145-148,345-348,613-623,651-652,654,665-669,736-748,750-753
+  s_dc69f4488b866e::t_a6a6a47e95e31c 65-107,510,525,624,638,655-660,670-675,707-712,758-763,779-784,802,901-907
+crates/tsrs_lint/src/rules/no_redundant_type_constituents.rs
+  s_dc69f4488b866e::t_66e760a320072e 244-247
+crates/tsrs_lint/src/rules/prefer_regexp_exec.rs
+  s_dc69f4488b866e::t_4477be7e87f1cb 446-449
+crates/tsrs_lint/src/rules/prefer_readonly.rs
+  s_dc69f4488b866e::t_5c59a2c425b40d 32-35,295,297-312,378-381
+crates/tsrs_lint/src/rules/prefer_string_starts_ends_with.rs
+  s_dc69f4488b866e::t_e6671f14d41aa1 131-134
+crates/tsrs_lint/src/rules/require_await.rs
+  s_dc69f4488b866e::t_e8acef0b4d9f78 64-69,71-75,136-150
+crates/tsrs_lint/src/rules/strict_boolean_expressions.rs
+  s_dc69f4488b866e::t_ffc41d8703e62e 217-221,223-234,236,238,240
+crates/tsrs_lint/src/rules/strict_void_return.rs
+  s_dc69f4488b866e::t_2a549ab3b60762 67-70,189-193,204-208,305-309,365,368-369
+crates/tsrs_lint/src/rules/unbound_method.rs
+  s_dc69f4488b866e::t_d031781c6e4463 78-81,87-90
+crates/tsrs_lint/tests/integration/baselines.rs
+  s_dc69f4488b866e::t_4cb0ab6195f269 7-8
+crates/tsrs_lint/tests/integration/headless.rs
+  s_dc69f4488b866e::t_71c040b90d7099 120,206,278,420,496,498,620,622,628,810,812,884,889,919,4137,4141,4156,4461-4462,5228,5232,5247,5288,5330,5489-5490,5496,5506-5509,5611-5612,5778,5782,5797,5838-5839,5962,6093,6216,6372-6373,6394,6486,6532,6584
+bench/tsgolint-frontend.mjs
+  s_dc69f4488b866e::t_b52d3445e495f2 1-97
+bench/tsgolint.mjs
+  s_dc69f4488b866e::t_8cff918851ba14 1-322
+notes/bench-tsgolint-vscode-rebased.md
+  s_dc69f4488b866e::t_064965edac1131 79,82
+notes/perf-tsgolint-parallel-load.md
+  s_dc69f4488b866e::t_3fcc2d41d47c0a 99
+notes/perf-tsgolint-shared-checker.md
+  s_dc69f4488b866e::t_9633e9e997f85f 48
+notes/perf-tsgolint-worker-scaling.md
+  s_dc69f4488b866e::t_9788e8d7812909 54,83
+notes/perf-tsgolint-workers.md
+  s_dc69f4488b866e::t_4e0c5da863505b 120
+notes/tsgolint-diagnostic-parity.md
+  s_dc69f4488b866e::t_c58df2676381d8 164
+bench/RESULTS.md
+  s_dc69f4488b866e::t_b78de9e9a72eb9 76-79
+notes/perf-tsgolint-bottlenecks.md
+  s_dc69f4488b866e::t_febaf40920eea4 125-126
+notes/perf-tsgolint-infrastructure.md
+  s_dc69f4488b866e::t_964bc008df5b22 98
+notes/perf-tsgolint-json-fix.md
+  s_dc69f4488b866e::t_60c07e2cf0ab2c 5,54
+notes/perf-tsgolint-terminal-references.md
+  s_dc69f4488b866e::t_7fe66271492190 78
+crates/tsrs_lint/src/rules/await_thenable.rs
+  s_dc69f4488b866e::t_923081c29546d7 13-20,23-63,66-67,80,83,186-190,193,234,249,277,283,315-316,321
+crates/tsrs_lint/src/rules/no_confusing_void_expression.rs
+  s_dc69f4488b866e::t_afab6565427e0d 17-72,209,231,250,257,267,272,276,278,282
+crates/tsrs_lint/src/rules/no_floating_promises.rs
+  s_dc69f4488b866e::t_f2e84acf7aa71c 29-78,368-369,371-373,380-383,393-394,397,407
+crates/tsrs_lint/src/rules/no_misused_spread.rs
+  s_dc69f4488b866e::t_c31b578d6fc8b7 16-81,165,225,239,245-249,256,265-269,273,278,280,282,286
+Cargo.lock
+  s_dc69f4488b866e::t_2d301a1f686ff5 1321
+crates/tsrs_core/src/json/json.rs
+  s_dc69f4488b866e::t_5eebc792ebd41b 236,472
+docs/COMPATIBILITY.md
+  s_dc69f4488b866e::t_20bd4ceba6ba51 53-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6a6f39834c57ed7fcb0a4b472ee5c581de2bb4cd",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

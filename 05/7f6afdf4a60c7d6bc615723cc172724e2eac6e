@@ -1,0 +1,35 @@
+bench/tsgolint-frontend.mjs
+  s_dc69f4488b866e::t_b52d3445e495f2 1-97
+bench/tsgolint.mjs
+  s_dc69f4488b866e::t_8cff918851ba14 1-322
+docs/COMPATIBILITY.md
+  s_dc69f4488b866e::t_4b370d5f74d106 53-54
+notes/bench-tsgolint-vscode-rebased.md
+  s_dc69f4488b866e::t_064965edac1131 79,82
+notes/perf-tsgolint-parallel-load.md
+  s_dc69f4488b866e::t_3fcc2d41d47c0a 100
+notes/perf-tsgolint-shared-checker.md
+  s_dc69f4488b866e::t_9633e9e997f85f 48
+notes/perf-tsgolint-worker-scaling.md
+  s_dc69f4488b866e::t_9788e8d7812909 54,85
+notes/perf-tsgolint-workers.md
+  s_dc69f4488b866e::t_4e0c5da863505b 120
+notes/tsgolint-diagnostic-parity.md
+  s_dc69f4488b866e::t_c58df2676381d8 158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "057f6afdf4a60c7d6bc615723cc172724e2eac6e",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

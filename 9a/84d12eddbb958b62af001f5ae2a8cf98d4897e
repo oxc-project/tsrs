@@ -1,0 +1,27 @@
+bench/RESULTS.md
+  s_dc69f4488b866e::t_b78de9e9a72eb9 76-79
+notes/perf-tsgolint-bottlenecks.md
+  s_dc69f4488b866e::t_febaf40920eea4 125-126
+notes/perf-tsgolint-infrastructure.md
+  s_dc69f4488b866e::t_964bc008df5b22 98
+notes/perf-tsgolint-json-fix.md
+  s_dc69f4488b866e::t_60c07e2cf0ab2c 5,54
+notes/perf-tsgolint-terminal-references.md
+  s_dc69f4488b866e::t_7fe66271492190 78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9a84d12eddbb958b62af001f5ae2a8cf98d4897e",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/strict_boolean_expressions.rs
+  s_dc69f4488b866e::t_ffc41d8703e62e 175-192,194,196,198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "792630f1a14208839c2ade622099e5091147d5bd",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

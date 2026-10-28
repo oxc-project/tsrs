@@ -764,7 +764,7 @@ impl Orchestrator {
         };
 
         // TSRS_MEM_SPLIT: a program's own points would walk the heap while other builders and the reporter allocate.
-        let _mem_split = tsrs_core::memsplit::concurrent_programs();
+        tsrs_core::memsplit::note_build();
         // Go's goroutines grow their stacks; checking and binding recurse deeply (main.rs runs on 512 MB too).
         std::thread::scope(|scope| {
             let handles: Vec<_> = (0..num_routines)

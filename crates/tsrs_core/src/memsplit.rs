@@ -39,44 +39,24 @@ pub fn purge_after_check() -> bool {
     mode() == 2
 }
 
-/// Live `ConcurrentPrograms` guards.
-static CONCURRENT: AtomicUsize = AtomicUsize::new(0);
+/// Set when a build (`tsc -b`) starts its builders (`note_build`); never cleared.
+static BUILD: AtomicBool = AtomicBool::new(false);
 
-/// Whether a program reports its `parse end` and `check end` points: the stat is on and no other program runs.
+/// Whether a program reports its `parse end` and `check end` points: the stat is on and the process runs no build.
 ///
 /// A report walks every thread's heap pages (`mi_heap_visit_blocks` collects their freed blocks) and reads every
-/// thread arena, which is sound only while no other thread allocates: one builder of a build reporting while another
-/// builder's checkers run corrupts the heap.
+/// thread arena, which is sound only while no other thread allocates: a build runs its programs side by side, and one
+/// builder reporting while another builder's checkers run corrupts the heap.
 pub fn program_points() -> bool {
-    // Relaxed: set before the builder threads start and cleared after they are joined, which orders it.
-    enabled() && CONCURRENT.load(Ordering::Relaxed) == 0
+    // Relaxed: set before the builder threads are spawned, which orders it for them.
+    enabled() && !BUILD.load(Ordering::Relaxed)
 }
 
-/// Turns the per-program points off (`program_points`) until the guard drops.
-///
-/// For the builders of a build, which run their programs alongside each other and the thread that reports them. The
-/// guard drops once the builders are joined.
-pub fn concurrent_programs() -> ConcurrentPrograms {
+/// Turns the per-program points off for the rest of the process (`program_points`): a build, before its builders.
+pub fn note_build() {
     // Relaxed: see `program_points`.
-    CONCURRENT.fetch_add(1, Ordering::Relaxed);
-    ConcurrentPrograms(())
+    BUILD.store(true, Ordering::Relaxed);
 }
-
-/// The guard of `concurrent_programs`.
-pub struct ConcurrentPrograms(());
-
-impl Drop for ConcurrentPrograms {
-    fn drop(&mut self) {
-        // Relaxed: see `program_points`.
-        CONCURRENT.fetch_sub(1, Ordering::Relaxed);
-        // Relaxed: see `EXITED_THREADS`.
-        EXITED_THREADS.store(true, Ordering::Relaxed);
-    }
-}
-
-/// Whether threads that allocated have exited (a build's builders): the allocator keeps their pages as abandoned, owned
-/// by no thread. Read by the reports that run after they were joined, which orders it.
-static EXITED_THREADS: AtomicBool = AtomicBool::new(false);
 
 struct ArenaRef(&'static Arena);
 // SAFETY: `report` reads an arena only while the threads that allocate are parked (the barrier at `check end`, a
@@ -232,10 +212,11 @@ pub fn report(what: &str) {
     #[cfg(compressed_ptrs)]
     let _ =
         writeln!(out, "  reservation: {} MiB in chunks", mib(crate::reserve::reserved_in_use()));
-    // The walk collects the freed blocks of every page, abandoned ones included, which is sound while no other thread
-    // runs; mimalloc's debug build (a dev-profile tsrs) asserts that the walker owns each page it collects.
-    // Relaxed: see `EXITED_THREADS`.
-    let skip_walk = cfg!(debug_assertions) && EXITED_THREADS.load(Ordering::Relaxed);
+    // The walk collects the freed blocks of every page, those a build's exited builders left abandoned included, which is
+    // sound while no other thread runs; mimalloc's debug build (a dev-profile tsrs) asserts that the walker owns each
+    // page it collects.
+    // Relaxed: `exit` runs after the builders were joined.
+    let skip_walk = cfg!(debug_assertions) && BUILD.load(Ordering::Relaxed);
     let heap = if skip_walk { None } else { HEAP_STATS.get().map(|f| f()) };
     if skip_walk {
         let _ = writeln!(

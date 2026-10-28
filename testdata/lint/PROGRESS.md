@@ -9,7 +9,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 
 | Rule | Status | Evidence |
 | --- | --- | --- |
-| await-thenable | Updated to Go HEAD | 166 current cases; UTF-8 ranges, suggestion flags, per-file configuration regressions |
+| await-thenable | Updated to Go HEAD | 190 current cases; allowMixedPromiseArrays, UTF-8 ranges, suggestion flags, per-file configuration regressions |
 | consistent-return | Updated to Go HEAD | 31 current cases; nested function state, multiple rules, undefined option regressions |
 | consistent-type-exports | Updated to Go HEAD | 49 current cases; source overrides and both mixed-export fix modes |
 | dot-notation | Updated to Go HEAD | 75 current cases; Go regex quoting, groups, classes, repetitions, Unicode properties, and octal escapes |

@@ -143,7 +143,8 @@ pub fn create_rule(
     config: &crate::payload::ConfiguredRule,
 ) -> Result<Box<dyn crate::rule::Rule>, String> {
     match config.name.as_str() {
-        "await-thenable" => Ok(Box::new(crate::rules::await_thenable::AwaitThenable)),
+        "await-thenable" => crate::rules::await_thenable::AwaitThenable::new(&config.options)
+            .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "consistent-return" => {
             crate::rules::consistent_return::ConsistentReturn::new(&config.options)
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)

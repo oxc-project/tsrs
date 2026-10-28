@@ -1,14 +1,35 @@
 //! Port of tsgolint's `internal/rules/await_thenable/await_thenable.go`.
 
 use tsrs_ast::{self as ast, Kind, Node};
-use tsrs_checker::{Checker, Type, TypeFlags};
-use tsrs_core::P;
+use tsrs_checker::{Checker, ObjectFlags, Type, TypeFlags};
+use tsrs_core::{P, json::Value};
 
 use crate::protocol::{Diagnostic, Fix, LabeledRange, Range, RuleMessage, Suggestion};
 use crate::rule::{Listener, Rule, RuleContext, trim_node_range};
 use crate::utils::{self, TypeAwaitable, union_type_parts};
 
-pub struct AwaitThenable;
+pub struct AwaitThenable {
+    allow_mixed_promise_arrays: bool,
+}
+
+impl AwaitThenable {
+    pub fn new(options: &Value) -> Result<Self, String> {
+        let object = match options {
+            Value::Null => None,
+            Value::Object(object) => Some(object),
+            _ => return Err("await-thenable: options must be an object".into()),
+        };
+        let allow_mixed_promise_arrays =
+            match object.and_then(|object| object.get("allowMixedPromiseArrays")) {
+                None | Some(Value::Null) => false,
+                Some(Value::Bool(value)) => *value,
+                _ => {
+                    return Err("await-thenable: allowMixedPromiseArrays must be a boolean".into());
+                }
+            };
+        Ok(Self { allow_mixed_promise_arrays })
+    }
+}
 
 #[derive(Clone, Copy)]
 enum MessageId {
@@ -222,6 +243,11 @@ impl Rule for AwaitThenable {
                 ) {
                     return;
                 }
+                if self.allow_mixed_promise_arrays
+                    && has_maybe_awaitable_value(context.checker, argument)
+                {
+                    return;
+                }
                 if argument.kind() == Kind::ArrayLiteralExpression {
                     for &element in argument.elements() {
                         if element.kind() == Kind::OmittedExpression {
@@ -347,12 +373,27 @@ fn is_invalid_promise_aggregator_input(checker: &mut Checker, node: P<Node>, t: 
     false
 }
 
+fn has_maybe_awaitable_value(checker: &mut Checker, node: P<Node>) -> bool {
+    let t = utils::get_constrained_type_at_location(checker, node);
+    for &part in union_type_parts(&t) {
+        for value_type in get_value_types_of_array_like(checker, part) {
+            if !is_always_non_awaitable_type(checker, node, value_type) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 fn get_value_types_of_array_like(checker: &mut Checker, t: P<Type>) -> Vec<P<Type>> {
     if t.is_tuple_type() {
         return checker.get_type_arguments(t).to_vec();
     }
     if let Some(index) = checker.get_index_type_of_type(t, checker.number_type) {
         return vec![index];
+    }
+    if !t.object_flags().intersects(ObjectFlags::Reference) {
+        return Vec::new();
     }
     checker.get_type_arguments(t).first().copied().into_iter().collect()
 }

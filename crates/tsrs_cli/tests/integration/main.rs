@@ -18,7 +18,6 @@ mod isolated;
 mod lazy_dts_build;
 mod lsp_edit_resolutions;
 mod merged_interface_check_site;
-mod nonblocking_stdout;
 mod npm_lib_path;
 mod recycle_checkers;
 mod server_signals;

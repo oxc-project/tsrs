@@ -195,7 +195,6 @@ The remaining `TSRS_*` variables tune or report on checker internals; [debugging
 | Command | `tsc` | `tsrs` |
 | Binary package | `@typescript/<os>-<arch>` | `@tsrs/<os>-<arch>[-gnu\|-musl]`, chosen by libc |
 | Launch | `execve` if available, else `execFileSync` | `execve` if available, else `spawn` |
-| Non-TTY stdio | Handled by Go's file I/O | Set to blocking in the Node launcher, as in Oxc |
 | Child killed by a signal in the fallback launcher | `execFileSync` throws when there is no exit status | Forwards signals to the child and re-raises the child's signal. With `execve`, both launchers are replaced by the compiler |
 | Binary override | none | `TSRS_BINARY` |
 

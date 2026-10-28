@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/no_redundant_type_constituents.rs
+  s_dc69f4488b866e::t_66e760a320072e 228-231
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "efb145c73c41788b7fb08e44ae79f4914122de4d",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

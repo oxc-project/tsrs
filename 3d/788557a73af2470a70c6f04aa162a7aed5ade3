@@ -1,0 +1,19 @@
+testdata/lint/no-base-to-string/baseline.json
+  s_dc69f4488b866e::t_e37746657bdbbf 1-6566
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3d788557a73af2470a70c6f04aa162a7aed5ade3",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

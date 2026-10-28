@@ -1,0 +1,39 @@
+name: Triage Model Smoke Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/triage-model-smoke]
+    paths:
+      - .github/workflows/triage-model-smoke.yml
+      - .github/scripts/triage-model-smoke.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: ./.github/actions/setup-node-tools
+
+      - name: Check out the pinned triage runtime
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: withastro/triagebot-action
+          ref: 51d30da13c0bd571a3822fc56882de40fead0086
+          path: .triage-model-probe
+          persist-credentials: false
+
+      - name: Probe model streaming and tool round trips
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_GATEWAY_ID: default
+        run: node .github/scripts/triage-model-smoke.mjs .triage-model-probe/dist/index.mjs

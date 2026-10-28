@@ -636,7 +636,9 @@ impl SymbolMapEntry {
     fn symbol(self) -> P<Symbol> {
         let stored = self.stored();
         if self.is_proxy() {
-            return stored.parent().expect("a name proxy's parent is the symbol it stands for");
+            // SAFETY: a name proxy's field holds the key of the symbol it stands for (a live symbol). Not `parent()`,
+            // whose shared-data and tables checks inlined into every lookup cost about 1% of instructions.
+            return unsafe { P::from_key(stored.parent_or_tables.get()) };
         }
         stored
     }

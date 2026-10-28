@@ -92,31 +92,11 @@ pub fn new_system() -> OsSys {
         }
     };
 
-    // Node (and other launchers) may exec us with stdout/stderr in O_NONBLOCK.
-    // Clear the flag so Rust's std::io::BufWriter treats the fds as blocking
-    // and retries on EPIPE, matching Go's os.Stdout behavior.
-    #[cfg(unix)]
-    clear_std_write_nonblock();
-
     OsSys {
         cwd: tspath::normalize_path(&cwd.to_string_lossy()),
         fs: Arc::new(bundled::wrap_fs(osvfs::fs())),
         default_library_path: bundled::default_lib_path(),
         writer: Mutex::new(std::io::BufWriter::new(std::io::stdout())),
         start: Instant::now(),
-    }
-}
-
-#[cfg(unix)]
-fn clear_std_write_nonblock() {
-    // SAFETY: `fcntl` operates on well-known fd numbers 1 and 2. We ignore errors
-    // because the worst case is the same as without the call (e.g., fd closed).
-    unsafe {
-        for fd in [libc::STDOUT_FILENO, libc::STDERR_FILENO] {
-            let flags = libc::fcntl(fd, libc::F_GETFL, 0);
-            if flags != -1 {
-                libc::fcntl(fd, libc::F_SETFL, flags & !libc::O_NONBLOCK);
-            }
-        }
     }
 }

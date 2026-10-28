@@ -21,7 +21,13 @@ impl Checker {
     // Return the first type-only alias declaration node (if any) in the resolution chain that affects
     // the symbol for the given meaning
     // checker.go:2184
-    pub(crate) fn get_type_only_alias_declaration_ex(
+    /// Returns the first type-only alias declaration affecting `meaning`.
+    ///
+    /// Follows resolved aliases until a symbol has the requested meaning. Pass
+    /// `SymbolFlags::None` to inspect the entire resolved chain. Module-specific
+    /// star restrictions are queried with `Self::get_type_only_export_star_declaration`;
+    /// this query can also see them after they propagate onto an alias.
+    pub fn get_type_only_alias_declaration_ex(
         &mut self,
         symbol: P<Symbol>,
         meaning: SymbolFlags,

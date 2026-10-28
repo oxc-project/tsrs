@@ -1,0 +1,9 @@
+{
+  "absent": [
+    "DROP_MEMBER",
+    "DROP_VALUE"
+  ],
+  "entries": [
+    "index.ts"
+  ]
+}

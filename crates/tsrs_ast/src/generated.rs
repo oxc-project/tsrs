@@ -8931,7 +8931,7 @@ impl NodeFactory {
         )
     }
 
-    fn update_qualified_name(&self, node: P<Node>, left: P<Node>, right: P<Node>) -> P<Node> {
+    pub fn update_qualified_name(&self, node: P<Node>, left: P<Node>, right: P<Node>) -> P<Node> {
         let data = node.as_qualified_name();
         if left != data.left() || right != data.right() {
             return update_node(self.new_qualified_name(left, right), node, &self.hooks);
@@ -10486,7 +10486,7 @@ impl NodeFactory {
         )
     }
 
-    fn update_export_specifier(
+    pub fn update_export_specifier(
         &self,
         node: P<Node>,
         is_type_only: bool,

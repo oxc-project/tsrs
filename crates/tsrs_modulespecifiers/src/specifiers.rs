@@ -198,7 +198,7 @@ fn try_get_module_name_from_ambient_module(
 }
 
 // specifiers.go:168
-fn get_info(importing_source_file_name: &str, host: &dyn ModuleSpecifierGenerationHost) -> Info {
+pub fn get_info(importing_source_file_name: &str, host: &dyn ModuleSpecifierGenerationHost) -> Info {
     let source_directory = tspath::get_directory_path(importing_source_file_name);
     Info {
         importing_source_file_name: importing_source_file_name.to_string(),
@@ -208,7 +208,7 @@ fn get_info(importing_source_file_name: &str, host: &dyn ModuleSpecifierGenerati
 }
 
 // specifiers.go:180
-fn get_all_module_paths(
+pub fn get_all_module_paths(
     info: &Info,
     imported_file_name: &str,
     host: &dyn ModuleSpecifierGenerationHost,
@@ -918,7 +918,7 @@ fn try_get_module_name_from_root_dirs(
 }
 
 // specifiers.go:748
-fn try_get_module_name_as_node_module(
+pub fn try_get_module_name_as_node_module(
     path_obj: &ModulePath,
     info: &Info,
     importing_source_file: P<SourceFile>,

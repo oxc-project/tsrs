@@ -1,0 +1,11 @@
+{
+  "contains": [
+    "foreign"
+  ],
+  "absent": [
+    "external: true"
+  ],
+  "entries": [
+    "index.ts"
+  ]
+}

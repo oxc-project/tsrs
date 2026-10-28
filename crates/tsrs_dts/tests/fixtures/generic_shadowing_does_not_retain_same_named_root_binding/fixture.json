@@ -1,0 +1,11 @@
+{
+  "entries": [
+    "index.ts"
+  ],
+  "contains": [
+    "value: Item"
+  ],
+  "absent": [
+    "SHOULD_BE_REMOVED"
+  ]
+}

@@ -1,0 +1,5 @@
+# Tiny authored packages are part of the regression corpus.
+!/tests/environments/**/node_modules/
+!/tests/fixtures/**/node_modules/
+
+/tests/vue/.work/

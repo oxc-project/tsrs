@@ -1,0 +1,1 @@
+interface Support { id: number } export namespace N { export interface Item extends Support { value: string } export interface Unused { DROP_MEMBER: true } export const make = (): Item => ({ id: 1, value: 'ok' }); export const dead = { DROP_VALUE: true }; }

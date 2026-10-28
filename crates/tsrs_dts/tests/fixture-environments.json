@@ -1,0 +1,75 @@
+{
+  "computed-method": {
+    "packages": [
+      "@types/node"
+    ],
+    "types": [
+      "node"
+    ]
+  },
+  "export-all-external": {
+    "packages": [
+      "rollup"
+    ],
+    "lib": [
+      "es2022",
+      "dom",
+      "esnext.disposable"
+    ]
+  },
+  "externals": {
+    "packages": [
+      "@types/react",
+      "@types/d3-drag"
+    ]
+  },
+  "generic-extends": {
+    "packages": [
+      "@types/react"
+    ]
+  },
+  "inline-import-typeof-members": {
+    "packages": [
+      "typescript",
+      "rollup"
+    ],
+    "lib": [
+      "es2022",
+      "dom",
+      "esnext.disposable"
+    ]
+  },
+  "issue-128-reference-directive": {
+    "packages": [
+      "@types/react",
+      "@types/node",
+      "@types/jest"
+    ]
+  },
+  "issue-236": {
+    "packages": [
+      "@types/react"
+    ]
+  },
+  "preserve-reference-directives": {
+    "packages": [
+      "@types/react"
+    ]
+  },
+  "react-components": {
+    "packages": [
+      "@types/react"
+    ]
+  },
+  "externals-link": {
+    "packages": [],
+    "files": "externals-link"
+  },
+  "inline-external-node-next-module": {
+    "packages": [],
+    "files": "inline-external-node-next-module",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "packageType": "module"
+  }
+}

@@ -1,0 +1,586 @@
+{
+  "basic": {
+    "classification": "validated",
+    "reason": "Original/generated compiler checks and public export names pass; type-only value exports retained for typeof queries (dedicated consumer regression)"
+  },
+  "call-signature": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "circular-dependency": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "circular-dependency-star": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "circular-to-entry": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "computed-method": {
+    "classification": "validated",
+    "reason": "Real, locked declaration dependencies supplied by the explicit fixture environment adapter; original upstream dependency versions were not recorded."
+  },
+  "computed-property": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "construct-signature": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "constructor-shorthands": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "decl-module-or-global": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "enum": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "error": {
+    "entries": [
+      "import-from-global-modules/index.d.ts"
+    ],
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-all-as-type": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-all-external": {
+    "classification": "validated",
+    "reason": "Real, locked declaration dependencies supplied by the explicit fixture environment adapter; original upstream dependency versions were not recorded."
+  },
+  "export-as-namespace": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-const": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-default-abstract": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-default-class": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-default-expr": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-default-function": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-default-interface": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-default-overrides": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-empty-object": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-multiple-vars": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-simple-alias": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-simple-class": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-simple-function": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-simple-interface": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-star": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "export-star-as": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "extend-global-module": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "externals": {
+    "classification": "validated",
+    "reason": "Real, locked declaration dependencies supplied by the explicit fixture environment adapter; original upstream dependency versions were not recorded."
+  },
+  "externals-link": {
+    "classification": "validated",
+    "reason": "Original tiny package definitions recovered from pinned rollup-plugin-dts source, with verified Git blobs; original typack fixture bytes unchanged."
+  },
+  "generic-extends": {
+    "classification": "validated",
+    "reason": "Real, locked declaration dependencies supplied by the explicit fixture environment adapter; original upstream dependency versions were not recorded."
+  },
+  "generic-shadowing": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "generics": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "getters-setters": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "has-class": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "implements-expression": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "import-default-interface": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "import-no-import-clause": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "import-referenced-interface": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "import-renamed": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "import-unused-interface": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "inline-external-node-next-module": {
+    "classification": "validated",
+    "reason": "Original tiny package definitions recovered from pinned rollup-plugin-dts source, with verified Git blobs; original typack fixture bytes unchanged."
+  },
+  "inline-import": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "inline-import-external-namespace": {
+    "classification": "missing-environment",
+    "expected": [
+      "TS2307"
+    ],
+    "reason": "synthetic foo, foo_bar, foo-bar, foo.bar and foo/bar packages unavailable; expected TS2307"
+  },
+  "inline-import-generic": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "inline-import-namespace": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "inline-import-typeof-members": {
+    "classification": "validated",
+    "reason": "Real, locked declaration dependencies supplied by the explicit fixture environment adapter; original upstream dependency versions were not recorded."
+  },
+  "issue-100-unnamed-default-export": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-101-allow-js": {
+    "entries": [
+      "index.js"
+    ],
+    "classification": "validated",
+    "reason": "allowJs enabled explicitly for source entry"
+  },
+  "issue-101-internal-api-comment": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-106-inline-import-generic": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-111": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-128-reference-directive": {
+    "entries": [
+      "main-a.d.ts",
+      "main-b.d.ts"
+    ],
+    "classification": "validated",
+    "reason": "Real, locked declaration dependencies supplied by the explicit fixture environment adapter; original upstream dependency versions were not recorded."
+  },
+  "issue-160-global-namespace": {
+    "classification": "validated",
+    "reason": "Original/generated compiler checks and export names pass; checker-resolved namespace local export targets (dedicated consumer regression)"
+  },
+  "issue-166-namespace-rename": {
+    "classification": "validated",
+    "reason": "Original/generated compiler checks and export names pass; checker-resolved namespace local export targets (dedicated consumer regression)"
+  },
+  "issue-185-hoist-generic-extends": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-189": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-201": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-217": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-220": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-236": {
+    "classification": "validated",
+    "reason": "Real, locked declaration dependencies supplied by the explicit fixture environment adapter; original upstream dependency versions were not recorded."
+  },
+  "issue-24-export-const": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-254": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-284": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-85": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-87": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-89-import-equals": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "issue-91-extra-semicolon": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "keep-extended-interface": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "keep-interface-definition": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "keep-referenced-interface": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "labeled-tuple-types": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "multiple-entries": {
+    "entries": [
+      "main-a.d.ts",
+      "main-b.d.ts"
+    ],
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "multiple-entries-multiple-tsconfigs": {
+    "entries": [
+      "packages/packi/src/entries/entry-a.ts",
+      "packages/packi/src/entries/entry-b.ts"
+    ],
+    "classification": "unsupported",
+    "reason": "Synthetic multi-entry compiler/export checks only; nearest-config discovery unsupported by the explicit-config API; nested configs are not exercised"
+  },
+  "namespace-definition": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "namespace-definition-rename": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "namespace-keyword-exports": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "namespace-references": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "optional-type": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "overrides": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "overrides-with-rename": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "path-mapping": {
+    "classification": "validated",
+    "reason": "Explicit in-memory components/* -> foo/bar/* paths adapter; original/generated consumer and export checks pass"
+  },
+  "preserve-comments": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "preserve-reference-directives": {
+    "classification": "validated",
+    "reason": "Real, locked declaration dependencies supplied by the explicit fixture environment adapter; original upstream dependency versions were not recorded."
+  },
+  "re-export-default": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "re-export-namespace": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "re-export-namespace-inner": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "re-export-namespace-multiple": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "react-components": {
+    "classification": "validated",
+    "reason": "Real, locked declaration dependencies supplied by the explicit fixture environment adapter; original upstream dependency versions were not recorded."
+  },
+  "reference-path-remapping": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "reference-path-remapping-should-not-touch-absolute-path": {
+    "classification": "missing-environment",
+    "expected": [
+      "TS6231"
+    ],
+    "reason": "absolute reference /some/absolute/path unavailable; expected TS6231"
+  },
+  "remapped-mapped-types": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "remove-function-body": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "remove-internal": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "remove-private": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "remove-unexported-function": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "remove-unexported-interface": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "renaming": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "shadowing": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "spread-tuple-type": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "ts42-abstract": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "ts42-tuple-rest": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "ts43-getset": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "ts43-override": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "ts43-staticindex": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "ts43-templatestring": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "ts47": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "ts48": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-conditional": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-constructor": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-function": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-index": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-literal": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-mapped": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-nodes": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-only-import-export": {
+    "classification": "missing-environment",
+    "expected": [
+      "TS2307"
+    ],
+    "reason": "synthetic bare package environments unavailable; expected TS2307"
+  },
+  "type-simple": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-template-literals": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-this": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-typeof": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "type-typeof-this": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "typeof-this": {
+    "classification": "validated",
+    "reason": "Original/generated compiler checks and export names pass; this receiver excluded from class renaming using tsrs AST classification (dedicated consumer regression)"
+  },
+  "typeof-undefined": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "typeof-undefined-alias": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "unnamed-default-export-without-space": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "using-dcts-files": {
+    "entries": [
+      "index.d.cts"
+    ],
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "using-dmts-files": {
+    "entries": [
+      "index.d.mts"
+    ],
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "using-mts-cts-files": {
+    "entries": [
+      "main-a.mts",
+      "main-b.cts"
+    ],
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "using-namespace-import": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "using-namespace-import-multiple": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  },
+  "using-ts-files": {
+    "entries": [
+      "main-a.ts",
+      "main-b.tsx"
+    ],
+    "classification": "invalid-input",
+    "expected": [
+      "TS2578"
+    ],
+    "reason": "Source has unused @ts-expect-error (TS2578); error-tolerant declaration emission is unsupported; expected TS2578"
+  },
+  "variadic-tuple-types": {
+    "classification": "validated",
+    "reason": "Original and generated type checks and public export names pass; no consumer equivalence claim"
+  }
+}

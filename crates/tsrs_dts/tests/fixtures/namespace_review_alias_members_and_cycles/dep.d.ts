@@ -1,0 +1,1 @@
+declare class Client { private brand: void; value: number } export declare namespace Ns { export { Client as Ref }; export interface Box { ref: Client } } export * as self from './dep.js'; export type { Client };

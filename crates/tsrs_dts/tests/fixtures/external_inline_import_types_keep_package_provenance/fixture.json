@@ -1,0 +1,10 @@
+{
+  "files": 1,
+  "eachContainsAny": [
+    "import(\"external\", { with: { \"resolution-mode\": \"require\" } })",
+    "import('external', { with: { \"resolution-mode\": \"require\" } })"
+  ],
+  "entries": [
+    "index.ts"
+  ]
+}

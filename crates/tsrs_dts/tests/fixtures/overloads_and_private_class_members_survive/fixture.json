@@ -1,0 +1,11 @@
+{
+  "entries": [
+    "index.ts"
+  ],
+  "contains": [
+    "private brand"
+  ],
+  "occurrences": {
+    "declare function": 2
+  }
+}

@@ -1,0 +1,1 @@
+export interface Options { endpoint: string } interface State { connected: boolean } export function create(o: Options): State { return { connected: !!o.endpoint }; } export class Client { private brand!: void; value = 1; }

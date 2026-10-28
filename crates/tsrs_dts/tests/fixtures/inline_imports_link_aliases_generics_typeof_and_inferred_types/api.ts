@@ -1,0 +1,1 @@
+export type API = import('./barrel.js').Renamed<import('./dep.js').Item>; export type Factory = typeof import('./dep.js').create<string>; import { createItem } from './dep.js'; export const inferred = () => createItem(); export type Inferred = ReturnType<typeof inferred>;

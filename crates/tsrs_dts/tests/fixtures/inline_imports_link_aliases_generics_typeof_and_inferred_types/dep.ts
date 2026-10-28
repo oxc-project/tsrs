@@ -1,0 +1,1 @@
+interface Base { id: number } export interface Item extends Base { label: string } export interface Box<T> { value: T } export function create<T>(value: T): Box<T> { return { value }; } export class ItemClass { value = 1 } export function createItem(): ItemClass { return new ItemClass(); } export interface Dead { unused: true }

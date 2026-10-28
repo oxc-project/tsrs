@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/strict_void_return.rs
+  s_dc69f4488b866e::t_2a549ab3b60762 58-61,180-185,195-199,296-300,356,359-360
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "03aec70725f7b7b97f31fda45b3d2b7ac73d7915",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

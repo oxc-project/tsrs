@@ -1198,7 +1198,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_dts"
-version = "0.20.0"
+version = "0.20.1"
 dependencies = [
  "mimalloc-safe",
  "rustc-hash",

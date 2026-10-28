@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/await_thenable.rs
+  s_dc69f4488b866e::t_923081c29546d7 13-20,23-63,66-67,80,83,186-190,193,234,249,277,283,315-316,321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "cc21699e895ea745d6aa69eaa5dccb9265bb4217",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

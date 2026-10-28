@@ -1,0 +1,25 @@
+Cargo.lock
+  s_dc69f4488b866e::t_2d301a1f686ff5 1321
+crates/tsrs_core/src/json/json.rs
+  s_dc69f4488b866e::t_5eebc792ebd41b 236,472
+crates/tsrs_lint/Cargo.toml
+  s_dc69f4488b866e::t_598b192e922a49 14
+crates/tsrs_lint/src/payload.rs
+  s_dc69f4488b866e::t_9530a6d0297349 3,5,28-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "19458ce65eb879055af8a61ddeb862132431f19e",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

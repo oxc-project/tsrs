@@ -1,0 +1,21 @@
+tools/tsgolint/export.mjs
+  s_dc69f4488b866e::t_136cd72d57e129 4,8,112-136,211-219
+tools/tsgolint/run-baselines.mjs
+  s_dc69f4488b866e::t_02b07c2c75dfa5 106-108,123,178,185-188,224-225,228-246,249
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "4235cdac72a92cf39515cde0124c0b4f76ec6320",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

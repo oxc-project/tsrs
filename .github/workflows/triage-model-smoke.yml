@@ -2,6 +2,14 @@ name: Triage Model Smoke Test
 
 on:
   workflow_dispatch:
+    inputs:
+      models:
+        description: Comma-separated provider/model IDs, or all
+        default: all
+      repetitions:
+        description: Attempts per model (1-5)
+        type: number
+        default: 1
   push:
     branches: [ci/triage-model-smoke]
     paths:
@@ -36,4 +44,6 @@ jobs:
           CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_GATEWAY_ID: default
+          SMOKE_MODELS: ${{ inputs.models || 'cloudflare-workers-ai/@cf/zai-org/glm-5.2,cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6' }}
+          SMOKE_REPETITIONS: ${{ inputs.repetitions || 3 }}
         run: node .github/scripts/triage-model-smoke.mjs .triage-model-probe/dist/index.mjs

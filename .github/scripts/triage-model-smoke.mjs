@@ -21,11 +21,17 @@ try {
         source.replace(entrypoint, "export { resolveModel, completeSimple, modelRegistry };"),
     );
     const { resolveModel, completeSimple, modelRegistry } = await import(pathToFileURL(runtimePath).href);
-    const candidates = [
+    const catalog = [
         "cloudflare-ai-gateway/claude-opus-4-6",
         "cloudflare-ai-gateway/claude-sonnet-4-6",
         ...[...modelRegistry.get("cloudflare-workers-ai").keys()].map((id) => `cloudflare-workers-ai/${id}`),
     ];
+    const candidates = !process.env.SMOKE_MODELS || process.env.SMOKE_MODELS === "all"
+        ? catalog
+        : process.env.SMOKE_MODELS.split(",").map((model) => model.trim());
+    for (const candidate of candidates) assert(catalog.includes(candidate), `Unknown candidate: ${candidate}`);
+    const repetitions = Number(process.env.SMOKE_REPETITIONS || 1);
+    assert(Number.isInteger(repetitions) && repetitions >= 1 && repetitions <= 5, "Repetitions must be 1-5");
     if (process.argv.includes("--list")) {
         for (const candidate of candidates) {
             const model = resolveModel(candidate);
@@ -110,27 +116,32 @@ try {
         }
         const results = [];
         // Limit concurrent requests while allowing slow models to time out independently.
-        for (let offset = 0; offset < candidates.length; offset += 3) {
-            const batch = await Promise.allSettled(candidates.slice(offset, offset + 3).map(probe));
-            for (const result of batch) {
-                if (result.status === "rejected") throw result.reason;
-                results.push(result.value);
-                console.log(JSON.stringify(result.value));
+        for (let attempt = 1; attempt <= repetitions; attempt++) {
+            for (let offset = 0; offset < candidates.length; offset += 3) {
+                const batch = await Promise.allSettled(candidates.slice(offset, offset + 3).map(probe));
+                for (const result of batch) {
+                    if (result.status === "rejected") throw result.reason;
+                    const row = { attempt, ...result.value };
+                    results.push(row);
+                    console.log(JSON.stringify(row));
+                }
             }
         }
         const cell = (text) => String(text ?? "").replaceAll("|", "\\|").replaceAll("\n", " ");
         const summary = [
             "Model smoke test using the pinned triage runtime, medium reasoning, streaming, and a fresh tool result.",
             "",
-            "| Model | Tool call | Tool result | Seconds | Failure |",
-            "| --- | --- | --- | --- | --- |",
-            ...results.map((r) => `| ${cell(r.candidate)} | ${r.toolCallPassed ? "PASS" : "FAIL"} | ${r.ok ? "PASS" : "FAIL"} | ${r.seconds.toFixed(1)} | ${cell(r.error)} |`),
+            "| Model | Attempt | Tool call | Tool result | Seconds | Failure |",
+            "| --- | --- | --- | --- | --- | --- |",
+            ...results.map((r) => `| ${cell(r.candidate)} | ${r.attempt} | ${r.toolCallPassed ? "PASS" : "FAIL"} | ${r.ok ? "PASS" : "FAIL"} | ${r.seconds.toFixed(1)} | ${cell(r.error)} |`),
             "",
         ].join("\n");
         console.log(summary);
         if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
-        // Individual failures are diagnostic results; fail the job only if nothing works.
-        if (!results.some((result) => result.ok)) process.exitCode = 1;
+        // A candidate must pass every attempt to count as working.
+        if (!candidates.some((candidate) => results.filter((result) => result.candidate === candidate).every((result) => result.ok))) {
+            process.exitCode = 1;
+        }
     }
 } finally {
     rmSync(temporary, { recursive: true, force: true });

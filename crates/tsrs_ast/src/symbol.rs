@@ -95,14 +95,16 @@ impl Symbol {
 
     /// A symbol table's stand-in for `target` stored under `name`, another name than the target's (Go
     /// `SymbolFlagsNameProxy`). It is internal to `SymbolTable`, which returns `target` for it, and it gets no id: it
-    /// is never seen outside the table. It is allocated where the table at `table` lives, which may outlive the
-    /// current allocation target.
+    /// is never seen outside the table. It is allocated in the current allocation target when the table at `table`
+    /// lives there, and in the thread's own (never freed) arena otherwise (`enter_table_owner`), so it never dies
+    /// before the table.
     #[cold]
     #[inline(never)]
     fn new_name_proxy(name: &'static str, target: P<Symbol>, table: usize) -> P<Symbol> {
         let _owner = tsrs_core::arena::enter_table_owner(table);
         let proxy = Symbol::alloc(SymbolFlags::empty(), name);
-        proxy.set_parent(Some(target));
+        // Read back by `SymbolMapEntry::proxy_target`.
+        proxy.parent_or_tables.set(target.key());
         proxy
     }
 
@@ -152,8 +154,9 @@ impl Symbol {
     #[inline]
     pub fn own_data(&self) -> &SymbolData {
         debug_assert!(!self.shares_data());
-        // SAFETY: only alloc (behind new and new_name_proxy) and new_shared_data construct Symbol. An ordinary header is the first
-        // field of SymbolWithData, whose live payload is at this offset in the same arena allocation.
+        // SAFETY: only alloc (behind new and new_name_proxy) and new_shared_data construct Symbol. An ordinary
+        // header is the first field of SymbolWithData, whose live payload is at this offset in the same arena
+        // allocation.
         unsafe {
             tsrs_core::ptr::arena_neighbor(
                 self,
@@ -647,8 +650,9 @@ impl SymbolMapEntry {
     #[cold]
     #[inline(never)]
     fn proxy_target(proxy: P<Symbol>) -> P<Symbol> {
-        // SAFETY: a name proxy's field holds the key of the symbol it stands for (a live symbol). Not `parent()`,
-        // whose shared-data and tables checks inlined into every lookup cost about 1% of instructions.
+        // SAFETY: `new_name_proxy` stores the key of the symbol it stands for (a live symbol) here, and a proxy never
+        // leaves its table, so nothing gives it a tables tail or shared data that would reuse the field. Not
+        // `parent()`, whose shared-data and tables checks inlined into every lookup cost about 1% of instructions.
         unsafe { P::from_key(proxy.parent_or_tables.get()) }
     }
 
@@ -683,26 +687,21 @@ impl SymbolMapEntry {
     }
 }
 
-#[derive(Default, Clone)]
-struct SymbolMapExtra {
-    index: Option<HashTable<u32>>, // positions in `entries`; present once len > SYMBOL_TABLE_LINEAR_MAX
-}
-
-/// `SymbolMap::extra`: one word holding either a boxed `SymbolMapExtra` (an even address) or, in a table without
-/// one (a linear table: nearly every table), a 64-bit Bloom filter of its
-/// keys' hashes (two bits per key) whose bit 0 is set as the tag. A lookup the filter rejects returns without
-/// reading the entries, which are a second cache line: over half of all lookups are misses in small tables
-/// (a property lookup tries each type on the apparent-type chain, down to `Object`'s members), and the entries of
-/// a table looked up once in a while are rarely in cache. Deleting a key leaves its bits set (a superset is still
-/// a valid filter).
-struct ExtraSlot(*mut SymbolMapExtra);
+/// `SymbolMap::extra`: one word holding either the boxed hash index of entry positions (an even address; a table gets
+/// one once it has more than `SYMBOL_TABLE_LINEAR_MAX` entries) or, in a linear table (nearly every table), a 64-bit
+/// Bloom filter of its keys' hashes (two bits per key) whose bit 0 is set as the tag. A lookup the filter rejects
+/// returns without reading the entries, which are a second cache line: over half of all lookups are misses in small
+/// tables (a property lookup tries each type on the apparent-type chain, down to `Object`'s members), and the entries
+/// of a table looked up once in a while are rarely in cache. Deleting a key leaves its bits set (a superset is still a
+/// valid filter).
+struct ExtraSlot(*mut HashTable<u32>);
 
 impl ExtraSlot {
     const EMPTY_FILTER: usize = 1;
 
     #[inline]
-    fn boxed(extra: SymbolMapExtra) -> ExtraSlot {
-        ExtraSlot(Box::into_raw(Box::new(extra)))
+    fn boxed(index: HashTable<u32>) -> ExtraSlot {
+        ExtraSlot(Box::into_raw(Box::new(index)))
     }
 
     #[inline]
@@ -711,23 +710,15 @@ impl ExtraSlot {
     }
 
     #[inline]
-    fn get(&self) -> Option<&SymbolMapExtra> {
+    fn get(&self) -> Option<&HashTable<u32>> {
         // SAFETY: an even word is the pointer `boxed` created, owned by this slot.
         (!self.is_filter()).then(|| unsafe { &*self.0 })
     }
 
     #[inline]
-    fn get_mut(&mut self) -> Option<&mut SymbolMapExtra> {
+    fn get_mut(&mut self) -> Option<&mut HashTable<u32>> {
         // SAFETY: as in `get`, and `&mut self` is unique.
         (!self.is_filter()).then(|| unsafe { &mut *self.0 })
-    }
-
-    /// The boxed extra, created (dropping the filter) when the slot holds a filter.
-    fn get_or_insert(&mut self) -> &mut SymbolMapExtra {
-        if self.is_filter() {
-            *self = ExtraSlot::boxed(SymbolMapExtra::default());
-        }
-        self.get_mut().unwrap()
     }
 
     #[inline]
@@ -763,7 +754,7 @@ impl Default for ExtraSlot {
 impl Clone for ExtraSlot {
     fn clone(&self) -> ExtraSlot {
         match self.get() {
-            Some(extra) => ExtraSlot::boxed(extra.clone()),
+            Some(index) => ExtraSlot::boxed(index.clone()),
             None => ExtraSlot(self.0),
         }
     }
@@ -778,10 +769,10 @@ impl Drop for ExtraSlot {
     }
 }
 
-// SAFETY: an `ExtraSlot` owns its `SymbolMapExtra` like a `Box` (or holds plain bits).
+// SAFETY: an `ExtraSlot` owns its index like a `Box` (or holds plain bits).
 unsafe impl Send for ExtraSlot {}
-// SAFETY: as for the `Box` it stands for: `SymbolMapExtra` has no interior mutability, and through `&ExtraSlot` it
-// is only read.
+// SAFETY: as for the `Box` it stands for: the index has no interior mutability, and through `&ExtraSlot` it is only
+// read.
 unsafe impl Sync for ExtraSlot {}
 
 /// A symbol name's 32-bit hash: one widening multiply over the first and last bytes (names of up to 16 bytes, nearly
@@ -850,7 +841,7 @@ fn index_hash(hash: u32) -> u64 {
 impl SymbolMap {
     fn with_capacity(n: usize) -> SymbolMap {
         let extra = if n > SYMBOL_TABLE_LINEAR_MAX {
-            ExtraSlot::boxed(SymbolMapExtra { index: Some(HashTable::with_capacity(n)) })
+            ExtraSlot::boxed(HashTable::with_capacity(n))
         } else {
             ExtraSlot::default()
         };
@@ -859,7 +850,7 @@ impl SymbolMap {
 
     #[inline]
     fn index(&self) -> Option<&HashTable<u32>> {
-        self.extra.get()?.index.as_ref()
+        self.extra.get()
     }
 
     /// The stored key of entry `i`.
@@ -958,7 +949,7 @@ impl SymbolMap {
         }
         self.entries.push(SymbolMapEntry::new(name, symbol, KeyPrint::of(name, hash), table));
         self.extra.add_to_filter(hash);
-        if let Some(SymbolMapExtra { index: Some(index) }) = self.extra.get_mut() {
+        if let Some(index) = self.extra.get_mut() {
             let entries = &self.entries;
             index.insert_unique(index_hash(hash), i as u32, |&m| {
                 index_hash(hash_name(entries[m as usize].key()))
@@ -979,7 +970,7 @@ impl SymbolMap {
                 index_hash(self.entry_hash(m as usize))
             });
         }
-        self.extra.get_or_insert().index = Some(index);
+        self.extra = ExtraSlot::boxed(index);
     }
 
     fn shift_remove(&mut self, name: &str) {
@@ -987,7 +978,7 @@ impl SymbolMap {
             return;
         };
         let hash = self.entry_hash(i);
-        if let Some(SymbolMapExtra { index: Some(index) }) = self.extra.get_mut() {
+        if let Some(index) = self.extra.get_mut() {
             if let Ok(entry) = index.find_entry(index_hash(hash), |&j| j as usize == i) {
                 entry.remove();
             }

@@ -29,6 +29,7 @@ use tsrs_core::arena::Region;
 use tsrs_core::{P, ScriptKind};
 
 use crate::program::Program;
+use crate::programregions::ProgramRegions;
 
 /// What a program does with its file regions (`ProgramOptions::leaf_files`; `TSRS_FREE_LEAVES`).
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
@@ -391,11 +392,12 @@ pub(crate) fn parse(
 }
 
 /// `tsrs_binder::bind_source_file`, in the file's region if it has one (then trimmed to what parse and bind used, if
-/// this thread carved it last).
-pub(crate) fn bind(file: P<SourceFile>) {
+/// this thread carved it last): after `bind_in_file_regions`, or when the program has regions (`regions`), which
+/// hold its files.
+pub(crate) fn bind(file: P<SourceFile>, regions: Option<&ProgramRegions>) {
     // Relaxed: see `bind_in_file_regions`.
     if !file.is_bound()
-        && OWN_FILE_REGIONS.load(Ordering::Relaxed)
+        && (OWN_FILE_REGIONS.load(Ordering::Relaxed) || regions.is_some())
         && let Some(region) = Region::containing(file.addr())
     {
         {

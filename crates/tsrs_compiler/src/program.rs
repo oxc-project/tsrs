@@ -1133,12 +1133,15 @@ impl Program {
     pub fn bind_source_files(&self) {
         let unbound: Vec<P<SourceFile>> =
             self.files.iter().copied().filter(|f| !f.is_bound()).collect();
+        let regions = self.opts.regions.as_deref();
         if self.single_threaded() {
             // Go's single-threaded work group runs queued functions last-queued first, so files bind in reverse
             // program order. The order is observable: the binder assigns symbol ids (private names).
-            unbound.into_iter().rev().for_each(crate::fileregions::bind);
+            unbound.into_iter().rev().for_each(|file| crate::fileregions::bind(file, regions));
         } else {
-            worker_pool().install(|| unbound.into_par_iter().for_each(crate::fileregions::bind));
+            worker_pool().install(|| {
+                unbound.into_par_iter().for_each(|file| crate::fileregions::bind(file, regions));
+            });
         }
     }
 
@@ -1407,7 +1410,7 @@ impl Program {
         source_file: Option<P<SourceFile>>,
     ) -> Vec<P<Diagnostic>> {
         match source_file {
-            Some(file) => crate::fileregions::bind(file),
+            Some(file) => crate::fileregions::bind(file, self.opts.regions.as_deref()),
             None => self.bind_source_files(),
         }
         self.collect_diagnostics(ctx, source_file, false /*concurrent*/, |_, file| {

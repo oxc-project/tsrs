@@ -624,7 +624,11 @@ impl Speculation<'_> {
             &path,
             &metadata,
         ));
-        festats::timed(Cat::Bind, || file.map(crate::fileregions::bind));
+        festats::timed(Cat::Bind, || {
+            if let Some(file) = file {
+                crate::fileregions::bind(file, ctx.opts.regions.as_deref());
+            }
+        });
         let resolutions = festats::timed(Cat::Resolve, || {
             file.map(|file| Box::new(prefetch_resolutions(ctx, file, &metadata)))
         });
@@ -953,7 +957,11 @@ impl FilesParser {
                         });
                         // Bind here too: the round is bound by file system calls, and the checkers would bind every
                         // file on the same pool later (binding depends only on the file).
-                        festats::timed(Cat::Bind, || file.map(crate::fileregions::bind));
+                        festats::timed(Cat::Bind, || {
+                            if let Some(file) = file {
+                                crate::fileregions::bind(file, opts.regions.as_deref());
+                            }
+                        });
                         if let Some(file) = file {
                             apply_virtual_file_name(&mut metadata, file);
                         }

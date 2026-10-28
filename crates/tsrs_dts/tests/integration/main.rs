@@ -7,5 +7,6 @@ mod diagnostic_reuse;
 mod eligibility;
 mod fixtures;
 mod link;
+mod memory;
 mod pipeline;
 mod type_only_metadata;

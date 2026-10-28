@@ -17,9 +17,6 @@ use crate::{BuildOptions, CapturedDeclarations, DeclarationContext, Error, Resul
 pub struct ProgramOwner {
     program: &'static Program,
     _mapper: MapperOwner,
-    // Parsed configs/options are allocated before the file-loader regions exist.
-    // Keep their separate arena alive until after the Program is released.
-    _config_region: tsrs_core::arena::Region,
 }
 impl ProgramOwner {
     pub fn program(&self) -> &'static Program {
@@ -103,7 +100,7 @@ fn create(
     fs: Arc<dyn FS>,
     cwd: &str,
     default_library_path: &str,
-    config_region: tsrs_core::arena::Region,
+    regions: Arc<ProgramRegions>,
 ) -> Result<ProgramOwner> {
     let mut mapper = MapperOwner::default();
     if !config.content_mappers().is_empty() {
@@ -136,13 +133,14 @@ fn create(
     // after output/diagnostic parity checks. See docs/DTS.md.
     program_options.single_threaded = Tristate::True;
     program_options.canonical_diagnostics = false;
-    program_options.regions = Some(Arc::new(ProgramRegions::default()));
+    // Everything the Program allocates is freed with it: its configuration and what its file loader allocates, its
+    // files with their binder data and lazily filled data (JSDoc, line maps), its checkers, and the diagnostics they
+    // make, which are read only while the Program lives (its build formats them, and its diagnostic snapshots are
+    // dropped first).
+    program_options.regions = Some(regions);
     program_options.checker_regions = true;
-    Ok(ProgramOwner {
-        program: new_program(program_options),
-        _mapper: mapper,
-        _config_region: config_region,
-    })
+    program_options.checker_diagnostic_regions = true;
+    Ok(ProgramOwner { program: new_program(program_options), _mapper: mapper })
 }
 
 pub fn source_program(options: &BuildOptions, fs: Arc<dyn FS>) -> Result<ProgramOwner> {
@@ -151,8 +149,8 @@ pub fn source_program(options: &BuildOptions, fs: Arc<dyn FS>) -> Result<Program
         return Err(Error("config_path must be an absolute path".into()));
     }
     let config_host = ConfigHost { fs: Arc::clone(&fs) };
-    let config_region = tsrs_core::arena::Region::new_scratch(1 << 20);
-    let config_scope = config_region.enter_scratch();
+    let regions = Arc::new(ProgramRegions::default());
+    let config_scope = regions.enter();
     let (config, errors) = tsoptions::get_parsed_command_line_of_config_file(
         &options.config_path,
         Some(&CompilerOptions {
@@ -200,7 +198,7 @@ pub fn source_program(options: &BuildOptions, fs: Arc<dyn FS>) -> Result<Program
         fs,
         &tspath::get_directory_path(&options.config_path),
         &options.default_library_path,
-        config_region,
+        regions,
     )
 }
 
@@ -233,8 +231,8 @@ pub fn declaration_program(
             .collect(),
         base: fs,
     });
-    let config_region = tsrs_core::arena::Region::new_scratch(1 << 20);
-    let config_scope = config_region.enter_scratch();
+    let regions = Arc::new(ProgramRegions::default());
+    let config_scope = regions.enter();
     let compiler_options = CompilerOptions {
         no_emit: Tristate::True,
         no_check: Tristate::False,
@@ -263,11 +261,5 @@ pub fn declaration_program(
     );
     let config = P::new(config);
     drop(config_scope);
-    create(
-        config,
-        overlay,
-        &context.current_directory,
-        &context.default_library_path,
-        config_region,
-    )
+    create(config, overlay, &context.current_directory, &context.default_library_path, regions)
 }

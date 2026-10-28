@@ -1,8 +1,8 @@
-// tsrs-only (watch mode, and `tsc -b` freeing each built program): regions for what building a program allocates,
-// freed when nothing uses the program's data any more (tsrs_execute watcher.rs: with the programs updated from it;
-// buildtask.rs `free_built_program`). The file loader allocates on the calling thread and on the worker pool
-// (`fileloader::process_all_program_files`, `filesParser`), which other programs share under `tsc -b`, so each thread
-// gets a region of its own and every loader job enters it.
+// tsrs-only (watch mode, `tsc -b` freeing each built program, and tsrs_dts's private programs): regions for what
+// building a program allocates, freed when nothing uses the program's data any more (tsrs_execute watcher.rs: with the
+// programs updated from it; buildtask.rs `free_built_program`; tsrs_dts project.rs `ProgramOwner`). The file loader
+// allocates on the calling thread and on the worker pool (`fileloader::process_all_program_files`, `filesParser`),
+// which other programs share under `tsc -b`, so each thread gets a region of its own and every loader job enters it.
 //
 // The loader regions are not registered (`Region::new_scratch`): lazily filled data of an object in one goes to the
 // thread arena (`arena::enter_owner`), so another thread never waits for a region a loader job holds while that job
@@ -10,8 +10,8 @@
 //
 // That would leave the files' lazily filled data (JSDoc, line maps, name tables) in the never-freed thread arena, so
 // the files are parsed into registered regions instead, one per parsing thread, entered only while one file is parsed
-// (`enter_file`). A parse never waits on the pool, so another thread filling a file's lazy data waits at most for that
-// parse. Watch hosts parse every file into a region of its own inside it (tsrs_execute watchmem.rs `FileRegions`),
+// (`enter_file`), where the file is bound too (fileregions.rs `bind`). A parse never waits on the pool, so another
+// thread filling a file's lazy data waits at most for that parse. Watch hosts parse every file into a region of its own inside it (tsrs_execute watchmem.rs `FileRegions`),
 // which then stays empty.
 
 use std::sync::Mutex;
@@ -28,8 +28,9 @@ pub struct ProgramRegions {
 }
 
 impl ProgramRegions {
-    /// Makes this thread's region of the set the allocation target until the scope is dropped.
-    fn enter(&self) -> RegionScope {
+    /// Makes this thread's region of the set the allocation target until the scope is dropped: for the file loader,
+    /// and for what is made for the program before it, such as its configuration.
+    pub fn enter(&self) -> RegionScope {
         thread_region(&self.loader, || Region::new_scratch(1 << 20)).enter()
     }
 

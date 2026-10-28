@@ -1142,6 +1142,11 @@ pub fn route_by_owner() {
     ANY_REGION.store(true, Ordering::Relaxed);
 }
 
+/// Bytes used in the current thread's own (never freed) arena: what the thread keeps to process exit.
+pub fn thread_arena_used() -> usize {
+    crate::ptr::own_arena().residency().used
+}
+
 /// Makes the current thread's own (never freed) arena the allocation target until the scope is dropped: for data
 /// that outlives any region, such as process-wide lazily initialized statics.
 pub fn enter_thread_arena() -> RegionScope {

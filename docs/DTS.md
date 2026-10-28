@@ -49,14 +49,6 @@ alongside the bundle.
 The following adaptations preserve compiler behavior or linker semantics. Replace them only when the listed
 condition holds; the evidence distinguishes compiler ownership limits, pinned upstream behavior and bundler policy.
 
-### Build-scoped allocation lifetime
-
-[`build_impl`](../crates/tsrs_dts/src/lib.rs) retains an outer arena region when diagnostic reuse is active, until
-both Programs and their snapshots are released. Allocations escaping nested checker/emit scratch scopes would
-otherwise fall back to the thread's leak arena; see the ownership contract in
-[`tsrs_core::arena`](../crates/tsrs_core/src/arena.rs). Remove this region when escaping allocations have owners
-that reclaim them without invalidating Program or snapshot pointers. Total build reclamation has not been measured.
-
 ### Diagnostic ordering fallback
 
 [`diagnostics::check`](../crates/tsrs_dts/src/diagnostics.rs) uses incremental collection to detect success, then

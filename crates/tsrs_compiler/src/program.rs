@@ -1144,7 +1144,7 @@ impl Program {
 
     // program.go:598
     // Return the type checker associated with the program.
-    pub fn get_type_checker(&self, ctx: &Context) -> CheckerHandle {
+    pub fn get_type_checker(&self, ctx: &Context) -> CheckerHandle<'_> {
         if let Some(pool) = self.compiler_checker_pool() {
             return pool.get_checker_non_exclusive();
         }
@@ -1178,7 +1178,11 @@ impl Program {
     // method returns the checker that was tasked with checking the file. Note that it isn't possible to mix
     // types obtained from different checkers, so only non-type data (such as diagnostics or string
     // representations of types) should be obtained from checkers returned by this method.
-    pub fn get_type_checker_for_file(&self, ctx: &Context, file: P<SourceFile>) -> CheckerHandle {
+    pub fn get_type_checker_for_file(
+        &self,
+        ctx: &Context,
+        file: P<SourceFile>,
+    ) -> CheckerHandle<'_> {
         if let Some(pool) = self.compiler_checker_pool() {
             return pool.get_checker_for_file_non_exclusive(file);
         }
@@ -1192,7 +1196,7 @@ impl Program {
         &self,
         ctx: &Context,
         file: P<SourceFile>,
-    ) -> CheckerHandle {
+    ) -> CheckerHandle<'_> {
         if let Some(pool) = self.compiler_checker_pool() {
             return pool.get_checker_for_file_exclusive(file);
         }

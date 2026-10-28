@@ -15,7 +15,7 @@ use tsrs_project::checkerpool::*;
 use tsrs_project::logging::new_test_logger;
 use tsrs_project::session::{Session, SessionInit, SessionOptions, new_session};
 
-fn ptr(c: &CheckerHandle) -> *const Checker {
+fn ptr(c: &CheckerHandle<'_>) -> *const Checker {
     &raw const **c
 }
 
@@ -687,7 +687,7 @@ fn checker_pool_non_cancelable_context_no_affinity() {
     assert!(pool.test_state(|st| st.request_associations.is_empty()));
 }
 
-fn cancel_checker(c: &mut CheckerHandle, source_file: tsrs_core::P<tsrs_ast::SourceFile>) {
+fn cancel_checker(c: &mut CheckerHandle<'_>, source_file: tsrs_core::P<tsrs_ast::SourceFile>) {
     let (canceled_ctx, cancel) = Context::background().with_cancel();
     cancel.call();
     c.get_diagnostics_exported(&canceled_ctx, source_file);

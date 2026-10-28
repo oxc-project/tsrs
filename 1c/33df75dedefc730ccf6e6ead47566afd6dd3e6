@@ -1,0 +1,19 @@
+testdata/lint/consistent-type-exports/baseline.json
+  s_dc69f4488b866e::t_08c6bfc5416a64 1-1551
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1c33df75dedefc730ccf6e6ead47566afd6dd3e6",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

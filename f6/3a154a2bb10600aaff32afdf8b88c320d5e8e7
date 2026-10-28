@@ -1,0 +1,19 @@
+testdata/lint/no-duplicate-type-constituents/baseline.json
+  s_dc69f4488b866e::t_d8f5dd1528444a 1-3844
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f63a154a2bb10600aaff32afdf8b88c320d5e8e7",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

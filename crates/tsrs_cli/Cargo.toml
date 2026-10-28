@@ -19,12 +19,15 @@ tsrs_api_transport.workspace = true
 tsrs_execute.workspace = true
 mimalloc-safe.workspace = true
 libc.workspace = true
+dhat = { version = "0.3.3", optional = true }
 
 [features]
 noembed = ["tsrs_vfs/noembed"]
 # The system allocator instead of mimalloc, for sanitizer builds (AddressSanitizer and ThreadSanitizer track only its
 # blocks; mimalloc's memory looks like one long-lived region to them).
 system-alloc = []
+# Development-only heap profiles; DHAT wraps System, so mimalloc and its hooks must stay off.
+dhat-heap = ["dep:dhat", "system-alloc"]
 
 [lib]
 test = false

@@ -8,6 +8,62 @@ Every reproduction and fix follows the [fidelity rule](../CONTRIBUTING.md#the-fi
 outputs. Any shared `$TSRS_WORK/bin/tsgo-ref` used below must come from that verified checkout and be rebuilt when
 the TypeScript source pin changes.
 
+## Heap allocation profiles with DHAT
+
+Build a separate, opt-in profiling CLI. `dhat-heap` selects DHAT's system-backed global allocator and disables
+the mimalloc hooks; ordinary builds still use mimalloc. Keep compressed pointers enabled so the profiled data
+layouts match the normal build. Full debug information and unstripped symbols make allocation stacks useful.
+
+```sh
+cargo build --release --locked -p tsrs_cli --features dhat-heap \
+  --target-dir target/dhat --config profile.release.debug=true --config profile.release.strip=false
+TSRS_DHAT_FILE="$PWD/target/heap.dhat.json" target/dhat/release/tsrs \
+  -p path/to/tsconfig.json --noEmit --incremental false --pretty false --singleThreaded
+```
+
+`TSRS_DHAT_FILE` starts one profiler before command-line parsing and writes the profile when `main` returns,
+after the compiler thread joins. Without the variable, the profiling binary does not create a profile. The
+variable has no effect in ordinary builds. `TSRS_DHAT_FRAMES` selects the backtrace depth (at least 4, default 32).
+Set an absolute output path in an existing directory: benchmark commands run from each project's checkout.
+Open the JSON in the [DHAT viewer](https://nnethercote.github.io/dh_view/dh_view.html).
+
+For repeatable catalog comparisons, build baseline and candidate with identical profiling settings and save both
+binaries. On macOS, run `dsymutil /absolute/base/tsrs -o /absolute/base/tsrs.dSYM` before rebuilding,
+and do the same for the candidate, to preserve each binary's source locations. Prepare the selected projects
+with `vp run bench prepare --projects <names>`. Then run:
+
+```sh
+vp run perf:alloc --base /absolute/base/tsrs --new /absolute/next/tsrs \
+  --base-revision <commit> --new-revision <commit-or-dirty-label> \
+  --projects webpack,typeorm,xstate-main,Compiler-Unions,vscode --reps 3 \
+  --out target/dhat-comparison
+```
+
+Omit `--base` to profile a single binary. The output directory must be new. The runner checks catalog revisions,
+uses one checker and one Rayon worker, and explicitly selects both reference and fast modes (`--modes reference`
+or `--modes fast` restricts it). It alternates baseline/candidate order, verifies ordered diagnostics and exit
+codes, and retains every profile, compiler log, ranked site list, binary hash, command and count in a JSON bundle.
+Missing profiles, invalid data, crashes and diagnostic differences fail the command; a partial summary remains.
+Repeated comparisons default to four frames to limit profiling overhead; use `--frames 32 --reps 1` for deeper
+allocation stacks. The stack limit changes attribution depth, not which heap operations are counted. Compare
+both binaries with the same limit and keep deeper profiles when a short trace ends before its tsrs caller.
+Startup allocations include the command path; use equal-length binary paths when comparing very small byte deltas.
+
+Start with sites ranked by total allocation blocks and bytes, then inspect the full stacks to find the ownership
+boundary. Borrow stored strings/slices when they remain live, move values that have no later reader, and write
+formatted text into the destination buffer. A textual `.clone()` or `.to_string()` count is only a search aid:
+reference-counted handles, required snapshots and cold diagnostic paths need separate consideration. Preserve
+reentrant callback behavior and never extend a reference beyond its owner region to remove a copy.
+
+DHAT totals include reallocations; bytes at the global heap peak are summed from each site's `gb`, not its
+independent maximum `mb`. `peakBlocks` counts the blocks live at that byte peak. Direct arena mappings, stacks
+and allocator overhead are outside these heap totals; the result is not process RSS. DHAT changes the allocator
+and adds substantial profiling overhead. Measure instructions, wall time and peak RSS separately with
+uninstrumented mimalloc builds and the same release settings,
+warmups and alternating runs. Do not run builds or profiling alongside timed measurements. Allocation counts are
+advisory, with no checked-in snapshot gate. Follow the current acceptance policy in AGENTS.md and record rejected
+trials as well as improvements.
+
 ## Your worktree
 
 `$TSRS_WORK` below is the directory that holds the main checkout (`$TSRS_WORK/tsrs`), the agent worktrees

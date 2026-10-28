@@ -4,6 +4,10 @@
 #[global_allocator]
 static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
+#[cfg(all(feature = "dhat-heap", not(miri)))]
+#[global_allocator]
+static GLOBAL: dhat::Alloc = dhat::Alloc;
+
 use tsrs_cli::{api, lsp, signals};
 use tsrs_execute::{execute, sys, tsc};
 
@@ -73,6 +77,19 @@ fn mimalloc_collect(force: bool) {
 }
 
 fn main() -> std::process::ExitCode {
+    // Keep the profiler on the main thread until all compiler work has joined, including error exits.
+    // An explicit path keeps runs from writing profiles into the project being checked.
+    #[cfg(all(feature = "dhat-heap", not(miri)))]
+    let _profiler = std::env::var_os("TSRS_DHAT_FILE").map(|file| {
+        let frames = std::env::var("TSRS_DHAT_FRAMES").map_or(32, |value| {
+            value
+                .parse::<usize>()
+                .ok()
+                .filter(|&n| n >= 4)
+                .expect("TSRS_DHAT_FRAMES must be at least 4")
+        });
+        dhat::Profiler::builder().file_name(file).trim_backtraces(Some(frames)).build()
+    });
     #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
     tsrs_core::allocator::init_mimalloc();
     let args: Vec<String> = std::env::args().skip(1).collect();

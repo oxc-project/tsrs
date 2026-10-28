@@ -51,6 +51,7 @@
         "ci:wait-npm": "node .github/scripts/wait-for-npm-packages.mjs",
         "ci:triage-labels": "bash .github/scripts/setup-triagebot-labels.sh",
         "perf:verify": "node tools/perf/verify.mjs",
+        "perf:alloc": "node tools/perf/alloc.mjs",
         "perf:layout": "node tools/perf/layout-measure.mjs",
         "perf:leaf": "node tools/perf/leafprobe.mjs",
         "perf:slack": "node tools/perf/slackprobe.mjs",

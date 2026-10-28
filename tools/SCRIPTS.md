@@ -135,6 +135,7 @@ Seeded fuzz and mutation generators use a deterministic JavaScript PRNG, so a se
 | Root command | Entry point |
 | --- | --- |
 | `vp run perf:verify` | `node tools/perf/verify.mjs` |
+| `vp run perf:alloc` | `node tools/perf/alloc.mjs` |
 | `vp run perf:layout` | `node tools/perf/layout-measure.mjs` |
 | `vp run perf:leaf` | `node tools/perf/leafprobe.mjs` |
 | `vp run perf:slack` | `node tools/perf/slackprobe.mjs` |

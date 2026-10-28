@@ -1,0 +1,19 @@
+testdata/lint/no-generated-empty-object-type/baseline.json
+  s_dc69f4488b866e::t_21d2c6c8936335 3-6,8-17,19-28,30-39,41-50,52-61,63-72,74-116,118-225,228,230-551,553,555-556
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1397dede0a9c119639f0e5b0cbb353ce7d15fbd4",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

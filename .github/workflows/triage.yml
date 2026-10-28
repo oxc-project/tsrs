@@ -84,14 +84,13 @@ jobs:
         env:
           # AI Gateway creates the default gateway on the first authenticated request.
           CLOUDFLARE_GATEWAY_ID: default
-          NODE_OPTIONS: --import=${{ github.workspace }}/.github/scripts/triagebot-models.mjs
         with:
           read-token: ${{ github.token }}
           write-token: ${{ steps.app-token.outputs.token }}
           cloudflare-api-key: ${{ secrets.CLOUDFLARE_API_KEY }}
           cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Match Astro's factory models through AI Gateway (medium thinking by default).
-          triage-model: cloudflare-ai-gateway/claude-opus-5-5
+          # Use the action's default models through AI Gateway.
+          triage-model: cloudflare-ai-gateway/claude-opus-4-6
           verification-model: cloudflare-ai-gateway/claude-sonnet-4-6
           triage-skill: .agents/skills/triage
           pr-skill: .agents/skills/pr-writer

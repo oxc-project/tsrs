@@ -8,6 +8,7 @@
 // text, and line map).  The error-summary tests below exercise those detached copies.
 // Graph: a; b references a; c references a and b. One builder, so the projects build in that order.
 
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::time::{Duration, SystemTime};
@@ -115,5 +116,58 @@ fn incremental_build_after_up_to_date_references() {
     assert!(text.contains("Project 'a/tsconfig.json' is up to date"), "{text}");
     assert!(text.contains("Building project 'b/tsconfig.json'"), "{text}");
     assert!(text.contains("Building project 'c/tsconfig.json'"), "{text}");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// A program's files are parsed into its regions, which are not registered, so the data the checker and declaration
+// emit fill in later (the JSDoc of every commented declaration, line maps) found no owner and went to the never-freed
+// thread arenas: about 0.25 MiB for each of these projects, kept to the end of the build. The files are now parsed into
+// registered regions of the program (`ProgramRegions`), freed with it.
+#[test]
+fn jsdoc_of_freed_programs_is_freed() {
+    let dir = std::env::temp_dir().join(format!("tsrs-build-free-jsdoc-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let mut source = String::new();
+    for i in 0..60 {
+        let _ = writeln!(
+            source,
+            "/**\n * Combines value {i}.\n * @param a first operand\n * @param b second operand\n * @returns the combined value\n */\nexport function f{i}(a: number, b: string): string {{ return b + a; }}"
+        );
+    }
+    let mut references = Vec::new();
+    for p in 0..24 {
+        let project = dir.join(format!("p{p}"));
+        std::fs::create_dir_all(project.join("src")).unwrap();
+        std::fs::write(
+            project.join("tsconfig.json"),
+            format!(r#"{{ {OPTIONS}, "include": ["src"] }}"#),
+        )
+        .unwrap();
+        std::fs::write(project.join("src/index.ts"), &source).unwrap();
+        references.push(format!(r#"{{ "path": "p{p}" }}"#));
+    }
+    std::fs::write(
+        dir.join("tsconfig.json"),
+        format!(r#"{{ "files": [], "references": [{}] }}"#, references.join(", ")),
+    )
+    .unwrap();
+    let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
+        .args(["-b", "--builders", "2"])
+        .current_dir(&dir)
+        .env("TSRS_ARENA_POISON", "1")
+        .env("TSRS_MEM_SPLIT", "1")
+        .output()
+        .expect("run tsrs");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(out.status.success(), "{}{stderr}", stdout(&out));
+    // "  thread arenas: <n> arenas, <capacity> MiB capacity, <used> MiB used, ..." in the report at exit.
+    let exit = &stderr[stderr.rfind("tsrs mem split: exit").expect("the report at exit")..];
+    let used: f64 = exit
+        .split(" MiB used")
+        .next()
+        .and_then(|before| before.rsplit(' ').next())
+        .and_then(|used| used.parse().ok())
+        .unwrap_or_else(|| panic!("{exit}"));
+    assert!(used < 1.0, "{used} MiB left in the thread arenas\n{exit}");
     let _ = std::fs::remove_dir_all(&dir);
 }

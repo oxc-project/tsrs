@@ -2054,9 +2054,11 @@ impl Server {
 
         self.telemetry_enabled.store(enable_telemetry, Ordering::SeqCst);
 
-        let client: Arc<dyn project::Client> = Arc::<Server>::clone(self);
+        // tsrs-only: the session refers to the server weakly (`SessionClient`), as the logger does.
+        let client: Arc<dyn project::Client> = Arc::new(SessionClient(Arc::downgrade(self)));
         let logger: Arc<dyn logging::Logger> = self.logger_arc();
-        let npm_executor: Arc<dyn project::NpmExecutor> = Arc::<Server>::clone(self);
+        let npm_executor: Arc<dyn project::NpmExecutor> =
+            Arc::new(SessionClient(Arc::downgrade(self)));
         let session = project::new_session(&project::SessionInit {
             background_ctx: lsproto::with_client_capabilities(
                 &self.background_ctx(),
@@ -4204,6 +4206,92 @@ impl project::NpmExecutor for Server {
             Some(npm_install) => npm_install(cwd, args),
             None => panic!("NpmInstall called without an npm executor"),
         }
+    }
+}
+
+// tsrs-only: the session's `project::Client` and `project::NpmExecutor`. Go's session holds the `*Server` and the GC
+// collects the cycle; here the server owns the session, so the session refers to the server weakly and dropping the
+// last `Arc<Server>` frees the session with its snapshots and programs. Once the server is gone, calls do nothing.
+struct SessionClient(Weak<Server>);
+
+impl SessionClient {
+    fn with<R>(&self, gone: R, f: impl FnOnce(&Server) -> R) -> R {
+        self.0.upgrade().map_or(gone, |s| f(&s))
+    }
+}
+
+impl project::Client for SessionClient {
+    fn watch_files(
+        &self,
+        ctx: &Context,
+        id: project::WatcherID,
+        watchers: Vec<lsproto::FileSystemWatcher>,
+    ) -> Result<(), Error> {
+        self.with(Ok(()), |s| project::Client::watch_files(s, ctx, id, watchers))
+    }
+    fn unwatch_files(&self, ctx: &Context, id: project::WatcherID) -> Result<(), Error> {
+        self.with(Ok(()), |s| project::Client::unwatch_files(s, ctx, id))
+    }
+    fn register_content_mapper_extensions(
+        &self,
+        ctx: &Context,
+        extensions: Vec<String>,
+    ) -> Result<(), Error> {
+        self.with(Ok(()), |s| s.register_content_mapper_extensions(ctx, &extensions))
+    }
+    fn refresh_diagnostics(&self, ctx: &Context) -> Result<(), Error> {
+        self.with(Ok(()), |s| s.refresh_diagnostics(ctx))
+    }
+    fn publish_diagnostics(
+        &self,
+        ctx: &Context,
+        params: lsproto::PublishDiagnosticsParams,
+    ) -> Result<(), Error> {
+        self.with(Ok(()), |s| s.publish_diagnostics(ctx, params))
+    }
+    fn refresh_inlay_hints(&self, ctx: &Context) -> Result<(), Error> {
+        self.with(Ok(()), |s| s.refresh_inlay_hints(ctx))
+    }
+    fn refresh_code_lens(&self, ctx: &Context) -> Result<(), Error> {
+        self.with(Ok(()), |s| s.refresh_code_lens(ctx))
+    }
+    fn progress_start(
+        &self,
+        message: &'static tsrs_diagnostics::Message,
+        args: &[&dyn std::fmt::Display],
+    ) {
+        self.with((), |s| s.progress_start(message, args));
+    }
+    fn progress_finish(
+        &self,
+        message: &'static tsrs_diagnostics::Message,
+        args: &[&dyn std::fmt::Display],
+    ) {
+        self.with((), |s| s.progress_finish(message, args));
+    }
+    fn send_telemetry(
+        &self,
+        ctx: &Context,
+        telemetry: lsproto::TelemetryEvent,
+    ) -> Result<(), Error> {
+        self.with(Ok(()), |s| s.send_telemetry(ctx, telemetry))
+    }
+    fn is_active(&self) -> bool {
+        self.with(false, Server::is_active)
+    }
+    fn set_locale(&self, locale: &str) {
+        self.with((), |s| s.set_locale(locale));
+    }
+    fn get_locale(&self) -> Locale {
+        self.with(Locale::DEFAULT, Server::get_locale)
+    }
+}
+
+impl project::NpmExecutor for SessionClient {
+    fn npm_install(&self, cwd: &str, args: &[String]) -> Result<Vec<u8>, String> {
+        self.with(Err("the language server is closed".to_string()), |s| {
+            project::NpmExecutor::npm_install(s, cwd, args)
+        })
     }
 }
 

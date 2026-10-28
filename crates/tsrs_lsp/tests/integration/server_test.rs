@@ -570,6 +570,62 @@ fn a_bad_root_uri_falls_back_to_the_server_directory() {
     let _ = close_client.close();
 }
 
+// Not a Go test (Go's GC collects the server and its session). Once the client is closed and dropped, the server is
+// freed with its session, so an in-process server per test does not keep the programs of earlier tests alive.
+#[test]
+fn a_closed_client_frees_the_server_and_its_session() {
+    use crate::lsptestutil::{acknowledge_registrations, new_lsp_client, test_server_options};
+
+    let files = [
+        ("/home/projects/tsconfig.json", "{}"),
+        ("/home/projects/index.ts", "export const abc = 1;\n"),
+    ];
+    let (client, close_client) = new_lsp_client(
+        test_server_options("/home/projects", &files),
+        Some(acknowledge_registrations()),
+    );
+    let (init_msg, _) =
+        client.send_request(lsproto::INITIALIZE_INFO, lsproto::InitializeParams::default());
+    assert!(init_msg.error.is_none(), "Initialize failed");
+    client.send_notification(lsproto::INITIALIZED_INFO, lsproto::InitializedParams::default());
+    client.server.init_complete().wait();
+    let uri = lsproto::DocumentUri::from("file:///home/projects/index.ts");
+    client.send_notification(
+        lsproto::TEXT_DOCUMENT_DID_OPEN_INFO,
+        lsproto::DidOpenTextDocumentParams {
+            text_document: lsproto::TextDocumentItem {
+                uri: uri.clone(),
+                language_id: lsproto::LanguageKind::TYPE_SCRIPT,
+                text: "export const abc = 1;\n".to_string(),
+                ..Default::default()
+            },
+        },
+    );
+    let (msg, resp) = client.send_request(
+        lsproto::TEXT_DOCUMENT_HOVER_INFO,
+        lsproto::HoverParams {
+            text_document: lsproto::TextDocumentIdentifier { uri },
+            position: lsproto::Position { line: 0, character: 14 },
+            ..Default::default()
+        },
+    );
+    assert!(msg.error.is_none() && resp.is_some(), "{:?}", msg.error);
+    let server = std::sync::Arc::downgrade(&client.server);
+    let session = std::sync::Arc::downgrade(client.server.session());
+    let _ = close_client.close();
+    drop(client);
+    // The session's background work (a watch registration waiting on the closed client) and the unjoined read thread
+    // (as in Go) may hold the server or the session for a moment longer.
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+    while (server.strong_count() > 0 || session.strong_count() > 0)
+        && std::time::Instant::now() < deadline
+    {
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    assert_eq!(server.strong_count(), 0, "the server outlives its client");
+    assert_eq!(session.strong_count(), 0, "the session outlives its server");
+}
+
 // Not a Go test. `workspace/willRenameFiles` sends a `documentChanges` workspace edit with one entry per changed file or
 // renamed companion file; returns (uri, edit text) for each text edit and (old uri, new uri) for each file rename.
 fn will_rename_files(

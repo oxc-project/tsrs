@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/require_await.rs
+  s_dc69f4488b866e::t_e8acef0b4d9f78 64-69,71-75,136-150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "de39ab834e9651ddd7211593553243e3851c4b3c",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

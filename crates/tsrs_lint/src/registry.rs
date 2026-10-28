@@ -1,6 +1,6 @@
 //! Rule inventory from the pinned tsgolint registry.
 
-pub const REFERENCE_COMMIT: &str = "8897346fff24a9bd0c719099dc1af8e7200572c1";
+pub const REFERENCE_COMMIT: &str = "4ebf80fd2b166cba4890c6896220fec4a1462b29";
 pub const REFERENCE_COMPILER_COMMIT: &str = "2bd066d87f5bafd315be9f40889d0a60b9e58e0b";
 
 pub const BASELINE_RULES: &[&str] = &[

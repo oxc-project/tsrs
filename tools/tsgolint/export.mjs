@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 import { parseArgs } from "node:util";
 import { main, writeJSON } from "../lib/cli.mjs";
 
-const REFERENCE = "8897346fff24a9bd0c719099dc1af8e7200572c1";
+const REFERENCE = "4ebf80fd2b166cba4890c6896220fec4a1462b29";
 const COMPILER = "2bd066d87f5bafd315be9f40889d0a60b9e58e0b";
 
 const HOOK = `

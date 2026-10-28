@@ -38,6 +38,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | no-unsafe-argument | Updated to Go HEAD | 43 current cases; recursive generic assignments, array/tuple spreads, rest consumption and tagged-template parameters |
 | no-unsafe-assignment | Updated to Go HEAD | 94 current cases, 1 upstream skips; generic comparisons, nested destructuring, array spreads, contextual object/JSX properties and implicit this |
 | no-unsafe-call | Updated to Go HEAD | 36 current cases; constrained any/error types, Function call/construct signatures, implicit this and template tags |
+| no-unsafe-enum-assignment | Updated to Go HEAD | 284 current cases; assignments, arguments, spreads, returns, assertions, mutations, contextual literals, heritage members, mapped-type keys and bitwise flag combinations |
 | no-unsafe-enum-comparison | Updated to Go HEAD | 93 current cases; enum/primitive comparisons, switch labels, static values and scoped member replacement suggestions |
 | no-unsafe-member-access | Updated to Go HEAD | 36 current cases; optional-chain options, inner-chain deduplication, heritage exclusions, computed keys and implicit this |
 | no-unsafe-return | Updated to Go HEAD | 76 current cases; deferred return types, unsafe generic assignments, virtual dependency declarations and JSDoc callbacks |

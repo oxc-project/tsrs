@@ -146,10 +146,10 @@ fn diagnostic_omissions_labels_and_suggestions() {
 #[test]
 fn inventory_is_complete_unique_and_implemented() {
     let mut names = tsrs_lint::registry::BASELINE_RULES.to_vec();
-    assert_eq!(names.len(), 60);
+    assert_eq!(names.len(), 61);
     names.sort_unstable();
     names.dedup();
-    assert_eq!(names.len(), 60);
+    assert_eq!(names.len(), 61);
     for name in names {
         tsrs_lint::registry::require_implemented(name).unwrap();
         let config = tsrs_lint::payload::ConfiguredRule { name: name.into(), ..Default::default() };

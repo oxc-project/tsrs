@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/prefer_string_starts_ends_with.rs
+  s_dc69f4488b866e::t_e6671f14d41aa1 131-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "88d805123c200d7fe19ef873f4ec2dd3b33ddade",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 // Builds the addon with Cargo and copies it to src-js/tsrs.node, which index.mjs loads. Pass --release for the
-// release profile. A plain `cargo build -p tsrs_napi` shares the workspace's artifacts (no `--target` directory).
+// release profile. napi-derive turns on syn's `full` feature, so a build of tsrs_cli alone shares no tsrs crates with
+// this one; CI builds both in one cargo call, which makes this build a no-op.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";

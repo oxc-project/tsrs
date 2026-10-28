@@ -12,8 +12,10 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::thread::JoinHandle;
 
-use napi::bindgen_prelude::{Buffer, Env, FnArgs, Function, FunctionRef, Uint8Array};
-use napi::{Error, Result};
+use napi::bindgen_prelude::{
+    Buffer, Env, FnArgs, Function, FunctionRef, JsObjectValue, Uint8Array, Unknown,
+};
+use napi::{Error, JsError, JsValue, Result};
 use napi_derive::napi;
 use tsrs_api::adapter::{ClientConnAdapter, SessionHandler};
 use tsrs_api_transport::msgpack::{MessagePackReader, MessagePackWriter, MessageType, Tuple};
@@ -126,13 +128,16 @@ impl SyncRpcChannel {
         self.callbacks.borrow_mut().remove(&name);
     }
 
-    /// Ends the session and waits for its thread, which frees the session's snapshots and programs.
+    /// Ends the session and waits for its thread, which frees the session's snapshots and programs. Also drops the
+    /// callback references, which are GC roots: a callback that reaches the API would keep it alive. A running
+    /// callback keeps its own `Rc` until it returns.
     #[napi]
     pub fn close(&self) {
         drop(self.pipes.borrow_mut().take());
         if let Some(server) = self.server.borrow_mut().take() {
             let _ = server.join();
         }
+        self.callbacks.borrow_mut().clear();
     }
 
     #[napi(getter)]
@@ -202,14 +207,10 @@ impl SyncRpcChannel {
         let arg = String::from_utf8_lossy(payload).into_owned();
         match callback.borrow_back(&env)?.call(FnArgs::from((name.to_string(), arg))) {
             Ok(result) => self.write(MessageType::CallResponse, name.as_bytes(), result.as_bytes()),
-            // tsrs-only: the request rethrows the callback's own exception instead of wrapping its message.
             Err(error) => {
-                self.write(
-                    MessageType::CallError,
-                    name.as_bytes(),
-                    error.reason.trim().as_bytes(),
-                )?;
-                Err(error)
+                let message = thrown_message(env, error);
+                self.write(MessageType::CallError, name.as_bytes(), message.as_bytes())?;
+                Err(Error::from_reason(format!("Error calling callback `{name}`: {message}")))
             }
         }
     }
@@ -225,6 +226,21 @@ impl SyncRpcChannel {
         let pipes = pipes.as_mut().ok_or_else(closed)?;
         pipes.reader.read_tuple().map_err(|e| transport_error(&e))
     }
+}
+
+/// syncChannel.ts `handleCall`: `String(e instanceof Error ? e.message : e).trim()`. napi-rs hands back a thrown
+/// `Error` as is and any other thrown object as an `Error` of its string. It cannot hold a thrown primitive, which
+/// the facade (src-js/index.mjs) rethrows as an `Error` first.
+fn thrown_message(env: Env, error: Error) -> String {
+    let reason = error.reason.clone();
+    let thrown = JsError::from(error).into_unknown(env);
+    thrown
+        .coerce_to_object()
+        .and_then(|error| error.get_named_property::<Unknown>("message"))
+        .and_then(|message| message.coerce_to_string()?.into_utf8()?.into_owned())
+        .unwrap_or(reason)
+        .trim()
+        .to_string()
 }
 
 fn closed() -> Error {

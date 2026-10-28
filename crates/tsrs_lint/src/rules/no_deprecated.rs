@@ -2,6 +2,8 @@
 
 use std::borrow::Cow;
 
+use rustc_hash::FxHashSet;
+
 use tsrs_ast::{Kind, Node, NodeFlags, Symbol, SymbolFlags};
 use tsrs_checker::{CheckMode, ContextFlags, LiteralValue, Type, TypeFlags};
 use tsrs_core::{P, json::Value};
@@ -62,7 +64,10 @@ fn search_aliases(
         return if check_target { jsdoc_deprecation(context, Some(symbol)) } else { None };
     }
     let target = context.checker.get_aliased_symbol(symbol);
-    while symbol.flags().intersects(SymbolFlags::Alias) {
+    // A circular alias chain (for example `export { x } from './a'` in a.ts) never reaches nil or
+    // the target, so stop at the first alias that has been visited.
+    let mut visited = FxHashSet::default();
+    while symbol.flags().intersects(SymbolFlags::Alias) && visited.insert(symbol) {
         if let Some(reason) = jsdoc_deprecation(context, Some(symbol)) {
             return Some(reason);
         }

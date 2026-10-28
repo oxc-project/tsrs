@@ -16,7 +16,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | no-array-delete | Updated to Go HEAD | 31 current cases; suggestion flags and UTF-8 ranges |
 | no-base-to-string | Updated to Go HEAD | 380 current cases, 1 upstream skips; conversions/joins, recursive types, ignored names, checkUnknown |
 | no-confusing-void-expression | Updated to Go HEAD | 109 current cases, 1 upstream skips; arrow/return fixes, contextual void, option combinations |
-| no-deprecated | Updated to Go HEAD | 238 current cases, 12 upstream skips; aliases, signatures, contextual properties, destructuring, allow specifiers |
+| no-deprecated | Updated to Go HEAD | 242 current cases, 12 upstream skips; aliases, circular alias chains, signatures, contextual properties, destructuring, allow specifiers |
 | no-duplicate-type-constituents | Updated to Go HEAD | 88 current cases, 2 upstream skips; nested unions/intersections, optional parameter fixes, multiline JSDoc ranges |
 | no-floating-promises | Updated to Go HEAD | 188 current cases, 1 upstream skips; promises/thenables, rejection handlers, allowlists, await/void suggestions |
 | no-for-in-array | Updated to Go HEAD | 24 current cases; structural array-likes and loop-header byte ranges |

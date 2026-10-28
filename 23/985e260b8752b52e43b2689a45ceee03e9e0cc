@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/prefer_regexp_exec.rs
+  s_dc69f4488b866e::t_4477be7e87f1cb 446-449
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "23985e260b8752b52e43b2689a45ceee03e9e0cc",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

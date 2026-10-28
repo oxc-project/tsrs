@@ -778,10 +778,10 @@
           "Options": {
             "allow": [
               {
+                "from": "file",
                 "name": [
                   "A"
-                ],
-                "from": "file"
+                ]
               }
             ]
           },
@@ -818,10 +818,10 @@
           "Options": {
             "allow": [
               {
+                "from": "file",
                 "name": [
                   "deprecatedValue"
-                ],
-                "from": "file"
+                ]
               }
             ]
           },
@@ -1211,6 +1211,44 @@
           "Tsx": false,
           "Files": {
             "release-port-normal.ts": "export const normalVariable = 1;"
+          },
+          "Diagnostics": []
+        },
+        {
+          "Code": "export { x } from './file';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "file.ts",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "export { default } from './circular-reexport';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "file.ts",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "circular-reexport.ts": "export { default } from './file';"
+          },
+          "Diagnostics": []
+        },
+        {
+          "Code": "import value from './circular-import-a';\nvoid value;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "circular-import-a.ts": "import value from './circular-import-b';\nexport default value;",
+            "circular-import-b.ts": "import value from './circular-import-a';\nexport default value;"
           },
           "Diagnostics": []
         }
@@ -7049,6 +7087,65 @@
                 "end": 84
               },
               "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "import value from './circular-deprecated';\nexport default value;\nvalue;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "file.ts",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "deprecated",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "deprecated",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {
+            "circular-deprecated.ts": "import value from './file';\n/** @deprecated */\nexport default value;"
+          },
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 63
+              },
+              "kind": 0,
+              "rule": "no-deprecated",
+              "message": {
+                "id": "deprecated",
+                "description": "`value` is deprecated."
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "no-deprecated",
+              "message": {
+                "id": "deprecated",
+                "description": "`value` is deprecated."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 65,
+                "end": 70
+              }
             }
           ]
         }

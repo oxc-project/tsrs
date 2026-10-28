@@ -22,6 +22,12 @@ pub trait EmitTextWriter {
     fn decrease_indent(&mut self);
     fn clear(&mut self);
     fn string(&self) -> String;
+    /// Returns the current output and resets all writer state as `clear()` does.
+    fn take_string(&mut self) -> String {
+        let text = self.string();
+        self.clear();
+        text
+    }
     fn raw_write(&mut self, s: &str);
     fn write_literal(&mut self, s: &str);
     fn get_text_pos(&self) -> u32;
@@ -87,6 +93,9 @@ impl<T: EmitTextWriter + ?Sized> EmitTextWriter for Box<T> {
     }
     fn string(&self) -> String {
         (**self).string()
+    }
+    fn take_string(&mut self) -> String {
+        (**self).take_string()
     }
     fn raw_write(&mut self, s: &str) {
         (**self).raw_write(s);

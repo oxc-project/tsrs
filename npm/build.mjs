@@ -303,6 +303,10 @@ function main() {
         const exeName = os === "win32" ? "tsrs.exe" : "tsrs";
         fs.copyFileSync(binary, path.join(dir, exeName));
         fs.chmodSync(path.join(dir, exeName), 0o755);
+        if (os === "win32") {
+            // VS Code's native SDK discovery only accepts tsc.exe or tsgo.exe.
+            fs.copyFileSync(path.join(dir, exeName), path.join(dir, "tsgo.exe"));
+        }
         // The binary reads the default libraries from its own directory when they are there (bundled::default_lib_path),
         // so listings, diagnostics and tsbuildinfo name the same real paths as the npm tsgo.
         const libNames = fs.readdirSync(libsDir).filter(name => name.endsWith(".d.ts")).sort();
@@ -321,7 +325,7 @@ function main() {
             ...common,
             description: `The ${platform} binary for ${name}`,
             preferUnplugged: true,
-            files: [exeName, "NOTICE.txt", ...libNames],
+            files: [exeName, ...(os === "win32" ? ["tsgo.exe"] : []), "NOTICE.txt", ...libNames],
             exports: { "./package.json": "./package.json" },
             os: [os],
             cpu: [cpu],

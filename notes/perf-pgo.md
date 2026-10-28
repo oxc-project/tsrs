@@ -142,7 +142,6 @@ instructions on every project between those two publishes while a release-build 
 measured -0.2%. `finish` now calls `exit` when `LLVM_PROFILE_FILE` is set (only the training sets it), and
 pgo-train.sh fails on an empty profile.
 
-
 ## 2026-10-09: a strip setting that differed between the two builds dropped the profile
 
 PR #245 set `strip = "symbols"` in `[profile.release]`, which `dist` inherits, and `CARGO_PROFILE_DIST_STRIP=none`

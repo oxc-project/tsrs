@@ -198,8 +198,10 @@ Concurrent programs share the host's cached declaration and JSON source files, b
 builder counts 1, 4 and 8, dependency errors, cycles, `--stopBuildOnErrors`, `--dry`, `--clean` and `--force`;
 [the measurement note](../notes/emit-incremental.md) records the results.
 
-CLI builds retain finished programs, so peak memory grows with the project graph. API builds free finished
-programs' heap data with `free_unshared_program`, then release their arenas with the orchestrator's task regions.
+Non-watch CLI builds free each completed program and its private arenas, with at most four outstanding frees.
+Diagnostics retain detached source text for later reporting, while shared declaration and JSON files remain
+owned by their cache generations. API builds also free finished programs' heap data with `free_unshared_program`
+and release their arenas with the orchestrator's task regions.
 
 ### Shape signatures
 
@@ -212,8 +214,8 @@ of a file after a cold build rechecks its importers, exactly like tsgo).
 The Go scenario tables are closures, so `tools/oracle/tsctests/dump.sh` runs the Go tests once
 with a recorder (`runner.patch` + `tsrs_dump.go`) and writes every scenario as JSON: inputs plus the file-system
 ops of every edit, both in the incremental run and replayed from scratch for the non-incremental comparison. The
-harness (`crates/tsrs_execute/src/tsctests`, a `#[cfg(test)]` module of the driver crate because it drives
-`execute::command_line_with_testing`) replays them with a fake clock, the FS differ, the readable buildinfo and the
+harness (`crates/tsrs_execute/tests/integration/tsctests`, part of the crate's integration binary) drives
+`execute::command_line_with_testing` and replays them with a fake clock, the FS differ, the readable buildinfo and the
 output sanitizer of `tsctests/sys.go`. Watch scenarios (`tscWatch/`, `tsbuildWatch/`) drive the watcher through
 Go's mock watch backend (`tsctests/mockwatch.rs`); content-mapper scenarios use the in-process test mappers of
 `tsrs_contentmappertest`.
@@ -223,8 +225,8 @@ Go's mock watch backend (`tsctests/mockwatch.rs`); content-mapper scenarios use 
 Build the CLI and conformance runner as described in [CONTRIBUTING.md](../CONTRIBUTING.md), then run:
 
 ```sh
-./target/release/tsrs-test run --suite all --baselines types,symbols,js,jsmap,sourcemap
-./target/release/tsrs-test show <suite/name> --js
+./target/debug/tsrs-test run --suite all --baselines types,symbols,js,jsmap,sourcemap
+./target/debug/tsrs-test show <suite/name> --js
 ```
 
 The emit harness mirrors Go's pre- and post-emit programs, output ordering, declaration recompilation and
@@ -237,9 +239,9 @@ Build tsgo from the TypeScript commit pinned in `Cargo.toml`, then set `TSGO` to
 binary under comparison; it defaults to `target/release/tsrs`.
 
 ```sh
-TSGO=/path/to/tsgo-ref tools/oracle/emit/run.mjs /path/to/tsconfig.json -- --noEmit false
-TSGO=/path/to/tsgo-ref tools/oracle/emit/run.mjs /path/to/project -- --noEmit false --declaration --sourceMap --declarationMap
-TSGO=/path/to/tsgo-ref tools/oracle/emit/run.mjs /path/to/project --buildinfo -- --noEmit false
+TSGO=/path/to/tsgo-ref TSRS="$PWD/target/debug/tsrs" tools/oracle/emit/run.mjs /path/to/tsconfig.json -- --noEmit false
+TSGO=/path/to/tsgo-ref TSRS="$PWD/target/debug/tsrs" tools/oracle/emit/run.mjs /path/to/project -- --noEmit false --declaration --sourceMap --declarationMap
+TSGO=/path/to/tsgo-ref TSRS="$PWD/target/debug/tsrs" tools/oracle/emit/run.mjs /path/to/project --buildinfo -- --noEmit false
 ```
 
 `run.mjs` redirects `outDir`, `declarationDir` and `tsBuildInfoFile` to separate reference and Rust trees under

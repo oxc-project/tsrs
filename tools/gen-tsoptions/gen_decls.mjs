@@ -54,6 +54,7 @@ main(() => {
     const go = read(a._[0]),
         target = read(a._[1]),
         previous = new Map(),
+        fieldOrder = new Map(),
         selected = a.vars ? new Set(a.vars.split(",")) : null;
     for (const m of target
         .split("// BEGIN GENERATED\n")[1]
@@ -68,6 +69,8 @@ main(() => {
             if (f && moved.has(f[1])) fields[f[1]] = f[2];
         }
         previous.set(JSON.stringify([name[1], short?.[1] ?? ""]), fields);
+        fieldOrder.set(JSON.stringify([name[1], short?.[1] ?? ""]),
+            [...m[1].matchAll(/^\s*(\w+):/gm)].map((match) => match[1]));
     }
     function literal(body, indent) {
         const fields = [];
@@ -85,6 +88,14 @@ main(() => {
         if (name)
             for (const [k, v] of Object.entries(previous.get(JSON.stringify([name[1], short?.[1] ?? ""])) ?? {}))
                 if (!present.has(k)) fields.push(`${k}: ${v}`);
+        const order = fieldOrder.get(JSON.stringify([name?.[1], short?.[1] ?? ""]));
+        if (order) fields.sort((a, b) => {
+            const position = (field) => {
+                const index = order.indexOf(field.split(":")[0]);
+                return index < 0 ? order.length : index;
+            };
+            return position(a) - position(b);
+        });
         const pad = " ".repeat(indent + 4);
         return `CommandLineOption {\n${fields.map((f) => `${pad}${f},\n`).join("")}${pad}..CommandLineOption::DEFAULT\n${" ".repeat(indent)}}`;
     }

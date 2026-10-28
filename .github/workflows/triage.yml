@@ -4,8 +4,8 @@
 #     and Pull requests write access.
 #   - CAPTAIN_ID: the oxc-guard GitHub App's client ID, as a repository secret.
 #   - CAPTAIN_KEY: the oxc-guard GitHub App's private key.
-#   - CLOUDFLARE_API_KEY: a Workers AI API token with Workers AI Read and Edit.
-#   - CLOUDFLARE_ACCOUNT_ID: the Workers AI account ID.
+#   - CLOUDFLARE_API_KEY: an API token with AI Gateway and Workers AI access.
+#   - CLOUDFLARE_ACCOUNT_ID: the Cloudflare account ID.
 
 name: Issue Triage
 
@@ -81,13 +81,17 @@ jobs:
         # Cloudflare Workers AI support is newer than v0.4.0. Pin the upstream
         # commit rather than following its moving main branch.
         uses: withastro/triagebot-action@51d30da13c0bd571a3822fc56882de40fead0086 # main, 2026-08-28
+        env:
+          # AI Gateway creates the default gateway on the first authenticated request.
+          CLOUDFLARE_GATEWAY_ID: default
         with:
           read-token: ${{ github.token }}
           write-token: ${{ steps.app-token.outputs.token }}
           cloudflare-api-key: ${{ secrets.CLOUDFLARE_API_KEY }}
           cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          triage-model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.7-code
-          verification-model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6
+          # Use the action's default models through AI Gateway.
+          triage-model: cloudflare-ai-gateway/claude-opus-4-6
+          verification-model: cloudflare-ai-gateway/claude-sonnet-4-6
           triage-skill: .agents/skills/triage
           pr-skill: .agents/skills/pr-writer
           auto-pr-on-fix: true

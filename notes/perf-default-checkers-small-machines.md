@@ -1,5 +1,8 @@
 # perf-default-checkers-small-machines: every core gets a checker on machines of up to 8 cores
 
+Superseded on 2026-10-10 by [the 16-core rule](perf-default-checkers-16.md). Since 0.20.0, adaptive counts
+are part of `--fast`; ordinary compilation uses four checkers. See [current defaults](../docs/DEFAULTS.md#command-line).
+
 Without `--checkers`, tsrs chose `clamp(cores / 2, 4, 32)` checker threads (notes/perf-checker-64.md section 3 raised
 the cap from 8 to 32 and kept the halving). On an 8-core machine that is Go's 4. The README bench runs every project on
 an 8-vCPU runner in three modes, and its `--checkers 8` rows have been faster than its default rows on every project
@@ -9,8 +12,6 @@ keep 8 (half their cores rounds below it), 18 cores keep 9, 64 or more keep 32, 
 18-core Mac and on the 64-vCPU runner is unchanged, including the README's headline table and the `bun check`
 comparison. The small-program floor (one checker per 32 type-checked files beyond Go's 4) and the `-b` build-mode
 default (Go's 4) are unchanged.
-
-Superseded on 2026-10-10 by notes/perf-default-checkers-16.md: every core up to 16.
 
 ## Evidence: the 8-vCPU runner, default (4 checkers) against `--checkers 8`
 

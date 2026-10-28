@@ -1,5 +1,8 @@
 # mem-free-leaf-files: free a checked leaf file's tree and binder output (CLI `--noEmit`)
 
+This records the original implementation and defaults. Since 0.20.0, eligible leaf-file freeing is part of the
+opt-in fast preset; see [current options and overrides](../docs/USAGE.md#performance-options).
+
 The one exact, double-digit lever from the Bun study (notes/bun-check-memory.md): Bun's `bun check` marks a module
 `is_leaf` when no file refers to it and it adds nothing globally visible, and frees its tree and binder output at the
 end of the task that checked it (`free_tree`). tsrs never freed any of the front end. This change does the same for

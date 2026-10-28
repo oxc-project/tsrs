@@ -1,5 +1,9 @@
 # mem-lazy-dts-members: parse and bind the member lists of unchecked declaration files on first use
 
+This records the original batch-compilation implementation. The
+[incremental and build follow-up](mem-lazy-dts-build.md) extends its scope. Since 0.20.0, eligible runs also
+require `--fast` or `TSRS_LAZY_DTS=1`; see [current options](../docs/USAGE.md#performance-options).
+
 On the projects where `bun check` beats tsrs on memory, most of the program is `node_modules` declaration files that
 are parsed and bound in full and never type-checked (`skipLibCheck`). The checker resolves declarations lazily
 (notes/lazy-members.md), so of an interface, class or type literal in such a file it only needs the members some

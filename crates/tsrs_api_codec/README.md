@@ -43,14 +43,16 @@ port of Go's `NodeVisitor.VisitEachChild` with the encoder's `VisitNodes`/`Visit
 
 ## Verification
 
-The current goldens use `ts-ref` at source commit `2f9fd09a104ef14268944a0aeb9cdc4d80abb6a6`,
+The checked-in goldens were recorded with `ts-ref` at source commit `2f9fd09a104ef14268944a0aeb9cdc4d80abb6a6`,
 the Go server built from that revision with Go 1.27.0, and the `npm/tsrs` JavaScript client compiled
 from source-24 SDK files. `tests/golden/manifest.json` records the source SHA, Go version, executable
-sha256 and client package. After building the source-24 Go server and local SDK, regenerate with:
+sha256 and client package. To refresh them, verify and build the current Cargo-pinned Go reference using
+[the reference workflow](../../CONTRIBUTING.md#reference-compiler), build the matching local SDK, then run
+from the repository root:
 
 ```sh
-TSRS_CODEC_COMMIT=<source-SHA> TSRS_CODEC_TSC=<source-24-tsgo> TSRS_CODEC_ORACLE=npm/tsrs node crates/tsrs_api_codec/gen/oracle.mjs
-TSRS_CODEC_COMMIT=<source-SHA> bash crates/tsrs_api_codec/gen/goprobe.sh
+TSRS_CODEC_TSC="$PWD/target/reference/tsgo" TSRS_CODEC_ORACLE=npm/tsrs vp run gen:codec-oracle
+vp run gen:codec-probe
 ```
 
 `cargo test -p tsrs_api_codec` (`TSRS_CODEC_ORACLE=npm/tsrs` enables the Node test,

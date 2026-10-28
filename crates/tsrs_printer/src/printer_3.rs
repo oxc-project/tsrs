@@ -468,6 +468,9 @@ impl EmitTextWriter for BorrowedWriter {
     fn string(&self) -> String {
         self.r().string()
     }
+    fn take_string(&mut self) -> String {
+        self.w().take_string()
+    }
     fn raw_write(&mut self, s: &str) {
         self.w().raw_write(s);
     }
@@ -510,9 +513,7 @@ impl Printer {
 
         let mut own_writer = self.own_writer.take().unwrap();
         self.write(node, source_file, &mut *own_writer, None /*sourceMapGenerator*/);
-        let text = own_writer.string();
-
-        own_writer.clear();
+        let text = own_writer.take_string();
         self.own_writer = Some(own_writer);
         text
     }

@@ -25,7 +25,7 @@ repeated default-mode runs with identical inputs and settings.
 
 ## Command line
 
-The 0.20.0 beta defaults to the pinned TypeScript checker settings. Its opt-in fast preset is enabled
+Release 0.20.1 defaults to the pinned TypeScript checker settings. Its opt-in fast preset is enabled
 by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this table. See
 [side effects and precedence](USAGE.md#side-effects) before enabling it.
 
@@ -208,7 +208,7 @@ and watch declarations were regenerated into scratch files and compared; all 174
 library files matched. Probes with source-built binaries on macOS covered help, version, unsupported commands,
 locale handling, statistics, incremental metadata, tracing, profiling, non-UTF-8 arguments and API startup errors. Direct Go/Rust
 probes confirmed the unknown `moduleDetection` and tsbuildinfo enum conversions. Platform-specific watcher
-behavior, runtime scheduling and the remaining server/API details were checked in source. The current 0.20.0
+behavior, runtime scheduling and the remaining server/API details were checked in source. The current 0.20.1
 source pin is `3e9236361fa9`; its broader conformance evidence is in the
 [recorded suite results](COMPATIBILITY.md#conformance), [source-upgrade log](../notes/typescript-623-ports.md),
 and [beta follow-up log](../notes/typescript-7.1-beta-ports.md).

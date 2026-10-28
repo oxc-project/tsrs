@@ -1,5 +1,8 @@
 # Lazy declaration members in incremental and project builds (#722)
 
+Since 0.20.0, this mode requires `--fast` or `TSRS_LAZY_DTS=1`, in addition to the eligibility gates below.
+`TSRS_LAZY_DTS=0` disables it even in fast mode. See [current options](../docs/USAGE.md#performance-options).
+
 The original [lazy declaration member experiment](mem-lazy-dts-members.md) left incremental and build mode eager
 because their readers had not been audited or measured. [Issue #722](https://github.com/oxc-project/tsrs/issues/722)
 supplies a public reproduction and a proposed extension. The reader audit, CLI regressions and release measurements

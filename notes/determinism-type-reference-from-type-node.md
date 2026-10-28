@@ -1,6 +1,10 @@
-checker: how deep an elaboration goes depends on which path first created a type reference
+# checker: how deep an elaboration goes depends on which path first created a type reference
 
-**Status:** written up only, not opened upstream. Found by tsrs on rxjs (notes/open-history-dependence.md section 3).
+> Archived report draft. Modes and source locations below describe the investigation.
+> See [current checker defaults](../docs/DEFAULTS.md#command-line) and the
+> [checker-history record](open-history-dependence.md) for context.
+
+**Recorded status:** written up only, not opened upstream. Found by tsrs on rxjs (notes/open-history-dependence.md section 3).
 tsrs does not change it: `--checkerAssignment go` prints what tsgo prints at every checker count, and the default mode
 has no fix that keeps tsgo's single-checker output.
 
@@ -60,8 +64,8 @@ is deeply nested, so `Obs<number[]>`'s `grp` is the reported failure. When `a.ts
 
 On rxjs `54796b38a57e` (`packages/rxjs/tsconfig.json`) tsgo prints the same 22,030 error headers at 1, 2, 4 and 8
 checkers, but the elaboration text of 5 of them differs between 1 and 4 checkers and of 24 between 1 and 8. For example
-`zip-all.spec.ts(99,50)` reports "The types returned by '[bufferTime](...)[groupBy]'" at 4 checkers and
-"'[bufferTime](...)[bufferTime](...)[groupBy]'" at 1 and 2; there the single-checker run has `Observable<number>` with
+`zip-all.spec.ts(99,50)` reports `The types returned by '[bufferTime](...)[groupBy]'` at 4 checkers and
+`'[bufferTime](...)[bufferTime](...)[groupBy]'` at 1 and 2; there the single-checker run has `Observable<number>` with
 `ObjectFlagsFromTypeNode` on the source stack and the 4-checker run has it without.
 
 No fix is proposed: any rule that does not depend on creation order changes which elaborations single-checker runs

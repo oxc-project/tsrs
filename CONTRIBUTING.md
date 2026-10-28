@@ -73,19 +73,31 @@ git -C ts-ref sparse-checkout set tsc packages/typescript/src \
 git -C ts-ref checkout --detach "$commit"
 ```
 
-For a new or existing checkout, verify the source pin and build the Go reference from it:
+For a new or existing checkout, verify the source pin and resolve the matching published Go compiler:
 
 ```sh
 commit=$(node npm/build.mjs --print-typescript-commit)
 test "$(git -C ts-ref rev-parse HEAD)" = "$commit"
-git -C ts-ref diff --exit-code HEAD -- tsc
-mkdir -p target/reference
-reference_bin="$PWD/target/reference/tsgo"
-(cd ts-ref/tsc && GOTOOLCHAIN=auto GOWORK=off go build -o "$reference_bin" ./cmd/tsc)
+git -C ts-ref diff --exit-code HEAD -- tsc packages/typescript
+vp install --frozen-lockfile
+reference_bin=$(node tools/lib/typescript-reference.mjs --binary)
 "$reference_bin" --version
 ```
 
-Both source checks must pass before building or reproducing a bug. Keep tracked reference sources unchanged;
+Both source checks must pass before reproducing a bug. The resolver verifies the installed package and native
+compiler versions, their source commits and the executable's version against Cargo metadata. Published-version
+checks use `node tools/port/build-published.mjs` and `target/published/debug/tsrs`, which also exercise npm's on-disk
+library layout. Source conformance keeps Go's source-default version; the two version strings can differ.
+
+Internal oracle programs and instrumentation still build from the verified Go checkout:
+
+```sh
+mkdir -p target/reference
+reference_bin="$PWD/target/reference/tsgo"
+(cd ts-ref/tsc && GOTOOLCHAIN=auto GOWORK=off go build -o "$reference_bin" ./cmd/tsc)
+```
+
+Keep tracked reference sources unchanged;
 [Go overlays](docs/DEBUGGING.md#where-go-reports-an-error-an-instrumented-reference-with-go-build--overlay) support
 instrumentation. Rebuild the reference after the pin changes; its version string alone does not identify the commit.
 The checkout stays at the pinned revision until explicitly updated. `Cargo.toml` records the matching TypeScript

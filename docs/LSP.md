@@ -8,15 +8,16 @@ and formatting through the TypeScript 7 language-server protocol. The recorded 0
 ## Editor setup
 
 `tsrs --lsp -stdio` speaks the same protocol as `tsgo --lsp -stdio` (Go's flag parsing: `-stdio` and `--stdio` both
-work; only stdio is supported, like Go). Build it with `cargo build --release -p tsrs_cli` (binary
-`target/release/tsrs`) or install the npm package (`tsrs`, binary `tsrs`). The configurations below follow the
+work; only stdio is supported, like Go). Build it with `cargo build --profile dev -p tsrs_cli` (binary
+`target/debug/tsrs`) or install the npm package (`tsrs`, binary `tsrs`). The configurations below follow the
 editors' documented mechanisms.
 
 **VS Code** — the TypeScript 7 extension (`TypeScriptTeam.native-preview`, source in
-`ts-ref/packages/vscode-typescript`) starts `<tsdk>/tsgo --lsp --stdio` when `js/ts.tsdk.path` points at a directory
-that contains an executable named `tsgo` or `tsc` (`src/util.ts`: `tsdkConfigSources`, `packagedExeBaseNames`).
-The 0.20.0 beta includes `tsdk/tsgo` for macOS and Linux. Install it with
-`pnpm add -D tsrs@0.20.0-ts7.1.0-beta` and commit this `.vscode/settings.json` so each teammate's editor uses the
+`ts-ref/packages/vscode-typescript`) starts `<tsdk>/tsgo --lsp --stdio` (`tsgo.exe` on Windows) when
+`js/ts.tsdk.path` points at a directory that contains an executable named `tsgo` or `tsc` (`.exe` on Windows;
+`src/util.ts`: `tsdkConfigSources`, `packagedExeBaseNames`).
+Since 0.20.0, the package includes `tsdk/tsgo` for macOS and Linux. Install it with
+`pnpm add -D tsrs@0.20.1-ts7.1.0-beta` and commit this `.vscode/settings.json` so each teammate's editor uses the
 version in the project's lockfile:
 
 ```jsonc
@@ -27,15 +28,36 @@ version in the project's lockfile:
 }
 ```
 
-The extension asks for workspace trust and consent before running a workspace SDK. The launcher uses the
-installed package's platform binary, just like `pnpm exec tsrs`; it does not add a `tsgo` command to
-`node_modules/.bin`. Windows SDK discovery requires a native `tsgo.exe` or `tsc.exe`, so this Node launcher
-does not provide a Windows SDK.
+The native `tsrs` (`tsrs.exe` on Windows) and default libraries ship together at each `@tsrs/<platform>`
+package root. The CLI and Node API resolve `tsrs[.exe]`. Version 0.20.1 adds an identical `tsgo.exe` to Windows
+packages for VS Code's native SDK discovery.
+
+On **Windows x64**, use the native platform package's root directory. Add
+`@tsrs/win32-x64` as a direct optional dependency at the same version as `tsrs`, so npm and pnpm both expose
+the project-local path. Keep both packages at the same version when upgrading:
+
+```sh
+pnpm add -O --save-exact @tsrs/win32-x64@0.20.1-ts7.1.0-beta
+```
+
+Use these VS Code settings on Windows:
+
+```jsonc
+{
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.tsdk.path": "./node_modules/@tsrs/win32-x64"
+}
+```
+
+The extension asks for workspace trust and consent before running a workspace SDK. Its automatic package
+resolver is specific to `@typescript` packages; pointing at the native package directory uses its executable
+discovery instead. The macOS/Linux `tsrs/tsdk` launcher delegates to the same platform binary, just like
+`pnpm exec tsrs`. Neither layout adds a `tsgo` command to `node_modules/.bin`.
 
 For an older npm release or a local build on macOS/Linux, create a symlink instead:
 
 ```sh
-mkdir -p ~/.tsrs-tsdk && ln -sf "$PWD/target/release/tsrs" ~/.tsrs-tsdk/tsgo
+mkdir -p ~/.tsrs-tsdk && ln -sf "$PWD/target/debug/tsrs" ~/.tsrs-tsdk/tsgo
 ```
 
 Then set `js/ts.tsdk.path` in user settings to that directory's absolute path, such as `/Users/<you>/.tsrs-tsdk`.
@@ -47,7 +69,7 @@ contributes any. `tsrs -p` and `tsrs -b` do run them.
 
 ```lua
 vim.lsp.config('tsrs', {
-  cmd = { 'tsrs', '--lsp', '-stdio' },          -- or the absolute path to target/release/tsrs
+  cmd = { 'tsrs', '--lsp', '-stdio' },          -- or the absolute path to target/debug/tsrs
   filetypes = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
   root_markers = { 'tsconfig.json', 'jsconfig.json', 'package.json', '.git' },
 })

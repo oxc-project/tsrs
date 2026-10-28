@@ -197,8 +197,8 @@ tsgo here needs Go's assignment at 4 checkers.
 
 From notes/perf-excalidraw-typefest.md (PR #212): rxjs prints its 6,158 errors in every configuration, but five of them
 (`group-by.spec.ts(24,41)`, `multicast.spec.ts(33,19)`, `multicast.spec.ts(184,77)`, `concat-all.spec.ts(36,48)`,
-`merge-all.spec.ts(45,48)`) elaborate differently, for example "The types returned by '[bufferTime](...)[groupBy]'"
-against "'[bufferTime](...)[bufferTime](...)[groupBy]'". On main, `random:1`, `random:2` and `random:3` at 2 and 4
+`merge-all.spec.ts(45,48)`) elaborate differently, for example `The types returned by '[bufferTime](...)[groupBy]'`
+against `'[bufferTime](...)[bufferTime](...)[groupBy]'`. On main, `random:1`, `random:2` and `random:3` at 2 and 4
 checkers each differ from the single-threaded output; at one checker in a random visit order they do not, so it depends
 on which files share a checker. tsgo-ref also prints different text at 1 and 4 checkers. The base constraint
 experiments above leave its output byte-identical to main in all of these runs.

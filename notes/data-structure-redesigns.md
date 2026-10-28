@@ -183,7 +183,6 @@ small-process memory. The testrunner's cold default-hasher map was also reviewed
 | 1 | 680.418 → 668.276 | 15.188 → 15.516 | 956.24 → 947.98 |
 | 2 | 680.135 → 668.560 | 15.313 → 15.344 | 945.77 → 954.51 |
 
-
 ## Final fat-LTO catalog comparison
 
 The combined change is retained. The median paired single-checker instruction change across projects is

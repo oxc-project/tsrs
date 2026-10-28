@@ -30,6 +30,11 @@
             "patch": "npm/sdk/patches/async-client-connection-loss.patch",
             "patchSha256": "3587f236e3ebd9775376774c5418fd1fb12b4a0e72cea22a9eca50d730b577f5"
         },
+        "src/api/sync/client.ts": {
+            "upstreamSha256": "3dd6d69e4b0761d753b1351da46a61ffe83a4bd775b871620f32ce375dd423dc",
+            "patch": "npm/sdk/patches/sync-client-channel-factory.patch",
+            "patchSha256": "28eac65bc4308f4cdf3237c25717e04e1fec162bfdaa621560a00ba1dbaeee4e"
+        },
         "vendor/vscode-jsonrpc/lib/common/connection.js": {
             "upstreamSha256": "0a3a46fad254b78fc2ee371d8438037c860b9bc73124fddb038bf3bb5a3c94f4",
             "patch": "npm/sdk/patches/vscode-jsonrpc-send-request-write-error.patch",
@@ -68,7 +73,7 @@
         "src/api/proto.ts": "ccfcc846c60ebb874b822c56d894b724c68dd9669b1d8e259c3643b8790b38cd",
         "src/api/sourceFileCache.ts": "acad2db9a36a8f23e78824dc413a7c7e1a171b29f5474f055ea9a227f62c8865",
         "src/api/sync/api.ts": "341097b031f913e7cb82f65080b0be657dad8b892e491e63cb272e662ee2173d",
-        "src/api/sync/client.ts": "3dd6d69e4b0761d753b1351da46a61ffe83a4bd775b871620f32ce375dd423dc",
+        "src/api/sync/client.ts": "f18811a2862c0eca612593f5c63a8250be5f37fd800ea48e60630400b7867b0b",
         "src/api/sync/generatorSupport.ts": "d4ac0592637c9b796d8ab45a036e2cec7cbd8ea1949da2d6e58a5144b2da245c",
         "src/api/sync/types.ts": "d405fd1bce55680a3d0857f1b6b7891dbf35eea9280b414f48cafe568f217833",
         "src/api/syncChannel.ts": "249ae8532112f7efbfe0c33bae2a481ef0ff3c6c9575392b25ee77c6812f687b",

@@ -1,0 +1,26 @@
+[package]
+name = "tsrs_napi"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+test = false
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+napi.workspace = true
+napi-derive.workspace = true
+rustc-hash.workspace = true
+tsrs_api.workspace = true
+tsrs_api_transport.workspace = true
+tsrs_cli.workspace = true
+
+[build-dependencies]
+napi-build.workspace = true

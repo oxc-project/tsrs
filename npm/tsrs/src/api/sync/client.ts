@@ -29,15 +29,31 @@ import { TimingDump } from "../timingDump.ts";
 
 export type { ClientOptions, ClientSocketOptions, ClientSpawnOptions };
 
+// tsrs patch (npm/sdk/patches/sync-client-channel-factory.patch): an in-process host such as @tsrs/napi passes
+// `createChannel` to serve the session itself. It gets the `tsrs --api` arguments the client would spawn with.
+export interface SyncChannel {
+    requestSync(method: string, payload: string): string;
+    requestBinarySync(method: string, payload: Uint8Array): Uint8Array;
+    registerCallback(name: string, callback: (name: string, payload: string) => string): void;
+    unregisterCallback(name: string): void;
+    close(): void;
+    readonly lastBytesSent: number;
+    readonly lastBytesReceived: number;
+}
+
+export interface ClientChannelOptions {
+    createChannel?: ((args: string[]) => SyncChannel) | undefined;
+}
+
 export class Client {
-    private channel: SyncRpcChannel;
+    private channel: SyncChannel;
     private encoder = new TextEncoder();
     private timing: TimingCollector | undefined;
     private timingDump: TimingDump | undefined;
     private closed = false;
     private maxResponseBytesPerPage: number | undefined;
 
-    constructor(options: ClientOptions) {
+    constructor(options: ClientOptions & ClientChannelOptions) {
         if (!isSpawnOptions(options)) {
             throw new Error("Socket connections are not yet supported in the sync client");
         }
@@ -59,7 +75,9 @@ export class Client {
             this.timing = new TimingCollector();
         }
 
-        const channel = new SyncRpcChannel(resolveExePath(options), args, collectTiming);
+        const channel = options.createChannel
+            ? options.createChannel(args)
+            : new SyncRpcChannel(resolveExePath(options), args, collectTiming);
         this.channel = channel;
 
         if (options.fs) {

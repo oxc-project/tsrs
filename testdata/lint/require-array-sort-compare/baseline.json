@@ -226,72 +226,6 @@
           "Diagnostics": []
         },
         {
-          "Code": "\n        function f(a: [string, number]) {\n          a.sort();\n        }\n      ",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Options": null,
-          "TSConfig": "",
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": []
-        },
-        {
-          "Code": "\n        function f(a: [number, string]) {\n          a.sort();\n        }\n      ",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Options": null,
-          "TSConfig": "",
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": []
-        },
-        {
-          "Code": "\n        function f(a: readonly [string, number]) {\n          a.sort();\n        }\n      ",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Options": null,
-          "TSConfig": "",
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": []
-        },
-        {
-          "Code": "\n        function f(a: [string, ...number[]]) {\n          a.sort();\n        }\n      ",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Options": null,
-          "TSConfig": "",
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": []
-        },
-        {
-          "Code": "\n        function f(a: [string, number?]) {\n          a.sort();\n        }\n      ",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Options": null,
-          "TSConfig": "",
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": []
-        },
-        {
-          "Code": "\n        function f(a: [string, number] | number[]) {\n          a.sort();\n        }\n      ",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Options": null,
-          "TSConfig": "",
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": []
-        },
-        {
           "Code": "\n      function sort<T>(values: (T extends 0 ? string : string)[]) {\n        values.sort();\n      }\n    ",
           "Only": false,
           "Skip": false,
@@ -312,11 +246,50 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f(a: [string, string]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f<T extends [string, string]>(a: T) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f(a: readonly [string, ...string[]]) {\n          a.toSorted();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [
         {
-          "Code": "\n        function f(a: Array<any>) {\n          a.sort();\n        }\n      ",
+          "Code": "\n        function f(a: [string, number]) {\n          a.sort();\n        }\n      ",
           "Only": false,
           "Skip": false,
           "FileName": "",
@@ -343,8 +316,8 @@
               },
               "file_path": "file.ts",
               "range": {
-                "end": 55,
-                "pos": 47
+                "end": 61,
+                "pos": 53
               },
               "kind": 0,
               "rule": "require-array-sort-compare"
@@ -352,7 +325,43 @@
           ]
         },
         {
-          "Code": "\n        function f(a: number[]) {\n          a.sort();\n        }\n      ",
+          "Code": "\n        function f(a: [number, string]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 53,
+                "end": 61
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: readonly [string, number]) {\n          a.sort();\n        }\n      ",
           "Only": false,
           "Skip": false,
           "FileName": "",
@@ -381,14 +390,158 @@
               },
               "file_path": "file.ts",
               "range": {
-                "end": 53,
-                "pos": 45
+                "pos": 62,
+                "end": 70
               }
             }
           ]
         },
         {
-          "Code": "\n        function f(a: number[]) {\n          a.sort();\n        }\n      ",
+          "Code": "\n        function f(a: [string, ...number[]]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 66
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: [string, number?]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 54,
+                "end": 62
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: [string, number] | number[]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 64,
+                "end": 72
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: [number, number]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 61,
+                "pos": 53
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: [string, string]) {\n          a.sort();\n        }\n      ",
           "Only": false,
           "Skip": false,
           "FileName": "",
@@ -419,9 +572,231 @@
               },
               "file_path": "file.ts",
               "range": {
-                "end": 53,
-                "pos": 45
+                "pos": 53,
+                "end": 61
               }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<T extends [string, number]>(a: T) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 66,
+                "end": 74
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: readonly [string, ...number[]]) {\n          a.toSorted();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 67,
+                "end": 79
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: number[] | [string, string]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 64,
+                "end": 72
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Array<any>) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 47,
+                "end": 55
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: number[]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 53
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: number[]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 53
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare"
             }
           ]
         },
@@ -447,17 +822,17 @@
           "Files": {},
           "Diagnostics": [
             {
-              "range": {
-                "pos": 76,
-                "end": 84
-              },
               "kind": 0,
               "rule": "require-array-sort-compare",
               "message": {
                 "id": "requireCompare",
                 "description": "Require 'compare' argument."
               },
-              "file_path": "file.ts"
+              "file_path": "file.ts",
+              "range": {
+                "pos": 76,
+                "end": 84
+              }
             }
           ]
         },
@@ -485,17 +860,17 @@
           "Files": {},
           "Diagnostics": [
             {
+              "range": {
+                "pos": 76,
+                "end": 84
+              },
               "kind": 0,
               "rule": "require-array-sort-compare",
               "message": {
                 "id": "requireCompare",
                 "description": "Require 'compare' argument."
               },
-              "file_path": "file.ts",
-              "range": {
-                "pos": 76,
-                "end": 84
-              }
+              "file_path": "file.ts"
             }
           ]
         },
@@ -521,16 +896,16 @@
           "Files": {},
           "Diagnostics": [
             {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 56,
+                "end": 64
+              },
               "kind": 0,
               "rule": "require-array-sort-compare",
               "message": {
                 "id": "requireCompare",
                 "description": "Require 'compare' argument."
-              },
-              "file_path": "file.ts",
-              "range": {
-                "pos": 56,
-                "end": 64
               }
             }
           ]
@@ -557,6 +932,7 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
               "rule": "require-array-sort-compare",
               "message": {
                 "id": "requireCompare",
@@ -564,10 +940,9 @@
               },
               "file_path": "file.ts",
               "range": {
-                "end": 66,
-                "pos": 58
-              },
-              "kind": 0
+                "pos": 58,
+                "end": 66
+              }
             }
           ]
         },
@@ -593,7 +968,6 @@
           "Files": {},
           "Diagnostics": [
             {
-              "kind": 0,
               "rule": "require-array-sort-compare",
               "message": {
                 "id": "requireCompare",
@@ -601,9 +975,10 @@
               },
               "file_path": "file.ts",
               "range": {
-                "end": 64,
-                "pos": 56
-              }
+                "pos": 56,
+                "end": 64
+              },
+              "kind": 0
             }
           ]
         },
@@ -637,8 +1012,8 @@
               },
               "file_path": "file.ts",
               "range": {
-                "end": 54,
-                "pos": 45
+                "pos": 45,
+                "end": 54
               }
             }
           ]
@@ -709,8 +1084,8 @@
               },
               "file_path": "file.ts",
               "range": {
-                "pos": 70,
-                "end": 103
+                "end": 103,
+                "pos": 70
               }
             }
           ]
@@ -775,17 +1150,17 @@
           "Files": {},
           "Diagnostics": [
             {
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
               "range": {
                 "pos": 9,
                 "end": 33
               },
               "kind": 0,
-              "rule": "require-array-sort-compare",
-              "message": {
-                "id": "requireCompare",
-                "description": "Require 'compare' argument."
-              },
-              "file_path": "file.ts"
+              "rule": "require-array-sort-compare"
             }
           ]
         },
@@ -813,17 +1188,17 @@
           "Files": {},
           "Diagnostics": [
             {
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
               "file_path": "file.ts",
               "range": {
                 "pos": 70,
                 "end": 83
               },
               "kind": 0,
-              "rule": "require-array-sort-compare",
-              "message": {
-                "id": "requireCompare",
-                "description": "Require 'compare' argument."
-              }
+              "rule": "require-array-sort-compare"
             }
           ]
         },
@@ -887,17 +1262,17 @@
           "Files": {},
           "Diagnostics": [
             {
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
               "file_path": "file.ts",
               "range": {
                 "pos": 45,
                 "end": 57
               },
-              "kind": 0,
-              "rule": "require-array-sort-compare",
-              "message": {
-                "id": "requireCompare",
-                "description": "Require 'compare' argument."
-              }
+              "kind": 0
             }
           ]
         },
@@ -925,17 +1300,17 @@
           "Files": {},
           "Diagnostics": [
             {
+              "range": {
+                "pos": 42,
+                "end": 56
+              },
               "kind": 0,
               "rule": "require-array-sort-compare",
               "message": {
                 "id": "requireCompare",
                 "description": "Require 'compare' argument."
               },
-              "file_path": "file.ts",
-              "range": {
-                "pos": 42,
-                "end": 56
-              }
+              "file_path": "file.ts"
             }
           ]
         },
@@ -961,8 +1336,6 @@
           "Files": {},
           "Diagnostics": [
             {
-              "kind": 0,
-              "rule": "require-array-sort-compare",
               "message": {
                 "id": "requireCompare",
                 "description": "Require 'compare' argument."
@@ -971,7 +1344,9 @@
               "range": {
                 "pos": 60,
                 "end": 68
-              }
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare"
             }
           ]
         },
@@ -1005,29 +1380,29 @@
           "Files": {},
           "Diagnostics": [
             {
+              "range": {
+                "pos": 81,
+                "end": 94
+              },
               "kind": 0,
               "rule": "require-array-sort-compare",
               "message": {
                 "id": "requireCompare",
                 "description": "Require 'compare' argument."
               },
-              "file_path": "file.ts",
-              "range": {
-                "pos": 81,
-                "end": 94
-              }
+              "file_path": "file.ts"
             },
             {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
               "file_path": "file.ts",
               "range": {
                 "pos": 106,
                 "end": 123
-              },
-              "kind": 0,
-              "rule": "require-array-sort-compare",
-              "message": {
-                "id": "requireCompare",
-                "description": "Require 'compare' argument."
               }
             }
           ]
@@ -1056,16 +1431,16 @@
           "Files": {},
           "Diagnostics": [
             {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 81,
+                "end": 94
+              },
               "kind": 0,
               "rule": "require-array-sort-compare",
               "message": {
                 "id": "requireCompare",
                 "description": "Require 'compare' argument."
-              },
-              "file_path": "file.ts",
-              "range": {
-                "pos": 81,
-                "end": 94
               }
             }
           ]

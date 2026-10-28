@@ -1,8 +1,8 @@
 # Rust tsgolint port
 
-Reference: tsgolint `8897346fff24a9bd0c719099dc1af8e7200572c1`, typescript-go
+Reference: tsgolint v7.0.2005 `4ebf80fd2b166cba4890c6896220fec4a1462b29`, typescript-go
 `2bd066d87f5bafd315be9f40889d0a60b9e58e0b`, with all six shipped compiler patches.
-All 60 suites follow this reference; each directory records the same pins in `REFERENCE`.
+All 61 suites follow this reference; each directory records the same pins in `REFERENCE`.
 
 Every rule must pass its active upstream cases, options, diagnostic snapshots, fixes,
 and suggestions before its implementation commit. Upstream skips remain explicit.

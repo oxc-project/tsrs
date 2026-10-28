@@ -48,3 +48,28 @@ clean checkout of `b3a04abb`; the lint rule refresh does not change native compi
 Compiler-version differences and Go checker-history variation from the earlier corpus
 investigation remain separate from rule-version parity. This suite refresh does not
 claim a new whole-VSCode diagnostic or performance comparison.
+
+## v7.0.2005 refresh (2026-10-28)
+
+The oracle moved to tsgolint v7.0.2005, `4ebf80fd2b166cba4890c6896220fec4a1462b29`.
+Its typescript-go commit and six patches are unchanged, as are `@types/node` 24.13.2
+and `undici-types` 7.18.2. The exporter ran all 61 Go test packages with Go 1.27.1;
+all passed. The 55 suites whose rules did not change exported the same cases and
+diagnostics (compared as JSON, since Go writes map keys in random order); only their
+`REFERENCE` stamps moved.
+
+The five upstream changes each have a rule commit:
+
+- no-deprecated stops at the first repeated alias in a circular chain (tsgolint#1309).
+  The shorthand-only value alias walk (tsgolint#1235) was already in the old pin.
+- await-thenable adds `allowMixedPromiseArrays` (tsgolint#1307).
+- no-unnecessary-type-parameters counts a type parameter used as a generic type argument
+  as repeated, except for arrays (tsgolint#1297).
+- no-unsafe-enum-assignment is a new rule (tsgolint#1316).
+- require-array-sort-compare reports tuple receivers (tsgolint#1317).
+
+The corpus is now 7,933 active cases and 28 upstream skips across 61 rules. Local
+fixtures were replayed through a v7.0.2005 headless build (SHA-256
+`5dbb48dc8fbc66c580e0e56f9b8091536ccf4f0b46a37a3e6ffeec92a5fe5a7e`) in all four fix
+modes: the require-array-sort-compare edge cases gain the tuple records, and the
+61-rule mixed fixture and the type-parameter reference controls are unchanged.

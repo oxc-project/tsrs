@@ -1,13 +1,11 @@
-// Node >= 22.15 may execve the tsrs binary with stdout/stderr in O_NONBLOCK.
-// With that flag set, writes that hit a full pipe return EAGAIN; tsrs must
-// still deliver all diagnostics, matching Go's handling of os.Stdout.
+// The npm launcher must restore blocking stdio before execve or spawning the binary.
+// A full non-blocking pipe returns EAGAIN; diagnostics must still reach the reader.
 
 #![cfg(unix)]
 
 use std::fmt::Write as _;
 use std::io::Read;
-use std::os::unix::process::CommandExt;
-use std::process::{Child, Command, Stdio};
+use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
 
@@ -31,19 +29,38 @@ fn nonblocking_stdout_does_not_drop_diagnostics() {
     });
     std::fs::write(dir.join("a.ts"), source).unwrap();
 
-    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tsrs"));
-    cmd.args(["-p", ".", "--pretty", "false"]).current_dir(&dir).stdout(Stdio::piped());
-    let mut child = spawn_nonblocking(&mut cmd, libc::STDOUT_FILENO);
+    let expected = Command::new(env!("CARGO_BIN_EXE_tsrs"))
+        .args(["-p", ".", "--pretty", "false"])
+        .current_dir(&dir)
+        .output()
+        .unwrap();
+    assert_eq!(expected.status.code(), Some(2));
+    assert_eq!(expected.stderr, [] as [u8; 0]);
 
-    let stdout = child.stdout.take().unwrap();
-    let reader = thread::spawn(move || read_slowly(stdout));
+    for fallback in [false, true] {
+        let mut cmd = launcher_command(fallback);
+        cmd.args(["-p", ".", "--pretty", "false"]).current_dir(&dir).stdout(Stdio::piped());
+        let mut child = cmd.spawn().unwrap();
 
-    let status = child.wait().unwrap();
-    let output = reader.join().unwrap();
-    let text = String::from_utf8_lossy(&output);
-    let errors = text.lines().filter(|l| l.contains("error TS2322")).count();
-    assert_eq!(errors, COUNT, "diagnostics were dropped; stdout output was {} bytes", output.len());
-    assert_eq!(status.code(), Some(2), "expected exit code 2 with errors: {status:?}");
+        let stdout = child.stdout.take().unwrap();
+        let reader = thread::spawn(move || read_slowly(stdout));
+
+        let status = child.wait().unwrap();
+        let output = reader.join().unwrap();
+        let text = String::from_utf8_lossy(&output);
+        let errors = text.lines().filter(|l| l.contains("error TS2322")).count();
+        assert_eq!(
+            errors,
+            COUNT,
+            "fallback={fallback}: diagnostics were dropped ({} bytes)",
+            output.len()
+        );
+        assert_eq!(status.code(), Some(2), "expected exit code 2 with errors: {status:?}");
+        assert_eq!(
+            output, expected.stdout,
+            "fallback={fallback}: output differs from blocking control"
+        );
+    }
 
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -54,13 +71,14 @@ fn nonblocking_stderr_preserves_server_flag_errors() {
     let flag_name = "x".repeat(96 * 1024);
     let flag = format!("--{flag_name}");
     for mode in ["--lsp", "--api"] {
-        let mut cmd = Command::new(env!("CARGO_BIN_EXE_tsrs"));
-        cmd.args([mode, &flag]).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::piped());
-        let expected = cmd.output().unwrap();
+        let expected =
+            Command::new(env!("CARGO_BIN_EXE_tsrs")).args([mode, &flag]).output().unwrap();
         assert_eq!(expected.status.code(), Some(2));
         assert!(String::from_utf8_lossy(&expected.stderr).contains(&flag_name));
 
-        let mut child = spawn_nonblocking(&mut cmd, libc::STDERR_FILENO);
+        let mut cmd = launcher_command(false);
+        cmd.args([mode, &flag]).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::piped());
+        let mut child = cmd.spawn().unwrap();
         let stderr = child.stderr.take().unwrap();
         let reader = thread::spawn(move || read_slowly(stderr));
         let status = child.wait().unwrap();
@@ -70,19 +88,23 @@ fn nonblocking_stderr_preserves_server_flag_errors() {
     }
 }
 
-fn spawn_nonblocking(cmd: &mut Command, fd: i32) -> Child {
-    // SAFETY: `pre_exec` runs only between fork and exec in the child, and the
-    // closure only calls async-signal-safe fcntl and reads errno on failure.
-    unsafe {
-        cmd.pre_exec(move || {
-            let flags = libc::fcntl(fd, libc::F_GETFL, 0);
-            if flags == -1 || libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) == -1 {
-                return Err(std::io::Error::last_os_error());
-            }
-            Ok(())
-        });
-    }
-    cmd.spawn().unwrap()
+fn launcher_command(fallback: bool) -> Command {
+    let mut cmd = Command::new("node");
+    // Set flags after Node initializes, so it cannot reset them before our launcher runs.
+    cmd.args(["--input-type=module", "-e"])
+        .arg(format!(
+            r"
+process.execve = {fallback} ? undefined : process.execve;
+for (const stream of [process.stdin, process.stdout, process.stderr]) {{
+    stream._handle?.setBlocking?.(false);
+}}
+await import(process.argv[1]);
+"
+        ))
+        .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/../../npm/tsrs/lib/tsrs.js"))
+        .env("TSRS_BINARY", env!("CARGO_BIN_EXE_tsrs"))
+        .env_remove("NODE_OPTIONS");
+    cmd
 }
 
 fn read_slowly(mut reader: impl Read) -> Vec<u8> {

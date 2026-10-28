@@ -1069,7 +1069,6 @@ version = "0.20.0"
 dependencies = [
  "libc",
  "mimalloc-safe",
- "rustix",
  "tsrs_api",
  "tsrs_api_transport",
  "tsrs_compiler",

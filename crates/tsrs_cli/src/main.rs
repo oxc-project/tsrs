@@ -72,30 +72,9 @@ fn mimalloc_collect(force: bool) {
     let _ = force;
 }
 
-// Go's standard writers wait for pipe capacity. Rust's writers return WouldBlock instead when a launcher
-// (such as Node's execve) leaves stdout/stderr non-blocking, so restore blocking mode before any CLI mode runs.
-#[cfg(unix)]
-fn set_stdio_blocking() {
-    use std::os::fd::AsFd;
-
-    use rustix::fs::{OFlags, fcntl_getfl, fcntl_setfl};
-
-    let stdout = std::io::stdout();
-    let stderr = std::io::stderr();
-    for fd in [stdout.as_fd(), stderr.as_fd()] {
-        if let Ok(flags) = fcntl_getfl(fd)
-            && flags.contains(OFlags::NONBLOCK)
-        {
-            let _ = fcntl_setfl(fd, flags & !OFlags::NONBLOCK);
-        }
-    }
-}
-
 fn main() -> std::process::ExitCode {
     #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
     tsrs_core::allocator::init_mimalloc();
-    #[cfg(unix)]
-    set_stdio_blocking();
     let args: Vec<String> = std::env::args().skip(1).collect();
     #[cfg(not(feature = "system-alloc"))]
     tsrs_core::memsplit::set_heap_hooks(mimalloc_heap_stats, mimalloc_collect);

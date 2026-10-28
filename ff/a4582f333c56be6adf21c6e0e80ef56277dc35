@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/consistent_return.rs
+  s_dc69f4488b866e::t_5d335836206657 14-17,20-32,44,140-141,177,191,210-214
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "ffa4582f333c56be6adf21c6e0e80ef56277dc35",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

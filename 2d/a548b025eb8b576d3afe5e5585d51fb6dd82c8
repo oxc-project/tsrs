@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/rules/no_misused_spread.rs
+  s_dc69f4488b866e::t_c31b578d6fc8b7 16-81,165,225,239,245-249,256,265-269,273,278,280,282,286
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2da548b025eb8b576d3afe5e5585d51fb6dd82c8",
+  "prompts": {},
+  "sessions": {
+    "s_dc69f4488b866e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17f28-42af-7890-a3ce-6985ae0ec4b9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

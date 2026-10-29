@@ -135,7 +135,11 @@ struct TestPoolState {
 struct TestPool(&'static TestPoolState);
 
 impl CheckerPool for TestPool {
-    fn get_checker(&self, _ctx: &Context, _file: Option<P<tsrs_ast::SourceFile>>) -> CheckerHandle {
+    fn get_checker(
+        &self,
+        _ctx: &Context,
+        _file: Option<P<tsrs_ast::SourceFile>>,
+    ) -> CheckerHandle<'_> {
         let state = self.0;
         let mut slots = state.slots.lock().unwrap();
         let index = if let Some(index) = slots.iter().position(|(_, held)| !held) {
@@ -150,7 +154,7 @@ impl CheckerPool for TestPool {
         // SAFETY: the checker is boxed (stable address), never removed from `slots`, and marked held until the
         // release function runs, so nothing else hands it out meanwhile (single-threaded test).
         unsafe {
-            CheckerHandle::from_raw(checker, move || {
+            CheckerHandle::from_raw(self, checker, move || {
                 state.slots.lock().unwrap()[index].1 = false;
             })
         }

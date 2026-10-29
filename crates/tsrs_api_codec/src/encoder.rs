@@ -338,7 +338,7 @@ impl Walker for EncodeState {
             0,
             self.parent_index,
             data,
-            node.flags().bits(),
+            node.flags().difference(NodeFlags::COND_FLOW_CLEAN).bits(),
         ];
         append_u32s(&mut self.nodes, &values);
         if let Some(map) = &mut self.node_index_map
@@ -438,7 +438,7 @@ fn encode_tree(
         0,
         0,
         data,
-        root.flags().bits(),
+        root.flags().difference(NodeFlags::COND_FLOW_CLEAN).bits(),
     ];
     append_u32s(&mut state.nodes, &values);
 

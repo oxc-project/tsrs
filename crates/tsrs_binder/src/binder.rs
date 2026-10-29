@@ -130,6 +130,61 @@ fn bind_lazy_list(record: &LazyNodeList, file: P<SourceFile>, nodes: &'static [P
     b.bind_lazy_members(ctx, nodes, false);
 }
 
+/// tsrs-only: sets `NodeFlags::COND_FLOW_CLEAN` (its contract is on the constant) from the parent's bit, before
+/// the children are bound. The parent's bit is read, not recomputed, so a node bound before its parent (a `JSDoc`
+/// typedef) stays unmarked, which only sends its type nodes down the general path. Tokens have no children, so
+/// only the ones the type-node worker resolves (keyword types, `this`) are marked.
+fn mark_cond_flow_clean(node: P<Node>) {
+    if node.kind() <= Kind::LAST_TOKEN && !is_type_keyword_token(node.kind()) {
+        return;
+    }
+    let clean = match node.parent() {
+        None => true,
+        Some(parent) => {
+            (parent.flags().intersects(NodeFlags::COND_FLOW_CLEAN)
+                && !cond_flow_relevant(node, parent))
+                || ast::is_statement(parent)
+                || parent.kind() == Kind::JSDoc
+        }
+    };
+    if clean {
+        node.set_flags(node.flags() | NodeFlags::COND_FLOW_CLEAN);
+    }
+}
+
+/// The ancestor steps at which `get_conditional_flow_type_of_type` may add a constraint.
+fn cond_flow_relevant(node: P<Node>, parent: P<Node>) -> bool {
+    match parent.kind() {
+        Kind::Parameter => true,
+        Kind::ConditionalType => parent.as_conditional_type_node().true_type == node,
+        Kind::MappedType => {
+            parent.as_mapped_type_node().name_type.is_none() && parent.type_node() == Some(node)
+        }
+        _ => false,
+    }
+}
+
+/// The token kinds `get_type_from_type_node`'s worker resolves (the keyword types and `this`).
+fn is_type_keyword_token(kind: Kind) -> bool {
+    matches!(
+        kind,
+        Kind::AnyKeyword
+            | Kind::UnknownKeyword
+            | Kind::StringKeyword
+            | Kind::NumberKeyword
+            | Kind::BigIntKeyword
+            | Kind::BooleanKeyword
+            | Kind::SymbolKeyword
+            | Kind::VoidKeyword
+            | Kind::UndefinedKeyword
+            | Kind::NullKeyword
+            | Kind::NeverKeyword
+            | Kind::ObjectKeyword
+            | Kind::IntrinsicKeyword
+            | Kind::ThisKeyword
+    )
+}
+
 fn new_flow_node_value(
     flags: FlowFlags,
     node: Option<P<Node>>,
@@ -952,6 +1007,7 @@ impl Binder {
         let Some(node) = node.into() else {
             return false;
         };
+        mark_cond_flow_clean(node);
         // Even though in the AST the jsdoc @typedef node belongs to the current node,
         // its symbol might be in the same scope with the current node's symbol. Consider:
         //

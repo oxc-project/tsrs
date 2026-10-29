@@ -2693,8 +2693,24 @@ impl Checker {
 
     // checker.go:23232
     pub fn get_type_from_type_node(&mut self, node: P<Node>) -> P<Type> {
+        // The binder's bit says no ancestor up to the enclosing statement is a conditional true branch, an
+        // unnamed mapped-type template or a parameter: the walk would collect no constraint and return the
+        // worker's type.
+        if node.flags().intersects(NodeFlags::COND_FLOW_CLEAN) {
+            return self.get_type_from_type_node_worker(node);
+        }
+        if let Some(&t) = self.resolved_flow_types.get(&node) {
+            return t;
+        }
         let t = self.get_type_from_type_node_worker(node);
-        self.get_conditional_flow_type_of_type(t, Some(node))
+        let t = self.get_conditional_flow_type_of_type(t, Some(node));
+        // The walk's inputs (the worker's type, the ancestors' resolved check/extends and mapped types, the
+        // substitution interning) are fixed once no type resolution is in progress, so the result is a pure
+        // function of the node; inside a resolution a circularity could have produced a provisional type.
+        if self.type_resolutions.len() == self.resolution_start {
+            self.resolved_flow_types.insert(node, t);
+        }
+        t
     }
 
     // checker.go:23236

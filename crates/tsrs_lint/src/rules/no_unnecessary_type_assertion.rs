@@ -1125,7 +1125,9 @@ fn possibly_used_before_assigned(context: &mut RuleContext<'_>, node: P<Node>) -
         return false;
     }
     if declaration.parent().is_some_and(|parent| {
-        parent.kind() == Kind::VariableDeclarationList && parent.flags() == NodeFlags::None
+        // `var` lists have no flags at all; the binder's tsrs-only bit is not one of them.
+        parent.kind() == Kind::VariableDeclarationList
+            && parent.flags().difference(NodeFlags::COND_FLOW_CLEAN) == NodeFlags::None
     }) {
         let scope = ast::get_enclosing_block_scope_container(node);
         let mut parent_scope = ast::get_enclosing_block_scope_container(declaration);

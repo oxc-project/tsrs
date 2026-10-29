@@ -1301,23 +1301,60 @@ impl Checker {
                 0,
             );
         }
-        // The `infer` contexts and the composite mappers made for them are garbage unless one of their mappers was
-        // stored (74% / 61-88% are, notes/mem-census.md). Contexts first: recycling reads their mapper fields.
+        self.recycle_conditional_scratch(mappers, contexts, lists);
+        result
+    }
+
+    /// Recycles the `infer` contexts and mappers a conditional-type evaluation pushed on the scratch stacks above
+    /// the given lengths: they are garbage unless one of their mappers was stored (74% / 61-88% are,
+    /// notes/mem-census.md). Contexts first: recycling reads their mapper fields.
+    fn recycle_conditional_scratch(&mut self, mappers: usize, contexts: usize, lists: usize) {
         while self.scratch_contexts.len() > contexts {
             let ctx = self.scratch_contexts.pop().unwrap();
             InferenceContext::recycle(ctx);
         }
         while self.scratch_mappers.len() > mappers {
             let m = self.scratch_mappers.pop().unwrap();
-            // SAFETY: made by this call (below), which is done; escaped mappers are kept.
+            // SAFETY: made by the evaluation that pushed it, which is done; escaped mappers are kept.
             unsafe { recycle_mapper(m) };
         }
         while self.scratch_mapper_lists.len() > lists {
             let (m, targets) = self.scratch_mapper_lists.pop().unwrap();
-            // SAFETY: made by this call's `getTailRecursionRoot` with its list; escaped mappers keep theirs.
+            // SAFETY: made by that evaluation's `getTailRecursionRoot` with its list; escaped mappers keep theirs.
             unsafe { recycle_mapper_with_targets(m, targets) };
         }
-        result
+    }
+
+    /// The inference context of an `infer` conditional type combined with `mapper` as `getConditionalType` makes it
+    /// (the context's non-fixing mapper is replaced by its combination with `mapper`), on the scratch stacks for
+    /// `recycle_conditional_scratch`; returns the context and the combined mapper for the true and false types.
+    fn new_conditional_inference_context(
+        &mut self,
+        root: P<ConditionalRoot>,
+        mapper: Option<P<TypeMapper>>,
+    ) -> (P<InferenceContext>, P<TypeMapper>) {
+        let context = Self::new_inference_context(
+            root.infer_type_parameters.get(),
+            None, /*signature*/
+            InferenceFlags::None,
+            None,
+        );
+        self.scratch_contexts.push(context);
+        let Some(mapper) = mapper else {
+            return (context, context.mapper().unwrap());
+        };
+        let own = context.non_fixing_mapper().unwrap();
+        let non_fixing_mapper = Self::combine_type_mappers(Some(own), mapper);
+        context.set_non_fixing_mapper(non_fixing_mapper);
+        // The context no longer holds its own non-fixing mapper, so it is recycled from here.
+        self.scratch_mappers.push(own);
+        self.scratch_mappers.push(non_fixing_mapper);
+        // It's possible for 'infer T' type parameters to be given uninstantiated constraints when the
+        // those type parameters are used in type references (see getInferredTypeParameterConstraint). For
+        // that reason we need context.mapper to be first in the combined mapper. See #42636 for examples.
+        let combined = Self::combine_type_mappers(context.mapper(), mapper);
+        self.scratch_mappers.push(combined);
+        (context, combined)
     }
 
     fn get_conditional_type_worker(
@@ -1370,7 +1407,15 @@ impl Checker {
                 && check_type_node.elements().len() == extends_type_node.elements().len();
             let check_type_deferred = self.is_deferred_type(check_type, check_tuples);
             let mut combined_mapper: Option<P<TypeMapper>> = None;
-            if !root.infer_type_parameters.get().is_empty() {
+            // With a deferred check type nothing is inferred, but Go still makes the context, instantiates the
+            // extends type through its combined mapper (charging the instantiation counter) and stores that mapper
+            // on the deferred type. The fast preset (notes/mem-lazy.md L5, `lazy_cond_mapper`) skips all of it:
+            // the type is deferred below with no combined mapper and `get_inferred_true_type_from_conditional_type`
+            // makes the never-inferred context on demand. Default mode keeps Go's counters, so TS2589 fires where
+            // tsgo fires it.
+            if !(check_type_deferred && self.lazy_cond_mapper)
+                && !root.infer_type_parameters.get().is_empty()
+            {
                 // When we're looking at making an inference for an infer type, when we get its constraint, it'll automagically be
                 // instantiated with the context, so it doesn't need the mapper for the inference context - however the constraint
                 // may refer to another _root_, _uncloned_ `infer` type parameter [1], or to something mapped by `mapper` [2].
@@ -1385,21 +1430,7 @@ impl Checker {
                 // This means we have two mappers that need applying:
                 //    * The original `mapper` used to create this conditional
                 //    * The mapper that maps the infer type parameter to its inference result (`context.mapper`)
-                let context = Self::new_inference_context(
-                    root.infer_type_parameters.get(),
-                    None, /*signature*/
-                    InferenceFlags::None,
-                    None,
-                );
-                self.scratch_contexts.push(context);
-                if let Some(mapper) = mapper {
-                    let own = context.non_fixing_mapper().unwrap();
-                    let non_fixing_mapper = Self::combine_type_mappers(Some(own), mapper);
-                    context.set_non_fixing_mapper(non_fixing_mapper);
-                    // The context no longer holds its own non-fixing mapper, so it is recycled from here.
-                    self.scratch_mappers.push(own);
-                    self.scratch_mappers.push(non_fixing_mapper);
-                }
+                let (context, combined) = self.new_conditional_inference_context(root, mapper);
                 if !check_type_deferred {
                     // We don't want inferences from constraints as they may cause us to eagerly resolve the
                     // conditional type instead of deferring resolution. Also, we always want strict function
@@ -1412,16 +1443,7 @@ impl Checker {
                         false,
                     );
                 }
-                // It's possible for 'infer T' type parameters to be given uninstantiated constraints when the
-                // those type parameters are used in type references (see getInferredTypeParameterConstraint). For
-                // that reason we need context.mapper to be first in the combined mapper. See #42636 for examples.
-                if let Some(mapper) = mapper {
-                    let combined = Self::combine_type_mappers(context.mapper(), mapper);
-                    self.scratch_mappers.push(combined);
-                    combined_mapper = Some(combined);
-                } else {
-                    combined_mapper = context.mapper();
-                }
+                combined_mapper = Some(combined);
             }
             // Instantiate the extends type including inferences for 'infer T' type parameters
             let inferred_extends_type = if combined_mapper.is_some() {
@@ -1786,16 +1808,32 @@ impl Checker {
     pub(crate) fn get_inferred_true_type_from_conditional_type(&mut self, t: P<Type>) -> P<Type> {
         let d = t.as_conditional_type();
         if d.resolved_inferred_true_type.get().is_none() {
-            if d.combined_mapper.get().is_some() {
-                let true_type_node =
-                    d.root.get().unwrap().node.get().unwrap().as_conditional_type_node().true_type;
+            let root = d.root.get().unwrap();
+            let mut combined_mapper = d.combined_mapper.get();
+            let (mappers, contexts, lists) = (
+                self.scratch_mappers.len(),
+                self.scratch_contexts.len(),
+                self.scratch_mapper_lists.len(),
+            );
+            if combined_mapper.is_none() && !root.infer_type_parameters.get().is_empty() {
+                // Only under the fast preset (`lazy_cond_mapper`): the check type was deferred, so
+                // `get_conditional_type` inferred nothing and stored no context. The context it would have stored
+                // had no candidates either: each `infer` type parameter maps to `unknown` or to its constraint
+                // instantiated through the same combined non-fixing mapper, so a fresh context made with the type's
+                // mapper gives the same instantiation of the true type.
+                let (_, combined) = self.new_conditional_inference_context(root, d.mapper.get());
+                combined_mapper = Some(combined);
+            }
+            if combined_mapper.is_some() {
+                let true_type_node = root.node.get().unwrap().as_conditional_type_node().true_type;
                 let true_type = self.get_type_from_type_node(true_type_node);
                 d.resolved_inferred_true_type
-                    .set(Some(self.instantiate_type(true_type, d.combined_mapper.get())));
+                    .set(Some(self.instantiate_type(true_type, combined_mapper)));
             } else {
                 d.resolved_inferred_true_type
                     .set(Some(self.get_true_type_from_conditional_type(t)));
             }
+            self.recycle_conditional_scratch(mappers, contexts, lists);
         }
         d.resolved_inferred_true_type.get().unwrap()
     }

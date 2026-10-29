@@ -1,0 +1,8 @@
+a.ts(3,11): error TS2322: Type '(W extends string ? 1 : W) | (U extends string ? 1 : U) | (V extends string ? 1 : V)' is not assignable to type 'number'.
+  Type 'W extends string ? 1 : W' is not assignable to type 'number'.
+    Type '1 | W' is not assignable to type 'number'.
+      Type 'W' is not assignable to type 'number'.
+a.ts(4,11): error TS2322: Type '(W extends string ? 1 : W) | (U extends string ? 1 : U) | (V extends string ? 1 : V)' is not assignable to type 'number'.
+  Type 'W extends string ? 1 : W' is not assignable to type 'number'.
+    Type '1 | W' is not assignable to type 'number'.
+      Type 'W' is not assignable to type 'number'.

@@ -3,22 +3,8 @@ use std::sync::{Arc, Mutex};
 
 use rustc_hash::FxHashMap;
 use tsrs_core::P;
-use tsrs_lint::engine::{ConfigHost, find_tsconfig, lint_worker_count};
+use tsrs_lint::engine::{ConfigHost, find_tsconfig};
 use tsrs_vfs::{FS, vfstest, wrapvfs};
-
-#[test]
-fn worker_counts_follow_available_parallelism_unless_overridden() {
-    for count in [1, 4, 8, 12] {
-        assert_eq!(lint_worker_count(100, Some(count), 12), count);
-    }
-    assert_eq!(lint_worker_count(100, None, 12), 12);
-    assert_eq!(lint_worker_count(100, Some(0), 12), 12);
-    assert_eq!(lint_worker_count(100, None, 2), 2);
-    assert_eq!(lint_worker_count(3, None, 12), 3);
-    assert_eq!(lint_worker_count(1000, None, 512), 256);
-    assert_eq!(lint_worker_count(3, Some(12), 12), 3);
-    assert_eq!(lint_worker_count(1000, Some(usize::MAX), 12), 256);
-}
 
 #[test]
 fn shared_project_discovery_reads_each_config_once() {

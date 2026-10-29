@@ -134,7 +134,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [perf-tsgo-can1357-speedups](perf-tsgo-can1357-speedups.md)
 - [perf-union-inference](perf-union-inference.md)
 - [perf-union-type-facts](perf-union-type-facts.md)
-- [port-conditional-distribution-fast-paths](port-conditional-distribution-fast-paths.md)
+- [port-tsgo-opt-conditional-items](port-tsgo-opt-conditional-items.md)
 
 ### Checker scheduling and parallelism
 

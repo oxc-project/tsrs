@@ -2339,7 +2339,37 @@ impl TypeDiscriminator<'_> {
     }
 }
 
+/// A union can only be narrowed by discriminants when it has at least two non-primitive constituents to
+/// tell apart. This rules out the very common `T | undefined` shaped unions before any property work.
+/// tsrs-only until microsoft/TypeScript#64934 is in the pinned reference.
+pub(crate) fn is_discriminable_union(t: P<Type>) -> bool {
+    if t.object_flags().intersects(ObjectFlags::PrimitiveUnion) {
+        return false;
+    }
+    t.types().iter().filter(|s| !s.flags().intersects(TypeFlags::Primitive)).nth(1).is_some()
+}
+
 impl Checker {
+    /// Discriminating a union always drops its primitive and never constituents, even when there are no
+    /// discriminants to go by. Callers that skip the discrimination for unions that cannot be narrowed still
+    /// rely on that, for instance when looking up a contextual property, so this reproduces just that part.
+    /// tsrs-only until microsoft/TypeScript#64934 is in the pinned reference.
+    pub(crate) fn remove_non_discriminable_constituents(&mut self, t: P<Type>) -> P<Type> {
+        let types = t.types();
+        let mut filtered = Vec::with_capacity(types.len());
+        for &s in types {
+            if !s.flags().intersects(TypeFlags::Primitive)
+                && !self.get_reduced_type(s).flags().intersects(TypeFlags::Never)
+            {
+                filtered.push(s);
+            }
+        }
+        if filtered.is_empty() || filtered.len() == types.len() {
+            return t;
+        }
+        self.get_union_type_ex(&filtered, UnionReduction::None, AliasArg::None, None)
+    }
+
     // relater.go:1055
     // Keep this up-to-date with the same logic within `getApparentTypeOfContextualType`, since they should behave similarly
     pub(crate) fn find_matching_discriminant_type(
@@ -2351,6 +2381,7 @@ impl Checker {
         let mut is_related_to = is_related_to;
         if target.flags().intersects(TypeFlags::Union)
             && source.flags().intersects(TypeFlags::Intersection | TypeFlags::Object)
+            && is_discriminable_union(target)
         {
             if let Some(m) = self.get_matching_union_constituent_for_type(target, source) {
                 return Some(m);

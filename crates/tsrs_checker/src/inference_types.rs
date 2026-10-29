@@ -38,8 +38,8 @@ pub struct InferenceState {
     // Scratch owned by this checker's inference-state pool. Forks start with an empty pool, so a
     // frozen seed's unused states are never reused and this table needs no shared-graph overlay.
     pub(crate) visited: RefCell<FxHashMap<InferenceKey, InferencePriority>>,
-    pub(crate) source_stack: RefCell<Vec<P<Type>>>,
-    pub(crate) target_stack: RefCell<Vec<P<Type>>>,
+    pub(crate) source_stack: RefCell<Vec<RelaterStackEntry>>,
+    pub(crate) target_stack: RefCell<Vec<RelaterStackEntry>>,
     pub(crate) next: Cell<Option<P<InferenceState>>>,
     /// The walk called `clear_cached_inferences` (the inference memo, infermemo.rs).
     pub(crate) cleared_inferences: Cell<bool>,

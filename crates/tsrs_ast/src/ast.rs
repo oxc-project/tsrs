@@ -520,6 +520,17 @@ impl ModifierList {
     }
 }
 
+impl NodeFlags {
+    /// tsrs-only, set by the binder (`tsrs_binder` `mark_cond_flow_clean`): no ancestor of this node up to its
+    /// enclosing statement or `JSDoc` comment is the true branch of a conditional type, the template of a mapped
+    /// type without `as`, or a parameter declaration. `get_conditional_flow_type_of_type` only collects
+    /// constraints at those three positions, so for a marked type node it returns its input unchanged.
+    ///
+    /// Bit 29 is unused by Go's `NodeFlags`; the Node API encoder strips it. Only the binder may set it: node
+    /// flags are a plain cell read by every checker thread.
+    pub const COND_FLOW_CLEAN: NodeFlags = NodeFlags::from_bits_retain(1 << 29);
+}
+
 // AST Node
 
 /// Go `ast.Node`.

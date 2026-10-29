@@ -1,6 +1,6 @@
 # The GitHub App needs Contents, Issues and Pull requests write access.
 # Only the publication job receives CAPTAIN_ID/CAPTAIN_KEY. The worker uses
-# CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_GATEWAY_ID and CLOUDFLARE_AI_GATEWAY_TOKEN.
+# CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_KEY, as in the triage workflow.
 name: Sync TypeScript nightlies
 
 on:
@@ -105,8 +105,7 @@ jobs:
         env:
           PORT_METADATA: ${{ needs.prepare.outputs.metadata }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_GATEWAY_ID: ${{ secrets.CLOUDFLARE_GATEWAY_ID }}
-          CLOUDFLARE_AI_GATEWAY_TOKEN: ${{ secrets.CLOUDFLARE_AI_GATEWAY_TOKEN }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
         run: node "$GITHUB_WORKSPACE/tools/port/continuous.mjs" agent
 
       - name: Upload worker data

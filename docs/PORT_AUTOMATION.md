@@ -50,7 +50,8 @@ dispatch; closing its issue alone does not repair it. An unpublished blocker
 can also be closed to allow the next scheduled run to try the current nightly.
 Conflicts on an existing PR need manual resolution before retrying.
 
-The worker gets two fresh attempts. It runs a dev build, formatting, workspace
+The worker gets two fresh attempts, first with Kimi K2.7 Code and then with
+Kimi K2.6 if the first attempt fails. It runs a dev build, formatting, workspace
 checks, Clippy, source/script checks, generated-source and SDK freshness,
 compiler conformance in both modes and the scheduling sweep, regressions, and
 benchmark snapshot regeneration and parity, published-version behavior,
@@ -83,13 +84,14 @@ write access. Configure these Actions secrets:
 | Secret | Purpose |
 | --- | --- |
 | `CAPTAIN_ID`, `CAPTAIN_KEY` | GitHub App identity used only in the publication job. |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account that owns the AI Gateway. |
-| `CLOUDFLARE_GATEWAY_ID` | AI Gateway slug. |
-| `CLOUDFLARE_AI_GATEWAY_TOKEN` | Gateway token with Run permission, used only in the worker. |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account used for Workers AI, shared with issue triage. |
+| `CLOUDFLARE_API_KEY` | Workers AI API token with Workers AI Read and Edit, used only in the worker. |
 
-The agent uses Vite+ to run OpenCode `2.0.32` with `openai/gpt-6.1-sol`.
-The gateway needs Unified Billing credits or a stored OpenAI key with the
-`default` alias. See [Cloudflare's gateway setup](https://developers.cloudflare.com/ai-gateway/integrations/coding-agents/opencode/)
+The agent uses Vite+ to run OpenCode `2.0.32` with the same Workers AI models as
+issue triage: `cloudflare-workers-ai/@cf/moonshotai/kimi-k2.7-code` and
+`cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6`. OpenCode's native Workers AI
+provider uses the account's Chat Completions endpoint directly. See
+[Workers AI's OpenAI compatibility](https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/)
 and [OpenCode's provider configuration](https://opencode.ai/v2/docs/providers/).
 A live port requires these secrets; local smoke checks use stub commands and
 never call a model, open an issue or publish a PR.

@@ -33,6 +33,10 @@ const repository = process.env.GITHUB_REPOSITORY || "oxc-project/tsrs";
 const prefix = "port/typescript-nightly/";
 const blockerPrefix = "Nightly sync blocked: typescript@";
 const opencode = ["dlx", "--package", "@opencode/cli@2.0.32", "--", "opencode"];
+const portModels = [
+  "cloudflare-workers-ai/@cf/moonshotai/kimi-k2.7-code",
+  "cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6",
+];
 const automationRoot = fileURLToPath(new URL("../../", import.meta.url));
 
 function command(program, args, options = {}) {
@@ -316,51 +320,43 @@ function updatePins(m) {
 }
 function configureOpenCode() {
   const account = process.env.CLOUDFLARE_ACCOUNT_ID;
-  const gateway = process.env.CLOUDFLARE_GATEWAY_ID;
-  const token = process.env.CLOUDFLARE_AI_GATEWAY_TOKEN;
-  if (!account || !gateway || !token) {
-    throw new Error(
-      "CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_GATEWAY_ID, and CLOUDFLARE_AI_GATEWAY_TOKEN are required",
-    );
+  const token = process.env.CLOUDFLARE_API_KEY;
+  if (!account || !token) {
+    throw new Error("CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_KEY are required");
   }
-  if (!/^[a-zA-Z0-9_-]+$/.test(account) || !/^[a-zA-Z0-9_-]+$/.test(gateway)) {
-    throw new Error("Invalid Cloudflare account or gateway ID");
+  if (!/^[a-zA-Z0-9_-]+$/.test(account)) {
+    throw new Error("Invalid Cloudflare account ID");
   }
   const configDirectory = join(homedir(), ".config", "opencode");
   mkdirSync(configDirectory, { recursive: true });
   const config = {
     $schema: "https://opencode.ai/config.json",
-    model: "openai/gpt-6.1-sol",
+    model: portModels[0],
     update: "disable",
     providers: {
-      openai: {
-        package: "@opencode/ai/providers/openai/responses",
+      "cloudflare-workers-ai": {
+        package: "@opencode/ai/providers/cloudflare-workers-ai",
         settings: {
-          baseURL: `https://gateway.ai.cloudflare.com/v1/${account}/${gateway}/openai`,
-          apiKey: "",
+          accountId: account,
+          apiKey: "{env:CLOUDFLARE_API_KEY}",
         },
-        headers: { "cf-aig-authorization": "Bearer {env:CLOUDFLARE_AI_GATEWAY_TOKEN}" },
-        models: {
-          "gpt-6.1-sol": {
-            modelID: "gpt-6.1-sol",
-            name: "GPT-6.1 Sol",
-            capabilities: {
-              tools: true,
-              input: ["text", "image"],
-              output: ["text"],
-              reasoning: { supported: true, effort: ["low", "medium", "high", "xhigh", "max"] },
-            },
-            limit: { context: 1_050_000, output: 128_000 },
-          },
-        },
+        models: Object.fromEntries(
+          portModels.map((model) => {
+            const modelID = model.slice("cloudflare-workers-ai/".length);
+            return [modelID, { modelID }];
+          }),
+        ),
       },
     },
   };
   writeFileSync(join(configDirectory, "opencode.json"), `${JSON.stringify(config, null, 2)}\n`, {
     mode: 0o600,
   });
-  if (!command("vp", [...opencode, "models", "--standalone"]).includes("openai/gpt-6.1-sol")) {
-    throw new Error("OpenCode did not register openai/gpt-6.1-sol from the gateway configuration");
+  const registered = command("vp", [...opencode, "models", "--standalone"]).split(/\r?\n/);
+  for (const model of portModels) {
+    if (!registered.includes(model)) {
+      throw new Error(`OpenCode did not register ${model} from the Workers AI configuration`);
+    }
   }
 }
 
@@ -391,7 +387,7 @@ function verify(m, reference) {
     throw new Error("Reference checkout changed");
   run("git", ["-C", "ts-ref", "diff", "--exit-code", "HEAD", "--", "tsc", "packages/typescript"]);
   const env = { ...process.env, TSRS_TS_VERSION: sourceVersion(root) };
-  delete env.CLOUDFLARE_AI_GATEWAY_TOKEN;
+  delete env.CLOUDFLARE_API_KEY;
   run("git", ["diff", "--check"]);
   run("vp", ["install", "--frozen-lockfile", "--ignore-scripts"], { env });
   run("node", ["npm/sdk/sync-upstream.mjs", "--check"], { env });
@@ -497,7 +493,7 @@ function agent() {
       .replaceAll("{SHA}", m.sha)
       .replaceAll("{PREVIOUS}", m.previous.nightly)
       .replaceAll("{FROM_SHA}", m.previous.commit);
-    for (let attempt = 1; attempt <= 2; attempt++) {
+    for (const [index, model] of portModels.entries()) {
       run("git", ["reset", "--hard", m.base]);
       run("git", ["clean", "-fd"]);
       run("git", ["-C", "ts-ref", "reset", "--hard", m.sha]);
@@ -515,7 +511,7 @@ function agent() {
             "--standalone",
             "--auto",
             "--model",
-            "openai/gpt-6.1-sol",
+            model,
             selectedPrompt,
           ],
           { timeout: 130 * 60 * 1000 },
@@ -523,8 +519,8 @@ function agent() {
         verify(m, reference);
         return;
       } catch (error) {
-        if (attempt === 2) throw error;
-        console.error(`Nightly attempt ${attempt} failed: ${error.message}`);
+        if (index === portModels.length - 1) throw error;
+        console.error(`Nightly attempt ${index + 1} (${model}) failed: ${error.message}`);
       }
     }
   } catch (error) {

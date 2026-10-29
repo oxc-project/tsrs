@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { args, read, write, requireValue, main } from "../lib/cli.mjs";
 const raw = (s) => {
-    let hashes = "#";
+    let hashes = "";
     while (s.includes('"' + hashes)) hashes += "#";
     return `r${hashes}"${s}"${hashes}`;
 };
@@ -119,9 +119,16 @@ main(() => {
         "\t\t\t},": ["\t\t\t\t..Default::default()", "\t\t\t},"],
         "\t\t},": ["\t\t],"],
     };
+    let explicitOptions = false;
     const table = s
         .split("\n")
-        .flatMap((line) => rules[line] ?? [line])
+        .flatMap((line) => {
+            if (line === "\t{") explicitOptions = false;
+            if (line.startsWith("\t\tinclude_compiler_options:")) explicitOptions = true;
+            // title and input are always present. With this flag, every field is explicit.
+            if (line === "\t}," && explicitOptions) return [line];
+            return rules[line] ?? [line];
+        })
         .join("\n");
     out.push(`\nfn parse_json_config_file_tests() -> Vec<ParseJsonConfigTestCase> {\n    vec![\n${table}\n    ]\n}\n`);
     const target = read(a._[1]),

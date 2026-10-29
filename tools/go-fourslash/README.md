@@ -3,15 +3,18 @@
 This runner executes the pinned TypeScript Go fourslash test bodies and assertions unchanged against separate
 Rust processes. It replaces the generated Rust suite, translated harness, generator, and parser oracle.
 
-Requirements: Python 3.12+, Rust, Go (with `GOTOOLCHAIN=auto`), and macOS or Linux. The TypeScript Git checkout must
+Requirements: Node.js 24+, Vite+, Rust, Go (with `GOTOOLCHAIN=auto`), and macOS or Linux. The TypeScript Git checkout must
 contain the commit pinned in `Cargo.toml`; `--reference` defaults to `ts-ref`.
 
 ```sh
-python3.12 tools/go-fourslash/run.py
-python3.12 tools/go-fourslash/run.py -- -run '^TestQuickInfoAlias$' -v
-python3.12 tools/go-fourslash/run.py -- -json > target/go-fourslash/results.jsonl
-python3.12 tools/go-fourslash/summarize.py target/go-fourslash/results.jsonl
+vp run fourslash
+vp run fourslash -- -run '^TestQuickInfoAlias$' -v
+mkdir -p target/go-fourslash
+node tools/go-fourslash/run.mjs -- -json > target/go-fourslash/results.jsonl
+vp run fourslash:summarize target/go-fourslash/results.jsonl
 ```
+
+Use the direct Node command when capturing JSON so task-runner log lines stay out of the result stream.
 
 Use `--reference /path/to/TypeScript` to read another checkout, `--work /path/to/scratch` for a separate workspace,
 or `--server /path/to/fourslash_server` to use a prebuilt server. These options go before `--`; ordinary `go test`
@@ -20,7 +23,7 @@ suite has a thirty-minute timeout. `-count=1` disables cached results.
 
 The default run shows setup stages, elapsed time, and completed Go groups with pass/fail/skip counts. Progress
 refreshes every second in a terminal, or every five seconds when redirected, and failed cases keep their diagnostic
-output. `-v` keeps Go's verbose output; `-json` keeps its JSON stream on stdout for CI and `summarize.py`.
+output. `-v` keeps Go's verbose output; `-json` keeps its JSON stream on stdout for CI and `summarize.mjs`.
 
 The runner extracts the pinned commit into `target/go-fourslash/reference`, then uses a Go build overlay to adapt
 four harness files and add `subprocess.go`, `worker.go`, and `remotestate.go`. It never patches the source checkout, test bodies,
@@ -73,33 +76,36 @@ idle workers at suite exit.
 
 The Go runner supplies the Linux CI gate and current compatibility count. PGO training drives the instrumented
 `fourslash_server`; BOLT training and release verification use the corresponding instrumented and
-optimized binaries. These workflows install Go and Python 3.12+ and check out the pinned `tsc` source and fixtures.
-The translated Rust suite has been removed. Release-profile PGO/BOLT verification was not run locally for this migration.
+optimized binaries. These workflows install Go and Node.js and check out the pinned `tsc` source and fixtures.
+The translated Rust suite has been removed. The dated validation below records the migration's local evidence.
 
 The summary counts a parent with only skipped subtests as skipped: Go itself reports such a parent as passing.
 
 ## CI gate
 
 The independent Linux `fourslash` job in `.github/workflows/ci.yml` checks out the pinned `tsc` source and fixtures, installs
-Go from its `go.mod` and Python 3.12, builds the task server with the dev profile, and runs:
+Go from its `go.mod` and Node.js, builds the task server with the dev profile, and runs:
 
 ```sh
 cargo build --profile dev --locked -p tsrs_fourslash_server
-PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh
+vp run fourslash:gate
 ```
 
-The gate requires a completed, successful Go package result, zero failing tests, and at least **4,074 exercised
+The gate requires a completed, successful Go package result, zero failing tests, and at least **4,092 exercised
 groups**. It excludes parents whose subtests all skipped, including nested groups, so additional skips cannot
 silently reduce coverage. The runner first checks bridge shutdown with a deliberately delayed response terminator;
 CI also runs the summary's regression checks. Go's build cache is shared with
 `actions/setup-go` through `GOCACHE` at `target/go-fourslash/go-cache`.
 
 On failure, CI uploads `results.jsonl`, `runner.log`, and baseline differences as the `go-fourslash-results`
-artifact. For a local run, `PYTHON`, `TSRS_FOURSLASH_SERVER`, and `TSRS_GO_FOURSLASH_WORK` can select another Python
+artifact. For a local run, `NODE`, `TSRS_FOURSLASH_SERVER`, and `TSRS_GO_FOURSLASH_WORK` can select another Node.js
 executable, prebuilt server, and work directory. `MIN_PASS` overrides the gate's coverage floor; raise the default
 when support improves.
 
 ## Validation (2026-10-18)
+
+These measurements used the former Python runner at the recorded revisions. Current commands use JavaScript;
+the [compatibility table](../../docs/COMPATIBILITY.md#what-it-does-and-doesnt-do) records later suite coverage.
 
 At pinned TypeScript commit `b85298b6a81f772d080b0455de0ca9d744cd6fd6`, on macOS arm64:
 

@@ -1,6 +1,10 @@
-checker: a nested declaration check charges its instantiations to the expression that asked for it
+# checker: a nested declaration check charges its instantiations to the expression that asked for it
 
-**Status:** written up only, not opened upstream. Found by tsrs on backstage/backstage (notes/open-history-dependence.md
+> Archived report draft. Modes and source locations below describe the investigation.
+> See [current checker defaults](../docs/DEFAULTS.md#command-line) and the
+> [checker-history record](open-history-dependence.md) for context.
+
+**Recorded status:** written up only, not opened upstream. Found by tsrs on backstage/backstage (notes/open-history-dependence.md
 section 5). tsrs's default mode clears the count on exit (below); `--checkerAssignment go` keeps Go's behaviour.
 
 `instantiateTypeWithAlias` (checker.go:22507) yields the error type and reports TS2589 once 5,000,000 instantiations

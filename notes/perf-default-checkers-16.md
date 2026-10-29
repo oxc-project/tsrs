@@ -1,5 +1,8 @@
 # perf-default-checkers-16: every core gets a checker up to 16
 
+Since 0.20.0, this adaptive rule belongs to `--fast`; ordinary compilation uses four checkers.
+Explicit checker counts override either preset. See [current defaults](../docs/DEFAULTS.md#command-line).
+
 Without `--checkers`, tsrs ran `clamp(max(cores / 2, min(cores, 8)), 4, 32)` checker threads
 (notes/perf-default-checkers-small-machines.md): every core up to 8, then half the cores. The comment justified the
 halving with "the other half parse", but parsing and checking are sequential phases: by the time the checkers start,

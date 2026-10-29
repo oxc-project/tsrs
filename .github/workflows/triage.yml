@@ -5,7 +5,7 @@
 #   - CAPTAIN_ID: the oxc-guard GitHub App's client ID, as a repository secret.
 #   - CAPTAIN_KEY: the oxc-guard GitHub App's private key.
 #   - CLOUDFLARE_API_KEY: a Workers AI API token with Workers AI Read and Edit.
-#   - CLOUDFLARE_ACCOUNT_ID: the Workers AI account ID.
+#   - CLOUDFLARE_ACCOUNT_ID: the Cloudflare account ID.
 
 name: Issue Triage
 

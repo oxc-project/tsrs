@@ -386,7 +386,6 @@ full correctness evidence, complete pass-set comparisons, unchanged source-input
 `perf-final-confirmation/`, referenced by SHA-256 in `noise-policy-final-verdict.json`. The accepted release is
 `candidate-2/tsrs-release`, SHA-256 `9c6bba2d437088e45963d774a9f6e2fa7d54614df33b3d49345ab3860634a46a`.
 
-
 ## 6. String literal module import attribute types — passed with build-identity adjudication
 
 Upstream: `792ffccb90f548cd3bdd7fc0b44f0ca9e1b169a7` — fix: disallow NoSubstitutionTemplate in module import

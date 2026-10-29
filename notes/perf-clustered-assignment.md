@@ -1,5 +1,9 @@
 # perf-clustered-assignment: placing files on checkers by the modules they share
 
+The defaults and output comparisons below belong to this experiment. Since 0.20.0, ordinary compilation uses
+Go's assignment and history; see [current scheduling options](../docs/USAGE.md#performance-options) and
+[known checker-history differences](open-history-dependence.md).
+
 The experiment's `tools/perf/clusterprobe.sh` build wrapper has been removed (last version: `b620e8e5`).
 `tools/perf/clusterprobe.mjs` still measures supplied binaries; the reproduction commands below use it directly.
 

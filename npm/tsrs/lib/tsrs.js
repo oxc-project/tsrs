@@ -1,6 +1,11 @@
 import { spawn } from "node:child_process";
 import getExePath from "./getExePath.js";
 
+// Node makes piped stdio non-blocking. Restore blocking mode before Rust uses it.
+if (!process.stdout.isTTY) process.stdout._handle?.setBlocking?.(true);
+if (!process.stdin.isTTY) process.stdin._handle?.setBlocking?.(true);
+if (!process.stderr.isTTY) process.stderr._handle?.setBlocking?.(true);
+
 let exe;
 try {
     exe = getExePath();

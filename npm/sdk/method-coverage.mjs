@@ -3,7 +3,7 @@
 // against the vendored JS SDK and one or more API servers.
 //
 //   node npm/sdk/method-coverage.mjs --server tsgo=/path/to/pinned/tsgo [--server tsrs=target/release/tsrs] \
-//       [--ts-ref ts-ref] [--out npm/sdk/METHODS.md]
+//       [--ts-ref ts-ref] [--out npm/sdk/METHODS.md] [--require-pass]
 //
 // For every method it reports whether the sync/async SDK sends it, and, per server, how often the upstream SDK test
 // suite (npm/tsrs/test, run from source) got a successful response or an error for it. Every run's pass/fail counts
@@ -32,6 +32,7 @@ function parseArgs(argv) {
             if (!label || !exe) fail("--server needs <label>=<path>");
             opts.servers.push({ label, exe: path.resolve(exe) });
         }
+        else if (arg === "--require-pass") opts.requirePass = true;
         else if (arg === "--ts-ref") opts.tsRef = path.resolve(value());
         else if (arg === "--out") opts.out = path.resolve(value());
         else fail(`unknown argument ${arg}`);
@@ -142,6 +143,9 @@ function main() {
     if (unknown.length) lines.push("", `Requests not in proto.go (protocol plumbing): ${[...new Set(unknown)].map(n => `\`${n}\``).join(", ")}.`);
     fs.writeFileSync(opts.out, lines.join("\n") + "\n");
     console.error(`wrote ${path.relative(process.cwd(), opts.out)}`);
+    if (opts.requirePass && (!runs.length || runs.some(r => r.exit !== 0 || r.totals.tests === 0 || r.totals.pass === 0 || r.totals.fail > 0 || r.totals.cancelled > 0))) {
+        throw new Error("SDK coverage requires passing, nonempty runs for every server");
+    }
 }
 
 main();

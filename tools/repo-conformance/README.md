@@ -92,11 +92,11 @@ and `--previous` adds shards from an earlier run:
 ```sh
 docker build -t tsrs-repo-conformance tools/repo-conformance
 TSRS_CONFORMANCE_SANDBOX_IMAGE=tsrs-repo-conformance \
-  python3 -m unittest discover -s tools/repo-conformance -p 'test_sandbox.py' -v
-python3 tools/repo-conformance/run.py plan --count 20 --shards 1 --out /tmp/top-repos/manifest.json
-python3 tools/repo-conformance/run.py run --manifest /tmp/top-repos/manifest.json --shard 0 \
+  node --test tools/repo-conformance/test_sandbox.mjs
+vp run repo-conformance plan --count 20 --shards 1 --out /tmp/top-repos/manifest.json
+vp run repo-conformance run --manifest /tmp/top-repos/manifest.json --shard 0 \
   --tsrs target/debug/tsrs --tsgo /path/to/pinned/tsgo --out /tmp/top-repos/results --cache /tmp/top-repos/cache
-python3 tools/repo-conformance/run.py report --manifest /tmp/top-repos/manifest.json \
+vp run repo-conformance report --manifest /tmp/top-repos/manifest.json \
   --results /tmp/top-repos/results --out /tmp/top-repos/report.md
 ```
 
@@ -104,5 +104,5 @@ Run the harness tests with real compilers:
 
 ```sh
 TSRS_CONFORMANCE_TSRS="$PWD/target/debug/tsrs" TSRS_CONFORMANCE_TSGO=/path/to/pinned/tsgo \
-  python3 -m unittest discover -s tools/repo-conformance -p 'test_*.py' -v
+  node --test tools/repo-conformance/test_*.mjs
 ```

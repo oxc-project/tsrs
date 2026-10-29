@@ -2,8 +2,9 @@
 
 Waves E13-E15 (2026-10-03): `crates/tsrs_incremental` (Go `execute/incremental`), the `-b` build mode
 (Go `execute/build`, now in `crates/tsrs_execute/src/build/`) with `--builders` concurrency, and the tsctests harness.
-Design and current status: docs/EMIT.md section 10b; per-wave results: docs/EMIT.md section 13 (progress tables).
-This note keeps the measurements and root causes that are not written down elsewhere. Watch mode is not ported.
+The [archived port log](../docs/history/EMIT.md) records the design and per-wave results; the
+[emit guide](../docs/EMIT.md) describes current support, including watch mode. This note keeps the measurements
+and root causes from the original incremental implementation, before watch mode was ported.
 
 ## Results (head `5b33672`, 2026-10-03)
 

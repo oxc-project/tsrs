@@ -1,5 +1,10 @@
 # lazy-members: microsoft/TypeScript#64475 + #64526 in tsrs
 
+This records the original port. Since 0.20.0, the feature is opt-in through `--fast`, `--lazyMembers` or
+`TSRS_LAZY_MEMBERS=1`; ordinary compilation uses eager members. The extra per-path diagnostic counters described
+below have been removed. See [current options](../docs/USAGE.md#performance-options) and
+[supported diagnostics](../docs/DEBUGGING.md).
+
 Port of Max's two upstream PRs that make member resolution lazier:
 
 - #64475 "build member tables of instantiated classes/interfaces lazily": an instantiated class/interface
@@ -13,7 +18,7 @@ Port of Max's two upstream PRs that make member resolution lazier:
   signatures" without resolving; `somePropertyReducesToNever` looks members of one lazy constituent up by name
   instead of listing them.
 
-**On by default.** `--noLazyMembers` (CLI) or `TSRS_LAZY_MEMBERS=0` (any binary: `tsrs`, `tsrs-test`) turns it off;
+**Default at the time of the port.** `--noLazyMembers` (CLI) or `TSRS_LAZY_MEMBERS=0` (any binary: `tsrs`, `tsrs-test`) turns it off;
 the opt-out mode is reference-identical (suite and counters, below). `--lazyMembers` / `TSRS_LAZY_MEMBERS=1` force it
 on. With `--extendedDiagnostics` and the flag on, `tsrs` prints a second table with per-path counts.
 Follow-up candidates (each behind its own switch, effective only with this flag on): notes/mem-lazy.md.

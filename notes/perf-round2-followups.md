@@ -1,5 +1,9 @@
 # perf-round2-followups: what is left after the 2026-10-04 performance round
 
+This is a dated decision log with later follow-ups. Defaults, workflow paths and unresolved items belong to
+the sections' recorded revisions. Use the [notes guide](README.md#reading-historical-results) for current
+defaults, tooling and acceptance policy, and the [complete catalog](README.md#complete-catalog) for later work.
+
 One list of the open ideas, decisions and loose ends from the round that landed #37, #40, #38, #41, #42, #49, #50,
 #51 and #55. Each stream's own note has the detail and the measurements; this file is the index, ordered by expected
 value. Numbers are from the 38k-file codebase on an 18-core Apple Silicon machine unless noted. The sections above
@@ -36,7 +40,7 @@ is type-checked, CI runs on pull requests, and the workspace is at 0.11.0. The i
 - **Resolver path scratch buffers** (`notes/perf-resolver-allocations.md`): reuse thread-local strings for
   extension and module-suffix probes. Allocation calls fall 3.7% / 12.7% in the corresponding probes;
   historical whole-project instructions fall 0.09% on xstate / 0.04% on VS Code. Retained for owner review;
-  below the usual landing thresholds, with deterministic Linux verification outstanding.
+  below the thresholds used in that review, with deterministic Linux verification outstanding at that point.
 
 ## Not verified yet
 
@@ -139,6 +143,11 @@ diagnostics identical (notes/spike-shared-graph.md sections 10-10.2). The featur
 with the switch off, which is why it is not in the default build.
 
 ## Measured and rejected (do not redo)
+
+Read each rejection's reason before retrying it. Under the
+[current policy](../AGENTS.md#performance-and-memory-changes), a missed historical percentage threshold alone
+does not prevent a new trial. Correctness defects, regressions and stated prerequisites still need new evidence
+or a changed constraint before revisiting the approach.
 
 - Collection redesign trials on `f9a7c8d6` (`notes/data-structure-redesigns.md`): papaya 0.2.5 and scc 3.8.8
   adapters do not preserve vacant-insertion Clone-panic/lock-poisoning behavior. Papaya also regresses the

@@ -1,6 +1,10 @@
-checker: printed object-literal unions depend on which other literals the checker widened first
+# checker: printed object-literal unions depend on which other literals the checker widened first
 
-**Status:** written up only, not opened upstream. Found by tsrs (notes/perf-order-independence.md); tsrs ships the
+> Archived report draft. Modes and source locations below describe the investigation.
+> See [current checker defaults](../docs/DEFAULTS.md#command-line) and the
+> [checker-history record](open-history-dependence.md) for context.
+
+**Recorded status:** written up only, not opened upstream. Found by tsrs (notes/perf-order-independence.md); tsrs ships the
 fix by default and keeps Go's behaviour under `--checkerAssignment go`.
 
 `getUndefinedProperty` (checker.go:18837) caches the optional `undefined` property it adds to widened object literals

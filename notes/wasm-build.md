@@ -152,7 +152,6 @@ through a spike above 70, so their ranges are wide and the absolute seconds are 
 | playwright | 13 / 13 / 13 | 0.87 (0.67-0.94) | 2.27 (1.56-2.50) | 1.56 (1.47-1.96) | 1.79x | 7.31 (7.28-7.67) | 6.87 (6.62-7.73) | 4.41x | 247 MiB | 374 MiB | 834 MiB |
 | drizzle-orm | 10846 / 10846 / 10846 | 2.18 (1.57-3.20) | 3.28 (3.04-5.70) | 3.87 (3.10-5.10) | 1.78x | 26.22 (18.52-34.03) | 20.72 (17.86-23.94) | 5.35x | 399 MiB | 537 MiB | 1.38 GiB |
 
-
 | module | raw | gzip -9 | brotli -q 11 | build |
 | --- | ---: | ---: | ---: | --- |
 | tsrs.wasm | 9,149,197 | 2,579,905 | 1,745,007 | `tools/wasm/build.sh` (opt-level s, inline threshold 150, `wasm-opt -Os`) |

@@ -258,10 +258,12 @@ unreachable part.
 
 - Every reproduction and fix uses the exact `[workspace.metadata.typescript]` commit in `Cargo.toml`.
   Follow [reference compiler setup and verification](../CONTRIBUTING.md#reference-compiler) before using the sources,
-  binary, fixtures or baselines. Rebuild reference binaries whenever the pin changes.
+  binary, fixtures or baselines. Reinstall the exact published reference whenever the pin changes.
 - Go source of truth: `ts-ref/tsc/internal/` (read-only, except oracle tools below).
-- Reference compiler binary: `target/reference/tsgo` (use like `tsc`). A shared `$TSRS_WORK/bin/tsgo-ref` must be built
-  from the same verified checkout.
+- Reference compiler binary: `node tools/lib/typescript-reference.mjs --binary` resolves the published Go compiler
+  matching both Cargo's version and source commit. Build internal or instrumented oracles from the same verified
+  checkout. Normal conformance builds use Go's source-default version; published-version builds use
+  `node tools/port/build-published.mjs` so version-sensitive behavior matches the package.
 - Go toolchain: run Go with `GOTOOLCHAIN=auto GOWORK=off` from `ts-ref/tsc` to select the module's pinned Go version.
   To compare against the Go implementation you may write small oracle programs. Go `internal` packages can only be
   imported from inside that module, so put them in `ts-ref/tsc/cmd/tsrs-oracle-<name>/main.go` and keep a copy of the

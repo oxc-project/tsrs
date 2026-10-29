@@ -27,7 +27,7 @@ monorepo used for end-to-end checks, outside this repository.
 Land small, often — every coherent fix, not one big drop at the end:
 
 ```sh
-git add -A . && git commit -m "<area>: <what and why>"
+git add <changed-paths> && git commit -m "<area>: <what and why>"
 git fetch -q origin main && git rebase origin/main        # resolve conflicts if any, keep both sides' intent
 CARGO_TARGET_DIR=$PWD/target cargo check                  # must be 0 errors, 0 warnings after the rebase
 cargo clippy --all-targets --config 'build.warnings="deny"'
@@ -460,7 +460,7 @@ against tsgo-ref's output.
 ## Data races: ThreadSanitizer (`tasks/thread_sanitizer`)
 
 `P<T>` is `Send`/`Sync` by decree (`tsrs_core::ptr`): nothing in the type system stops two threads from writing the same
-arena value. Build tsrs with ThreadSanitizer and run `pnpm ci:thread-sanitizer <binary>`, which fails on
+arena value. Build tsrs with ThreadSanitizer and run `vp run ci:thread-sanitizer <binary>`, which fails on
 any report: type checks at 2 and 8 checkers, emit, `-b` on a generated graph of 12 projects, `--watch` and `-b --watch`
 with edits, and a language-server session. Prepare the benchmark projects first, then run the separate task:
 
@@ -469,7 +469,7 @@ node bench/bench.mjs prepare --projects xstate-main,webpack
 RUSTFLAGS=-Zsanitizer=thread CARGO_PROFILE_DEV_DEBUG=line-tables-only \
   CARGO_TARGET_DIR=target/thread-sanitizer cargo +nightly-2026-10-04 build --profile dev -p tsrs_cli -Zbuild-std \
   --features tsrs_core/plain-ptrs,tsrs_cli/system-alloc --target "$(rustc -vV | sed -n 's/^host: //p')"
-pnpm ci:thread-sanitizer target/thread-sanitizer/<host triple>/debug/tsrs
+vp run ci:thread-sanitizer target/thread-sanitizer/<host triple>/debug/tsrs
 ```
 
 The `ThreadSanitizer` job in `.github/workflows/ci.yml` runs this gate on Linux for pull requests, merge groups,
@@ -488,29 +488,33 @@ commands, relevant environment settings, exit statuses, stdout/stderr, sanitizer
 `summary.json` stays incomplete if setup fails or the task is interrupted. Earlier run directories are never replaced.
 `--projects all|a,b`, `--work-dir DIR`, `--out-dir DIR`, and `--timeout SECONDS` select the inputs, output parent, and
 per-workload deadline (900 seconds by default). The default projects remain `xstate-main,webpack`.
-`pnpm ci:thread-sanitizer-summary <logs...>` groups reports by their first tsrs frames. `tasks/thread_sanitizer/suppressions.txt` lists reports
+`vp run ci:thread-sanitizer-summary <logs...>` groups reports by their first tsrs frames. `tasks/thread_sanitizer/suppressions.txt` lists reports
 that are not tsrs races, each with its reason; anything else is a race to fix.
 
 ## Profiling
 
-Profile the `release` profile (fat LTO, one codegen unit, symbols stripped, no debug info); release binaries also add
-PGO, and BOLT on Linux (`.github/workflows/release.yml`). Keep the symbols (`CARGO_PROFILE_RELEASE_STRIP=none`, as CI
-does for BOLT) and, for reliable stacks on Linux x86-64, frame pointers, in a
+Profile the `release` profile (fat LTO, one codegen unit) with full debug information and stripping disabled;
+release binaries also add PGO, and BOLT on Linux (`.github/workflows/release.yml`). Keep frame pointers for
+reliable stacks on Linux x86-64, in a
 separate target directory (Apple arm64 always keeps frame pointers):
 
 ```sh
-CARGO_PROFILE_RELEASE_STRIP=none RUSTFLAGS="-C force-frame-pointers=yes" CARGO_TARGET_DIR=target/profiling \
+CARGO_PROFILE_RELEASE_DEBUG=true CARGO_PROFILE_RELEASE_STRIP=none \
+  RUSTFLAGS="-C force-frame-pointers=yes" CARGO_TARGET_DIR=target/profiling \
   cargo build --release -p tsrs_cli
 samply record ./target/profiling/release/tsrs -p <project> --noEmit --incremental false
 ```
 
-For before/after numbers, compare instruction counts, not wall time: `node bench/bench.mjs count --output-dir /tmp/tsrs-count -- <tsrs command>`
-on Linux (single-threaded, with `--singleThreaded` and `RAYON_NUM_THREADS=1`, counts repeat to about 0.001%), or
-`/usr/bin/time -l` on macOS. Per-function counts: `valgrind --tool=callgrind --callgrind-out-file=cg.out <tsrs command>`
-on a `--release` build with symbols (`CARGO_PROFILE_RELEASE_STRIP=none`), then
-`callgrind_annotate --inclusive=no --tree=none cg.out` (`--tree=none`, or call-graph lines are counted twice). The
-benchmark regression tools remain available locally (`bench/README.md`, "Regression flag"); automatic measurement
-and reporting are disabled in the saved `.yml.bak` workflows.
+On macOS, prefer `xcrun xctrace` to locate hotspots. Use Hyperfine 2 with hardware counters for before/after
+measurements: report single-threaded instructions retired and default-checker peak RSS, plus wall time when
+claiming a speedup. Keep build settings, hardware, workload and checker counts identical, with warmups and
+repeated, interleaved runs. See [benchmark methodology](../bench/README.md) for the catalog and measurement tools.
+
+For per-function instruction counts on Linux, use
+`valgrind --tool=callgrind --callgrind-out-file=cg.out <tsrs command>` on the symbol-bearing release build, then
+`callgrind_annotate --inclusive=no --tree=none cg.out` (`--tree=none` prevents duplicate call-graph counts).
+The active `.github/workflows/benchmark.yml` runs benchmark measurement and reporting; auxiliary workflows
+saved as `.yml.bak` remain disabled.
 
 ## Where Go reports an error: an instrumented reference with `go build -overlay`
 

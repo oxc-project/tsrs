@@ -1,8 +1,8 @@
 # Node API checker lane
 
 Port of the checker / symbol / type / signature request handlers of the tsgo API
-(microsoft/TypeScript pinned base `b85298b6a81f772d080b0455de0ca9d744cd6fd6`, ported through
-`d2f9dd68cfff50ca3c2fdf3152f808fd9d4ca2d6`, `tsc/internal/api/session.go` and `proto.go`). Wire shapes,
+(microsoft/TypeScript at the workspace Cargo pin `3e9236361fa97a9e6c685f4833ac457ae2d8c50a`,
+`tsc/internal/api/session.go` and `proto.go`). Wire shapes,
 id ownership and nullability follow the Go structs and handlers one to one;
 there is no separate "tsrs subset" API.
 
@@ -55,12 +55,12 @@ if let Some(result) = checker::handle(session, method, &params) { /* map result 
 
 ## Coverage
 
-`coverage_table.rs` has one row per `Method` constant in ported `proto.go` (177 through source 29, same order as core's
-`methods.rs`). 119 are owned by this lane (the 115 checker/symbol/type/signature methods plus the four
+`crates/tsrs_api/tests/integration/checker/coverage_table.rs` has one row per `Method` constant in ported `proto.go`
+(177 through source 29, same order as core's `methods.rs`). 119 are owned by this lane (the 115 checker/symbol/type/signature methods plus the four
 language-service backed ones: `getCompletionsAtPosition`, `getReferencedSymbolsForNode`,
-`getSignatureUsages`, `getImportAdderEdits`). `tests.rs` checks the table against core's inventory and
-`ts-ref/tsc/internal/api/proto.go` (when checked out) and that every `Implemented`/`Tested` row is
-dispatched.
+`getSignatureUsages`, `getImportAdderEdits`). `crates/tsrs_api/tests/integration/checker_test.rs` checks the table
+against core's inventory and `ts-ref/tsc/internal/api/proto.go` (when checked out) and that every
+`Implemented`/`Tested` row is dispatched.
 
 Status today: all 119 are `Tested` = dispatched and exercised by a real-program Rust test (real
 `tsrs_project` snapshot of a tsconfig project + the program's persistent API checker; fixtures cover

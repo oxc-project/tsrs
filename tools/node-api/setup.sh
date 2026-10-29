@@ -7,6 +7,13 @@
 # An existing ts-ref at a different commit is an error; this script never moves someone else's checkout.
 set -euo pipefail
 
+published=false
+case "${1:-}" in
+    "") ;;
+    --published-reference) published=true ;;
+    *) echo "usage: setup.sh [--published-reference]" >&2; exit 2 ;;
+esac
+
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 ref="${TS_REF:-$root/ts-ref}"
@@ -27,7 +34,8 @@ if [[ "$head" != "$pin" ]]; then
 fi
 # CI's conformance checkout is sparse (tsc/testdata only); widen it to what the harness needs.
 if [[ "$(git -C "$ref" config --get core.sparseCheckout || true)" == "true" ]]; then
-    git -C "$ref" sparse-checkout add packages/typescript tsc go.work go.work.sum package.json package-lock.json
+    # Cone mode includes root files automatically; sparse-checkout add accepts directories.
+    git -C "$ref" sparse-checkout add packages/typescript tsc
 fi
 
 if [[ ! -d "$ref/packages/typescript/node_modules/tinybench" ]]; then
@@ -36,6 +44,13 @@ if [[ ! -d "$ref/packages/typescript/node_modules/tinybench" ]]; then
     printf 'packages:\n  - packages/typescript\n' > "$ref/pnpm-workspace.yaml"
     pnpm --dir "$ref" --pm-on-fail=ignore import
     pnpm --dir "$ref" --pm-on-fail=ignore --filter @typescript/typescript install --frozen-lockfile --ignore-scripts
+fi
+
+if [[ "$published" == true ]]; then
+    git -C "$ref" diff --exit-code HEAD -- tsc packages/typescript
+    node "$root/tools/lib/typescript-reference.mjs" --install-oracle
+    echo "ts-ref $pin ready; published oracle: $here/.work/published-oracle/tsc"
+    exit 0
 fi
 
 oracle="$here/.work/oracle"

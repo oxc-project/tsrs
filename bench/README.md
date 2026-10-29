@@ -79,7 +79,7 @@ This measures compilers on **your machine** and creates a new chart and report. 
 This complete example measures the public `webpack` project against a local release build of tsrs and TypeScript 7.0.2:
 
 ```bash
-pnpm install --frozen-lockfile --ignore-scripts
+vp install --frozen-lockfile --ignore-scripts
 cargo build --release -p tsrs_cli
 node bench/bench.mjs plan --projects webpack
 bundle=$(node bench/bench.mjs run \

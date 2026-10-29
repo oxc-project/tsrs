@@ -2,6 +2,7 @@
 // Runs the pinned upstream API test suites (ts-ref/packages/typescript/test/{sync,async}) and the harness's own
 // parity tests (tools/node-api/tests) with the *pinned upstream client* against a chosen `--api` server binary:
 // the Go oracle built from ts-ref, or a tsrs build. Nothing in the client is replaced or patched.
+// Nightly synchronization can also select the published oracle prepared by setup.sh --published-reference.
 //
 //   node tools/node-api/run-upstream.mjs --binary <exe> --label <name> [--suite upstream|parity|all]
 //        [--no-trace] [--record] [--filter <path segment>]... [--timeout-min 30] [--idle-sec 180]
@@ -15,6 +16,7 @@ import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { checkOracle } from "../lib/typescript-reference.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..", "..");
@@ -49,11 +51,15 @@ if (!opts.binary || !opts.label) usage("--binary and --label are required");
 if (!/^[\w.-]+$/.test(opts.label)) usage("label must be [A-Za-z0-9_.-]+");
 if (!fs.existsSync(opts.binary)) usage(`binary not found: ${opts.binary}`);
 if (!["upstream", "parity", "all"].includes(opts.suite)) usage(`bad --suite ${opts.suite}`);
-// Goldens are recorded from the Go oracle built by setup.sh, never from a candidate.
+// Goldens are recorded from the source-built or verified published Go oracle, never from a candidate.
 const oracleExe = path.join(here, ".work", "oracle", process.platform === "win32" ? "tsc.exe" : "tsc");
-const isOracle = fs.existsSync(oracleExe) && fs.realpathSync(oracleExe) === fs.realpathSync(opts.binary);
+const publishedOracleExe = path.join(here, ".work", "published-oracle", path.basename(oracleExe));
+const matchesBinary = exe => fs.existsSync(exe) && fs.realpathSync(exe) === fs.realpathSync(opts.binary);
+const isPublishedOracle = matchesBinary(publishedOracleExe);
+const isOracle = matchesBinary(oracleExe) || isPublishedOracle;
 if (opts.capture && !opts.trace) usage("--capture needs tracing (drop --no-trace)");
-if (opts.record && !isOracle) usage(`--record only accepts the Go oracle at ${oracleExe}`);
+if (opts.record && !isOracle) usage(`--record only accepts the source-built or published Go oracle prepared by setup.sh`);
+if (isPublishedOracle) checkOracle(repoRoot);
 
 // ── pinned reference check ──────────────────────────────────────────
 const pinned = /\[workspace\.metadata\.typescript\][^[]*?commit\s*=\s*"([0-9a-f]{40})"/s.exec(fs.readFileSync(path.join(repoRoot, "Cargo.toml"), "utf8"))?.[1];

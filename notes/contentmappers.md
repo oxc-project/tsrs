@@ -1,5 +1,9 @@
 # Content mappers: port plan and status
 
+This is the original port record. The [capability table](../docs/COMPATIBILITY.md#what-it-does-and-doesnt-do)
+tracks later additions, including output-extension handling and Windows command lookup, and the remaining
+language-server gap. Use that table for current support.
+
 Go reference: `ts-ref/tsc/internal/` at the pinned commit (`Cargo.toml` `[workspace.metadata.typescript]`). Go is the
 spec (`CONTRIBUTING.md`); every ported function keeps its Go name, structure and order (`docs/PORTING.md`), with a
 `// <file>.go:<line>` comment above it.

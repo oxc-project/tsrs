@@ -78,3 +78,34 @@ against the full 32 GiB (base).
   `route_by_owner`, the declaration files' own regions).
 - Instructions retired: not measured; `perf_event_open` is not permitted in the container. A `-p` build does not
   call any of the changed code.
+
+## Lazily filled data of the files
+
+The program regions are not registered (`Region::new_scratch`, so that no thread waits for a region a loader job holds
+while that job waits on the pool), so what the checker and the declaration emit fill in a file later (its JSDoc, line
+maps, name tables; `arena::enter_owner`) found no owner and went to the thread arenas, kept to the end of the build.
+Synthetic projects of 8 files with 320 JSDoc-commented functions kept about 0.25 MiB each there (`TSRS_MEM_SPLIT=1`
+at exit: 5.0, 19.9 and 49.7 MiB used in the thread arenas at 20, 80 and 200 projects); with the same comments written
+as `//` lines, 0.1 to 1.4 MiB.
+
+The build now parses its files into registered regions of the program (programregions.rs `enter_file`), one per
+parsing thread, entered only while one file is parsed, which never waits on the pool. Each lazy fill of a file reads
+that file alone, so a fill waits at most for one parse or one other fill. The first chunk is 512 KiB, a slab of its
+own that freeing gives back: in 1 MiB chunks the freed regions went to the slab cache with their pages, and in 64 KiB
+chunks from the threads' shared slabs a live neighbour kept each one's slab (programregions.rs `enter_file`).
+
+Release builds on a 4-vCPU VM: peak RSS median of 7 runs at the default builders, instructions from callgrind at
+`--builders 1 --singleThreaded`, wall time from Hyperfine (25 runs after 3 warmups; system time is high on this VM).
+
+| graph | peak RSS, base → head | instructions | wall time, base → head |
+| --- | --- | --- | --- |
+| 200 projects, JSDoc | 144.7 → 82.6 MiB | +0.07% | 1.44 → 1.53 s |
+| 200 projects, no comments | 83.6 → 81.9 MiB | +0.05% | 1.31 → 1.36 s |
+| 80 projects, JSDoc | 96.3 → 67.3 MiB | +0.06% | |
+| 80 projects, no comments | 64.6 → 64.9 MiB | +0.08% | 0.53 → 0.58 s |
+| TypeScript 5.9's `src` (13 projects) | 199.5 → 197.1 MiB (11 runs) | -0.04% | 1.30 → 1.32 s |
+
+The small projects' extra wall time is the new regions' commit, page faults and decommit: with 1 MiB chunks (slab
+cache) it matched the base. Outputs, `.tsbuildinfo` files and stdout are identical to the base, with
+`TSRS_ARENA_POISON=1` too, on these graphs. crates/tsrs_cli/tests/build_free_programs.rs
+`jsdoc_of_freed_programs_is_freed` fails without the change (1.8 MiB left in the thread arenas).

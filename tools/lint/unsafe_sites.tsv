@@ -155,7 +155,7 @@ crates/tsrs_cli/src/lsp.rs	is_process_alive	block	boundary	kill(2) with signal 0
 crates/tsrs_cli/src/main.rs	main	leak	ownership		keep	process-lifetime by design; one allocation, no growth (CLI host)
 crates/tsrs_cli/src/main.rs	mimalloc_collect	block	boundary	collects the calling thread's heap; no arguments to get wrong.	keep	OS, FFI or allocator call
 crates/tsrs_cli/src/main.rs	mimalloc_collect	extern	boundary		keep	OS, FFI or allocator call
-crates/tsrs_cli/src/main.rs	mimalloc_heap_stats	block	boundary	a null heap is the main heap; the visitor only reads the areas. The callers' other threads are parked.	keep	OS, FFI or allocator call
+crates/tsrs_cli/src/main.rs	mimalloc_heap_stats	block	boundary	a null heap is the main heap; the visitor only reads the areas. No other thread allocates during a	keep	OS, FFI or allocator call
 crates/tsrs_cli/src/main.rs	mimalloc_heap_stats	extern	boundary		keep	OS, FFI or allocator call
 crates/tsrs_cli/src/main.rs	visit	block	boundary	mimalloc passes a valid area and our `arg`, a `HeapStats`.	keep	OS, FFI or allocator call
 crates/tsrs_cli/src/signals.rs	notify_interrupts	block	boundary	`set` and `signal` are valid for the call.	keep	OS, FFI or allocator call

@@ -299,8 +299,10 @@ impl Checker {
     fn get_simplified_conditional_type_worker(&mut self, t: P<Type>, writing: bool) -> P<Type> {
         let check_type = t.as_conditional_type().check_type.get().unwrap();
         let extends_type = t.as_conditional_type().extends_type.get().unwrap();
-        let true_type = self.get_true_type_from_conditional_type(t);
-        let false_type = self.get_false_type_from_conditional_type(t);
+        let Some((true_type, false_type)) = self.get_simplification_branch_types(t, check_type)
+        else {
+            return t;
+        };
         // Simplifications for types of the form `T extends U ? T : never` and `T extends U ? never : T`.
         if false_type.flags().intersects(TypeFlags::Never)
             && self.get_actual_type_variable(true_type) == self.get_actual_type_variable(check_type)
@@ -331,6 +333,121 @@ impl Checker {
             }
         }
         t
+    }
+
+    /// The branch types `get_simplified_conditional_type_worker` tests, or `None` when neither of its two
+    /// simplifications can apply (the worker then returns `t`). Go resolves both branches first, and so does the
+    /// reference mode: the lazy path below skips instantiations, which lowers the instantiation counter that places
+    /// TS2589, so it runs only under the fast preset's lazy-members switch (`lazy_members`), where counters and
+    /// budgets already differ from Go (docs/USAGE.md, performance options). Under that switch this resolves only
+    /// what the tests can read (ported from the tsgo-opt fork). Both simplifications need the false type:
+    /// the first needs it to be `never`, the second needs it to be the check type variable. The true type is needed
+    /// only once one of those holds, so a false type that is neither settles the result without instantiating the
+    /// true type. An object true type can match neither test either: `instantiate_type` keeps an anonymous or
+    /// class/interface type an object (a reference, mapped or reverse-mapped type can instantiate to `never`, so
+    /// those are excluded; `testdata/regressions/simplified-conditional-mapped-never`), and an object is never
+    /// `never` nor equal to a non-object check type variable. The only side effects the eager path has that this
+    /// one may omit are the skipped instantiations themselves (and their `resolved_*` stores); every type node
+    /// is still resolved where Go resolves it, and `get_actual_type_variable` is only evaluated early where it
+    /// cannot intern a type (`actual_type_variable_without_interning`). When both branches turn out to be
+    /// needed, the true type is instantiated after the false one, except for the common literal `: never`
+    /// false branch, which keeps Go's order.
+    fn get_simplification_branch_types(
+        &mut self,
+        t: P<Type>,
+        check_type: P<Type>,
+    ) -> Option<(P<Type>, P<Type>)> {
+        if !self.lazy_members {
+            let true_type = self.get_true_type_from_conditional_type(t);
+            return Some((true_type, self.get_false_type_from_conditional_type(t)));
+        }
+        let d = t.as_conditional_type();
+        let resolved_true = d.resolved_true_type.get();
+        let resolved_false = d.resolved_false_type.get();
+        if let (Some(true_type), Some(false_type)) = (resolved_true, resolved_false) {
+            return Some((true_type, false_type));
+        }
+        let Some(actual_check) = Self::actual_type_variable_without_interning(check_type) else {
+            let true_type = self.get_true_type_from_conditional_type(t);
+            return Some((true_type, self.get_false_type_from_conditional_type(t)));
+        };
+        let node = d.root.get().unwrap().node.get().unwrap().as_conditional_type_node();
+        // The true type node's type once this resolved it (Go's first step too), so that the true type is
+        // instantiated from it below instead of walking the node again.
+        let mut raw_true = None;
+        if !actual_check.flags().intersects(TypeFlags::Object) {
+            let true_is_object = if let Some(true_type) = resolved_true {
+                true_type.flags().intersects(TypeFlags::Object)
+            } else {
+                let raw = self.get_type_from_type_node(node.true_type);
+                raw_true = Some(raw);
+                raw.flags().intersects(TypeFlags::Object)
+                    && raw
+                        .object_flags()
+                        .intersects(ObjectFlags::Anonymous | ObjectFlags::ClassOrInterface)
+                    && !raw.object_flags().intersects(ObjectFlags::ReverseMapped)
+            };
+            if true_is_object {
+                if resolved_false.is_none() {
+                    self.get_type_from_type_node(node.false_type);
+                }
+                return None;
+            }
+        }
+        if resolved_false.is_none()
+            && ast::skip_type_parentheses(node.false_type).kind() == Kind::NeverKeyword
+        {
+            let true_type = self.get_true_type_from_conditional_type_raw(t, raw_true);
+            return Some((true_type, self.get_false_type_from_conditional_type(t)));
+        }
+        let false_type = self.get_false_type_from_conditional_type(t);
+        if !false_type.flags().intersects(TypeFlags::Never)
+            && let Some(actual_false) = Self::actual_type_variable_without_interning(false_type)
+            && actual_false != actual_check
+        {
+            return None;
+        }
+        Some((self.get_true_type_from_conditional_type_raw(t, raw_true), false_type))
+    }
+
+    /// `get_true_type_from_conditional_type` for a caller that may already hold the true type node's type
+    /// (`get_type_from_type_node` is idempotent, so instantiating that value is the same computation).
+    fn get_true_type_from_conditional_type_raw(
+        &mut self,
+        t: P<Type>,
+        raw_true: Option<P<Type>>,
+    ) -> P<Type> {
+        let d = t.as_conditional_type();
+        match (d.resolved_true_type.get(), raw_true) {
+            (Some(true_type), _) => true_type,
+            (None, Some(raw_true)) => {
+                let true_type = self.instantiate_type(raw_true, d.mapper.get());
+                d.resolved_true_type.set(Some(true_type));
+                true_type
+            }
+            (None, None) => self.get_true_type_from_conditional_type(t),
+        }
+    }
+
+    /// `get_actual_type_variable` when it cannot allocate: `None` where it would intern an indexed access over
+    /// substitution types, so a caller that wants to evaluate it earlier than Go does can fall back to Go's order.
+    fn actual_type_variable_without_interning(t: P<Type>) -> Option<P<Type>> {
+        if t.flags().intersects(TypeFlags::Substitution) {
+            return Self::actual_type_variable_without_interning(
+                t.as_substitution_type().base_type.get().unwrap(),
+            );
+        }
+        if t.flags().intersects(TypeFlags::IndexedAccess) {
+            let indexed_access = t.as_indexed_access_type();
+            let object_type = indexed_access.object_type.get().unwrap();
+            let index_type = indexed_access.index_type.get().unwrap();
+            if Self::actual_type_variable_without_interning(object_type) != Some(object_type)
+                || Self::actual_type_variable_without_interning(index_type) != Some(index_type)
+            {
+                return None;
+            }
+        }
+        get_non_distributed_type_parameter(t)
     }
 
     // Invokes union simplification logic to determine if an intersection is considered empty as a union constituent

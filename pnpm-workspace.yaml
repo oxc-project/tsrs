@@ -1,4 +1,5 @@
 packages:
+  - napi
   - npm
   - playground
 # Keep plugins and tests on the Vite+ toolchain's bundled versions.

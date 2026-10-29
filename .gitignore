@@ -1,4 +1,5 @@
 target/
+napi/src-js/tsrs.node
 *.log
 .DS_Store
 ts-ref

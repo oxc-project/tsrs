@@ -1,0 +1,17 @@
+a.ts(12,7): error TS2322: Type '<T>(x: string, y: T) => T' is not assignable to type 'number'.
+a.ts(13,7): error TS2322: Type '(x?: number | "a" | 1n | undefined, ...rest: readonly (string | null)[]) => string' is not assignable to type 'number'.
+a.ts(14,7): error TS2322: Type '(pair: [string, (number | undefined)?], named: [first: boolean, ...more: never[]]) => boolean' is not assignable to type 'number'.
+a.ts(15,7): error TS2322: Type '(p: string, q: readonly string[] | undefined, r: unknown, s: object, v: void) => symbol' is not assignable to type 'number'.
+a.ts(16,7): error TS2322: Type '(x: `a${string}`, y: bigint[], z: string[]) => bigint' is not assignable to type 'number'.
+a.ts(17,7): error TS2322: Type '(x: string, cb: (y: string, z: null) => void) => null' is not assignable to type 'number'.
+a.ts(18,7): error TS2322: Type '(x: (s: string) => "k") => "k"' is not assignable to type 'number'.
+a.ts(21,12): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+a.ts(22,12): error TS2345: Argument of type '"x"' is not assignable to parameter of type 'number | "a" | 1n | undefined'.
+a.ts(23,20): error TS2345: Argument of type '[true, number]' is not assignable to parameter of type '[first: boolean, ...more: never[]]'.
+  Type at position 1 in source is not compatible with type at position 1 in target.
+    Type 'number' is not assignable to type 'never'.
+a.ts(24,33): error TS2322: Type 'string' is not assignable to type 'number'.
+a.ts(31,7): error TS2322: Type '(x: string, y?: number | undefined, ...z: boolean[]) => string' is not assignable to type 'number'.
+a.ts(32,7): error TS2322: Type 'C<Date>' is not assignable to type 'number'.
+a.ts(41,7): error TS2322: Type 'I<Date>' is not assignable to type 'number'.
+a.ts(42,7): error TS2322: Type '(this: void, x: never[]) => Date' is not assignable to type 'number'.

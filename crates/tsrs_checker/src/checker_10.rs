@@ -2303,10 +2303,19 @@ impl Checker {
         symbol: P<Symbol>,
         m: Option<P<TypeMapper>>,
     ) -> bool {
-        let links = self.value_symbol_links.get(symbol);
         if m.is_some_and(|m| m.maps_this_only()) && is_thisless(symbol) {
             return true;
         }
+        // A parameter whose annotation is syntactically free of type variables and clean of conditional-flow
+        // substitution (`NodeFlags::COND_FLOW_CLEAN`) resolves to a type no mapper can change, so the instantiated
+        // signature keeps the original symbol, as the resolved-type shortcut below does once the type is known.
+        if symbol.flags().intersects(SymbolFlags::FunctionScopedVariable)
+            && !symbol.check_flags().intersects(CheckFlags::Instantiated)
+            && is_type_variable_free_parameter(symbol)
+        {
+            return true;
+        }
+        let links = self.value_symbol_links.get(symbol);
         // If the type of the symbol is already resolved, and if that type could not possibly
         // be affected by instantiation, simply return the symbol itself.
         if let Some(resolved_type) = links.resolved_type.get()
@@ -2361,6 +2370,78 @@ impl Checker {
         result_links.set_mapper(m);
         result_links.set_name_type(links.name_type());
         result
+    }
+}
+
+/// A parameter (one declaration, not in a JS file, no initializer) whose annotation `get_type_from_type_node`
+/// resolves without conditional-flow substitution and which names no type variable, so its declared type
+/// (the annotation's type, plus `undefined` when optional) cannot contain type variables. The bit is read on
+/// the parameter node: the annotation's own bit is never set (its parent is the parameter, a relevant step
+/// that only flips variance), and a clean parameter has no constraint-adding step above it.
+fn is_type_variable_free_parameter(symbol: P<Symbol>) -> bool {
+    if let [decl] = symbol.declarations()
+        && decl.kind() == Kind::Parameter
+        && decl.flags().intersects(NodeFlags::COND_FLOW_CLEAN)
+        && !ast::is_in_js_file(*decl)
+        && decl.initializer().is_none()
+        && let Some(type_node) = decl.type_node()
+    {
+        return is_type_variable_free_type_node(type_node);
+    }
+    false
+}
+
+/// Keyword types, literals and the array, tuple, `readonly`, union, intersection and parenthesized forms over
+/// them: type nodes whose type has no type variable, by syntax alone. Type references are not included (an
+/// alias or interface may be generic), nor template literal types.
+fn is_type_variable_free_type_node(node: P<Node>) -> bool {
+    match node.kind() {
+        Kind::AnyKeyword
+        | Kind::UnknownKeyword
+        | Kind::StringKeyword
+        | Kind::NumberKeyword
+        | Kind::BigIntKeyword
+        | Kind::BooleanKeyword
+        | Kind::SymbolKeyword
+        | Kind::ObjectKeyword
+        | Kind::VoidKeyword
+        | Kind::UndefinedKeyword
+        | Kind::NullKeyword
+        | Kind::NeverKeyword => true,
+        Kind::LiteralType => node.as_literal_type_node().literal.kind() != Kind::TemplateExpression,
+        Kind::ArrayType => is_type_variable_free_type_node(node.as_array_type_node().element_type),
+        Kind::ParenthesizedType => {
+            is_type_variable_free_type_node(node.as_parenthesized_type_node().type_)
+        }
+        Kind::TypeOperator => {
+            let operator = node.as_type_operator_node();
+            operator.operator == Kind::ReadonlyKeyword
+                && is_type_variable_free_type_node(operator.type_)
+        }
+        Kind::UnionType => node
+            .as_union_type_node()
+            .types()
+            .nodes()
+            .iter()
+            .all(|&t| is_type_variable_free_type_node(t)),
+        Kind::IntersectionType => node
+            .as_intersection_type_node()
+            .types()
+            .nodes()
+            .iter()
+            .all(|&t| is_type_variable_free_type_node(t)),
+        Kind::TupleType => node
+            .as_tuple_type_node()
+            .elements()
+            .nodes()
+            .iter()
+            .all(|&t| is_type_variable_free_type_node(t)),
+        Kind::NamedTupleMember => {
+            is_type_variable_free_type_node(node.as_named_tuple_member().type_)
+        }
+        Kind::RestType => is_type_variable_free_type_node(node.as_rest_type_node().type_()),
+        Kind::OptionalType => is_type_variable_free_type_node(node.as_optional_type_node().type_()),
+        _ => false,
     }
 }
 

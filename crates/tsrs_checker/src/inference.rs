@@ -561,20 +561,14 @@ impl Checker {
         // We stop inferring and report a circularity if we encounter duplicate recursion identities on both
         // the source side and the target side.
         let save_expanding_flags = n.expanding_flags.get();
-        n.source_stack.borrow_mut().push(source);
-        n.target_stack.borrow_mut().push(target);
+        n.source_stack.borrow_mut().push(RelaterStackEntry::new(source));
+        n.target_stack.borrow_mut().push(RelaterStackEntry::new(target));
         // Shared stack borrows: the nesting walk never re-enters inference on this state.
-        {
-            let source_stack = n.source_stack.borrow();
-            if source_stack.len() >= 2 && self.is_deeply_nested_type(source, &source_stack, 2) {
-                n.expanding_flags.set(n.expanding_flags.get() | ExpandingFlags::Source);
-            }
+        if self.is_deeply_nested_on_stack(source, &n.source_stack.borrow(), 2) {
+            n.expanding_flags.set(n.expanding_flags.get() | ExpandingFlags::Source);
         }
-        {
-            let target_stack = n.target_stack.borrow();
-            if target_stack.len() >= 2 && self.is_deeply_nested_type(target, &target_stack, 2) {
-                n.expanding_flags.set(n.expanding_flags.get() | ExpandingFlags::Target);
-            }
+        if self.is_deeply_nested_on_stack(target, &n.target_stack.borrow(), 2) {
+            n.expanding_flags.set(n.expanding_flags.get() | ExpandingFlags::Target);
         }
         if n.expanding_flags.get() == ExpandingFlags::Both {
             n.inference_priority.set(InferencePriority::CIRCULARITY);

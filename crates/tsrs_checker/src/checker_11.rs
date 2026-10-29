@@ -2694,6 +2694,11 @@ impl Checker {
     // checker.go:23232
     pub fn get_type_from_type_node(&mut self, node: P<Node>) -> P<Type> {
         let t = self.get_type_from_type_node_worker(node);
+        // The binder's bit says no ancestor up to the enclosing statement is a conditional true branch, an
+        // unnamed mapped-type template or a parameter: the walk would collect no constraint and return `t`.
+        if node.flags().intersects(NodeFlags::COND_FLOW_CLEAN) {
+            return t;
+        }
         self.get_conditional_flow_type_of_type(t, Some(node))
     }
 

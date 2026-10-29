@@ -1568,22 +1568,34 @@ impl Checker {
             && let Some(new_mapper) = new_mapper
         {
             let new_root = new_type.as_conditional_type().root.get().unwrap();
-            if !new_root.outer_type_parameters.get().is_empty() {
-                let conditional_mapper = new_type.as_conditional_type().mapper.get();
-                let type_param_mapper = Self::combine_type_mappers(conditional_mapper, new_mapper);
-                let type_arguments: Vec<P<Type>> = new_root
-                    .outer_type_parameters
-                    .get()
-                    .iter()
-                    .map(|&t| type_param_mapper.map(self, t))
-                    .collect();
-                if conditional_mapper.is_some() {
-                    // SAFETY: the composite made above, used only by those `map` calls.
-                    unsafe { recycle_mapper(type_param_mapper) };
-                }
-                let type_argument_list = tsrs_core::alloc_slice_recycled(&type_arguments);
-                let new_root_mapper =
-                    new_type_mapper(new_root.outer_type_parameters.get(), type_argument_list);
+            let outer_type_parameters = new_root.outer_type_parameters.get();
+            if !outer_type_parameters.is_empty() {
+                let m1 = new_type.as_conditional_type().mapper.get();
+                // The new root's mapper sends each of its outer type parameters through `m1` and then `new_mapper`
+                // (`combineTypeMappers(m1, newMapper)`, mapped inline so no composite mapper is made). When `m1` is
+                // none and `new_mapper` is a simple or array mapper, `new_mapper` itself is that mapper on every
+                // type the root's types can reference: `outer_type_parameters` keeps every type parameter in scope
+                // that is possibly referenced, so the two can only differ on type parameters the root never
+                // instantiates. A root with an alias is only reached here with a mapper (through its alias
+                // reference), so the alias type arguments are instantiated through the same mapper either way.
+                let mut type_argument_list: Option<&'static [P<Type>]> = None;
+                let new_root_mapper = if m1.is_none()
+                    && matches!(new_mapper.kind(), TypeMapperKind::Simple | TypeMapperKind::Array)
+                {
+                    new_mapper
+                } else if let [tp] = *outer_type_parameters {
+                    let arg = self.map_tail_recursion_type_argument(m1, new_mapper, tp);
+                    new_simple_type_mapper(tp, arg)
+                } else {
+                    let type_arguments: Vec<P<Type>> = outer_type_parameters
+                        .iter()
+                        .map(|&tp| self.map_tail_recursion_type_argument(m1, new_mapper, tp))
+                        .collect();
+                    let list = tsrs_core::alloc_slice_recycled(&type_arguments);
+                    type_argument_list = Some(list);
+                    new_array_type_mapper(outer_type_parameters, list)
+                };
+                let made = new_root_mapper != new_mapper;
                 let mut new_check_type = None;
                 if new_root.is_distributive.get() {
                     new_check_type = Some(
@@ -1599,14 +1611,41 @@ impl Checker {
                 {
                     // The caller's `getConditionalType` loops with this mapper and recycles it on return unless
                     // the result kept it (99% do not, notes/mem-scoped-arenas.md).
-                    self.scratch_mapper_lists.push((new_root_mapper, type_argument_list));
+                    if made {
+                        match type_argument_list {
+                            Some(list) => self.scratch_mapper_lists.push((new_root_mapper, list)),
+                            None => self.scratch_mappers.push(new_root_mapper),
+                        }
+                    }
                     return (Some(new_root), Some(new_root_mapper));
                 }
-                // SAFETY: made above; mapping a type through it stores nothing.
-                unsafe { recycle_mapper_with_targets(new_root_mapper, type_argument_list) };
+                if made {
+                    match type_argument_list {
+                        // SAFETY: made above; mapping a type through it stores nothing.
+                        Some(list) => unsafe { recycle_mapper_with_targets(new_root_mapper, list) },
+                        // SAFETY: the simple mapper made above; mapping a type through it stores nothing.
+                        None => unsafe { recycle_mapper(new_root_mapper) },
+                    }
+                }
             }
         }
         (None, None)
+    }
+
+    /// `combineTypeMappers(m1, m2).Map(tp)` without the composite mapper.
+    fn map_tail_recursion_type_argument(
+        &mut self,
+        m1: Option<P<TypeMapper>>,
+        m2: P<TypeMapper>,
+        tp: P<Type>,
+    ) -> P<Type> {
+        if let Some(m1) = m1 {
+            let t1 = m1.map(self, tp);
+            if t1 != tp {
+                return self.instantiate_type(t1, Some(m2));
+            }
+        }
+        m2.map(self, tp)
     }
 
     // checker.go:24939

@@ -31,7 +31,7 @@ function sortKeys(value) {
 }
 
 // Python's json.dumps(value, sort_keys=True, separators=(",", ":")), so digests match earlier runs.
-function canonicalJSON(value) {
+export function canonicalJSON(value) {
     return JSON.stringify(sortKeys(value)).replace(
         /[\u007f-\uffff]/g,
         (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`,
@@ -56,7 +56,8 @@ export function diagnosticDigest(diagnostics, label) {
     };
 }
 
-function summarize(file) {
+// Diagnostics from a headless helper's framed output; an error frame throws.
+export function readDiagnostics(file) {
     const data = fs.readFileSync(file),
         diagnostics = [];
     let offset = 0;
@@ -71,7 +72,11 @@ function summarize(file) {
         if (kind === 0) throw new Error(`helper error: ${JSON.stringify(value)}`);
         if (kind === 1) diagnostics.push(value);
     }
-    const result = diagnosticDigest(diagnostics, (diagnostic) => diagnostic.rule || "<compiler>");
+    return diagnostics;
+}
+
+function summarize(file) {
+    const result = diagnosticDigest(readDiagnostics(file), (diagnostic) => diagnostic.rule || "<compiler>");
     return {
         diagnostics: result.count,
         diagnostics_by_rule: result.counts,

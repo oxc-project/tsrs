@@ -17,6 +17,7 @@ import {
 } from "../tools/lib/cli.mjs";
 import { hyperfine, measureOne } from "./runner.mjs";
 import { cleanEnvironment } from "./lib.mjs";
+import { LINT_PROJECTS, renderLint } from "./lint.mjs";
 const BENCH = path.join(ROOT, "bench"),
     API = "https://api.github.com",
     MARKER = "<!-- tsrs-wallclock-benchmark -->",
@@ -138,7 +139,15 @@ async function decide() {
                         "PR check and incremental comparisons",
                         "CodSpeed simulation, memory and optional walltime",
                         "cross-compiler benchmark report",
+                        "PR tsrs-lint comparison",
                     ],
+                    lint: {
+                        build: "cargo build --release --locked -p tsrs_lint --bin tsrs-lint",
+                        command: "tsrs-lint headless < <request linting the project's source files with every rule>",
+                        modes: "TSRS_FAST unset and TSRS_FAST=1",
+                        metrics: ["wall time", "CPU time", "peak RSS"],
+                        projects: LINT_PROJECTS,
+                    },
                 },
                 files: changes,
             },
@@ -302,11 +311,13 @@ export function renderReport(a) {
         "",
     ];
     if (a.decision !== "true") return lines.concat("Benchmarks skipped.", "").join("\n");
+    const lint = renderLint(a.lint, a["lint-results"]);
     if (a.identical === "true")
         return lines
             .concat(
-                "The main and PR release binaries are byte-for-byte identical. No compiler performance difference to measure.",
+                "The main and PR `tsrs` release binaries are byte-for-byte identical. No compiler performance difference to measure.",
                 "",
+                ...lint,
             )
             .join("\n");
     let results;
@@ -397,6 +408,7 @@ export function renderReport(a) {
             "",
             "</details>",
         );
+    if (lint.length) lines.push("", ...lint);
     return lines.join("\n") + "\n";
 }
 async function comment(a) {
@@ -443,19 +455,23 @@ if (isMain(import.meta.url))
                     runs: 10,
                 },
                 join: { results: null, out: null },
-                comment: Object.fromEntries(
-                    [
-                        "pr-number",
-                        "base-sha",
-                        "head-sha",
-                        "merge-sha",
-                        "run-url",
-                        "decision",
-                        "identical",
-                        "reason",
-                        "results",
-                    ].map((k) => [k, null]),
-                ),
+                comment: {
+                    ...Object.fromEntries(
+                        [
+                            "pr-number",
+                            "base-sha",
+                            "head-sha",
+                            "merge-sha",
+                            "run-url",
+                            "decision",
+                            "identical",
+                            "reason",
+                            "results",
+                        ].map((k) => [k, null]),
+                    ),
+                    lint: "",
+                    "lint-results": "",
+                },
             };
         if (!command || ["--help", "-h"].includes(command)) {
             console.log("Wall-clock benchmark commands: decide, measure, join, comment.");

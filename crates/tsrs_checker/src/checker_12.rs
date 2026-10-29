@@ -1435,78 +1435,90 @@ impl Checker {
                 // types with type parameters mapped to the wildcard type, the most permissive instantiations
                 // possible (the wildcard type is assignable to and from all types). If those are not related,
                 // then no instantiations will be and we can just return the false branch type.
-                if !inferred_extends_type.flags().intersects(TypeFlags::AnyOrUnknown)
-                    && (check_type.flags().intersects(TypeFlags::Any) || {
+                // The permissive pair, kept for the restrictive check below (`None` for an `any` check type).
+                let mut permissive: Option<(P<Type>, P<Type>)> = None;
+                if !inferred_extends_type.flags().intersects(TypeFlags::AnyOrUnknown) {
+                    if !check_type.flags().intersects(TypeFlags::Any) {
                         let permissive_check_type = self.get_permissive_instantiation(check_type);
                         let permissive_extends_type =
                             self.get_permissive_instantiation(inferred_extends_type);
+                        permissive = Some((permissive_check_type, permissive_extends_type));
+                    }
+                    if permissive.is_none_or(|(permissive_check_type, permissive_extends_type)| {
                         !self.is_type_assignable_to(permissive_check_type, permissive_extends_type)
-                    })
-                {
-                    // Return union of trueType and falseType for 'any' since it matches anything. Furthermore, for a
-                    // distributive conditional type applied to the constraint of a type variable, include trueType if
-                    // there are possible values of the check type that are also possible values of the extends type.
-                    // We use a reverse assignability check as it is less expensive than the comparable relationship
-                    // and avoids false positives of a non-empty intersection check.
-                    if check_type.flags().intersects(TypeFlags::Any)
-                        || for_constraint
-                            && !inferred_extends_type.flags().intersects(TypeFlags::Never)
-                            && {
-                                let permissive_extends_type =
-                                    self.get_permissive_instantiation(inferred_extends_type);
-                                some_type(self, permissive_extends_type, |c, t| {
-                                    let permissive_check_type =
-                                        c.get_permissive_instantiation(check_type);
+                    }) {
+                        // Return union of trueType and falseType for 'any' since it matches anything. Furthermore, for a
+                        // distributive conditional type applied to the constraint of a type variable, include trueType if
+                        // there are possible values of the check type that are also possible values of the extends type.
+                        // We use a reverse assignability check as it is less expensive than the comparable relationship
+                        // and avoids false positives of a non-empty intersection check.
+                        if permissive.is_none_or(|(permissive_check_type, permissive_extends_type)| {
+                            for_constraint
+                                && !inferred_extends_type.flags().intersects(TypeFlags::Never)
+                                && some_type(self, permissive_extends_type, |c, t| {
                                     c.is_type_assignable_to(t, permissive_check_type)
                                 })
-                            }
-                    {
-                        let true_type = self.get_type_from_type_node(
-                            root_node.as_conditional_type_node().true_type,
+                        }) {
+                            let true_type = self.get_type_from_type_node(
+                                root_node.as_conditional_type_node().true_type,
+                            );
+                            let instantiated =
+                                self.instantiate_type(true_type, combined_mapper.or(mapper));
+                            extra_types.get_or_insert_with(Vec::new).push(instantiated);
+                        }
+                        // If falseType is an immediately nested conditional type that isn't distributive or has an
+                        // identical checkType, switch to that type and loop.
+                        let false_type = self.get_type_from_type_node(
+                            root_node.as_conditional_type_node().false_type,
                         );
-                        let instantiated =
-                            self.instantiate_type(true_type, combined_mapper.or(mapper));
-                        extra_types.get_or_insert_with(Vec::new).push(instantiated);
-                    }
-                    // If falseType is an immediately nested conditional type that isn't distributive or has an
-                    // identical checkType, switch to that type and loop.
-                    let false_type = self
-                        .get_type_from_type_node(root_node.as_conditional_type_node().false_type);
-                    if false_type.flags().intersects(TypeFlags::Conditional) {
-                        let new_root = false_type.as_conditional_type().root.get().unwrap();
-                        if new_root.node.get().unwrap().parent() == Some(root_node)
-                            && (!new_root.is_distributive.get()
-                                || new_root.check_type.get() == root.check_type.get())
-                        {
-                            root = new_root;
-                            continue;
-                        }
-                        if let (Some(new_root), new_root_mapper) =
-                            self.get_tail_recursion_root(false_type, mapper)
-                        {
-                            root = new_root;
-                            mapper = new_root_mapper;
-                            alias = None;
-                            if new_root.alias.get().is_some() {
-                                tail_count += 1;
+                        if false_type.flags().intersects(TypeFlags::Conditional) {
+                            let new_root = false_type.as_conditional_type().root.get().unwrap();
+                            if new_root.node.get().unwrap().parent() == Some(root_node)
+                                && (!new_root.is_distributive.get()
+                                    || new_root.check_type.get() == root.check_type.get())
+                            {
+                                root = new_root;
+                                continue;
                             }
-                            continue;
+                            if let (Some(new_root), new_root_mapper) =
+                                self.get_tail_recursion_root(false_type, mapper)
+                            {
+                                root = new_root;
+                                mapper = new_root_mapper;
+                                alias = None;
+                                if new_root.alias.get().is_some() {
+                                    tail_count += 1;
+                                }
+                                continue;
+                            }
                         }
+                        result = self.instantiate_type(false_type, mapper);
+                        break;
                     }
-                    result = self.instantiate_type(false_type, mapper);
-                    break;
                 }
                 // Return trueType for a definitely true extends check. We check instantiations of the two
                 // types with type parameters mapped to their restrictive form, i.e. a form of the type parameter
                 // that has no constraint. This ensures that, for example, the type
                 //   type Foo<T extends { x: any }> = T extends { x: string } ? string : number
                 // doesn't immediately resolve to 'string' instead of being deferred.
-                if inferred_extends_type.flags().intersects(TypeFlags::AnyOrUnknown) || {
-                    let restrictive_check_type = self.get_restrictive_instantiation(check_type);
-                    let restrictive_extends_type =
-                        self.get_restrictive_instantiation(inferred_extends_type);
-                    self.is_type_assignable_to(restrictive_check_type, restrictive_extends_type)
-                } {
+                // When the permissive pair is the pair itself and both types are non-generic for instantiation,
+                // the restrictive pair is that same pair (both getters return their argument), so the relation
+                // below would repeat the permissive check that just held with the same arguments; a repeated
+                // relation query is deterministic (its result is in the relation cache) and is not made again.
+                if inferred_extends_type.flags().intersects(TypeFlags::AnyOrUnknown)
+                    || permissive.is_some_and(|(permissive_check_type, permissive_extends_type)| {
+                        permissive_check_type == check_type
+                            && permissive_extends_type == inferred_extends_type
+                            && self.is_non_generic_for_instantiation(check_type)
+                            && self.is_non_generic_for_instantiation(inferred_extends_type)
+                    })
+                    || {
+                        let restrictive_check_type = self.get_restrictive_instantiation(check_type);
+                        let restrictive_extends_type =
+                            self.get_restrictive_instantiation(inferred_extends_type);
+                        self.is_type_assignable_to(restrictive_check_type, restrictive_extends_type)
+                    }
+                {
                     let true_type = self
                         .get_type_from_type_node(root_node.as_conditional_type_node().true_type);
                     let true_mapper = combined_mapper.or(mapper);
@@ -1619,9 +1631,26 @@ impl Checker {
             }
     }
 
+    /// `instantiate_type(t, m)` returns `t` for every mapper `m`: the test `instantiate_type_with_alias` makes
+    /// before it instantiates anything, so the permissive and restrictive instantiations of such a `t` are `t`.
+    fn is_non_generic_for_instantiation(&mut self, t: P<Type>) -> bool {
+        if t.flags().intersects(TypeFlags::Primitive | TypeFlags::AnyOrUnknown | TypeFlags::Never) {
+            return true;
+        }
+        if self.could_contain_type_variables(t) {
+            return false;
+        }
+        match t.alias() {
+            Some(alias) => {
+                !alias.type_arguments().iter().any(|&a| self.could_contain_type_variables(a))
+            }
+            None => true,
+        }
+    }
+
     // checker.go:24949
     pub(crate) fn get_permissive_instantiation(&mut self, t: P<Type>) -> P<Type> {
-        if t.flags().intersects(TypeFlags::Primitive | TypeFlags::AnyOrUnknown | TypeFlags::Never) {
+        if self.is_non_generic_for_instantiation(t) {
             return t;
         }
         let key = CachedTypeKey { kind: CachedTypeKind::PermissiveInstantiation, type_id: t.id };
@@ -1635,7 +1664,7 @@ impl Checker {
 
     // checker.go:24962
     pub(crate) fn get_restrictive_instantiation(&mut self, t: P<Type>) -> P<Type> {
-        if t.flags().intersects(TypeFlags::Primitive | TypeFlags::AnyOrUnknown | TypeFlags::Never) {
+        if self.is_non_generic_for_instantiation(t) {
             return t;
         }
         let key = CachedTypeKey { kind: CachedTypeKind::RestrictiveInstantiation, type_id: t.id };

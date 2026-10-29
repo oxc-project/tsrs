@@ -21,16 +21,7 @@ impl Checker {
 
     // inference.go:41
     fn put_inference_state(&mut self, n: P<InferenceState>) {
-        {
-            let mut visited = n.visited.borrow_mut();
-            let len = visited.len();
-            // Keep the pooled scratch-map policy: avoid clearing a formerly large table on every use.
-            if visited.capacity() > 64 && visited.capacity() > 4 * len {
-                *visited = FxHashMap::with_capacity_and_hasher(len, rustc_hash::FxBuildHasher);
-            } else {
-                visited.clear();
-            }
-        }
+        n.visited.borrow_mut().reset();
         n.inferences.borrow_mut().clear();
         n.original_source.set(None);
         n.original_target.set(None);
@@ -534,24 +525,15 @@ impl Checker {
         target: P<Type>,
         mut action: impl FnMut(&mut Checker, P<InferenceState>, P<Type>, P<Type>),
     ) {
-        let key = InferenceKey {
-            source: source.id,
-            target: target.id,
-            priority: n.priority.get(),
-            contravariant: n.contravariant.get(),
-            bivariant: n.bivariant.get(),
-        };
-        // End the map borrow before the action can recursively visit this inference state.
-        let status = {
-            let mut visited = n.visited.borrow_mut();
-            match visited.entry(key) {
-                std::collections::hash_map::Entry::Occupied(entry) => Some(*entry.get()),
-                std::collections::hash_map::Entry::Vacant(entry) => {
-                    entry.insert(InferencePriority::CIRCULARITY);
-                    None
-                }
-            }
-        };
+        let key = VisitedKey::new(
+            source.id,
+            target.id,
+            n.priority.get(),
+            n.contravariant.get(),
+            n.bivariant.get(),
+        );
+        // The table borrow ends before the action can recursively visit this inference state.
+        let status = n.visited.borrow_mut().lookup_or_insert(key);
         if let Some(status) = status {
             n.inference_priority.set(min_priority(n.inference_priority.get(), status));
             return;
@@ -578,12 +560,8 @@ impl Checker {
         n.target_stack.borrow_mut().pop();
         n.source_stack.borrow_mut().pop();
         n.expanding_flags.set(save_expanding_flags);
-        // The action can resize the table, but cannot remove this invocation's circularity entry.
-        *n.visited
-            .borrow_mut()
-            .get_mut(&key)
-            .expect("inference visit remains present during its action") =
-            n.inference_priority.get();
+        // The action can grow the table, but cannot remove this invocation's circularity entry.
+        n.visited.borrow_mut().update(key, n.inference_priority.get());
         n.inference_priority.set(min_priority(n.inference_priority.get(), save_inference_priority));
     }
 

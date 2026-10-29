@@ -1301,23 +1301,60 @@ impl Checker {
                 0,
             );
         }
-        // The `infer` contexts and the composite mappers made for them are garbage unless one of their mappers was
-        // stored (74% / 61-88% are, notes/mem-census.md). Contexts first: recycling reads their mapper fields.
+        self.recycle_conditional_scratch(mappers, contexts, lists);
+        result
+    }
+
+    /// Recycles the `infer` contexts and mappers a conditional-type evaluation pushed on the scratch stacks above
+    /// the given lengths: they are garbage unless one of their mappers was stored (74% / 61-88% are,
+    /// notes/mem-census.md). Contexts first: recycling reads their mapper fields.
+    fn recycle_conditional_scratch(&mut self, mappers: usize, contexts: usize, lists: usize) {
         while self.scratch_contexts.len() > contexts {
             let ctx = self.scratch_contexts.pop().unwrap();
             InferenceContext::recycle(ctx);
         }
         while self.scratch_mappers.len() > mappers {
             let m = self.scratch_mappers.pop().unwrap();
-            // SAFETY: made by this call (below), which is done; escaped mappers are kept.
+            // SAFETY: made by the evaluation that pushed it, which is done; escaped mappers are kept.
             unsafe { recycle_mapper(m) };
         }
         while self.scratch_mapper_lists.len() > lists {
             let (m, targets) = self.scratch_mapper_lists.pop().unwrap();
-            // SAFETY: made by this call's `getTailRecursionRoot` with its list; escaped mappers keep theirs.
+            // SAFETY: made by that evaluation's `getTailRecursionRoot` with its list; escaped mappers keep theirs.
             unsafe { recycle_mapper_with_targets(m, targets) };
         }
-        result
+    }
+
+    /// The inference context of an `infer` conditional type combined with `mapper` as `getConditionalType` makes it
+    /// (the context's non-fixing mapper is replaced by its combination with `mapper`), on the scratch stacks for
+    /// `recycle_conditional_scratch`; returns the context and the combined mapper for the true and false types.
+    fn new_conditional_inference_context(
+        &mut self,
+        root: P<ConditionalRoot>,
+        mapper: Option<P<TypeMapper>>,
+    ) -> (P<InferenceContext>, P<TypeMapper>) {
+        let context = Self::new_inference_context(
+            root.infer_type_parameters.get(),
+            None, /*signature*/
+            InferenceFlags::None,
+            None,
+        );
+        self.scratch_contexts.push(context);
+        let Some(mapper) = mapper else {
+            return (context, context.mapper().unwrap());
+        };
+        let own = context.non_fixing_mapper().unwrap();
+        let non_fixing_mapper = Self::combine_type_mappers(Some(own), mapper);
+        context.set_non_fixing_mapper(non_fixing_mapper);
+        // The context no longer holds its own non-fixing mapper, so it is recycled from here.
+        self.scratch_mappers.push(own);
+        self.scratch_mappers.push(non_fixing_mapper);
+        // It's possible for 'infer T' type parameters to be given uninstantiated constraints when the
+        // those type parameters are used in type references (see getInferredTypeParameterConstraint). For
+        // that reason we need context.mapper to be first in the combined mapper. See #42636 for examples.
+        let combined = Self::combine_type_mappers(context.mapper(), mapper);
+        self.scratch_mappers.push(combined);
+        (context, combined)
     }
 
     fn get_conditional_type_worker(
@@ -1370,7 +1407,15 @@ impl Checker {
                 && check_type_node.elements().len() == extends_type_node.elements().len();
             let check_type_deferred = self.is_deferred_type(check_type, check_tuples);
             let mut combined_mapper: Option<P<TypeMapper>> = None;
-            if !root.infer_type_parameters.get().is_empty() {
+            // With a deferred check type nothing is inferred, but Go still makes the context, instantiates the
+            // extends type through its combined mapper (charging the instantiation counter) and stores that mapper
+            // on the deferred type. The fast preset (notes/mem-lazy.md L5, `lazy_cond_mapper`) skips all of it:
+            // the type is deferred below with no combined mapper and `get_inferred_true_type_from_conditional_type`
+            // makes the never-inferred context on demand. Default mode keeps Go's counters, so TS2589 fires where
+            // tsgo fires it.
+            if !(check_type_deferred && self.lazy_cond_mapper)
+                && !root.infer_type_parameters.get().is_empty()
+            {
                 // When we're looking at making an inference for an infer type, when we get its constraint, it'll automagically be
                 // instantiated with the context, so it doesn't need the mapper for the inference context - however the constraint
                 // may refer to another _root_, _uncloned_ `infer` type parameter [1], or to something mapped by `mapper` [2].
@@ -1385,21 +1430,7 @@ impl Checker {
                 // This means we have two mappers that need applying:
                 //    * The original `mapper` used to create this conditional
                 //    * The mapper that maps the infer type parameter to its inference result (`context.mapper`)
-                let context = Self::new_inference_context(
-                    root.infer_type_parameters.get(),
-                    None, /*signature*/
-                    InferenceFlags::None,
-                    None,
-                );
-                self.scratch_contexts.push(context);
-                if let Some(mapper) = mapper {
-                    let own = context.non_fixing_mapper().unwrap();
-                    let non_fixing_mapper = Self::combine_type_mappers(Some(own), mapper);
-                    context.set_non_fixing_mapper(non_fixing_mapper);
-                    // The context no longer holds its own non-fixing mapper, so it is recycled from here.
-                    self.scratch_mappers.push(own);
-                    self.scratch_mappers.push(non_fixing_mapper);
-                }
+                let (context, combined) = self.new_conditional_inference_context(root, mapper);
                 if !check_type_deferred {
                     // We don't want inferences from constraints as they may cause us to eagerly resolve the
                     // conditional type instead of deferring resolution. Also, we always want strict function
@@ -1412,16 +1443,7 @@ impl Checker {
                         false,
                     );
                 }
-                // It's possible for 'infer T' type parameters to be given uninstantiated constraints when the
-                // those type parameters are used in type references (see getInferredTypeParameterConstraint). For
-                // that reason we need context.mapper to be first in the combined mapper. See #42636 for examples.
-                if let Some(mapper) = mapper {
-                    let combined = Self::combine_type_mappers(context.mapper(), mapper);
-                    self.scratch_mappers.push(combined);
-                    combined_mapper = Some(combined);
-                } else {
-                    combined_mapper = context.mapper();
-                }
+                combined_mapper = Some(combined);
             }
             // Instantiate the extends type including inferences for 'infer T' type parameters
             let inferred_extends_type = if combined_mapper.is_some() {
@@ -1435,78 +1457,90 @@ impl Checker {
                 // types with type parameters mapped to the wildcard type, the most permissive instantiations
                 // possible (the wildcard type is assignable to and from all types). If those are not related,
                 // then no instantiations will be and we can just return the false branch type.
-                if !inferred_extends_type.flags().intersects(TypeFlags::AnyOrUnknown)
-                    && (check_type.flags().intersects(TypeFlags::Any) || {
+                // The permissive pair, kept for the restrictive check below (`None` for an `any` check type).
+                let mut permissive: Option<(P<Type>, P<Type>)> = None;
+                if !inferred_extends_type.flags().intersects(TypeFlags::AnyOrUnknown) {
+                    if !check_type.flags().intersects(TypeFlags::Any) {
                         let permissive_check_type = self.get_permissive_instantiation(check_type);
                         let permissive_extends_type =
                             self.get_permissive_instantiation(inferred_extends_type);
+                        permissive = Some((permissive_check_type, permissive_extends_type));
+                    }
+                    if permissive.is_none_or(|(permissive_check_type, permissive_extends_type)| {
                         !self.is_type_assignable_to(permissive_check_type, permissive_extends_type)
-                    })
-                {
-                    // Return union of trueType and falseType for 'any' since it matches anything. Furthermore, for a
-                    // distributive conditional type applied to the constraint of a type variable, include trueType if
-                    // there are possible values of the check type that are also possible values of the extends type.
-                    // We use a reverse assignability check as it is less expensive than the comparable relationship
-                    // and avoids false positives of a non-empty intersection check.
-                    if check_type.flags().intersects(TypeFlags::Any)
-                        || for_constraint
-                            && !inferred_extends_type.flags().intersects(TypeFlags::Never)
-                            && {
-                                let permissive_extends_type =
-                                    self.get_permissive_instantiation(inferred_extends_type);
-                                some_type(self, permissive_extends_type, |c, t| {
-                                    let permissive_check_type =
-                                        c.get_permissive_instantiation(check_type);
+                    }) {
+                        // Return union of trueType and falseType for 'any' since it matches anything. Furthermore, for a
+                        // distributive conditional type applied to the constraint of a type variable, include trueType if
+                        // there are possible values of the check type that are also possible values of the extends type.
+                        // We use a reverse assignability check as it is less expensive than the comparable relationship
+                        // and avoids false positives of a non-empty intersection check.
+                        if permissive.is_none_or(|(permissive_check_type, permissive_extends_type)| {
+                            for_constraint
+                                && !inferred_extends_type.flags().intersects(TypeFlags::Never)
+                                && some_type(self, permissive_extends_type, |c, t| {
                                     c.is_type_assignable_to(t, permissive_check_type)
                                 })
-                            }
-                    {
-                        let true_type = self.get_type_from_type_node(
-                            root_node.as_conditional_type_node().true_type,
+                        }) {
+                            let true_type = self.get_type_from_type_node(
+                                root_node.as_conditional_type_node().true_type,
+                            );
+                            let instantiated =
+                                self.instantiate_type(true_type, combined_mapper.or(mapper));
+                            extra_types.get_or_insert_with(Vec::new).push(instantiated);
+                        }
+                        // If falseType is an immediately nested conditional type that isn't distributive or has an
+                        // identical checkType, switch to that type and loop.
+                        let false_type = self.get_type_from_type_node(
+                            root_node.as_conditional_type_node().false_type,
                         );
-                        let instantiated =
-                            self.instantiate_type(true_type, combined_mapper.or(mapper));
-                        extra_types.get_or_insert_with(Vec::new).push(instantiated);
-                    }
-                    // If falseType is an immediately nested conditional type that isn't distributive or has an
-                    // identical checkType, switch to that type and loop.
-                    let false_type = self
-                        .get_type_from_type_node(root_node.as_conditional_type_node().false_type);
-                    if false_type.flags().intersects(TypeFlags::Conditional) {
-                        let new_root = false_type.as_conditional_type().root.get().unwrap();
-                        if new_root.node.get().unwrap().parent() == Some(root_node)
-                            && (!new_root.is_distributive.get()
-                                || new_root.check_type.get() == root.check_type.get())
-                        {
-                            root = new_root;
-                            continue;
-                        }
-                        if let (Some(new_root), new_root_mapper) =
-                            self.get_tail_recursion_root(false_type, mapper)
-                        {
-                            root = new_root;
-                            mapper = new_root_mapper;
-                            alias = None;
-                            if new_root.alias.get().is_some() {
-                                tail_count += 1;
+                        if false_type.flags().intersects(TypeFlags::Conditional) {
+                            let new_root = false_type.as_conditional_type().root.get().unwrap();
+                            if new_root.node.get().unwrap().parent() == Some(root_node)
+                                && (!new_root.is_distributive.get()
+                                    || new_root.check_type.get() == root.check_type.get())
+                            {
+                                root = new_root;
+                                continue;
                             }
-                            continue;
+                            if let (Some(new_root), new_root_mapper) =
+                                self.get_tail_recursion_root(false_type, mapper)
+                            {
+                                root = new_root;
+                                mapper = new_root_mapper;
+                                alias = None;
+                                if new_root.alias.get().is_some() {
+                                    tail_count += 1;
+                                }
+                                continue;
+                            }
                         }
+                        result = self.instantiate_type(false_type, mapper);
+                        break;
                     }
-                    result = self.instantiate_type(false_type, mapper);
-                    break;
                 }
                 // Return trueType for a definitely true extends check. We check instantiations of the two
                 // types with type parameters mapped to their restrictive form, i.e. a form of the type parameter
                 // that has no constraint. This ensures that, for example, the type
                 //   type Foo<T extends { x: any }> = T extends { x: string } ? string : number
                 // doesn't immediately resolve to 'string' instead of being deferred.
-                if inferred_extends_type.flags().intersects(TypeFlags::AnyOrUnknown) || {
-                    let restrictive_check_type = self.get_restrictive_instantiation(check_type);
-                    let restrictive_extends_type =
-                        self.get_restrictive_instantiation(inferred_extends_type);
-                    self.is_type_assignable_to(restrictive_check_type, restrictive_extends_type)
-                } {
+                // When the permissive pair is the pair itself and both types are non-generic for instantiation,
+                // the restrictive pair is that same pair (both getters return their argument), so the relation
+                // below would repeat the permissive check that just held with the same arguments; a repeated
+                // relation query is deterministic (its result is in the relation cache) and is not made again.
+                if inferred_extends_type.flags().intersects(TypeFlags::AnyOrUnknown)
+                    || permissive.is_some_and(|(permissive_check_type, permissive_extends_type)| {
+                        permissive_check_type == check_type
+                            && permissive_extends_type == inferred_extends_type
+                            && self.is_non_generic_for_instantiation(check_type)
+                            && self.is_non_generic_for_instantiation(inferred_extends_type)
+                    })
+                    || {
+                        let restrictive_check_type = self.get_restrictive_instantiation(check_type);
+                        let restrictive_extends_type =
+                            self.get_restrictive_instantiation(inferred_extends_type);
+                        self.is_type_assignable_to(restrictive_check_type, restrictive_extends_type)
+                    }
+                {
                     let true_type = self
                         .get_type_from_type_node(root_node.as_conditional_type_node().true_type);
                     let true_mapper = combined_mapper.or(mapper);
@@ -1556,22 +1590,34 @@ impl Checker {
             && let Some(new_mapper) = new_mapper
         {
             let new_root = new_type.as_conditional_type().root.get().unwrap();
-            if !new_root.outer_type_parameters.get().is_empty() {
-                let conditional_mapper = new_type.as_conditional_type().mapper.get();
-                let type_param_mapper = Self::combine_type_mappers(conditional_mapper, new_mapper);
-                let type_arguments: Vec<P<Type>> = new_root
-                    .outer_type_parameters
-                    .get()
-                    .iter()
-                    .map(|&t| type_param_mapper.map(self, t))
-                    .collect();
-                if conditional_mapper.is_some() {
-                    // SAFETY: the composite made above, used only by those `map` calls.
-                    unsafe { recycle_mapper(type_param_mapper) };
-                }
-                let type_argument_list = tsrs_core::alloc_slice_recycled(&type_arguments);
-                let new_root_mapper =
-                    new_type_mapper(new_root.outer_type_parameters.get(), type_argument_list);
+            let outer_type_parameters = new_root.outer_type_parameters.get();
+            if !outer_type_parameters.is_empty() {
+                let m1 = new_type.as_conditional_type().mapper.get();
+                // The new root's mapper sends each of its outer type parameters through `m1` and then `new_mapper`
+                // (`combineTypeMappers(m1, newMapper)`, mapped inline so no composite mapper is made). When `m1` is
+                // none and `new_mapper` is a simple or array mapper, `new_mapper` itself is that mapper on every
+                // type the root's types can reference: `outer_type_parameters` keeps every type parameter in scope
+                // that is possibly referenced, so the two can only differ on type parameters the root never
+                // instantiates. A root with an alias is only reached here with a mapper (through its alias
+                // reference), so the alias type arguments are instantiated through the same mapper either way.
+                let mut type_argument_list: Option<&'static [P<Type>]> = None;
+                let new_root_mapper = if m1.is_none()
+                    && matches!(new_mapper.kind(), TypeMapperKind::Simple | TypeMapperKind::Array)
+                {
+                    new_mapper
+                } else if let [tp] = *outer_type_parameters {
+                    let arg = self.map_tail_recursion_type_argument(m1, new_mapper, tp);
+                    new_simple_type_mapper(tp, arg)
+                } else {
+                    let type_arguments: Vec<P<Type>> = outer_type_parameters
+                        .iter()
+                        .map(|&tp| self.map_tail_recursion_type_argument(m1, new_mapper, tp))
+                        .collect();
+                    let list = tsrs_core::alloc_slice_recycled(&type_arguments);
+                    type_argument_list = Some(list);
+                    new_array_type_mapper(outer_type_parameters, list)
+                };
+                let made = new_root_mapper != new_mapper;
                 let mut new_check_type = None;
                 if new_root.is_distributive.get() {
                     new_check_type = Some(
@@ -1587,14 +1633,41 @@ impl Checker {
                 {
                     // The caller's `getConditionalType` loops with this mapper and recycles it on return unless
                     // the result kept it (99% do not, notes/mem-scoped-arenas.md).
-                    self.scratch_mapper_lists.push((new_root_mapper, type_argument_list));
+                    if made {
+                        match type_argument_list {
+                            Some(list) => self.scratch_mapper_lists.push((new_root_mapper, list)),
+                            None => self.scratch_mappers.push(new_root_mapper),
+                        }
+                    }
                     return (Some(new_root), Some(new_root_mapper));
                 }
-                // SAFETY: made above; mapping a type through it stores nothing.
-                unsafe { recycle_mapper_with_targets(new_root_mapper, type_argument_list) };
+                if made {
+                    match type_argument_list {
+                        // SAFETY: made above; mapping a type through it stores nothing.
+                        Some(list) => unsafe { recycle_mapper_with_targets(new_root_mapper, list) },
+                        // SAFETY: the simple mapper made above; mapping a type through it stores nothing.
+                        None => unsafe { recycle_mapper(new_root_mapper) },
+                    }
+                }
             }
         }
         (None, None)
+    }
+
+    /// `combineTypeMappers(m1, m2).Map(tp)` without the composite mapper.
+    fn map_tail_recursion_type_argument(
+        &mut self,
+        m1: Option<P<TypeMapper>>,
+        m2: P<TypeMapper>,
+        tp: P<Type>,
+    ) -> P<Type> {
+        if let Some(m1) = m1 {
+            let t1 = m1.map(self, tp);
+            if t1 != tp {
+                return self.instantiate_type(t1, Some(m2));
+            }
+        }
+        m2.map(self, tp)
     }
 
     // checker.go:24939
@@ -1619,9 +1692,26 @@ impl Checker {
             }
     }
 
+    /// `instantiate_type(t, m)` returns `t` for every mapper `m`: the test `instantiate_type_with_alias` makes
+    /// before it instantiates anything, so the permissive and restrictive instantiations of such a `t` are `t`.
+    fn is_non_generic_for_instantiation(&mut self, t: P<Type>) -> bool {
+        if t.flags().intersects(TypeFlags::Primitive | TypeFlags::AnyOrUnknown | TypeFlags::Never) {
+            return true;
+        }
+        if self.could_contain_type_variables(t) {
+            return false;
+        }
+        match t.alias() {
+            Some(alias) => {
+                !alias.type_arguments().iter().any(|&a| self.could_contain_type_variables(a))
+            }
+            None => true,
+        }
+    }
+
     // checker.go:24949
     pub(crate) fn get_permissive_instantiation(&mut self, t: P<Type>) -> P<Type> {
-        if t.flags().intersects(TypeFlags::Primitive | TypeFlags::AnyOrUnknown | TypeFlags::Never) {
+        if self.is_non_generic_for_instantiation(t) {
             return t;
         }
         let key = CachedTypeKey { kind: CachedTypeKind::PermissiveInstantiation, type_id: t.id };
@@ -1635,7 +1725,7 @@ impl Checker {
 
     // checker.go:24962
     pub(crate) fn get_restrictive_instantiation(&mut self, t: P<Type>) -> P<Type> {
-        if t.flags().intersects(TypeFlags::Primitive | TypeFlags::AnyOrUnknown | TypeFlags::Never) {
+        if self.is_non_generic_for_instantiation(t) {
             return t;
         }
         let key = CachedTypeKey { kind: CachedTypeKind::RestrictiveInstantiation, type_id: t.id };
@@ -1718,16 +1808,32 @@ impl Checker {
     pub(crate) fn get_inferred_true_type_from_conditional_type(&mut self, t: P<Type>) -> P<Type> {
         let d = t.as_conditional_type();
         if d.resolved_inferred_true_type.get().is_none() {
-            if d.combined_mapper.get().is_some() {
-                let true_type_node =
-                    d.root.get().unwrap().node.get().unwrap().as_conditional_type_node().true_type;
+            let root = d.root.get().unwrap();
+            let mut combined_mapper = d.combined_mapper.get();
+            let (mappers, contexts, lists) = (
+                self.scratch_mappers.len(),
+                self.scratch_contexts.len(),
+                self.scratch_mapper_lists.len(),
+            );
+            if combined_mapper.is_none() && !root.infer_type_parameters.get().is_empty() {
+                // Only under the fast preset (`lazy_cond_mapper`): the check type was deferred, so
+                // `get_conditional_type` inferred nothing and stored no context. The context it would have stored
+                // had no candidates either: each `infer` type parameter maps to `unknown` or to its constraint
+                // instantiated through the same combined non-fixing mapper, so a fresh context made with the type's
+                // mapper gives the same instantiation of the true type.
+                let (_, combined) = self.new_conditional_inference_context(root, d.mapper.get());
+                combined_mapper = Some(combined);
+            }
+            if combined_mapper.is_some() {
+                let true_type_node = root.node.get().unwrap().as_conditional_type_node().true_type;
                 let true_type = self.get_type_from_type_node(true_type_node);
                 d.resolved_inferred_true_type
-                    .set(Some(self.instantiate_type(true_type, d.combined_mapper.get())));
+                    .set(Some(self.instantiate_type(true_type, combined_mapper)));
             } else {
                 d.resolved_inferred_true_type
                     .set(Some(self.get_true_type_from_conditional_type(t)));
             }
+            self.recycle_conditional_scratch(mappers, contexts, lists);
         }
         d.resolved_inferred_true_type.get().unwrap()
     }

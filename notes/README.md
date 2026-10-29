@@ -127,6 +127,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [perf-derived-variance](perf-derived-variance.md)
 - [perf-flow-union-inference](perf-flow-union-inference.md)
 - [perf-heavy-files-infer-memo](perf-heavy-files-infer-memo.md)
+- [perf-mapped-tuple-set](perf-mapped-tuple-set.md)
 - [perf-shared-tuple-elements](perf-shared-tuple-elements.md)
 - [perf-simple-relation-enum-members](perf-simple-relation-enum-members.md)
 - [perf-symbol-map-lookups](perf-symbol-map-lookups.md)

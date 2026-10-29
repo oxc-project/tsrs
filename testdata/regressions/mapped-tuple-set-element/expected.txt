@@ -1,0 +1,14 @@
+a.ts(14,7): error TS2322: Type '[string, boolean]' is not assignable to type '[boolean, number]'.
+  Type at position 0 in source is not compatible with type at position 0 in target.
+    Type 'string' is not assignable to type 'boolean'.
+a.ts(17,7): error TS2322: Type 'readonly [boolean, number]' is not assignable to type 'never'.
+a.ts(20,7): error TS2322: Type '[string, number]' is not assignable to type 'never'.
+a.ts(23,7): error TS2322: Type '[boolean, boolean]' is not assignable to type 'never'.
+a.ts(26,7): error TS2322: Type '[string, number]' is not assignable to type 'never'.
+a.ts(29,7): error TS2322: Type '[boolean, (number | undefined)?]' is not assignable to type 'never'.
+a.ts(32,7): error TS2322: Type '[string, boolean]' is not assignable to type 'never'.
+a.ts(35,7): error TS2322: Type '[string, boolean]' is not assignable to type 'never'.
+a.ts(38,7): error TS2322: Type '[string, number]' is not assignable to type 'never'.
+a.ts(41,7): error TS2322: Type '[boolean, { a: number; }]' is not assignable to type 'never'.
+a.ts(43,36): error TS2314: Generic type 'Array<T>' requires 1 type argument(s).
+a.ts(44,7): error TS2322: Type 'any' is not assignable to type 'never'.

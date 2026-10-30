@@ -14,13 +14,18 @@ tsrs ships on npm the way TypeScript 7 ships its native compiler (`typescript@7`
 
 | package | contents |
 | --- | --- |
-| `tsrs` | `bin/tsrs` (Node launcher), `lib/` (binary lookup, `version.cjs`), `dist/` + `vendor/` (the JavaScript API, see below), `optionalDependencies` on every platform package |
-| `@tsrs/<os>-<arch>[-<libc>]` | the `tsrs` binary and default TypeScript libraries for one platform, with `os`/`cpu` (and `libc: glibc` or `musl` on Linux) so package managers install only the matching one |
+| `tsrs` | `bin/tsrs` and `bin/tsrs-lint` (Node launchers), `lib/` (binary lookup, `version.cjs`), `dist/` + `vendor/` (the JavaScript API, see below), `optionalDependencies` on every platform package |
+| `@tsrs/<os>-<arch>[-<libc>]` | the `tsrs` and `tsrs-lint` binaries and default TypeScript libraries for one platform, with `os`/`cpu` (and `libc: glibc` or `musl` on Linux) so package managers install only the matching one |
 | `@tsrs/wasm` | the WebAssembly module (`npm/tsrs-wasm`, notes/wasm-build.md): a `tsrs-wasm` command and a `tsc()` API for Node 22+ and browsers, single-threaded; no platform packages |
 
 Native platforms: `darwin-arm64`, `darwin-x64`, `linux-x64-gnu`, `linux-arm64-gnu`, `linux-x64-musl`,
 `linux-arm64-musl` and `win32-x64`. Intel macOS and Windows x64 joined the current platform set in 0.20.0.
 See the [compatibility table](../docs/COMPATIBILITY.md#what-it-does-and-doesnt-do) for platform limitations.
+
+`tsrs-lint` is the type-aware lint backend (`crates/tsrs_lint`, [tools/tsgolint](../tools/tsgolint/README.md)): it
+speaks tsgolint's headless protocol, so oxlint runs it with
+`OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware`. `bin/tsrs-lint` finds it the way `bin/tsrs`
+finds `tsrs` (below), with `TSRS_LINT_BINARY` in place of `TSRS_BINARY`.
 
 The main package name is set in `npm/tsrs/package.json`; platform packages are `@tsrs/<os>-<cpu>` with `-gnu` or
 `-musl` on Linux. The launcher derives that name from the current platform, architecture and libc at runtime.

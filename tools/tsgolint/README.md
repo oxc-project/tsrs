@@ -61,7 +61,9 @@ so package resolution and include globs work without physical files.
 Linting and requested semantic diagnostics default to the
 available thread count. Positive `RAYON_NUM_THREADS` overrides that default; both are capped at 256 and the active file count. Each worker shares one checker between semantic reporting and lint rules. All request
 regions remain alive until their programs are released; output frames are collected in file order.
-Go profiler output formats and npm packaging are outside this port's current scope.
+Go profiler output formats are outside this port's current scope. The `tsrs` npm package ships `tsrs-lint` beside
+`tsrs` in each platform package ([npm/README.md](../../npm/README.md)); point oxlint at it with
+`OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint`.
 
 Run imported suites with:
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // Compares main and PR tsrs-lint on pinned public projects: alternating timed pairs and a diagnostics diff.
+// `--request <file>` only writes one headless request with every rule, for the tsconfig in `--cwd` (listed by
+// `--tsrs`) or for `--files`; the release PGO training (.github/scripts/pgo-train*.{sh,ps1}) lints with it.
 import fs from "node:fs";
 import path from "node:path";
 import { ROOT, args, json, writeJSON, run, median, required, requireValue, main, isMain } from "../tools/lib/cli.mjs";
@@ -44,6 +46,19 @@ function lintFiles(tsrs, cwd, config, root) {
     return [...new Set(listed)]
         .filter((file) => file.startsWith(root + path.sep) && !file.includes(`${path.sep}node_modules${path.sep}`))
         .sort();
+}
+
+function writeRequest(request, files) {
+    fs.writeFileSync(
+        request,
+        JSON.stringify({
+            version: 2,
+            configs: [{ file_paths: files, rules: RULES.map((rule) => ({ name: rule })) }],
+            source_overrides: {},
+            report_syntactic: false,
+            report_semantic: false,
+        }),
+    );
 }
 
 function lintOnce(binary, request, cwd, env, output) {
@@ -122,16 +137,7 @@ async function measureProject(name, a, hf, out) {
         files = lintFiles(path.resolve(a.tsrs), cwd, path.resolve(cwd, project.project), root);
     requireValue(files.length, `${name}: the project has no files to lint`);
     const request = path.join(out, `${name}.request.json`);
-    fs.writeFileSync(
-        request,
-        JSON.stringify({
-            version: 2,
-            configs: [{ file_paths: files, rules: RULES.map((rule) => ({ name: rule })) }],
-            source_overrides: {},
-            report_syntactic: false,
-            report_semantic: false,
-        }),
-    );
+    writeRequest(request, files);
     const binaries = { main: path.resolve(a.base), pr: path.resolve(a.head) },
         envs = {},
         result = { project: name, files: files.length, modes: {} };
@@ -257,9 +263,25 @@ if (isMain(import.meta.url))
     main(async () => {
         const a = args(
             "Compare main and PR tsrs-lint on the pinned lint projects.",
-            { base: null, head: null, tsrs: null, out: null, projects: [], runs: 5, "work-dir": path.join(BENCH, ".work") },
+            {
+                base: null, head: null, tsrs: null, out: null, projects: [], runs: 5, "work-dir": path.join(BENCH, ".work"),
+                request: null, cwd: null, files: [],
+            },
             process.argv.slice(2),
         );
+        if (a.request) {
+            let files;
+            if (a.files.length) files = a.files.map((file) => fs.realpathSync(file));
+            else {
+                required(a, "tsrs", "cwd");
+                const cwd = path.resolve(a.cwd);
+                files = lintFiles(path.resolve(a.tsrs), cwd, cwd, fs.realpathSync(cwd));
+            }
+            requireValue(files.length, "no files to lint");
+            writeRequest(path.resolve(a.request), files);
+            console.log(`${a.request}: ${files.length} files, ${RULES.length} rules`);
+            return;
+        }
         required(a, "base", "head", "tsrs", "out");
         await measure(a);
     });

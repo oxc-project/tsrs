@@ -3,18 +3,20 @@
 #
 #   bolt.sh <dist dir> <work dir> <bench work dir>
 #
-# <dist dir> holds tsrs, tsrs-test and fourslash_server from the final PGO build, linked with -Wl,--emit-relocs. Each
-# binary is instrumented (llvm-bolt -instrument), runs its part of the PGO training workload (pgo-train.sh: tsrs on
-# xstate-main and webpack, tsrs-test on the conformance suite, fourslash_server driven by the Go suite), and is
-# rewritten with the profile. The BOLT-optimized tsrs-test and fourslash_server then run the conformance and fourslash
-# gates, and the BOLT-optimized tsrs must print byte-identical output to the input tsrs on both bench projects
-# (one and four checkers). Only then is <dist dir>/tsrs replaced; the input is kept as tsrs.prebolt.
+# <dist dir> holds tsrs, tsrs-lint, tsrs-test and fourslash_server from the final PGO build, linked with
+# -Wl,--emit-relocs. Each binary is instrumented (llvm-bolt -instrument), runs its part of the PGO training workload
+# (pgo-train.sh: tsrs and tsrs-lint on xstate-main and webpack, tsrs-test on the conformance suite, fourslash_server
+# driven by the Go suite), and is rewritten with the profile. The BOLT-optimized tsrs-test and fourslash_server then run
+# the conformance and fourslash gates, the BOLT-optimized tsrs must print byte-identical output to the input tsrs on
+# both bench projects (one and four checkers), and the BOLT-optimized tsrs-lint byte-identical frames to the input
+# tsrs-lint on both projects. Only then are <dist dir>/tsrs and tsrs-lint replaced; the inputs are kept as *.prebolt.
 #
 # Needs llvm-bolt and merge-fdata (LLVM release matching rustc's LLVM) on PATH, Cargo, Go, Node.js 24+, ts-ref/tsc, and
-# the bench projects pgo-train.sh set up in <bench work dir>.
+# the bench projects and lint requests pgo-train.sh set up in <bench work dir>.
 #
 # BOLT_TSRS_ONLY=1: only tsrs, whose BOLT training and byte comparison are the same as
-# above; <dist dir> then needs no tsrs-test or fourslash_server, and the suite gates (release.yml's job) are not run.
+# above; <dist dir> then needs no tsrs-lint, tsrs-test or fourslash_server, and the suite gates (release.yml's job) are
+# not run.
 set -euo pipefail
 
 dist=$(cd "$1" && pwd)
@@ -28,7 +30,7 @@ flags=(-reorder-blocks=ext-tsp -reorder-functions=cdsort -split-functions -split
 # binaries therefore carry no 843419 workaround; it only matters on Cortex-A53 r0p0-r0p4 cores.
 arch_flags=()
 [ "$(uname -m)" = aarch64 ] && arch_flags=(--drop-cortex-a53-843419-veneers)
-bins=(tsrs tsrs-test fourslash_server)
+bins=(tsrs tsrs-lint tsrs-test fourslash_server)
 [ "${BOLT_TSRS_ONLY:-}" = 1 ] && bins=(tsrs)
 
 for b in "${bins[@]}"; do
@@ -47,6 +49,11 @@ for p in xstate-main webpack; do
   check_exit "$status" "instrumented tsrs -p $p"
 done
 if [ ${#bins[@]} -gt 1 ]; then
+  # tsrs-lint also ends with `exit`.
+  for p in xstate-main webpack; do
+    (cd "$bench/solutions/$p" && "$work/tsrs-lint.inst" headless < "$bench/lint/$p.json" > /dev/null) && status=0 || status=$?
+    [ "$status" = 0 ] || { echo "::error::instrumented tsrs-lint headless on $p exited with $status"; exit 1; }
+  done
   TSRS_TEST_RESULTS="$work/train-test-results" "$work/tsrs-test.inst" run --suite all --timeout 300 > /dev/null \
     && status=0 || status=$?
   check_exit "$status" "instrumented tsrs-test run --suite all"
@@ -83,9 +90,25 @@ for p in xstate-main webpack; do
   done
 done
 
-# BOLT needs symbols in its input, but the staged release binary does not. Strip only after instrumentation,
+if [ ${#bins[@]} -gt 1 ]; then
+  for p in xstate-main webpack; do
+    for v in prebolt bolt; do
+      exe="$dist/tsrs-lint"; [ "$v" = bolt ] && exe="$work/tsrs-lint.bolt"
+      (cd "$bench/solutions/$p" && "$exe" headless < "$bench/lint/$p.json" > "$work/lint-$p-$v.bin") && status=0 || status=$?
+      [ "$status" = 0 ] || { echo "::error::$v tsrs-lint headless on $p exited with $status"; exit 1; }
+    done
+    cmp "$work/lint-$p-prebolt.bin" "$work/lint-$p-bolt.bin" \
+      || { echo "::error::BOLT-optimized tsrs-lint prints different frames on $p"; exit 1; }
+  done
+fi
+
+# BOLT needs symbols in its input, but the staged release binaries do not. Strip only after instrumentation,
 # optimization and the correctness comparisons above have finished.
-strip --strip-all "$work/tsrs.bolt"
-mv "$dist/tsrs" "$dist/tsrs.prebolt"
-cp "$work/tsrs.bolt" "$dist/tsrs"
-ls -l "$dist/tsrs" "$dist/tsrs.prebolt"
+staged=(tsrs)
+[ ${#bins[@]} -gt 1 ] && staged+=(tsrs-lint)
+for b in "${staged[@]}"; do
+  strip --strip-all "$work/$b.bolt"
+  mv "$dist/$b" "$dist/$b.prebolt"
+  cp "$work/$b.bolt" "$dist/$b"
+  ls -l "$dist/$b" "$dist/$b.prebolt"
+done

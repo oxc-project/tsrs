@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 // Assembles the npm packages for tsrs, the way TypeScript 7 ships its native compiler: one main package (Node launcher,
 // `bin/tsrs`) whose `optionalDependencies` name one package per platform, each holding that platform's binary and,
-// beside it, the default libraries (lib.*.d.ts), which the binary then reads from disk like the npm tsgo.
+// beside it, the default libraries (lib.*.d.ts), which the binary then reads from disk like the npm tsgo. A platform
+// package also carries `tsrs-lint` (crates/tsrs_lint, tsgolint's headless protocol) when one is given for its target;
+// the main package's `bin/tsrs-lint` launcher runs it.
 //
-//   cargo build --release -p tsrs_cli --features noembed  # npm binary; standalone builds omit the feature
-//   node npm/build.mjs --binary aarch64-apple-darwin=target/release/tsrs --pack
-//   node npm/build.mjs --artifacts dir/ --pack      # dir/<target triple>/tsrs[.exe], as the release workflow lays out
+//   cargo build --release -p tsrs_cli -p tsrs_lint --features tsrs_cli/noembed  # npm binaries; standalone builds omit the feature
+//   node npm/build.mjs --binary aarch64-apple-darwin=target/release/tsrs --lint-binary aarch64-apple-darwin=target/release/tsrs-lint --pack
+//   node npm/build.mjs --artifacts dir/ --pack      # dir/<target triple>/tsrs[.exe] and tsrs-lint[.exe], as the release workflow lays out
 //   node npm/build.mjs --wasm npm/tsrs-wasm/tsrs.wasm --pack   # the WebAssembly package (tools/wasm/build.sh)
 //   node npm/build.mjs --print-version          # also --print-crate-version, --print-typescript-commit, --print-typescript-nightly, --check-tag <tag>
 //   node npm/build.mjs --sdk-only               # just compile the JS API (npm/tsrs/src -> npm/tsrs/dist)
@@ -42,7 +44,7 @@ const TARGETS = {
 function usage(message) {
     if (message) console.error(`error: ${message}\n`);
     console.error(
-        "usage: node npm/build.mjs [--binary <triple>=<path>]... [--artifacts <dir>] [--out <dir>] [--pack] [--tsc <path>]\n" +
+        "usage: node npm/build.mjs [--binary <triple>=<path>]... [--lint-binary <triple>=<path>]... [--artifacts <dir>] [--out <dir>] [--pack] [--tsc <path>]\n" +
             "                          [--wasm <tsrs.wasm>] [--sdk-only]\n" +
             "                          [--check-tag <git tag>] [--print-version | --print-crate-version | --print-typescript-commit | --print-typescript-nightly]\n" +
             `triples: ${Object.keys(TARGETS).join(", ")}`,
@@ -51,16 +53,17 @@ function usage(message) {
 }
 
 function parseArgs(argv) {
-    const opts = { binaries: new Map(), out: path.join(npmDir, "dist"), pack: false, sdkOnly: false, tsc: undefined };
+    const opts = { binaries: new Map(), lintBinaries: new Map(), out: path.join(npmDir, "dist"), pack: false, sdkOnly: false, tsc: undefined };
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
         const value = () => argv[++i] ?? usage(`${arg} needs a value`);
         switch (arg) {
-            case "--binary": {
+            case "--binary":
+            case "--lint-binary": {
                 const [triple, file] = value().split(/=(.*)/s);
                 if (!TARGETS[triple]) usage(`unknown target triple ${triple}`);
-                if (!file) usage(`--binary needs <triple>=<path>`);
-                opts.binaries.set(triple, path.resolve(file));
+                if (!file) usage(`${arg} needs <triple>=<path>`);
+                opts[arg === "--binary" ? "binaries" : "lintBinaries"].set(triple, path.resolve(file));
                 break;
             }
             case "--artifacts": {
@@ -69,6 +72,10 @@ function parseArgs(argv) {
                     for (const exe of ["tsrs", "tsrs.exe"]) {
                         const file = path.join(dir, triple, exe);
                         if (fs.existsSync(file)) opts.binaries.set(triple, file);
+                    }
+                    for (const exe of ["tsrs-lint", "tsrs-lint.exe"]) {
+                        const file = path.join(dir, triple, exe);
+                        if (fs.existsSync(file)) opts.lintBinaries.set(triple, file);
                     }
                 }
                 break;
@@ -271,6 +278,9 @@ function main() {
         return;
     }
     if (opts.binaries.size === 0 && !opts.wasm) usage("no binaries given (--binary, --artifacts or --wasm)");
+    for (const triple of opts.lintBinaries.keys()) {
+        if (!opts.binaries.has(triple)) usage(`--lint-binary ${triple} has no --binary for the same target`);
+    }
     if (opts.binaries.size > 0) buildSdk(opts.tsc);
 
     const template = JSON.parse(fs.readFileSync(path.join(npmDir, "tsrs", "package.json"), "utf8"));
@@ -307,6 +317,14 @@ function main() {
             // VS Code's native SDK discovery only accepts tsc.exe or tsgo.exe.
             fs.copyFileSync(path.join(dir, exeName), path.join(dir, "tsgo.exe"));
         }
+        // tsrs-lint reads the default libraries below from its own directory too (the same noembed build).
+        const lintBinary = opts.lintBinaries.get(triple);
+        const lintExeName = os === "win32" ? "tsrs-lint.exe" : "tsrs-lint";
+        if (lintBinary) {
+            if (!fs.existsSync(lintBinary)) throw new Error(`tsrs-lint binary for ${triple} not found: ${lintBinary}`);
+            fs.copyFileSync(lintBinary, path.join(dir, lintExeName));
+            fs.chmodSync(path.join(dir, lintExeName), 0o755);
+        }
         // The binary reads the default libraries from its own directory when they are there (bundled::default_lib_path),
         // so listings, diagnostics and tsbuildinfo name the same real paths as the npm tsgo.
         const libNames = fs.readdirSync(libsDir).filter(name => name.endsWith(".d.ts")).sort();
@@ -325,7 +343,7 @@ function main() {
             ...common,
             description: `The ${platform} binary for ${name}`,
             preferUnplugged: true,
-            files: [exeName, ...(os === "win32" ? ["tsgo.exe"] : []), "NOTICE.txt", ...libNames],
+            files: [exeName, ...(os === "win32" ? ["tsgo.exe"] : []), ...(lintBinary ? [lintExeName] : []), "NOTICE.txt", ...libNames],
             exports: { "./package.json": "./package.json" },
             os: [os],
             cpu: [cpu],
@@ -347,6 +365,7 @@ function main() {
             else fs.copyFileSync(from, path.join(mainDir, entry));
         }
         fs.chmodSync(path.join(mainDir, "bin", "tsrs"), 0o755);
+        fs.chmodSync(path.join(mainDir, "bin", "tsrs-lint"), 0o755);
         fs.chmodSync(path.join(mainDir, "tsdk", "tsgo"), 0o755);
         fs.writeFileSync(path.join(mainDir, "LICENSE"), license);
         fs.writeFileSync(path.join(mainDir, "NOTICE.txt"), notice);

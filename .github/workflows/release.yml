@@ -103,8 +103,9 @@ jobs:
           fi
 
   # Release binaries are PGO builds with the `release` profile (fat LTO, one codegen unit; Cargo.toml): an instrumented
-  # ThinLTO build of tsrs + tsrs-test + fourslash_server, the training workload (.github/scripts/pgo-train.sh: the conformance and Go fourslash suites
-  # and two open-source bench projects), then the final build with the merged profile. Numbers: notes/perf-pgo.md.
+  # ThinLTO build of tsrs + tsrs-lint + tsrs-test + fourslash_server, the training workload (.github/scripts/pgo-train.sh: the conformance and Go fourslash suites,
+  # and tsrs and tsrs-lint on two open-source bench projects), then the final build with the merged profile. Numbers: notes/perf-pgo.md.
+  # tsrs-lint (crates/tsrs_lint) ships in the same platform package as tsrs.
   # On Linux the final build is then optimized with BOLT (.github/scripts/bolt.sh; notes/perf-build-level.md), and
   # the conformance and fourslash gates run on BOLT-optimized binaries before the binary is staged.
   build:
@@ -174,9 +175,9 @@ jobs:
           RUSTFLAGS: -Cprofile-generate=${{ runner.temp }}/pgo/raw -Clto=thin
           CFLAGS: ${{ runner.os == 'macOS' && '-fno-profile-generate' || '' }}
           CARGO_TARGET_DIR: ${{ runner.temp }}/pgo/target
-        # tsrs-test embeds libraries, Go supplies the task server's VFS, and the CLI uses disk libraries.
+        # tsrs-test embeds libraries, Go supplies the task server's VFS, and the CLI and tsrs-lint use disk libraries.
         # Build together so their compiler symbols match for PGO.
-        run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash_server --bins --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
+        run: cargo build --release --locked -p tsrs_cli -p tsrs_lint -p tsrs_testrunner -p tsrs_fourslash_server --bins --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
 
       - name: Training run
         shell: bash
@@ -205,7 +206,7 @@ jobs:
           RUSTFLAGS: -Cprofile-use=${{ steps.profile.outputs.path }}${{ runner.os == 'Linux' && ' -Clink-arg=-Wl,--emit-relocs' || '' }}
           CFLAGS: ${{ runner.os == 'macOS' && '-fno-profile-use' || '' }}
         run: |
-          targets=(-p tsrs_cli)
+          targets=(-p tsrs_cli -p tsrs_lint)
           [ "$RUNNER_OS" = Linux ] && targets+=(-p tsrs_testrunner -p tsrs_fourslash_server --bins)
           cargo build --release --locked "${targets[@]}" --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
 
@@ -267,7 +268,9 @@ jobs:
           exe=tsrs; [ "${{ matrix.target }}" = x86_64-pc-windows-msvc ] && exe=tsrs.exe
           mkdir -p "out/${{ matrix.target }}"
           cp "target/${{ matrix.target }}/release/$exe" "out/${{ matrix.target }}/$exe"
+          cp "target/${{ matrix.target }}/release/tsrs-lint" "out/${{ matrix.target }}/tsrs-lint"
           if [ "${{ matrix.run }}" = true ]; then
+            "out/${{ matrix.target }}/tsrs-lint" --help 2>&1 | grep -q '^Usage: tsrs-lint headless' || { echo "::error::tsrs-lint --help failed"; exit 1; }
             "out/${{ matrix.target }}/$exe" --version | tee version.txt
             grep -q "^Version $TSRS_TS_VERSION (" version.txt || { echo "::error::the binary is not stamped with TypeScript $TSRS_TS_VERSION"; exit 1; }
             printf 'const x: number = "no";\n' > bad.ts
@@ -330,7 +333,7 @@ jobs:
           $env:CARGO_TARGET_DIR = Join-Path $env:RUNNER_TEMP "pgo/target"
           # Override rustc's LTO while keeping Cargo's release profile identical to the final build.
           $env:CARGO_ENCODED_RUSTFLAGS = @("-Cprofile-generate=$raw", "-Clto=thin") -join [char]31
-          cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --features tsrs_cli/noembed --target x86_64-pc-windows-msvc
+          cargo build --release --locked -p tsrs_cli -p tsrs_lint -p tsrs_testrunner --bins --features tsrs_cli/noembed --target x86_64-pc-windows-msvc
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Training run
@@ -373,7 +376,7 @@ jobs:
           PROFILE_PATH: ${{ steps.profile.outputs.path }}
         run: |
           $env:CARGO_ENCODED_RUSTFLAGS = "-Cprofile-use=$env:PROFILE_PATH"
-          cargo build --release --locked -p tsrs_cli --features tsrs_cli/noembed --target x86_64-pc-windows-msvc
+          cargo build --release --locked -p tsrs_cli -p tsrs_lint --features tsrs_cli/noembed --target x86_64-pc-windows-msvc
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Stage and smoke binary
@@ -384,6 +387,10 @@ jobs:
           New-Item -ItemType Directory -Force $out | Out-Null
           $exe = Join-Path $out "tsrs.exe"
           Copy-Item "target/$target/release/tsrs.exe" $exe
+          $lint = Join-Path $out "tsrs-lint.exe"
+          Copy-Item "target/$target/release/tsrs-lint.exe" $lint
+          & $lint --help 2>$null
+          if ($LASTEXITCODE -ne 0) { throw "tsrs-lint --help exited with $LASTEXITCODE" }
           $env:TSRS_LIB_PATH = Join-Path $env:GITHUB_WORKSPACE "crates/tsrs_vfs/libs"
           $version = & $exe --version
           if ($LASTEXITCODE -ne 0 -or -not $version.StartsWith("Version $env:TSRS_TS_VERSION (")) {
@@ -457,9 +464,10 @@ jobs:
           TSRS_LIB_PATH: ${{ github.workspace }}/crates/tsrs_vfs/libs
         run: |
           rustup target add ${{ matrix.target }}
-          cargo zigbuild --release --locked -p tsrs_cli --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
+          cargo zigbuild --release --locked -p tsrs_cli -p tsrs_lint --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
           mkdir -p "out/${{ matrix.target }}"
           cp "target/${{ matrix.target }}/release/tsrs" "out/${{ matrix.target }}/tsrs"
+          cp "target/${{ matrix.target }}/release/tsrs-lint" "out/${{ matrix.target }}/tsrs-lint"
           "out/${{ matrix.target }}/tsrs" --version | tee version.txt
           grep -q "^Version $TSRS_TS_VERSION (" version.txt || { echo "::error::the binary is not stamped with TypeScript $TSRS_TS_VERSION"; exit 1; }
 
@@ -563,8 +571,10 @@ jobs:
           for t in aarch64-apple-darwin x86_64-apple-darwin x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu \
             x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
             test -f "artifacts/$t/tsrs" || { echo "::error::missing binary for $t"; exit 1; }
+            test -f "artifacts/$t/tsrs-lint" || { echo "::error::missing tsrs-lint for $t"; exit 1; }
           done
           test -f artifacts/x86_64-pc-windows-msvc/tsrs.exe || { echo "::error::missing Windows binary"; exit 1; }
+          test -f artifacts/x86_64-pc-windows-msvc/tsrs-lint.exe || { echo "::error::missing Windows tsrs-lint"; exit 1; }
           ls -lR artifacts wasm-dist
 
       - name: Assemble and pack

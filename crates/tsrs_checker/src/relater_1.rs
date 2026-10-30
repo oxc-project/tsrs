@@ -2546,11 +2546,16 @@ impl Checker {
                         mapped_type.as_mapped_type().target.get().unwrap_or(mapped_type),
                     )
                 };
-                // An object type other than a mapped type never instantiates to a unit type, so neither does a union
-                // containing one
+                // An object type other than a mapped type or a generic tuple type never instantiates to a unit type or
+                // to never, so neither does a union containing one. A homomorphic mapped type instantiated for a
+                // primitive is that primitive. A generic tuple type has a variadic element, like
+                // [string, ...T, number], and it normalizes to never when that element is instantiated to never. The
+                // tuple then drops out of a union, so with T = never the union [string, ...T, number] | K is just K,
+                // which can be a unit type.
                 if uninstantiated.distributed_iter().any(|t| {
                     t.flags().intersects(TypeFlags::Object)
                         && !t.object_flags().intersects(ObjectFlags::Mapped)
+                        && !Self::is_generic_tuple_type(t)
                 }) {
                     return false;
                 }

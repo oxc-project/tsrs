@@ -650,10 +650,11 @@ impl Checker {
                         | TypeFlags::Intersection
                         | TypeFlags::InstantiableNonPrimitive,
                 ) {
-                    key_property = self.get_properties_of_type(source).iter().copied().find(|&p| {
-                        let t = self.get_type_of_symbol(p);
-                        is_unit_type(t)
-                    });
+                    key_property = self
+                        .get_properties_of_type(source)
+                        .iter()
+                        .copied()
+                        .find(|&p| self.is_property_of_unit_type(p));
                 }
                 if let Some(key_property) = key_property {
                     let t = self.get_type_of_symbol(key_property);

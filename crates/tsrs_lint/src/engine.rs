@@ -288,7 +288,8 @@ fn create_program(
         }));
     }
     // As the CLI: `TSRS_LIB_PATH` overrides the npm (noembed) build's libraries beside the executable.
-    let host = tsrs_compiler::new_compiler_host(cwd, fs, &bundled::default_lib_path(), None, None, None);
+    let host =
+        tsrs_compiler::new_compiler_host(cwd, fs, &bundled::default_lib_path(), None, None, None);
     let mut options = ProgramOptions::new(P::new(config), host);
     options.use_source_of_project_reference = references;
     options.regions = Some(loader_regions);

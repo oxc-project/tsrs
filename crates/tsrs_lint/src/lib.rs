@@ -4,6 +4,7 @@
     reason = "regress 0.11 uses hashbrown 0.16; the compiler uses hashbrown 0.17"
 )]
 
+pub mod cli;
 mod go_quote;
 pub mod payload;
 pub mod protocol;

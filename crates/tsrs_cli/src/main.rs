@@ -76,6 +76,11 @@ fn main() -> std::process::ExitCode {
     #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
     tsrs_core::allocator::init_mimalloc();
     let args: Vec<String> = std::env::args().skip(1).collect();
+    // `--lint` is the type-aware linter that oxlint runs (`tsrs-lint`, tools/tsgolint/README.md). It returns before
+    // any compiler command-line setup, so it runs exactly as the `tsrs-lint` binary does.
+    if args.first().map(String::as_str) == Some("--lint") {
+        return std::process::ExitCode::from(tsrs_lint::cli::main(args[1..].to_vec()) as u8);
+    }
     #[cfg(not(feature = "system-alloc"))]
     tsrs_core::memsplit::set_heap_hooks(mimalloc_heap_stats, mimalloc_collect);
     // main.go:21: `--lsp` runs the language server (its threads have their own stacks); `--api` runs the

@@ -98,6 +98,7 @@ tsrs_ipc = { path = "crates/tsrs_ipc" }
 tsrs_contentmapper = { path = "crates/tsrs_contentmapper" }
 tsrs_contentmappertest = { path = "crates/tsrs_contentmappertest" }
 tsrs_execute = { path = "crates/tsrs_execute" }
+tsrs_lint = { path = "crates/tsrs_lint" }
 tsrs_fswatch = { path = "crates/tsrs_fswatch" }
 
 [profile.dev]

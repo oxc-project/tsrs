@@ -130,6 +130,8 @@ TypeScript `7.1.0-beta`. For a source checkout, `Cargo.toml` records the exact T
 ## Other ways to use tsrs
 
 - [Editor setup](LSP.md#editor-setup): run the language server with `tsrs --lsp -stdio`.
+- [Type-aware linting](../tools/tsgolint/README.md): `tsrs --lint headless`, or the npm `tsrs-lint` command, is the
+  backend `oxlint --type-aware` runs (`OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint`).
 - [JavaScript API](NODE_API.md#javascript-api): TypeScript 7's synchronous and asynchronous APIs.
 - [WebAssembly](../npm/tsrs-wasm/README.md): single-threaded compilation in Node and browsers.
 - [Build from source](../CONTRIBUTING.md#build): native and WebAssembly builds and the development workflow.

@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// CommonJS (bin/package.json), like bin/tsrs. The launcher itself is ESM.
+"use strict";
+import("../lib/tsrs-lint.js").catch(e => {
+    console.error(`tsrs-lint: ${e && e.stack || e}`);
+    process.exit(1);
+});

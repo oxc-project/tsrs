@@ -108,20 +108,16 @@ function sample(hf, binary, request, cwd, env, output) {
     };
 }
 
-async function measureProject(name, a, hf, out) {
+// Writes the headless request for a prepared project (bench.mjs prepare) to `request`: every rule on the source files
+// its tsconfig checks. Returns the directory to run it from and that directory's real path.
+export function writeRequest(name, tsrs, work, request) {
     const cfg = json(path.join(BENCH, "projects.json")),
         project = cfg.projects.find((p) => p.name === name);
     requireValue(project, `unknown benchmark project: ${name}`);
-    const work = path.resolve(a["work-dir"]);
-    run(["node", path.join(BENCH, "bench.mjs"), "prepare", "--projects", name, "--work-dir", work], {
-        cwd: ROOT,
-        inherit: true,
-    });
     const cwd = project.suite_dir ? path.join(work, "suite", project.suite_dir) : path.join(work, "solutions", name),
         root = fs.realpathSync(cwd),
-        files = lintFiles(path.resolve(a.tsrs), cwd, path.resolve(cwd, project.project), root);
+        files = lintFiles(tsrs, cwd, path.resolve(cwd, project.project), root);
     requireValue(files.length, `${name}: the project has no files to lint`);
-    const request = path.join(out, `${name}.request.json`);
     fs.writeFileSync(
         request,
         JSON.stringify({
@@ -132,6 +128,17 @@ async function measureProject(name, a, hf, out) {
             report_semantic: false,
         }),
     );
+    return { cwd, root, files };
+}
+
+async function measureProject(name, a, hf, out) {
+    const work = path.resolve(a["work-dir"]);
+    run(["node", path.join(BENCH, "bench.mjs"), "prepare", "--projects", name, "--work-dir", work], {
+        cwd: ROOT,
+        inherit: true,
+    });
+    const request = path.join(out, `${name}.request.json`),
+        { cwd, root, files } = writeRequest(name, path.resolve(a.tsrs), work, request);
     const binaries = { main: path.resolve(a.base), pr: path.resolve(a.head) },
         envs = {},
         result = { project: name, files: files.length, modes: {} };
@@ -255,6 +262,16 @@ export function renderLint(ran, results) {
 
 if (isMain(import.meta.url))
     main(async () => {
+        if (process.argv[2] === "request") {
+            const a = args(
+                "Write the lint request for one prepared project (the PGO training run, .github/scripts/pgo-train.sh).",
+                { project: null, tsrs: null, out: null, "work-dir": path.join(BENCH, ".work") },
+                process.argv.slice(3),
+            );
+            required(a, "project", "tsrs", "out");
+            writeRequest(a.project, path.resolve(a.tsrs), path.resolve(a["work-dir"]), path.resolve(a.out));
+            return;
+        }
         const a = args(
             "Compare main and PR tsrs-lint on the pinned lint projects.",
             { base: null, head: null, tsrs: null, out: null, projects: [], runs: 5, "work-dir": path.join(BENCH, ".work") },

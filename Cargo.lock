@@ -1083,6 +1083,7 @@ dependencies = [
  "tsrs_compiler",
  "tsrs_core",
  "tsrs_execute",
+ "tsrs_lint",
  "tsrs_lsp",
  "tsrs_vfs",
 ]

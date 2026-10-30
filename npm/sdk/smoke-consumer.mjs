@@ -95,6 +95,20 @@ try {
     run(bin, ["-p", "tsconfig.json"], { shell: process.platform === "win32" });
     console.log("typecheck ok: API declarations from a nodenext consumer");
 
+    // `tsrs-lint` (`tsrs --lint`) as oxlint runs it: the request on stdin, protocol frames on stdout.
+    fs.mkdirSync(path.join(dir, "lint"));
+    fs.writeFileSync(path.join(dir, "lint", "tsconfig.json"), JSON.stringify({ compilerOptions: { strict: true, target: "es2022", types: [] }, include: ["*.ts"] }));
+    fs.writeFileSync(path.join(dir, "lint", "floating.ts"), "declare function load(): Promise<number>;\nexport async function run() {\n    load();\n}\n");
+    const lintBin = path.join(dir, "node_modules", ".bin", process.platform === "win32" ? "tsrs-lint.cmd" : "tsrs-lint");
+    const request = { version: 2, configs: [{ file_paths: [path.join(dir, "lint", "floating.ts")], rules: [{ name: "no-floating-promises" }] }] };
+    const lint = spawnSync(lintBin, ["headless"], { cwd: dir, input: JSON.stringify(request), shell: process.platform === "win32" });
+    const frames = [];
+    for (let bytes = lint.stdout ?? Buffer.alloc(0); bytes.length >= 5; bytes = bytes.subarray(5 + bytes.readUInt32LE(0))) frames.push(bytes[4]);
+    if (lint.status !== 0 || frames.join() !== "1") {
+        throw new Error(`tsrs-lint: expected exit 0 and one diagnostic frame, got ${lint.status} [${frames}]\n${lint.stderr}`);
+    }
+    console.log("lint ok: tsrs-lint headless reports the floating promise");
+
     if (!cliOnly) fs.copyFileSync(path.join(here, "smoke", "consumer.mjs"), path.join(dir, "consumer.mjs"));
     for (const node of nodes) {
         const version = run(node, ["--version"]).trim();

@@ -17,6 +17,7 @@ tsrs_lsp.workspace = true
 tsrs_api.workspace = true
 tsrs_api_transport.workspace = true
 tsrs_execute.workspace = true
+tsrs_lint.workspace = true
 mimalloc-safe.workspace = true
 libc.workspace = true
 

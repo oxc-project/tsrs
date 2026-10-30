@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// CommonJS (bin/package.json), like bin/tsrs. Runs the platform package's tsrs-lint (tsgolint's headless protocol).
+"use strict";
+import("../lib/tsrs-lint.js").catch(e => {
+    console.error(`tsrs-lint: ${e && e.stack || e}`);
+    process.exit(1);
+});

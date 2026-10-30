@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Installs the packed tarballs from `node npm/build.mjs ... --pack` into a fresh consumer project outside the repo
 // and exercises the published package: the CLI, the root version export, a nodenext typecheck of the API
-// declarations (with the packaged binary), and real sync + async compiles through the JS API.
+// declarations (with the packaged binary), real sync + async compiles through the JS API, and one tsrs-lint headless
+// request when the platform package carries tsrs-lint.
 //
 //   node npm/sdk/smoke-consumer.mjs [--dist npm/dist] [--node <node binary>]... [--keep] [--noembed] [--cli-only]
 //
@@ -86,6 +87,8 @@ try {
     }
     console.log("SDK ok: version, diagnostic exit status, default libraries and LSP initialize/shutdown");
 
+    if (fs.existsSync(path.join(path.dirname(nativeExe), process.platform === "win32" ? "tsrs-lint.exe" : "tsrs-lint"))) smokeLint();
+
     fs.copyFileSync(path.join(here, "smoke", "typed.mts"), path.join(dir, "typed.mts"));
     fs.writeFileSync(path.join(dir, "tsconfig.json"), JSON.stringify({
         // esnext.disposable: the API classes implement Symbol.dispose / Symbol.asyncDispose, as upstream's do.
@@ -120,6 +123,37 @@ try {
 finally {
     if (keep) console.log(`kept ${dir}`);
     else fs.rmSync(dir, { recursive: true, force: true });
+}
+
+// tsrs-lint through bin/tsrs-lint: one no-floating-promises report, which needs the default libraries beside the binary.
+function smokeLint() {
+    const project = path.join(dir, "lint");
+    fs.mkdirSync(project);
+    fs.writeFileSync(path.join(project, "tsconfig.json"), JSON.stringify({ compilerOptions: { strict: true, lib: ["es2022"], types: [] }, include: ["*.ts"] }));
+    const file = path.join(project, "a.ts");
+    fs.writeFileSync(file, "async function load(): Promise<void> {}\nload();\n");
+    const request = {
+        version: 2,
+        configs: [{ file_paths: [fs.realpathSync(file)], rules: [{ name: "no-floating-promises" }] }],
+        source_overrides: {},
+        report_syntactic: false,
+        report_semantic: false,
+    };
+    const bin = path.join(dir, "node_modules", ".bin", process.platform === "win32" ? "tsrs-lint.cmd" : "tsrs-lint");
+    console.log(`$ ${bin} headless < request`);
+    const result = spawnSync(bin, ["headless"], { cwd: project, input: JSON.stringify(request), shell: process.platform === "win32" });
+    if (result.status !== 0) throw new Error(`tsrs-lint headless exited ${result.status}\n${result.stderr}`);
+    const rules = [];
+    for (let offset = 0; offset < result.stdout.length;) {
+        const length = result.stdout.readUInt32LE(offset),
+            kind = result.stdout[offset + 4],
+            value = JSON.parse(result.stdout.subarray(offset + 5, offset + 5 + length).toString("utf8"));
+        offset += 5 + length;
+        if (kind === 0) throw new Error(`tsrs-lint error frame: ${JSON.stringify(value)}`);
+        if (kind === 1) rules.push(value.rule);
+    }
+    if (JSON.stringify(rules) !== '["no-floating-promises"]') throw new Error(`tsrs-lint: expected one no-floating-promises report, got ${JSON.stringify(rules)}`);
+    console.log("tsrs-lint ok: launcher, default libraries and a headless request");
 }
 
 async function smokeSdkLsp(sdk) {

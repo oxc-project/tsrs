@@ -4116,6 +4116,10 @@ impl tsrs_ls::CrossProjectOrchestrator for CrossProjectOrchestratorImpl {
         );
         Box::new(projects.into_iter())
     }
+
+    fn enter_search_thread(&self, ctx: &Context) -> Box<dyn std::any::Any> {
+        Box::new(project::enter_checker_data_lease(ctx))
+    }
 }
 
 // The handlers of out-of-scope features (content mappers, API sessions attached to the server, runGC and the profiling

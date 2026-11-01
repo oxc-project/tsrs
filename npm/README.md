@@ -17,6 +17,8 @@ tsrs ships on npm the way TypeScript 7 ships its native compiler (`typescript@7`
 | `tsrs` | `bin/tsrs` (Node launcher), `lib/` (binary lookup, `version.cjs`), `dist/` + `vendor/` (the JavaScript API, see below), `optionalDependencies` on every platform package |
 | `@tsrs/<os>-<arch>[-<libc>]` | the `tsrs` binary and default TypeScript libraries for one platform, with `os`/`cpu` (and `libc: glibc` or `musl` on Linux) so package managers install only the matching one |
 | `@tsrs/wasm` | the WebAssembly module (`npm/tsrs-wasm`, notes/wasm-build.md): a `tsrs-wasm` command and a `tsc()` API for Node 22+ and browsers, single-threaded; no platform packages |
+| `@tsrs/lint` | `bin/tsrs-lint` (Node launcher, `npm/lint`), the type-aware lint backend for oxlint, with `optionalDependencies` on every `@tsrs/lint-<os>-<arch>[-<libc>]` package |
+| `@tsrs/lint-<os>-<arch>[-<libc>]` | the `tsrs-lint` binary and default TypeScript libraries for one platform, selected like `@tsrs/<os>-<arch>[-<libc>]` |
 
 Native platforms: `darwin-arm64`, `darwin-x64`, `linux-x64-gnu`, `linux-arm64-gnu`, `linux-x64-musl`,
 `linux-arm64-musl` and `win32-x64`. Intel macOS and Windows x64 joined the current platform set in 0.20.0.
@@ -24,6 +26,12 @@ See the [compatibility table](../docs/COMPATIBILITY.md#what-it-does-and-doesnt-d
 
 The main package name is set in `npm/tsrs/package.json`; platform packages are `@tsrs/<os>-<cpu>` with `-gnu` or
 `-musl` on Linux. The launcher derives that name from the current platform, architecture and libc at runtime.
+
+`@tsrs/lint` ships `tsrs-lint` (`crates/tsrs_lint`, [tools/tsgolint](../tools/tsgolint/README.md)) like
+oxlint-tsgolint ships tsgolint, at tsrs's version. It speaks tsgolint's headless protocol, so oxlint runs it with
+`OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware`. Its platform packages are
+`<npm/lint/package.json name>-<platform>`; `TSRS_LINT_BINARY` runs another binary, like `TSRS_BINARY` for `tsrs`.
+The `tsrs` packages do not include it.
 
 The repository's root `README.md` is also the main package README. `npm/build.mjs` copies it into the staged package.
 

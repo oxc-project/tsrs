@@ -1,0 +1,35 @@
+{
+    "name": "@tsrs/lint",
+    "version": "0.0.0-set-by-npm-build",
+    "license": "Apache-2.0",
+    "description": "tsrs's type-aware lint backend for oxlint: tsgolint's headless protocol and rules on the tsrs checker",
+    "keywords": [
+        "TypeScript",
+        "oxlint",
+        "tsgolint",
+        "lint",
+        "type-aware",
+        "rust"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/oxc-project/tsrs.git"
+    },
+    "type": "module",
+    "preferUnplugged": true,
+    "engines": {
+        "node": ">=16.20.0"
+    },
+    "files": [
+        "bin",
+        "lib",
+        "NOTICE.txt",
+        "LICENSE-tsgolint"
+    ],
+    "bin": {
+        "tsrs-lint": "./bin/tsrs-lint"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

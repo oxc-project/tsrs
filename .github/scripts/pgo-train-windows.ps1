@@ -29,7 +29,17 @@ $env:LLVM_PROFILE_FILE = Join-Path $RawDir "cli-%m.profraw"
 & (Join-Path $BinDir "tsrs.exe") -p testdata/split-check/declaration-errors --noEmit --incremental false --pretty false | Out-Null
 if ($LASTEXITCODE -notin @(0, 2)) { throw "tsrs CLI training exited with $LASTEXITCODE" }
 
-foreach ($prefix in @("suite", "cli")) {
+# tsrs-lint with every rule on the lint fixtures (no bench projects on Windows).
+$request = Join-Path $env:RUNNER_TEMP "pgo/lint-request.json"
+$fixtures = @(Get-ChildItem crates/tsrs_lint/tests/fixtures -Recurse -Include *.ts, *.tsx | ForEach-Object FullName)
+node bench/lint.mjs --request $request --files @fixtures
+if ($LASTEXITCODE -ne 0) { throw "bench/lint.mjs --request exited with $LASTEXITCODE" }
+$env:LLVM_PROFILE_FILE = Join-Path $RawDir "lint-%m.profraw"
+$lint = Start-Process -FilePath (Join-Path $BinDir "tsrs-lint.exe") -ArgumentList "headless" -NoNewWindow -Wait -PassThru `
+    -RedirectStandardInput $request -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP "pgo/lint-output.bin")
+if ($lint.ExitCode -ne 0) { throw "tsrs-lint training exited with $($lint.ExitCode)" }
+
+foreach ($prefix in @("suite", "cli", "lint")) {
     $profiles = @(Get-ChildItem $RawDir -Filter "$prefix-*.profraw" | Where-Object Length -gt 0)
     if ($profiles.Count -eq 0) { throw "no nonempty $prefix profile" }
 }

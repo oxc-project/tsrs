@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// CommonJS (bin/package.json) so Node 16 runs this extensionless file, like tsrs's bin/tsrs. The launcher itself is ESM.
+"use strict";
+import("../lib/tsrs-lint.js").catch(e => {
+    console.error(`tsrs-lint: ${e && e.stack || e}`);
+    process.exit(1);
+});

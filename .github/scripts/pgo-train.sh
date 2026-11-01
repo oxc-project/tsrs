@@ -4,13 +4,14 @@
 # Compiler workload exit codes are ignored (the suite has known failures
 # and the bench projects have type errors); crashes and missing profiles fail. Go Fourslash must pass its gate.
 #
-#   pgo-train.sh <dir with instrumented tsrs + tsrs-test + fourslash_server> <raw-dir> <bench work dir>
+#   pgo-train.sh <dir with instrumented tsrs + tsrs-lint + tsrs-test + fourslash_server> <raw-dir> <bench work dir>
 #
 # Workload: the conformance suite (in-process in tsrs-test, which links the same crate builds as tsrs, so its
 # profile counts apply to the checker code in tsrs), the Go fourslash suite (Rust language-server workers,
 # for the language-service and project-system code behind `tsrs --lsp`), plus
 # the tsrs binary itself on two open-source projects from bench/projects.json (xstate-main, webpack; default mode,
-# tsrs's default checker count for the runner). Needs Go, Node.js 24+, the pinned ts-ref/tsc source checkout,
+# tsrs's default checker count for the runner), and tsrs-lint on the same two projects with every rule (requests from
+# bench/lint.mjs, left in <bench work dir>/lint/ for bolt.sh). Needs Go, Node.js 24+, the pinned ts-ref/tsc source checkout,
 # and network for the bench projects' clone + install
 # (bench/bench.mjs prepare). Never train on private code.
 set -euo pipefail
@@ -40,10 +41,20 @@ for p in xstate-main webpack; do
   check_exit "$status" "tsrs -p $p"
 done
 
+mkdir -p "$work/lint"
+for p in xstate-main webpack; do
+  # Listing the files runs the instrumented tsrs; its profile is not part of the workload.
+  LLVM_PROFILE_FILE="$work/lint/list-%p.profraw" node bench/lint.mjs --request "$work/lint/$p.json" --tsrs "$bin/tsrs" \
+    --cwd "$work/solutions/$p"
+  (cd "$work/solutions/$p" && LLVM_PROFILE_FILE="$raw/lint-$p-%p.profraw" \
+    "$bin/tsrs-lint" headless < "$work/lint/$p.json" > /dev/null) && status=0 || status=$?
+  [ "$status" = 0 ] || { echo "::error::tsrs-lint headless on $p exited with $status"; exit 1; }
+done
+
 ls -l "$raw"
 # Every workload must have left a profile with counts in it: an instrumented binary that ends with `_exit` leaves a
 # 0-byte file (the profile is written from an exit handler), which `llvm-profdata merge` accepts silently.
-for f in suite fourslash xstate-main webpack; do
+for f in suite fourslash xstate-main webpack lint-xstate-main lint-webpack; do
   found=0
   for g in "$raw"/$f-*.profraw; do
     [ -s "$g" ] && found=1

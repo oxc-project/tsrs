@@ -1,2 +1,3 @@
 npm/tsrs/bin/tsrs text eol=lf
 npm/tsrs/tsdk/tsgo text eol=lf
+npm/lint/bin/tsrs-lint text eol=lf

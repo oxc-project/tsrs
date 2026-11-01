@@ -11,7 +11,7 @@ use tsrs_lint::{engine, payload, protocol};
 #[global_allocator]
 static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
-fn main() {
+fn main() -> std::process::ExitCode {
     #[cfg(all(target_os = "linux", not(miri)))]
     tsrs_core::allocator::init_mimalloc();
     let result = std::thread::Builder::new()
@@ -32,7 +32,9 @@ fn main() {
             1
         }
     };
-    std::process::exit(code);
+    // Returning, not `process::exit`: on Windows that skips the exit handlers, so a PGO-instrumented build writes no
+    // profile. The CLI returns from `main` too.
+    std::process::ExitCode::from(code as u8)
 }
 
 fn run() -> i32 {

@@ -139,12 +139,13 @@ fn region_free_lists_and_rewinds_stay_in_the_region() {
         assert_ne!(d.addr(), c_addr);
         let cp = arena_checkpoint();
         let _spec = P::new(Rc::clone(&counter));
+        // A destructor was registered since `cp`: the rewind keeps the value for the region to drop.
         arena_rewind(cp);
         assert_eq!(Rc::strong_count(&counter), 4);
     }
     drop(region);
-    // The rewound value lost its entry (not dropped, like a thread arena); `c` and `d` were dropped.
-    assert_eq!(Rc::strong_count(&counter), 2);
+    // `c`, `d` and the value allocated after the checkpoint were all dropped.
+    assert_eq!(Rc::strong_count(&counter), 1);
 }
 
 #[test]

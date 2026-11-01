@@ -10,6 +10,7 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+rayon.workspace = true
 tsrs_core.workspace = true
 tsrs_diagnostics.workspace = true
 tsrs_spanmap.workspace = true

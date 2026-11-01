@@ -879,11 +879,12 @@ impl FilesParser {
         // The first parallel round also walks ahead: each parsed file's sub tasks that will certainly be loaded are
         // parsed and resolved on the spot, recursively, instead of one dependency level per round (Go has no
         // rounds; it queues each sub task as soon as it is found). Only files the program loads are touched, so the
-        // resolver and package.json caches end up with the same entries. Not with project references (their
-        // redirect lookups record symlink state) or lib replacement (a lib file can live in node_modules).
+        // resolver and package.json caches end up with the same entries. With project references, the redirect
+        // lookups record the realpath of declaration files under preserveSymlinks (`resolve_symlink`): each entry
+        // depends only on its path and is recorded before its own lookup reads it, so the order of the walk does not
+        // change what any lookup returns. Not with lib replacement (a lib file can live in node_modules).
         let speculate = resolve_ahead
             && !loader.files_parser.speculated
-            && loader.opts.config.resolved_project_reference_paths().is_empty()
             && !loader.opts.config.compiler_options().unwrap().lib_replacement.is_true();
         loader.files_parser.speculated = true;
         // The last flag: a root file of the program (fileregions.rs `parse_task`).

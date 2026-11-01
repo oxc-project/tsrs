@@ -1092,6 +1092,16 @@ impl tsrs_ls::Host for Snapshot {
         Some(handle.content().to_string())
     }
 
+    fn read_file_text(&self, file_name: &str) -> Option<tsrs_ls::FileText> {
+        struct HandleText(Arc<dyn FileHandle>);
+        impl AsRef<str> for HandleText {
+            fn as_ref(&self) -> &str {
+                self.0.content()
+            }
+        }
+        Some(tsrs_ls::FileText::new(HandleText(self.get_file(file_name)?)))
+    }
+
     // snapshot.go:240
     fn converters(&self) -> Arc<Converters> {
         Arc::clone(&self.converters)

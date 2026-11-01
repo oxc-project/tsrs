@@ -10,19 +10,12 @@ fn run(payload: &Value, flags: &[&str]) -> (i32, Vec<(u8, Value)>) {
 }
 
 fn run_raw(input: &str, flags: &[&str]) -> (i32, Vec<(u8, Value)>) {
-    run_raw_with_threads(input, flags, None)
+    run_raw_with_env(input, flags, &[])
 }
 
-fn run_raw_with_threads(
-    input: &str,
-    flags: &[&str],
-    threads: Option<&str>,
-) -> (i32, Vec<(u8, Value)>) {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_tsrs-lint"));
-    if let Some(threads) = threads {
-        command.env("RAYON_NUM_THREADS", threads);
-    }
-    let mut child = command
+fn run_raw_with_env(input: &str, flags: &[&str], env: &[(&str, &str)]) -> (i32, Vec<(u8, Value)>) {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_tsrs-lint"))
+        .envs(env.iter().copied())
         .arg("headless")
         .args(flags)
         .stdin(Stdio::piped())
@@ -1146,6 +1139,68 @@ fn source_overrides_support_inferred_type_diagnostics() {
         }),
         "{frames:?}"
     );
+}
+
+#[test]
+fn tsrs_lib_path_overrides_the_default_libraries() {
+    // The override's lib.es5.d.ts declares a global the bundled one lacks, so the file's diagnostic shows which
+    // libraries the program read.
+    let base = std::env::current_dir().unwrap().join("target/lint-lib-path");
+    let libs = base.join("libs");
+    std::fs::create_dir_all(&libs).unwrap();
+    std::fs::write(
+        libs.join("lib.es5.d.ts"),
+        "interface Array<T> {}\ninterface Boolean {}\ninterface CallableFunction {}\ninterface Function {}\n\
+         interface IArguments {}\ninterface NewableFunction {}\ninterface Number {}\ninterface Object {}\n\
+         interface RegExp {}\ninterface String {}\ndeclare const fromLibPath: number;\n",
+    )
+    .unwrap();
+    let file = base.join("a.ts").to_string_lossy().into_owned();
+    let config = base.join("tsconfig.json").to_string_lossy().into_owned();
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                ("file_paths", Value::Array(vec![Value::String(file.clone())])),
+                ("rules", Value::Array(Vec::new())),
+            ])]),
+        ),
+        (
+            "source_overrides",
+            Value::Object(
+                [
+                    (file, Value::String("const value: string = fromLibPath;".into())),
+                    (
+                        config,
+                        Value::String(
+                            r#"{"compilerOptions":{"lib":["es5"],"types":[]},"files":["a.ts"]}"#
+                                .into(),
+                        ),
+                    ),
+                ]
+                .into_iter()
+                .collect(),
+            ),
+        ),
+        ("report_semantic", Value::Bool(true)),
+    ]);
+    let input = json::marshal(&payload).unwrap();
+    let codes = |env: &[(&str, &str)]| {
+        let (status, frames) = run_raw_with_env(&input, &[], env);
+        assert_eq!(status, 0, "{frames:?}");
+        frames
+            .iter()
+            .map(|(_, value)| {
+                let Value::Object(diagnostic) = value else { panic!("{value:?}") };
+                let Value::Object(message) = &diagnostic["message"] else { panic!("{value:?}") };
+                message["id"].clone()
+            })
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(codes(&[]), [Value::String("TS2304".into())]);
+    let libs = libs.to_string_lossy();
+    assert_eq!(codes(&[("TSRS_LIB_PATH", &libs)]), [Value::String("TS2322".into())]);
 }
 
 #[test]
@@ -3028,7 +3083,8 @@ fn semantic_reporting_reuses_the_lint_checker_in_serial_and_parallel_runs() {
             for flags in
                 [vec![], vec!["-fix"], vec!["-fix-suggestions"], vec!["-fix", "-fix-suggestions"]]
             {
-                let (status, frames) = run_raw_with_threads(&input, &flags, Some(threads));
+                let (status, frames) =
+                    run_raw_with_env(&input, &flags, &[("RAYON_NUM_THREADS", threads)]);
                 assert_eq!(status, 0, "{frames:?}");
                 for file in &files {
                     let diagnostics: Vec<_> = frames
@@ -6617,11 +6673,13 @@ fn parallel_rules_and_type_checking_match_serial_for_independent_modules() {
         for flags in
             [vec![], vec!["-fix"], vec!["-fix-suggestions"], vec!["-fix", "-fix-suggestions"]]
         {
-            let (serial_status, serial) = run_raw_with_threads(&serial_input, &flags, Some("1"));
+            let (serial_status, serial) =
+                run_raw_with_env(&serial_input, &flags, &[("RAYON_NUM_THREADS", "1")]);
             assert_eq!(serial_status, 0, "{serial:?}");
             assert_ne!(serial, [] as [(u8, tsrs_core::json::Value); 0]);
             for threads in ["1", "2", "4", "8", "12"] {
-                let (status, parallel) = run_raw_with_threads(&input, &flags, Some(threads));
+                let (status, parallel) =
+                    run_raw_with_env(&input, &flags, &[("RAYON_NUM_THREADS", threads)]);
                 assert_eq!(status, 0, "{parallel:?}");
                 assert_eq!(
                     parallel, serial,

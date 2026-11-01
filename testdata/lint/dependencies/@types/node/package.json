@@ -147,7 +147,7 @@
     },
     "scripts": {},
     "dependencies": {
-        "undici-types": "~7.18.0"
+        "undici-types": "~7.30.0"
     },
     "peerDependencies": {},
     "typesPublisherContentHash": "a89004d9764ce24ab2bba15ae9f27f0c75ae8c293f77ce7f8846bbe10f8e18a8",

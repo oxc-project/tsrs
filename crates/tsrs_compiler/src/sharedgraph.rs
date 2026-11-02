@@ -62,6 +62,19 @@ pub fn seed_positions(
             && !program.skip_type_checking(f, false)
             && weight(i as u32) > 0
     };
+    // Probe only: TSRS_SHARED_GRAPH_SEED_FILES=<suffix>[,<suffix>...] seeds exactly the eligible files whose names
+    // end with one of the suffixes, in program order, ignoring the budget.
+    if let Ok(list) = std::env::var("TSRS_SHARED_GRAPH_SEED_FILES") {
+        let suffixes: Vec<&str> = list.split(',').map(str::trim).filter(|s| !s.is_empty()).collect();
+        let named: Vec<u32> = (0..files.len())
+            .filter(|&i| eligible(i) && suffixes.iter().any(|s| files[i].file_name().ends_with(s)))
+            .map(|i| i as u32)
+            .collect();
+        for &i in &named {
+            eprintln!("tsrs: seed file {}", files[i as usize].file_name());
+        }
+        return named;
+    }
     let total: u64 = (0..files.len()).map(|i| weight(i as u32)).sum();
     let budget = (total as u128 * ppm as u128 / 1_000_000) as u64;
     let mut candidates: Vec<usize> = (0..files.len()).filter(|&i| eligible(i)).collect();

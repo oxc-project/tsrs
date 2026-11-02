@@ -274,6 +274,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [data-structure-followups](data-structure-followups.md)
 - [data-structure-redesigns](data-structure-redesigns.md)
 - [data-structure-review](data-structure-review.md)
+- [perf-intern-table-locality](perf-intern-table-locality.md)
 - [perf-iterator-regressions](perf-iterator-regressions.md)
 - [perf-lookup-insert](perf-lookup-insert.md)
 - [perf-oxc-numbers](perf-oxc-numbers.md)

@@ -172,6 +172,12 @@ or a changed constraint before revisiting the approach.
   single-threaded instructions on 12; none reduced instructions in every pair. Default RSS and wall time were
   mixed. Original maps restored; revisit with a cache-specific API or workload benefit, not a map-type swap alone.
 
+- Interning tables filed by their youngest type id, Bun's layout from oven-sh/bun#46001
+  ([perf-intern-table-locality.md](perf-intern-table-locality.md)): not built. Profiled on `ce090c5a`, the
+  per-checker union, intersection, indexed-access, tuple and template-literal tables cost 0.75% of mikro-orm's
+  single-threaded CPU and 0.12% of t3code-server's and vscode's, hash and comparison included. tsrs already files
+  instantiations per generic target and per active mapper. Revisit only if a profile shows those tables above 2%.
+
 - Unicode normalization library cleanup ([rust-stdlib-normalization.md](rust-stdlib-normalization.md)), applied at
   the user's request: unicode-normalization 0.1.25 matches the existing Unicode 17 NFD output. Five-pair Mac
   screening on Compiler/Compiler-Unions: -0.017% to -0.011% single instructions, -0.198% to -0.056% default RSS;

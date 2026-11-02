@@ -264,7 +264,10 @@ or a changed constraint before revisiting the approach.
 - A type graph shared by the checker threads as the default (frozen seed + forks; notes/spike-shared-graph.md
   sections 1-9, PR 213 closed): exact in every run, but on the 16-vCPU Linux runner peak -5..-10% at the default 8
   checkers for +6..+18% wall, because every checker waits for the serial seed. Under `--maxMemory` it landed (see
-  "Shared type graph under `--maxMemory`" above); without a memory target the wait is still there.
+  "Shared type graph under `--maxMemory`" above); without a memory target the wait is still there. Re-measured
+  2026-11-02 under `--fast` at 16 checkers on the Mac ([perf-fast-checker-cold-start.md](perf-fast-checker-cold-start.md)):
+  the same trade on mikro-orm, t3code-server and vscode (peak -3.5% to -16.4%, wall +8% to +32%), and no gain on
+  mui-docs, whose duplicated cold start the seed's sample misses.
 - Checking a relation without reporting first and elaborating only on failure, as bun does
   (notes/perf-excalidraw-typefest.md): on excalidraw at 9 checkers, 501 -> 379 MiB after the deferred constraint
   check. Not exact against tsgo: the reporting run spends more of the relation complexity budget, so a

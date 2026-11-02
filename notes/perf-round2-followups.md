@@ -267,7 +267,8 @@ or a changed constraint before revisiting the approach.
   "Shared type graph under `--maxMemory`" above); without a memory target the wait is still there. Re-measured
   2026-11-02 under `--fast` at 16 checkers on the Mac ([perf-fast-checker-cold-start.md](perf-fast-checker-cold-start.md)):
   the same trade on mikro-orm, t3code-server and vscode (peak -3.5% to -16.4%, wall +8% to +32%), and no gain on
-  mui-docs, whose duplicated cold start the seed's sample misses.
+  mui-docs, whose duplicated cold start the seed's sample misses. Seeded with two named files instead (a probe), it
+  removes 58% of t3code-server's instructions and 43% of its peak at -7% wall; the open part is choosing those files.
 - Checking a relation without reporting first and elaborating only on failure, as bun does
   (notes/perf-excalidraw-typefest.md): on excalidraw at 9 checkers, 501 -> 379 MiB after the deferred constraint
   check. Not exact against tsgo: the reporting run spends more of the relation complexity budget, so a

@@ -92,21 +92,42 @@ The feature build costs 3.7-6.0% instructions with the switch off. The seed's sa
 mui-docs's theme files, and every checker waits for it, so it trades wall time for memory, as on the 16-vCPU runner
 in October.
 
-## 5. What would remove it
+## 5. The same seed, aimed at the files that pull in the shared types
+
+A probe switch on branch `probe/seed-named-files` (not for landing): `TSRS_SHARED_GRAPH_SEED_FILES=<suffix>,...` seeds
+exactly the eligible files whose names end with a suffix, ignoring the budget. The seed may not take a leaf file, so
+the files of section 3 cannot be seeded themselves; the probe seeds the modules they import. 16 checkers under
+`--fast`, 3 interleaved rounds against the plain build, load 46-54. Diagnostics were byte-identical in every run.
+
+| project | seed files | median wall | instructions | peak |
+| --- | --- | --- | --- | --- |
+| t3code-server | `src/cli/server.ts`, `src/server.ts` (the suffix also takes `packages/contracts/src/server.ts`) | 1.05 -> 0.98 s (-7%) | 127.0 -> 53.6 G (-57.8%) | 2051 -> 1167 MiB (-43.1%) |
+| t3code-server | the same plus `src/cli/{app,project,pair,theme}.ts` | 1.05 -> 0.97 s (-8%) | 127.0 -> 53.2 G (-58.1%) | 2051 -> 1157 MiB (-43.6%) |
+| mui-docs | `shared-theme/AppTheme.tsx` | 0.87 -> 0.93 s (+8%) | 92.4 -> 57.7 G (-37.6%) | 1548 -> 1124 MiB (-27.4%) |
+| mui-docs | the same plus `shared-theme/themePrimitives.ts`, `branding/brandingTheme.ts` | 0.87 -> 1.00 s (+16%) | 92.4 -> 53.1 G (-42.6%) | 1548 -> 1028 MiB (-33.6%) |
+
+Two or three files carry most of the duplicated work. On t3code-server the seeded run retires fewer instructions at
+16 checkers than bun does at 18 threads (53.6 G against 77.6 G) and is also faster than the plain run. On mui-docs the
+seed's serial time costs more wall time than the parallel phase saves.
+
+## 6. What would remove it
 
 Bun pays the cold start once. In its source at 1.4.3 (`src/sema/driver/lib.rs`), a warm-up of light files sampled
 over the program runs as steps of 1, 8 and 64 tasks; each step publishes what it resolved at a barrier, and later
 tasks read it. The serial part is the first step only. tsrs's seed is one serial step that every checker waits for,
-with no parallel ramp, and its sample does not aim at the files that pull in the shared types.
+with no parallel ramp, and its default sample does not aim at the files that pull in the shared types.
 
-Two directions, both larger than a probe:
+What section 5 leaves open:
 
-- A seed that takes each project's entry files into the shared graph and a parallel ramp of forks that publish in
-  turn. That is the shared type layer of [design-shared-type-layer.md](design-shared-type-layer.md); `--fast` no
-  longer keeps Go's counters exactly, which removes one obstacle, but not the order-dependent diagnostics.
-- Placement that keeps files with the same cold start on the same checker, with a checker count that stops where
-  the cold start dominates. This saves CPU and memory (up to half on t3code-server) but not wall time on an idle
-  machine, since one checker still pays the cold start before its share of the rest.
+- Choosing the seed files without naming them. The files are composition roots (a server's wiring, a theme), not
+  hubs with many importers; neither the evenly spaced default nor the hub-first rules of an unmerged 2026-10-13 probe
+  found them on every project. A per-file cost from an earlier run (`--checkerCostCache`) or the size of a module's
+  import closure are the candidates to measure.
+- Not waiting for the seed. Under `--maxMemory` the pool already starts plain checkers and swaps in forks after the
+  freeze; with a targeted seed that would keep mui-docs's parallel phase running during the seed.
+- A parallel ramp that publishes in turn, as bun does, is the shared type layer of
+  [design-shared-type-layer.md](design-shared-type-layer.md); `--fast` no longer keeps Go's counters exactly, which
+  removes one obstacle, but not the order-dependent diagnostics.
 
 ## Reproduce
 
@@ -115,4 +136,7 @@ tsrs -p <project> --noEmit --incremental false --pretty false --fast --checkers 
 TSRS_FILE_TIMES=files.tsv tsrs -p <project> --noEmit --incremental false --pretty false --fast --checkers 16 \
   --extendedDiagnostics                                                            # per-file times and phases
 bun check -p <project> --no-pretty --all --no-script --timing --threads=N          # bun's phases
+cargo build --release -p tsrs_cli -p tsrs_core --features tsrs_core/shared-graph   # sections 4 and 5
+TSRS_SHARED_GRAPH=1 [TSRS_SHARED_GRAPH_SEED_PERCENT=5] tsrs ... --fast --checkers 16
+TSRS_SHARED_GRAPH=1 TSRS_SHARED_GRAPH_SEED_FILES=src/cli/server.ts,src/server.ts tsrs ... # probe branch only
 ```

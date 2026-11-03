@@ -1,0 +1,31 @@
+crates/tsrs_lint/tests/integration/lifecycle.rs
+  s_89801ea110a585::t_4b0de70d733410 108-179
+notes/perf-tsgolint-read-cache.md
+  s_89801ea110a585::t_737c510fd43e70 1-133
+docs/COMPATIBILITY.md
+  s_361c0d14070af7::t_b17b7cc08b09a7 55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "edccae503ecc5a8873dcbb5181c21f768b68dcc1",
+  "prompts": {},
+  "sessions": {
+    "s_361c0d14070af7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a228-4d54-7dc1-9ca8-81c1289df367",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    },
+    "s_89801ea110a585": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a227-9d7f-7793-a7f9-6230150634ef",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

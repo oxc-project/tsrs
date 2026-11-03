@@ -108,16 +108,8 @@ function sample(hf, binary, request, cwd, env, output) {
     };
 }
 
-// Writes the headless request for a prepared project (bench.mjs prepare) to `request`: every rule on the source files
-// its tsconfig checks. Returns the directory to run it from and that directory's real path.
-export function writeRequest(name, tsrs, work, request) {
-    const cfg = json(path.join(BENCH, "projects.json")),
-        project = cfg.projects.find((p) => p.name === name);
-    requireValue(project, `unknown benchmark project: ${name}`);
-    const cwd = project.suite_dir ? path.join(work, "suite", project.suite_dir) : path.join(work, "solutions", name),
-        root = fs.realpathSync(cwd),
-        files = lintFiles(tsrs, cwd, path.resolve(cwd, project.project), root);
-    requireValue(files.length, `${name}: the project has no files to lint`);
+// A headless request with every rule on `files`.
+function writeFilesRequest(request, files) {
     fs.writeFileSync(
         request,
         JSON.stringify({
@@ -128,6 +120,19 @@ export function writeRequest(name, tsrs, work, request) {
             report_semantic: false,
         }),
     );
+}
+
+// Writes the headless request for a prepared project (bench.mjs prepare) to `request`: every rule on the source files
+// its tsconfig checks. Returns the directory to run it from and that directory's real path.
+export function writeRequest(name, tsrs, work, request) {
+    const cfg = json(path.join(BENCH, "projects.json")),
+        project = cfg.projects.find((p) => p.name === name);
+    requireValue(project, `unknown benchmark project: ${name}`);
+    const cwd = project.suite_dir ? path.join(work, "suite", project.suite_dir) : path.join(work, "solutions", name),
+        root = fs.realpathSync(cwd),
+        files = lintFiles(tsrs, cwd, path.resolve(cwd, project.project), root);
+    requireValue(files.length, `${name}: the project has no files to lint`);
+    writeFilesRequest(request, files);
     return { cwd, root, files };
 }
 
@@ -264,11 +269,17 @@ if (isMain(import.meta.url))
     main(async () => {
         if (process.argv[2] === "request") {
             const a = args(
-                "Write the lint request for one prepared project (the PGO training run, .github/scripts/pgo-train.sh).",
-                { project: null, tsrs: null, out: null, "work-dir": path.join(BENCH, ".work") },
+                "Write the lint request for one prepared project, or for --files, for the PGO training runs " +
+                    "(.github/scripts/pgo-train.sh, pgo-train-windows.ps1).",
+                { project: null, tsrs: null, out: null, files: [], "work-dir": path.join(BENCH, ".work") },
                 process.argv.slice(3),
             );
-            required(a, "project", "tsrs", "out");
+            required(a, "out");
+            if (a.files.length) {
+                writeFilesRequest(path.resolve(a.out), a.files.map((file) => fs.realpathSync(file)));
+                return;
+            }
+            required(a, "project", "tsrs");
             writeRequest(a.project, path.resolve(a.tsrs), path.resolve(a["work-dir"]), path.resolve(a.out));
             return;
         }

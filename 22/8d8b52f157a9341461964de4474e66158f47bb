@@ -16,6 +16,14 @@ docs/releases/0.21.0.md
         "model": "unknown"
       },
       "human_author": "Cameron <cclark@cloudflare.com>"
+    },
+    "s_e98c4fe5ad3ca8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a213-fac3-7901-bbc9-624b17e9c284",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
     }
   }
 }

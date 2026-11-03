@@ -53,9 +53,13 @@ jobs:
       - name: Check workspace
         run: cargo check --locked --all-targets --config 'build.warnings="deny"'
 
+  # Conformance and every determinism shard wait for these binaries, so they build on a larger runner.
   build-correctness:
     name: Build correctness binaries
-    runs-on: namespace-profile-linux-x64-default
+    runs-on:
+      - nscloud-ubuntu-24.04-amd64-16x32-with-cache
+      - nscloud-cache-size-50gb
+      - nscloud-cache-tag-tsrs-build-correctness
     timeout-minutes: 30
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
@@ -81,7 +85,10 @@ jobs:
 
   workspace-tests:
     name: Workspace tests
-    runs-on: namespace-profile-linux-x64-default
+    runs-on:
+      - nscloud-ubuntu-24.04-amd64-8x16-with-cache
+      - nscloud-cache-size-50gb
+      - nscloud-cache-tag-tsrs-workspace-tests
     timeout-minutes: 60
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
@@ -116,7 +123,7 @@ jobs:
   conformance:
     name: Conformance
     needs: build-correctness
-    runs-on: namespace-profile-linux-x64-default
+    runs-on: nscloud-ubuntu-24.04-amd64-8x16
     timeout-minutes: 60
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
@@ -412,13 +419,22 @@ jobs:
             bench/.work/solutions/webpack
           key: ${{ steps.projects-cache.outputs.cache-primary-key }}
 
-  determinism:
-    name: Determinism
+  # Each shard checks a weighted share of the benchmark projects and regression fixtures
+  # (tsrs_determinism --shard). The runner stays at 8 vCPUs because the `max` checker rows use every CPU.
+  determinism-shard:
+    name: Determinism shard ${{ matrix.shard }}
     needs: build-correctness
     runs-on: nscloud-ubuntu-24.04-amd64-8x16
-    timeout-minutes: 300
+    timeout-minutes: 120
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # Shards share the organization's Namespace concurrency with oxc; more shards queue when it is busy.
+        shard: [1, 2, 3, 4, 5, 6]
+    env:
+      SHARD: ${{ matrix.shard }}/${{ strategy.job-total }}
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
@@ -438,40 +454,67 @@ jobs:
 
       - name: Benchmark cache key
         id: keys
-        run: echo "work=$(node bench/bench.mjs plan --format keys --projects all | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+        run: |
+          projects=$(target/ci/tsrs_determinism plan --shard "$SHARD" | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).join(",")')
+          echo "projects=$projects" >> "$GITHUB_OUTPUT"
+          if [ -n "$projects" ]; then
+            echo "set=$(printf %s "$projects" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+            echo "work=$(node bench/bench.mjs plan --format keys --projects "$projects" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Restore benchmark projects
         id: projects-cache
+        if: steps.keys.outputs.projects != ''
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           # Optional imports must not resolve against the repository's tooling dependencies.
           path: |
             ${{ runner.temp }}/determinism-work/suite
             ${{ runner.temp }}/determinism-work/solutions
-          key: determinism-work-v2-${{ runner.os }}-${{ runner.arch }}-all-${{ steps.keys.outputs.work }}
+          key: determinism-work-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.keys.outputs.set }}-${{ steps.keys.outputs.work }}
+          # Preparation replaces only the checkouts whose recipe changed.
+          restore-keys: |
+            determinism-work-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.keys.outputs.set }}-
 
       - name: Check committed tsgo snapshots
         id: snapshots
-        run: target/ci/tsrs_determinism check --projects all --tsrs target/ci/tsrs --work-dir "$RUNNER_TEMP/determinism-work"
+        run: target/ci/tsrs_determinism check --shard "$SHARD" --tsrs target/ci/tsrs --work-dir "$RUNNER_TEMP/determinism-work"
 
       - name: Check regression scheduling
         if: success() || steps.snapshots.outcome == 'failure'
-        run: target/ci/tsrs_determinism regressions --tsrs target/ci/tsrs
+        run: target/ci/tsrs_determinism regressions --shard "$SHARD" --tsrs target/ci/tsrs
 
       - name: Upload determinism results
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: determinism
+          name: determinism-${{ matrix.shard }}
           path: target/determinism/
           if-no-files-found: warn
           retention-days: 14
 
       - name: Save benchmark projects on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.projects-cache.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.keys.outputs.projects != '' && steps.projects-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ${{ runner.temp }}/determinism-work/suite
             ${{ runner.temp }}/determinism-work/solutions
           key: ${{ steps.projects-cache.outputs.cache-primary-key }}
+
+  # The required determinism check, passing only when every shard passed.
+  determinism:
+    name: Determinism
+    needs: determinism-shard
+    if: always()
+    runs-on: namespace-profile-linux-x64-default
+    timeout-minutes: 5
+    steps:
+      - name: Require every determinism shard
+        env:
+          RESULT: ${{ needs.determinism-shard.result }}
+        run: |
+          if [ "$RESULT" != success ]; then
+            echo "::error::determinism shards finished with $RESULT"
+            exit 1
+          fi

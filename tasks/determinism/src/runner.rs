@@ -9,15 +9,16 @@ use serde_json::Value;
 
 mod conformance;
 mod regressions;
+mod shard;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const FLAGS: &[&str] = &["--noEmit", "--incremental", "false", "--pretty", "false"];
 const ASSIGNMENTS: &[&str] = &["go", "locality", "default", "random"];
 const REPETITIONS: usize = 3;
 const OPTIONS: &[&str] =
-    &["--projects", "--tsrs", "--work-dir", "--snapshots-dir", "--out-dir", "--timeout"];
-const USAGE: &str = "tsrs_determinism <plan|snapshot|check|regressions> [--projects all|a,b] [--tsrs BIN]\n\
-    [--work-dir DIR] [--snapshots-dir DIR] [--out-dir DIR] [--timeout SECONDS]\n\
+    &["--projects", "--shard", "--tsrs", "--work-dir", "--snapshots-dir", "--out-dir", "--timeout"];
+const USAGE: &str = "tsrs_determinism <plan|snapshot|check|regressions> [--projects all|a,b | --shard INDEX/COUNT]\n\
+    [--tsrs BIN] [--work-dir DIR] [--snapshots-dir DIR] [--out-dir DIR] [--timeout SECONDS]\n\
 tsrs_determinism conformance [--mode all|go|default|determinism] [--tsrs-test BIN] [--testdata DIR]\n\
     [--out-dir DIR] [--list FILE] [--filter PATTERN] [--jobs N] [--default-reps N] [--seeds N] [--timeout SECONDS]";
 
@@ -99,13 +100,20 @@ pub fn main(args: &[String]) -> Result<()> {
     let options = options(rest, OPTIONS)?;
     let root = repo_root()?;
     let selected = options.get("--projects").map_or("all", String::as_str);
-    let names = if mode == "regressions" {
-        regressions::selection(&root, selected)?
-    } else {
-        selection(&root, selected)?
+    let names = match options.get("--shard") {
+        Some(_) if options.contains_key("--projects") => {
+            return Err("--shard and --projects are mutually exclusive".into());
+        }
+        Some(spec) => shard::Shard::parse(spec)?.names(&root, mode == "regressions")?,
+        None if mode == "regressions" => regressions::selection(&root, selected)?,
+        None => selection(&root, selected)?,
     };
     if mode == "plan" {
         println!("{}", serde_json::to_string(&names)?);
+        return Ok(());
+    }
+    if names.is_empty() {
+        println!("determinism: nothing to {mode} in this shard");
         return Ok(());
     }
     let version = cargo_pin(&root, "nightly")?;

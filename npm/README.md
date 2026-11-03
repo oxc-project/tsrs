@@ -14,7 +14,7 @@ tsrs ships on npm the way TypeScript 7 ships its native compiler (`typescript@7`
 
 | package | contents |
 | --- | --- |
-| `tsrs` | `bin/tsrs` (Node launcher), `lib/` (binary lookup, `version.cjs`), `dist/` + `vendor/` (the JavaScript API, see below), `optionalDependencies` on every platform package |
+| `tsrs` | `bin/tsrs` (Node launcher), `bin/tsrs-lint` (the same launcher with `--lint`), `lib/` (binary lookup, `version.cjs`), `dist/` + `vendor/` (the JavaScript API, see below), `optionalDependencies` on every platform package |
 | `@tsrs/<os>-<arch>[-<libc>]` | the `tsrs` binary and default TypeScript libraries for one platform, with `os`/`cpu` (and `libc: glibc` or `musl` on Linux) so package managers install only the matching one |
 | `@tsrs/wasm` | the WebAssembly module (`npm/tsrs-wasm`, notes/wasm-build.md): a `tsrs-wasm` command and a `tsc()` API for Node 22+ and browsers, single-threaded; no platform packages |
 
@@ -273,5 +273,7 @@ the command line to include config-read timing.
 
 ## Type-aware linting
 
-The source-built `tsrs-lint` binary currently implements all 60 pinned tsgolint rules.
-It is not included in npm artifacts; see [progress](../testdata/lint/PROGRESS.md).
+`tsrs --lint` runs the type-aware linter that oxlint drives (tsgolint's headless protocol; all pinned tsgolint rules,
+see [progress](../testdata/lint/PROGRESS.md)). The `tsrs-lint` command is the launcher with `--lint` added, so
+`OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware` uses it: oxlint runs `<path> headless ...`,
+which the bare `tsrs` would read as a root file.

@@ -16,6 +16,7 @@ mod generate_trace;
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 mod isolated;
 mod lazy_dts_build;
+mod lint_mode;
 mod lsp_edit_resolutions;
 mod merged_interface_check_site;
 mod npm_lib_path;

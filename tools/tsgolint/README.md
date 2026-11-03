@@ -1,6 +1,7 @@
 # Rust tsgolint baseline tooling
 
-The Rust implementation lives in `crates/tsrs_lint`, with binary `tsrs-lint`.
+The Rust implementation lives in `crates/tsrs_lint`, with binary `tsrs-lint`; `tsrs --lint` runs the same command
+line (`tsrs_lint::cli`).
 Its rule inventory and progress are recorded in `testdata/lint/PROGRESS.md`.
 All 60 pinned rules are implemented; requesting an unimplemented rule fails explicitly.
 
@@ -58,10 +59,15 @@ The supported flags are `headless`, `-fix`, `-fix-suggestions`, and `-debug timi
 Program construction and binding use the native parallel loader and honor `singleThreaded`.
 Source overrides provide virtual files, directories, directory entries, stat information and real paths,
 so package resolution and include globs work without physical files.
-Linting and requested semantic diagnostics default to the
-available thread count. Positive `RAYON_NUM_THREADS` overrides that default; both are capped at 256 and the active file count. Each worker shares one checker between semantic reporting and lint rules. All request
-regions remain alive until their programs are released; output frames are collected in file order.
-Go profiler output formats and npm packaging are outside this port's current scope.
+Linting and requested semantic diagnostics run on each program's checker pool with the CLI's checker defaults;
+`TSRS_FAST=1` gives the `--fast` count, and a positive `RAYON_NUM_THREADS` or a tsconfig `checkers` option sets it.
+The checker that owns a file runs both semantic reporting and the lint rules for it, and the checkers are freed with
+their program. Output frames are collected in file order.
+Go profiler output formats are outside this port's current scope.
+
+The npm `tsrs` package ships the linter inside the `tsrs` binary, with a `tsrs-lint` launcher that runs
+`tsrs --lint`. Point oxlint at the launcher, `OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint`, not at `tsrs`:
+oxlint runs `<path> headless ...`, which `tsrs` would read as a root file.
 
 Run imported suites with:
 

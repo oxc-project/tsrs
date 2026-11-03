@@ -31,7 +31,8 @@
         "NOTICE.txt"
     ],
     "bin": {
-        "tsrs": "./bin/tsrs"
+        "tsrs": "./bin/tsrs",
+        "tsrs-lint": "./bin/tsrs-lint"
     },
     "exports": {
         "./package.json": "./package.json",

@@ -1,0 +1,21 @@
+crates/tsrs_lint/src/engine.rs
+  s_e98c4fe5ad3ca8::t_c996b6df995a3a 69,77-85
+docs/COMPATIBILITY.md
+  s_e98c4fe5ad3ca8::t_ad2d9a84f3f028 55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "36efe5dd5f41dc62ade8ff376e62c8de2c9d83ac",
+  "prompts": {},
+  "sessions": {
+    "s_e98c4fe5ad3ca8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a213-fac3-7901-bbc9-624b17e9c284",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

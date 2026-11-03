@@ -1,0 +1,19 @@
+Cargo.lock
+  s_5b833f3552c813::t_fc80942844d34e 171,302,740
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "22831b1e557c95fce7685f6d70229ca1a204b2ee",
+  "prompts": {},
+  "sessions": {
+    "s_5b833f3552c813": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a096-5415-7193-822f-a6571a483b89",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

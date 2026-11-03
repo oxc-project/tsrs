@@ -3,11 +3,12 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { fork, spawnSync } from "node:child_process";
 import { isDeepStrictEqual, parseArgs } from "node:util";
 import { main } from "../lib/cli.mjs";
 
-const USAGE = "usage: run-baselines.mjs [-h] [--rule RULE] binary baselines";
+const USAGE = "usage: run-baselines.mjs [-h] [--rule RULE] [--jobs JOBS] binary baselines";
 const DESCRIPTION = "Compare the Rust headless binary with exported, pinned tsgolint cases.";
 
 class CaseError extends Error {}
@@ -103,7 +104,7 @@ function zipStrict(left, right) {
     return left.map((value, index) => [value, right[index]]);
 }
 
-function runCase(binary, fixtures, rule, suite, testCase) {
+function runCase(binary, fixtures, rule, suiteConfig, testCase) {
     const expected = testCase.Diagnostics;
     check(Array.isArray(expected), "missing exported diagnostics");
     const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "tsrs-lint-case-")));
@@ -114,7 +115,7 @@ function runCase(binary, fixtures, rule, suite, testCase) {
             fs.cpSync(dependencies, path.join(root, "node_modules"), { recursive: true, dereference: true });
         const filename = testCase.FileName || (testCase.Tsx ? "react.tsx" : "file.ts");
         const file = path.join(root, filename);
-        selectConfig(root, testCase.TSConfig || suite.TSConfig);
+        selectConfig(root, testCase.TSConfig || suiteConfig);
         const overrides = Object.fromEntries(
             Object.entries(testCase.Files || {}).map(([name, text]) => [path.join(root, name), text]),
         );
@@ -188,11 +189,85 @@ function baselineFiles(root, rule) {
         .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile());
 }
 
-main(() => {
+function loadCases(baselines) {
+    const cases = [],
+        suites = [];
+    let skipped = 0;
+    for (const source of baselines) {
+        const baseline = JSON.parse(fs.readFileSync(source, "utf8"));
+        for (const [test, suite] of Object.entries(baseline.Suites)) {
+            const only = ["Valid", "Invalid"].some((group) => suite[group].some((testCase) => testCase.Only));
+            for (const group of ["Valid", "Invalid"]) {
+                for (const [index, testCase] of suite[group].entries()) {
+                    if (testCase.Skip || (only && !testCase.Only)) skipped++;
+                    else
+                        cases.push({
+                            rule: baseline.Name,
+                            name: `${test}_${group.toLowerCase()}-${index}`,
+                            suiteConfig: suite.TSConfig,
+                            testCase,
+                        });
+                }
+            }
+            suites.push(`${baseline.Name}: suite ${test} passed`);
+        }
+    }
+    return { cases, suites, skipped };
+}
+
+const WORKER = "--case-worker";
+
+// Each case copies the fixtures and runs the binary synchronously, so cases run in worker processes. Spawning the
+// binary from worker threads of one process scaled worse on Linux.
+function serveCases(binary, fixtures) {
+    process.on("message", ({ index, rule, name, suiteConfig, testCase }) => {
+        try {
+            runCase(binary, fixtures, rule, suiteConfig, testCase);
+            process.send({ index });
+        } catch (error) {
+            process.send({ index, error: `${rule}/${name}: ${error.message}` });
+        }
+    });
+}
+
+// Cases are dispatched in order and dispatch stops at the first failure, so every case before the reported one ran
+// and passed: the report matches a sequential run's.
+async function runCases(binary, fixtures, cases, jobs) {
+    let next = 0,
+        failure;
+    const runWorker = () =>
+        new Promise((resolve) => {
+            const worker = fork(fileURLToPath(import.meta.url), [WORKER, binary, fixtures], {
+                stdio: ["ignore", "inherit", "inherit", "ipc"],
+            });
+            let done = false;
+            const settle = (index, error) => {
+                if (done) return;
+                if (error !== undefined && (!failure || index < failure.index)) failure = { index, error };
+                if (failure || next >= cases.length) {
+                    done = true;
+                    if (worker.connected) worker.disconnect();
+                    resolve();
+                } else worker.send({ index: next, ...cases[next++] });
+            };
+            worker.on("message", ({ index, error }) => settle(index, error));
+            worker.on("error", (error) => settle(cases.length, error.message));
+            worker.on("exit", (code, signal) => settle(cases.length, `case worker exited with ${signal ?? code}`));
+            settle();
+        });
+    await Promise.all(Array.from({ length: Math.min(jobs, cases.length) }, runWorker));
+    if (failure) throw new Error(failure.error);
+}
+
+function cli() {
     let parsed;
     try {
         parsed = parseArgs({
-            options: { help: { type: "boolean", short: "h" }, rule: { type: "string" } },
+            options: {
+                help: { type: "boolean", short: "h" },
+                rule: { type: "string" },
+                jobs: { type: "string" },
+            },
             allowPositionals: true,
         });
     } catch (error) {
@@ -213,41 +288,26 @@ main(() => {
                 "options:",
                 "  -h, --help   show this help message and exit",
                 "  --rule RULE",
+                "  --jobs JOBS  cases to run at once (default: available parallelism, at most 8)",
             ].join("\n"),
         );
         return;
     }
     if (positionals.length < 2) usageError("the following arguments are required: binary, baselines");
     if (positionals.length > 2) usageError(`unrecognized arguments: ${positionals.slice(2).join(" ")}`);
+    // More workers stop helping on Linux and slow macOS down: 18 workers took 370 s on APFS, 8 took 155 s.
+    const jobs = values.jobs === undefined ? Math.min(os.availableParallelism(), 8) : Number(values.jobs);
+    if (!Number.isInteger(jobs) || jobs < 1) usageError("--jobs must be a positive integer");
     const root = fs.realpathSync(positionals[1]),
         binary = path.resolve(positionals[0]);
     const baselines = baselineFiles(root, values.rule);
     if (!baselines.length) usageError("no baseline suites found");
-    let passed = 0,
-        skipped = 0;
-    for (const source of baselines) {
-        const baseline = JSON.parse(fs.readFileSync(source, "utf8"));
-        for (const [test, suite] of Object.entries(baseline.Suites)) {
-            const only = ["Valid", "Invalid"].some((group) => suite[group].some((testCase) => testCase.Only));
-            for (const group of ["Valid", "Invalid"]) {
-                for (const [index, testCase] of suite[group].entries()) {
-                    const name = `${test}_${group.toLowerCase()}-${index}`;
-                    if (testCase.Skip || (only && !testCase.Only)) {
-                        skipped++;
-                        continue;
-                    }
-                    try {
-                        runCase(binary, path.join(root, "fixtures"), baseline.Name, suite, testCase);
-                    } catch (error) {
-                        if (error instanceof CaseError || error instanceof SyntaxError)
-                            throw new Error(`${baseline.Name}/${name}: ${error.message}`, { cause: error });
-                        throw error;
-                    }
-                    passed++;
-                }
-            }
-            console.log(`${baseline.Name}: suite ${test} passed`);
-        }
-    }
-    console.log(`${passed} cases passed; ${skipped} upstream cases skipped`);
-});
+    const { cases, suites, skipped } = loadCases(baselines);
+    return runCases(binary, path.join(root, "fixtures"), cases, jobs).then(() => {
+        for (const suite of suites) console.log(suite);
+        console.log(`${cases.length} cases passed; ${skipped} upstream cases skipped`);
+    });
+}
+
+if (process.argv[2] === WORKER) serveCases(process.argv[3], process.argv[4]);
+else main(cli);

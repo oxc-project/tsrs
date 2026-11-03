@@ -1,0 +1,19 @@
+crates/tsrs_lint/src/engine.rs
+  s_e98c4fe5ad3ca8::t_c996b6df995a3a 69,77-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b5e105b66765e74240e69510dc81c8331279b5b6",
+  "prompts": {},
+  "sessions": {
+    "s_e98c4fe5ad3ca8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a213-fac3-7901-bbc9-624b17e9c284",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

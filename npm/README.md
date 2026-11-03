@@ -61,11 +61,11 @@ launcher and the JS API on each given Node; 16.20.0, 18, 20, 22 and 24 pass.)
 
 ## Versions
 
-The workspace `Cargo.toml` is the version source of truth. This checkout prepares 0.20.1:
+The workspace `Cargo.toml` is the version source of truth. This checkout prepares 0.21.0:
 
 ```toml
 [workspace.package]
-version = "0.20.1"
+version = "0.21.0"
 
 [workspace.metadata.typescript]
 version = "7.1.0-beta"                                 # the TypeScript version the port follows
@@ -73,13 +73,13 @@ commit = "3e9236361fa97a9e6c685f4833ac457ae2d8c50a"    # and its commit (CI chec
 nightly = "7.1.0-beta"                                 # matching npm package used for the compiler's reported version
 ```
 
-npm version: `<version>-ts<typescript version>` = `0.20.1-ts7.1.0-beta`, for every package including
+npm version: `<version>-ts<typescript version>` = `0.21.0-ts7.1.0-beta`, for every package including
 `@tsrs/wasm` (`npm/tsrs-wasm/package.json` holds a placeholder that `npm/build.mjs` replaces). `tsrs --version`
 and `tsrs-wasm --version` include the package version, embedded at build time by `crates/tsrs_execute/build.rs`.
-The example below shows the 0.20.1 release version; read `Cargo.toml` for the current source pin:
+The example below shows the 0.21.0 release version; read `Cargo.toml` for the current source pin:
 
 ```
-Version 7.1.0-beta (tsrs 0.20.1-ts7.1.0-beta, microsoft/TypeScript@3e9236361fa9)
+Version 7.1.0-beta (tsrs 0.21.0-ts7.1.0-beta, microsoft/TypeScript@3e9236361fa9)
 ```
 
 To release a fix on the same TypeScript commit, bump `[workspace.package] version`; after porting a newer TypeScript

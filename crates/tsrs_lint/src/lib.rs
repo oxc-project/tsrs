@@ -1,8 +1,4 @@
 //! Native type-aware linting on the tsrs AST and checker.
-#![expect(
-    clippy::multiple_crate_versions,
-    reason = "regress 0.11 uses hashbrown 0.16; the compiler uses hashbrown 0.17"
-)]
 
 mod go_quote;
 pub mod payload;

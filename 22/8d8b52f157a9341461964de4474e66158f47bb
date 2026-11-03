@@ -1,0 +1,21 @@
+docs/STATUS.md
+  s_138b47b1865eff::t_ff068fccf1093f 12-13
+docs/releases/0.21.0.md
+  s_138b47b1865eff::t_43204ab53e0753 20-21,47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "228d8b52f157a9341461964de4474e66158f47bb",
+  "prompts": {},
+  "sessions": {
+    "s_138b47b1865eff": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a1ef-0b96-73f1-ab78-cc1f4c540521",
+        "model": "unknown"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

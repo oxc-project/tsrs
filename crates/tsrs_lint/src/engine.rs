@@ -66,6 +66,7 @@ pub fn run(
     let entries_overrides = Arc::clone(&overrides);
     let stat_overrides = Arc::clone(&overrides);
     let realpath_overrides = Arc::clone(&overrides);
+    let read_cache = tsrs_core::collections::SyncMap::<String, Option<String>>::default();
     let fs = wrapvfs::wrap(
         osvfs::fs(),
         wrapvfs::Replacements {
@@ -73,7 +74,15 @@ pub fn run(
                 overrides.contains_key(path) || osvfs::fs().file_exists(path)
             })),
             read_file: Some(Box::new(move |path| {
-                read_overrides.get(path).cloned().or_else(|| osvfs::fs().read_file(path))
+                if let Some(source) = read_overrides.get(path) {
+                    return Some(source.clone());
+                }
+                if let Some(source) = read_cache.load(path) {
+                    return source;
+                }
+                let source = osvfs::fs().read_file(path);
+                read_cache.store(path.to_owned(), source.clone());
+                source
             })),
             directory_exists: Some(Box::new(move |path| {
                 if !directory_overrides.is_empty() {

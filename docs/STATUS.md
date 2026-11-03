@@ -14,7 +14,8 @@ reads, `TSRS_LIB_PATH` in the linter, checker allocation and key-property change
 ([#624](https://github.com/oxc-project/tsrs/pull/624), [#829](https://github.com/oxc-project/tsrs/pull/829),
 [#833](https://github.com/oxc-project/tsrs/pull/833), [#837](https://github.com/oxc-project/tsrs/pull/837),
 [#848](https://github.com/oxc-project/tsrs/pull/848), [#857](https://github.com/oxc-project/tsrs/pull/857),
-[#859](https://github.com/oxc-project/tsrs/pull/859), [#862](https://github.com/oxc-project/tsrs/pull/862)).
+[#859](https://github.com/oxc-project/tsrs/pull/859), [#862](https://github.com/oxc-project/tsrs/pull/862),
+[#874](https://github.com/oxc-project/tsrs/pull/874)).
 
 ## 0.20.1
 

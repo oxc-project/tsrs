@@ -20,7 +20,7 @@ tsrs_tsoptions.workspace = true
 tsrs_vfs.workspace = true
 rustc-hash.workspace = true
 regex = "1"
-regress = "0.11.1"
+regress = "0.12.0"
 mimalloc-safe.workspace = true
 
 [[bin]]

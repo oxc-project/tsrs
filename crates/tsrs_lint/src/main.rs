@@ -1,8 +1,3 @@
-#![expect(
-    clippy::multiple_crate_versions,
-    reason = "regress 0.11 uses hashbrown 0.16; the compiler uses hashbrown 0.17"
-)]
-
 use std::io::{self, Read, Write};
 
 use tsrs_lint::{engine, payload, protocol};

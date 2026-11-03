@@ -1,0 +1,61 @@
+.gitattributes
+  s_89801ea110a585::t_137b51df5bf65f 2
+.github/scripts/pgo-train-windows.ps1
+  s_89801ea110a585::t_1ef88067b2b062 32-42
+.github/scripts/pgo-train.sh
+  s_89801ea110a585::t_4c17781680d070 13-14,43-52,56
+Cargo.lock
+  s_89801ea110a585::t_8e760fdc3c1561 1086
+Cargo.toml
+  s_89801ea110a585::t_cf69fef26caa78 101
+bench/lint.mjs
+  s_89801ea110a585::t_44492ea84efc76 111-112,123-146,270-285
+crates/tsrs_cli/Cargo.toml
+  s_89801ea110a585::t_7868c10458df18 20
+crates/tsrs_cli/src/main.rs
+  s_89801ea110a585::t_e1c99b393ff672 79-83
+crates/tsrs_cli/tests/integration/lint_mode.rs
+  s_89801ea110a585::t_9bcc97a6355c20 1-90
+crates/tsrs_cli/tests/integration/main.rs
+  s_89801ea110a585::t_4c4737d322cd4d 19
+crates/tsrs_lint/src/cli.rs
+  s_89801ea110a585::t_cd920501594433 1-102
+crates/tsrs_lint/src/lib.rs
+  s_89801ea110a585::t_5f807179db259d 3
+crates/tsrs_lint/src/main.rs
+  s_89801ea110a585::t_aead8dfd094616 8
+docs/COMPATIBILITY.md
+  s_89801ea110a585::t_abdb6a556efa8d 55
+docs/USAGE.md
+  s_89801ea110a585::t_dc4d48663694db 133-134
+npm/README.md
+  s_89801ea110a585::t_030afa77a7babb 17,276-279
+npm/build.mjs
+  s_89801ea110a585::t_a9c0b80309435f 349
+npm/sdk/smoke-consumer.mjs
+  s_89801ea110a585::t_2d29724ba37e6c 98-111
+npm/tsrs/bin/tsrs-lint
+  s_89801ea110a585::t_804d25d5c915d3 1-7
+npm/tsrs/lib/tsrs-lint.js
+  s_89801ea110a585::t_23c2ee21466b4f 1-4
+npm/tsrs/package.json
+  s_89801ea110a585::t_acaf7003c69ef1 34-35
+tools/tsgolint/README.md
+  s_89801ea110a585::t_38102f3afb02f2 3-4,62-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "5b583f88207493053e9e212126ee9a9f7d564bf3",
+  "prompts": {},
+  "sessions": {
+    "s_89801ea110a585": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a227-9d7f-7793-a7f9-6230150634ef",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Cameron <cclark@cloudflare.com>"
+    }
+  }
+}

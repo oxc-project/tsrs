@@ -59,9 +59,10 @@ The supported flags are `headless`, `-fix`, `-fix-suggestions`, and `-debug timi
 Program construction and binding use the native parallel loader and honor `singleThreaded`.
 Source overrides provide virtual files, directories, directory entries, stat information and real paths,
 so package resolution and include globs work without physical files.
-Linting and requested semantic diagnostics default to the
-available thread count. Positive `RAYON_NUM_THREADS` overrides that default; both are capped at 256 and the active file count. Each worker shares one checker between semantic reporting and lint rules. All request
-regions remain alive until their programs are released; output frames are collected in file order.
+Linting and requested semantic diagnostics run on each program's checker pool with the CLI's checker defaults;
+`TSRS_FAST=1` gives the `--fast` count, and a positive `RAYON_NUM_THREADS` or a tsconfig `checkers` option sets it.
+The checker that owns a file runs both semantic reporting and the lint rules for it, and the checkers are freed with
+their program. Output frames are collected in file order.
 Go profiler output formats are outside this port's current scope.
 
 The npm `tsrs` package ships the linter inside the `tsrs` binary, with a `tsrs-lint` launcher that runs

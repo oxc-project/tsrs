@@ -11,7 +11,10 @@ The package version is `0.21.0-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` 
 The [release notes](releases/0.21.0.md) cover the type-aware linter for Oxlint (`tsrs --lint` and the npm
 `tsrs-lint` command, with lint in PGO training), lint on the program's checker pool, `TSRS_LIB_PATH` in the
 linter, checker allocation and key-property changes, and the language-server session fix
-(#624, #829, #833, #837, #848, #857, #859, #862).
+([#624](https://github.com/oxc-project/tsrs/pull/624), [#829](https://github.com/oxc-project/tsrs/pull/829),
+[#833](https://github.com/oxc-project/tsrs/pull/833), [#837](https://github.com/oxc-project/tsrs/pull/837),
+[#848](https://github.com/oxc-project/tsrs/pull/848), [#857](https://github.com/oxc-project/tsrs/pull/857),
+[#859](https://github.com/oxc-project/tsrs/pull/859), [#862](https://github.com/oxc-project/tsrs/pull/862)).
 
 ## 0.20.1
 

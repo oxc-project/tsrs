@@ -1,0 +1,54 @@
+tsrs patch to microsoft/TypeScript@3e9236361fa9 packages/typescript/src/api/sync/client.ts
+(applied by npm/sdk/sync-upstream.mjs; the selected original is recorded in npm/tsrs/UPSTREAM.json "patchedFiles").
+
+Upstream, the sync client always spawns the API server and talks to it through SyncRpcChannel. With this patch a
+host that serves the session in its own process (napi/, @tsrs/napi) passes `createChannel` in the client options:
+it receives the `tsrs --api` arguments the client would have spawned with and returns an object with
+SyncRpcChannel's surface. Without the option nothing changes.
+--- a/src/api/sync/client.ts
++++ b/src/api/sync/client.ts
+@@ -29,15 +29,31 @@
+ 
+ export type { ClientOptions, ClientSocketOptions, ClientSpawnOptions };
+ 
++// tsrs patch (npm/sdk/patches/sync-client-channel-factory.patch): an in-process host such as @tsrs/napi passes
++// `createChannel` to serve the session itself. It gets the `tsrs --api` arguments the client would spawn with.
++export interface SyncChannel {
++    requestSync(method: string, payload: string): string;
++    requestBinarySync(method: string, payload: Uint8Array): Uint8Array;
++    registerCallback(name: string, callback: (name: string, payload: string) => string): void;
++    unregisterCallback(name: string): void;
++    close(): void;
++    readonly lastBytesSent: number;
++    readonly lastBytesReceived: number;
++}
++
++export interface ClientChannelOptions {
++    createChannel?: ((args: string[]) => SyncChannel) | undefined;
++}
++
+ export class Client {
+-    private channel: SyncRpcChannel;
++    private channel: SyncChannel;
+     private encoder = new TextEncoder();
+     private timing: TimingCollector | undefined;
+     private timingDump: TimingDump | undefined;
+     private closed = false;
+     private maxResponseBytesPerPage: number | undefined;
+ 
+-    constructor(options: ClientOptions) {
++    constructor(options: ClientOptions & ClientChannelOptions) {
+         if (!isSpawnOptions(options)) {
+             throw new Error("Socket connections are not yet supported in the sync client");
+         }
+@@ -59,7 +75,9 @@
+             this.timing = new TimingCollector();
+         }
+ 
+-        const channel = new SyncRpcChannel(resolveExePath(options), args, collectTiming);
++        const channel = options.createChannel
++            ? options.createChannel(args)
++            : new SyncRpcChannel(resolveExePath(options), args, collectTiming);
+         this.channel = channel;
+ 
+         if (options.fs) {

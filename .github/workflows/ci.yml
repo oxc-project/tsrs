@@ -35,8 +35,9 @@ jobs:
           path: /home/runner/.rustup
           cache: rust
 
+      # --workspace includes napi/, which is outside the default members.
       - name: Clippy
-        run: cargo clippy --locked --all-targets --config 'build.warnings="deny"'
+        run: cargo clippy --locked --workspace --all-targets --config 'build.warnings="deny"'
 
       - wait: source-checks
 
@@ -241,11 +242,15 @@ jobs:
       - name: Go oracle client and parity suites
         run: node tools/node-api/run-upstream.mjs --binary tools/node-api/.work/oracle/tsc --label go-oracle --suite all --no-trace
 
-      - name: Build tsrs API server
-        run: cargo build --profile dev --locked -p tsrs_cli
+      # One cargo call for both, so napi's syn features don't rebuild the tsrs crates a second time.
+      - name: Build tsrs API server and napi addon
+        run: cargo build --profile dev --locked -p tsrs_cli -p tsrs_napi
 
       - name: tsrs client and parity suites
         run: node tools/node-api/run-upstream.mjs --binary target/debug/tsrs --label tsrs --suite all --no-trace
+
+      - name: In-process sync client suites (napi)
+        run: node napi/scripts/build.mjs && node napi/test/run-sync.mjs
 
       - name: Upload Node API client results
         if: always()

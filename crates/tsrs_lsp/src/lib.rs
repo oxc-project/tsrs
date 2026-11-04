@@ -10,5 +10,6 @@ pub mod stack_sanitizer;
 pub mod workerpool;
 
 pub use server::{
-    NpmInstallFunc, Reader, Server, ServerOptions, Writer, new_server, to_reader, to_writer,
+    NpmInstallFunc, Reader, Server, ServerOptions, SpawnFunc, Writer, new_server, to_reader,
+    to_writer,
 };

@@ -85,6 +85,7 @@ pub fn new_api_session(flags: &ApiFlags) -> Result<(Arc<Session>, Arc<CallbackFs
     let mut options =
         SessionOptions::new(flags.cwd.clone(), bundled::default_lib_path(), fs, !flags.is_async);
     options.run_external_code = flags.run_external_code;
+    options.content_mapper_spawner = Some(Arc::new(tsrs_contentmapper::ProcessSpawner));
     let session = Session::new(options);
     Ok((session, callback_fs))
 }

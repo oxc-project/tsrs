@@ -25,16 +25,16 @@ use crate::verbatim::{ModuleVerbatimHandler, VerbatimHandler};
 
 // registry.go:10
 pub const TRANSFORMING_MAPPER: &str = "compiler-test-mapper";
-const VERBATIM_MAPPER: &str = "verbatim-mapper";
-const MODULE_VERBATIM_MAPPER: &str = "module-verbatim-mapper";
-pub(crate) const DYNAMIC_VERBATIM_MAPPER: &str = "dynamic-verbatim-mapper";
+pub const VERBATIM_MAPPER: &str = "verbatim-mapper";
+pub const MODULE_VERBATIM_MAPPER: &str = "module-verbatim-mapper";
+pub const DYNAMIC_VERBATIM_MAPPER: &str = "dynamic-verbatim-mapper";
 const DIAGNOSTIC_CODE_COLLISION_MAPPER: &str = "diagnostic-code-collision-mapper";
 const FAILING_MAPPER: &str = "failing-mapper";
 const SYNTHESIZING_MAPPER: &str = "synthesizing-mapper";
 const COMPONENT_MAPPER: &str = "component-mapper";
 const DUPLICATE_MAPPER: &str = "duplicate-mapper";
 const LISP_MAPPER: &str = "lisp-mapper";
-const SUPPLEMENTAL_MAPPER: &str = "supplemental-mapper";
+pub const SUPPLEMENTAL_MAPPER: &str = "supplemental-mapper";
 const SUPPLEMENTAL_DIAGNOSTICS_MAPPER: &str = "supplemental-diagnostics-mapper";
 const SUPPLEMENTAL_GLOBALS_MAPPER: &str = "supplemental-globals-mapper";
 const SUPPLEMENTAL_MODULE_MAPPER: &str = "supplemental-module-mapper";

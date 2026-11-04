@@ -24,7 +24,7 @@ pub struct WatchFilesCall {
         reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field."
     )]
     id: WatcherID,
-    watchers: Vec<lsproto::FileSystemWatcher>,
+    pub(crate) watchers: Vec<lsproto::FileSystemWatcher>,
 }
 
 // clientmock_generated.go (call recording only; every call succeeds unless a hook says otherwise)
@@ -38,13 +38,17 @@ pub struct ClientMock {
     publish_diagnostics_calls: Mutex<Vec<lsproto::PublishDiagnosticsParams>>,
     pub(crate) locale: Mutex<String>,
     pub(crate) set_locale_calls: Mutex<Vec<String>>,
+    get_locale_calls: Mutex<usize>,
+    // Go's SetLocaleFunc: when set, `set_locale` also stores the locale `get_locale` returns.
+    pub(crate) set_locale_updates_locale: std::sync::atomic::AtomicBool,
+    register_content_mapper_extensions_calls: Mutex<Vec<Vec<String>>>,
     pub(crate) refresh_code_lens_func: Mutex<Option<Box<dyn Fn(&Context) + Send + Sync>>>,
     watch_files_func:
         Mutex<Option<Box<dyn Fn(&WatcherID) -> Result<(), lsproto::Error> + Send + Sync>>>,
 }
 
 impl ClientMock {
-    fn watch_files_calls(&self) -> Vec<WatchFilesCall> {
+    pub(crate) fn watch_files_calls(&self) -> Vec<WatchFilesCall> {
         self.watch_files_calls.lock().unwrap().clone()
     }
     #[expect(
@@ -56,6 +60,12 @@ impl ClientMock {
     }
     pub(crate) fn refresh_diagnostics_calls(&self) -> usize {
         *self.refresh_diagnostics_calls.lock().unwrap()
+    }
+    pub(crate) fn register_content_mapper_extensions_calls(&self) -> Vec<Vec<String>> {
+        self.register_content_mapper_extensions_calls.lock().unwrap().clone()
+    }
+    pub(crate) fn get_locale_calls(&self) -> usize {
+        *self.get_locale_calls.lock().unwrap()
     }
     #[expect(
         dead_code,
@@ -86,8 +96,9 @@ impl Client for ClientMock {
     fn register_content_mapper_extensions(
         &self,
         _ctx: &Context,
-        _extensions: Vec<String>,
+        extensions: Vec<String>,
     ) -> Result<(), lsproto::Error> {
+        self.register_content_mapper_extensions_calls.lock().unwrap().push(extensions);
         Ok(())
     }
     fn refresh_diagnostics(&self, _ctx: &Context) -> Result<(), lsproto::Error> {
@@ -127,8 +138,12 @@ impl Client for ClientMock {
     }
     fn set_locale(&self, locale: &str) {
         self.set_locale_calls.lock().unwrap().push(locale.to_string());
+        if self.set_locale_updates_locale.load(std::sync::atomic::Ordering::SeqCst) {
+            locale.clone_into(&mut self.locale.lock().unwrap());
+        }
     }
     fn get_locale(&self) -> Locale {
+        *self.get_locale_calls.lock().unwrap() += 1;
         Locale(self.locale.lock().unwrap().clone())
     }
 }
@@ -244,7 +259,7 @@ pub fn setup_with_options(
 }
 
 // projecttestutil.go:285
-fn get_session_init_options(
+pub fn get_session_init_options(
     files: &[(&str, &str)],
     options: Option<SessionOptions>,
 ) -> (SessionInit, SessionUtils) {
@@ -278,7 +293,10 @@ fn get_session_init_options(
             client: Some(client_mock),
             logger: Some(logger),
             npm_executor: None,
+            spawner: None,
+            content_mapper_logger: None,
             parse_cache: None,
+            content_mapped_parse_cache: None,
         },
         session_utils,
     )

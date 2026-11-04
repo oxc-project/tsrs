@@ -4,6 +4,7 @@ use std::time::{Duration, Instant};
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::Diagnostic;
+use tsrs_contentmapper as contentmapper;
 use tsrs_core::collections::{OrderedMap, Set, SyncSet, diff_ordered_maps};
 use tsrs_core::context::{CancelFunc, Context, has_locale, with_locale};
 use tsrs_core::tspath::{self, Path};
@@ -25,7 +26,7 @@ use crate::dirty::Shared;
 use crate::filechange::{FileChange, FileChangeKind, FileChangeSummary, merge_file_change_summary};
 use crate::logging::{Logger, new_nop_logger};
 use crate::overlayfs::{FsRef, OverlayFS, OverlayMap, ToPath, new_overlay_fs};
-use crate::parsecache::ParseCache;
+use crate::parsecache::{ContentMappedParseCache, ParseCache};
 use crate::project::{HR, ID, Kind, ProgramUpdateKind, Project};
 use crate::snapshot::{
     APISnapshotRequest, ATAStateChange, ProjectTreeRequest, ResourceRequest, Snapshot,
@@ -95,8 +96,7 @@ pub struct SessionOptions {
     pub checker_pool_options: CheckerPoolOptions,
 }
 
-// (Content mappers and ATA are not ported: Go's `Spawner` and `ContentMapperLogger` are omitted, and an
-// `NpmExecutor` never starts a typings installer.)
+// (ATA is not ported: an `NpmExecutor` never starts a typings installer.)
 pub struct SessionInit {
     pub background_ctx: Context,
     pub options: Arc<SessionOptions>,
@@ -104,7 +104,11 @@ pub struct SessionInit {
     pub client: Option<Arc<dyn Client>>,
     pub logger: Option<Arc<dyn Logger>>,
     pub npm_executor: Option<Arc<dyn ata::NpmExecutor>>,
+    // Spawner launches content mapper processes. It is nil when the host cannot spawn processes.
+    pub spawner: Option<Arc<dyn contentmapper::Spawner>>,
+    pub content_mapper_logger: Option<contentmapper::Logger>,
     pub parse_cache: Option<Arc<ParseCache>>,
+    pub content_mapped_parse_cache: Option<Arc<ContentMappedParseCache>>,
 }
 
 struct UserConfigState {
@@ -163,6 +167,9 @@ pub struct Session {
     start_time: Instant,
     npm_executor: Option<Arc<dyn ata::NpmExecutor>>,
     fs: Arc<OverlayFS>,
+    // contentMapperTimings is the cumulative host snapshot at the most recent session snapshot adoption.
+    // Go: contentMapperTimings + contentMapperTimingsMu.
+    content_mapper_timings: Mutex<contentmapper::Timings>,
 
     // registeredContentMapperSnapshotID is the ID of the newest snapshot whose registration has been
     // applied. Registration runs from background tasks that may finish out of order, so
@@ -236,6 +243,26 @@ pub struct Session {
     self_ref: Weak<Session>,
 }
 
+// session.go:199
+// newContentMapperHost creates the session's shared content mapper host when the workspace is trusted and
+// a spawner is available; otherwise it returns nil, and configured content mappers are rejected by the
+// config-file gate.
+pub(crate) fn new_content_mapper_host(init: &SessionInit) -> Option<Arc<dyn contentmapper::Host>> {
+    if !init.options.run_external_code {
+        return None;
+    }
+    let spawner = init.spawner.as_ref()?;
+    let mut diagnostic_locale = tsrs_core::Locale::DEFAULT;
+    if let Some(client) = &init.client {
+        diagnostic_locale = client.get_locale();
+    }
+    Some(contentmapper::new_host_with_options(
+        Arc::clone(spawner),
+        diagnostic_locale,
+        contentmapper::HostOptions { logger: init.content_mapper_logger.clone() },
+    ))
+}
+
 // session.go:210
 pub fn new_session(init: &SessionInit) -> Arc<Session> {
     let snapshot_host = new_snapshot_host(init);
@@ -247,7 +274,13 @@ pub fn new_session(init: &SessionInit) -> Arc<Session> {
     let snapshot = snapshot_host.new_root_snapshot_with(0, relative_pattern_support);
     let (background_ctx, background_cancel) = init.background_ctx.with_cancel();
     // (ATA is not ported: Go creates a typings installer here when TypingsLocation and NpmExecutor are set.)
+    let content_mapper_timings = snapshot_host
+        .content_mapper_host
+        .as_ref()
+        .map(|content_mapper_host| content_mapper_host.timings())
+        .unwrap_or_default();
     Arc::new_cyclic(|self_ref| Session {
+        content_mapper_timings: Mutex::new(content_mapper_timings),
         options: Arc::clone(&init.options),
         logger: session_logger,
         background_ctx,
@@ -345,8 +378,14 @@ impl Session {
         if !config.locale.is_empty()
             && let Some(client) = &self.client
         {
-            // (Content mappers are not ported: Go forwards a changed locale to the content mapper host.)
+            let old_locale = client.get_locale();
             client.set_locale(&config.locale);
+            let new_locale = client.get_locale();
+            if old_locale.string() != new_locale.string()
+                && let Some(content_mapper_host) = &self.snapshot_host.content_mapper_host
+            {
+                content_mapper_host.set_locale(new_locale);
+            }
         }
 
         // Tell the client to re-request certain commands depending on user preference changes.
@@ -1335,6 +1374,7 @@ impl Session {
             // ref is transferred to become the session's ref for its current snapshot.
             *guard = Some(Arc::clone(new_snapshot));
             old_snapshot.deref();
+            let content_mapper_timings = self.take_content_mapper_timing_delta();
             drop(guard);
             if self.options.logging_enabled {
                 self.logger.logf(format_args!(
@@ -1344,6 +1384,7 @@ impl Session {
                 if !new_snapshot.builder_logs.is_nil() {
                     self.logger.log(&new_snapshot.builder_logs.string());
                 }
+                self.log_content_mapper_timings(&content_mapper_timings);
             }
         } else {
             // Session has moved on to a newer snapshot; discard this one.
@@ -1428,12 +1469,14 @@ impl Session {
         if caller_ref {
             new_snapshot.ref_();
         }
+        let mut content_mapper_timings = contentmapper::Timings::default();
         if !Arc::ptr_eq(&new_snapshot, &old_snapshot) {
             // Release the session's reference to the old snapshot. The new snapshot's
             // clone ref (1) is transferred to become the session's ref for its current
             // snapshot. Other holders (e.g. active handlers) keep the old snapshot alive
             // via their own refs until they complete.
             old_snapshot.deref();
+            content_mapper_timings = self.take_content_mapper_timing_delta();
         }
         drop(guard);
 
@@ -1455,6 +1498,7 @@ impl Session {
                     s.logger.log(&new_snapshot.builder_logs.string());
                 }
                 s.log_project_changes(&old_snapshot, &new_snapshot);
+                s.log_content_mapper_timings(&content_mapper_timings);
                 s.logger.log("");
             }
             if s.options.watch_enabled
@@ -1470,6 +1514,64 @@ impl Session {
         });
 
         Some(new_snapshot)
+    }
+
+    // session.go:1447
+    fn take_content_mapper_timing_delta(&self) -> contentmapper::Timings {
+        let Some(content_mapper_host) = &self.snapshot_host.content_mapper_host else {
+            return contentmapper::Timings::default();
+        };
+        let current = content_mapper_host.timings();
+        let mut timings = self.content_mapper_timings.lock().unwrap();
+        let delta = current.since(&timings);
+        *timings = current;
+        delta
+    }
+
+    // session.go:1459
+    fn log_content_mapper_timings(&self, timings: &contentmapper::Timings) {
+        if timings.request_wait.is_zero() && !has_content_mapper_operation_timings(&timings.mappers)
+        {
+            return;
+        }
+        self.logger.log("Content mapper timings since previous snapshot adoption:");
+        if !timings.request_wait.is_zero() {
+            self.logger.logf(format_args!("  Request wait time: {:?}", timings.request_wait));
+        }
+        let mut identities: Vec<&String> = timings.mappers.keys().collect();
+        identities.sort();
+        for identity in identities {
+            let mapper = &timings.mappers[identity];
+            if !has_content_mapper_operation_timing(mapper) {
+                continue;
+            }
+            self.logger.logf(format_args!("  {identity}:"));
+            if mapper.spawn.count != 0 {
+                self.logger.logf(format_args!(
+                    "    Initializations: {} ({:?})",
+                    mapper.spawn.count,
+                    mapper.spawn.duration + mapper.initialize.duration
+                ));
+            }
+            if mapper.open_project.count != 0 {
+                self.logger.logf(format_args!(
+                    "    openProject requests: {} ({:?})",
+                    mapper.open_project.count, mapper.open_project.duration
+                ));
+            }
+            if mapper.close_project.count != 0 {
+                self.logger.logf(format_args!(
+                    "    closeProject requests: {} ({:?})",
+                    mapper.close_project.count, mapper.close_project.duration
+                ));
+            }
+            if mapper.transform.count != 0 {
+                self.logger.logf(format_args!(
+                    "    Transforms: {} ({:?})",
+                    mapper.transform.count, mapper.transform.duration
+                ));
+            }
+        }
     }
 
     // session.go:1476
@@ -2371,6 +2473,21 @@ impl WarmChange {
     fn of(change: &SnapshotChange) -> WarmChange {
         WarmChange { changed: change.file_changes.changed.keys().iter().cloned().collect() }
     }
+}
+
+// session.go:1488
+fn has_content_mapper_operation_timings(
+    timings: &OrderedMap<String, contentmapper::MapperTimings>,
+) -> bool {
+    timings.values().any(has_content_mapper_operation_timing)
+}
+
+// session.go:1497
+fn has_content_mapper_operation_timing(timing: &contentmapper::MapperTimings) -> bool {
+    timing.spawn.count != 0
+        || timing.open_project.count != 0
+        || timing.close_project.count != 0
+        || timing.transform.count != 0
 }
 
 // session.go:1937

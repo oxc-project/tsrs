@@ -114,7 +114,6 @@ rules are shared, so other watcher differences can also affect the language serv
 | Background queue | Unbounded goroutines | 6 workers |
 | After the idle cache clean | `runtime.GC()` | No additional collection step |
 | Profiling commands, `runGC` | Supported | `MethodNotFound` |
-| Content mappers | Supported | Not ported; `runExternalCode` does nothing |
 | Parent process watchdog on Windows | Supported | Not ported |
 
 [Language server](LSP.md) has the threading model and other known gaps. Sources:
@@ -128,7 +127,6 @@ rules are shared, so other watcher differences can also affect the language serv
 | setting | tsgo | tsrs |
 | --- | --- | --- |
 | API build orchestrator concurrency | Requested builder/checker settings | Forces `singleThreaded`, so building, parsing and checking run serially |
-| Content mappers | A spawner is passed to the session | None; `--runExternalCode` does nothing |
 | Callback re-entry that waits for a resource held by its caller | Can deadlock | Rejected immediately in sync mode; after a 10 s grace period in async mode. A slow async callback can also cause an unrelated waiter to be rejected |
 | `-cwd=""` | Panics | Uses the current directory |
 | `-useCaseSensitiveFileNames` after a non-flag argument | Ignored; the OS default remains | The parser stops, but a separate argument scan notices the flag and can replace the OS default with `false` |

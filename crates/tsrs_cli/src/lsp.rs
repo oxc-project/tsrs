@@ -68,6 +68,7 @@ pub fn run_lsp(args: &[String]) -> i32 {
                 Err(err) => Err(err.to_string()),
             }
         })),
+        spawn: Some(Arc::new(tsrs_contentmapper::spawn_process)),
         progress_delay: Duration::from_millis(250),
         set_parent_process_id: new_parent_process_watchdog(&ctx, &stop, client_process_id),
     });

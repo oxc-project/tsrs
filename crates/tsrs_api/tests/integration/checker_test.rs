@@ -107,7 +107,10 @@ impl TestHost {
             client: None,
             logger: None,
             npm_executor: None,
+            spawner: None,
+            content_mapper_logger: None,
             parse_cache: None,
+            content_mapped_parse_cache: None,
         };
         let snapshot_host = tsrs_project::new_snapshot_host(&init);
         let root = snapshot_host.new_root_snapshot();
@@ -1392,6 +1395,7 @@ fn core_session_hook_maps_errors_and_encodings() {
         fs,
         binary_responses: false,
         run_external_code: false,
+        content_mapper_spawner: None,
     });
     let err = session
         .handle_request(

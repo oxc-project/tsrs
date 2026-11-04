@@ -26,6 +26,9 @@ mod verbatim;
 
 pub use dynamic_verbatim::ProjectLifecycle;
 pub use manifest::*;
-pub use registry::TRANSFORMING_MAPPER;
-pub use spawner::{new_spawner, serve};
+pub use registry::{
+    DYNAMIC_VERBATIM_MAPPER, MODULE_VERBATIM_MAPPER, SUPPLEMENTAL_MAPPER, TRANSFORMING_MAPPER,
+    VERBATIM_MAPPER,
+};
+pub use spawner::{new_spawner, new_spawner_with_project_lifecycle, serve};
 pub use transforming::{DECLARED_OPTIONS, Handler};

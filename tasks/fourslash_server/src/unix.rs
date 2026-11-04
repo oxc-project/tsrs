@@ -232,6 +232,15 @@ fn run_server(
     let options =
         tsrs_tsoptions::gojson::compiler_options_from_go_json(field(&config, "compilerOptions"))
             .expect("decode inferred-project options");
+    // The Go harness's spawner (`contentmappertest.NewSpawner()` in every upstream test) serves its in-process Go
+    // mappers, which cannot cross the process boundary; this process serves the Rust port of the same mappers.
+    let spawn: Option<tsrs_lsp::SpawnFunc> =
+        (field(&config, "contentMapperSpawner") == &Value::Bool(true)).then(|| {
+            let spawner = tsrs_contentmappertest::new_spawner();
+            Arc::new(move |command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>| {
+                spawner.spawn(command, dir, stderr)
+            }) as tsrs_lsp::SpawnFunc
+        });
     let fs = Arc::new(fs);
     let server = tsrs_lsp::new_server(tsrs_lsp::ServerOptions {
         in_: input,
@@ -243,6 +252,7 @@ fn run_server(
         typings_location: String::new(),
         parse_cache,
         npm_install: None,
+        spawn,
         progress_delay: Duration::ZERO,
         set_parent_process_id: None,
     });

@@ -39,6 +39,7 @@ fn failed_replacement_build_preserves_the_last_successful_build_for_cleaning() {
         fs: Arc::new(bundled::wrap_fs(fs)),
         binary_responses: false,
         run_external_code: false,
+        content_mapper_spawner: None,
     });
     let created =
         call(&session, "createBuildOrchestrator", &format!(r#"{{"rootNames":[{}]}}"#, quote(&cfg)));

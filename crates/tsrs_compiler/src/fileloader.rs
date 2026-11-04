@@ -111,8 +111,16 @@ pub struct RedirectsFile {
 #[derive(Clone, Debug)]
 pub struct DuplicateSourceFile {
     pub parse_options: SourceFileParseOptions,
+    // ContentMapperParseOptions are the acquire-time options for a content-mapped parse-cache entry.
+    pub content_mapper_parse_options: SourceFileParseOptions,
     pub hash: u128,
     pub script_kind: ScriptKind,
+    // ContentMapper is the identity of the content mapper that produced this file,
+    // or "" if the file is not content-mapped.
+    pub content_mapper: &'static str,
+    // IsContentMapperFailureStub reports whether the file is an empty placeholder
+    // from a failed transform.
+    pub is_content_mapper_failure_stub: bool,
 }
 
 #[derive(Default)]

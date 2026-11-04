@@ -169,9 +169,10 @@ impl Session {
                         if log {
                             let record = &entry.records[changed];
                             eprintln!(
-                                "tsrs result cache: miss ({} {} changed)",
+                                "tsrs result cache: miss ({} {} changed, found in {:.1} ms)",
                                 record.kind.name(),
-                                record.path
+                                record.path,
+                                start.elapsed().as_secs_f64() * 1e3
                             );
                         }
                     }
@@ -458,7 +459,8 @@ impl Recorder {
     }
 
     /// Writes the entry (layout at `Entry::decode`) straight from the maps, project paths before `node_modules`
-    /// ones (validation meets an edit sooner). Returns how many reads were recorded by their text.
+    /// ones and file reads and listings first (validation meets an edit sooner). Returns how many reads were recorded
+    /// by their text.
     fn write_entry(
         &self,
         out: impl std::io::Write,
@@ -466,7 +468,19 @@ impl Recorder {
         status: ExitStatus,
         output: &str,
     ) -> std::io::Result<usize> {
-        let mut out = HashingWriter { inner: std::io::BufWriter::new(out), hasher: Xxh3Default::new() };
+        const ORDER: [Kind; KINDS.len()] = [
+            Kind::ReadUnchanged,
+            Kind::ReadContent,
+            Kind::Entries,
+            Kind::FileExists,
+            Kind::DirectoryExists,
+            Kind::Stat,
+            Kind::Realpath,
+        ];
+        let mut out = HashingWriter {
+            inner: std::io::BufWriter::with_capacity(1 << 20, out),
+            hasher: Xxh3Default::new(),
+        };
         let count: usize = self.seen.iter().map(SyncMap::size).sum();
         out.write_all(MAGIC)?;
         out.write_all(&key.to_le_bytes())?;
@@ -475,15 +489,17 @@ impl Recorder {
         out.write_all(output.as_bytes())?;
         out.write_all(&(count as u64).to_le_bytes())?;
         let mut result = Ok(());
+        let mut record = Vec::new();
         for dependencies in [false, true] {
-            for kind in KINDS {
+            for kind in ORDER {
                 self.seen[kind as usize].for_each(|path, &digest| {
                     if result.is_ok() && path.contains("/node_modules/") == dependencies {
-                        result = out
-                            .write_all(&[kind as u8])
-                            .and_then(|()| out.write_all(&(path.len() as u32).to_le_bytes()))
-                            .and_then(|()| out.write_all(path.as_bytes()))
-                            .and_then(|()| out.write_all(&digest.to_le_bytes()));
+                        record.clear();
+                        record.push(kind as u8);
+                        record.extend_from_slice(&(path.len() as u32).to_le_bytes());
+                        record.extend_from_slice(path.as_bytes());
+                        record.extend_from_slice(&digest.to_le_bytes());
+                        result = out.write_all(&record);
                     }
                 });
             }

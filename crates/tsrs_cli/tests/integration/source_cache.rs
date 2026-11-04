@@ -150,17 +150,24 @@ fn edits_deletes_renames_and_new_files_are_read_from_disk() {
 
     // Same size, modification time restored: only the status-change time shows the edit.
     let mtime = fs::metadata(case.path("b.ts")).unwrap().modified().unwrap();
+    let changed = std::time::Instant::now();
     case.write("b.ts", "export const b = \"123\";\n");
     set_mtime(&case.path("b.ts"), mtime);
-    let edited = case.checked();
+    let edited = case.run("1");
+    let fresh = changed.elapsed() < Duration::from_millis(1900);
+    assert_eq!(edited, Run { hits: edited.hits, misses: edited.misses, ..case.run("0") });
     assert_eq!(edited.status, Some(0), "{edited:?}");
     assert_eq!((edited.hits, edited.misses), (1, 1));
-    let again = case.checked();
-    assert_eq!(
-        (again.hits, again.misses),
-        (1, 1),
-        "a file read within 2 s of its last change is not stored"
-    );
+    // A run that ended within 2 s of the edit read b.ts while it was unsettled, so it must not have stored it (on a
+    // loaded machine the run can take longer; then b.ts may be stored and the check says nothing).
+    if fresh {
+        let again = case.checked();
+        assert_eq!(
+            (again.hits, again.misses),
+            (1, 1),
+            "a file read within 2 s of its last change is stored"
+        );
+    }
 
     fs::remove_file(case.path("b.ts")).unwrap();
     let deleted = case.checked();

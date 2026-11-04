@@ -131,7 +131,9 @@ TypeScript `7.1.0-beta`. For a source checkout, `Cargo.toml` records the exact T
 
 - [Editor setup](LSP.md#editor-setup): run the language server with `tsrs --lsp -stdio`.
 - [Type-aware linting](../tools/tsgolint/README.md): `tsrs --lint headless`, or the npm `tsrs-lint` command, is the
-  backend `oxlint --type-aware` runs (`OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint`).
+  backend `oxlint --type-aware` runs (`OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint`). With `TSRS_FAST=1`,
+  `oxlint --type-aware --type-check` also reports what `tsrs --noEmit` does, so it can replace a separate typecheck
+  ([details](../tools/tsgolint/README.md#type-checking-in-the-lint-run)).
 - [JavaScript API](NODE_API.md#javascript-api): TypeScript 7's synchronous and asynchronous APIs.
 - [WebAssembly](../npm/tsrs-wasm/README.md): single-threaded compilation in Node and browsers.
 - [Build from source](../CONTRIBUTING.md#build): native and WebAssembly builds and the development workflow.

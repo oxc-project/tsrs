@@ -279,7 +279,7 @@ fn run_in_region(
             }
             continue;
         }
-        let whole = payload.report_semantic && check_whole_program();
+        let whole = payload.report_semantic && whole_program_type_check();
         run_program(
             program_ref,
             &files,
@@ -291,6 +291,11 @@ fn run_in_region(
             &file_configs,
             &mut timings,
         )?;
+        if whole {
+            for diagnostic in program_ref.get_global_diagnostics(&Context::default()) {
+                report_global_error(diagnostic, &config_path, writer)?;
+            }
+        }
     }
     if !unmatched.is_empty() {
         let config = tsrs_tsoptions::new_parsed_command_line(
@@ -318,7 +323,7 @@ fn run_in_region(
         );
         let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders));
         // With the whole-program check, compiler diagnostics follow `tsrs --noEmit`, which checks no such file.
-        let types = !check_whole_program();
+        let types = !whole_program_type_check();
         run_program(
             program.program,
             &unmatched,
@@ -398,18 +403,18 @@ fn checker_count() -> Option<i64> {
     std::env::var("RAYON_NUM_THREADS").ok().and_then(|value| value.parse().ok()).filter(|&n| n > 0)
 }
 
-// tsrs-only: with the fast preset and `TSRS_LINT_CHECK_PROGRAM=1`, semantic reporting covers every file of each tsconfig
-// program that `tsrs --noEmit` would check, not only the files oxlint sent, so one `oxlint --type-aware --type-check`
-// run can replace a separate typecheck. Files outside every tsconfig are linted but, as with `tsrs --noEmit`, not
-// type-checked.
-fn check_whole_program() -> bool {
-    tsrs_core::fast::enabled() && std::env::var("TSRS_LINT_CHECK_PROGRAM").is_ok_and(|v| v == "1")
+// tsrs-only: under the fast preset, semantic reporting (oxlint `--type-check`) reports what `tsrs --noEmit` does for
+// each tsconfig program: every file it checks, not only the files oxlint sent, and the program's global diagnostics.
+// Files outside every tsconfig are linted but, as with `tsrs --noEmit`, not type-checked. One `oxlint --type-aware
+// --type-check` run can then replace a separate typecheck. Default mode reports the files oxlint sent, as tsgolint does.
+fn whole_program_type_check() -> bool {
+    tsrs_core::fast::enabled()
 }
 
 // Lints the files on the program's checker pool: one thread per checker, each over the files the pool assigned to
 // it (by import-graph locality under the fast preset), so a checker resolves the types of its own corner of the
 // program instead of nearly all of it. Output keeps the order of `files`.
-// `whole`: also report the compiler diagnostics of the program's other files (`check_whole_program`), after them;
+// `whole`: also report the compiler diagnostics of the program's other files (`whole_program_type_check`), after them;
 // `types`: report the payload's compiler diagnostics at all.
 fn run_program(
     program: &'static Program,
@@ -607,6 +612,32 @@ fn report_type_error(
                 help: String::new(),
             },
             file_path: Some(file.file_name().into()),
+            ..Default::default()
+        },
+        writer,
+    )
+}
+
+// A diagnostic of the whole program, such as a missing global type, which `tsrs --noEmit` reports without a location:
+// reported on the program's tsconfig, like a configuration error.
+fn report_global_error(
+    diagnostic: P<TsDiagnostic>,
+    config_path: &str,
+    writer: &mut dyn Write,
+) -> Result<(), String> {
+    emit(
+        &Diagnostic {
+            range: diagnostic_range(diagnostic),
+            message: RuleMessage {
+                id: format!("TS{}", diagnostic.code()),
+                description: diagnostic.localize(),
+                help: String::new(),
+            },
+            file_path: Some(
+                diagnostic
+                    .file()
+                    .map_or_else(|| config_path.to_owned(), |f| f.file_name().to_owned()),
+            ),
             ..Default::default()
         },
         writer,

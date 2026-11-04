@@ -69,6 +69,23 @@ The npm `tsrs` package ships the linter inside the `tsrs` binary, with a `tsrs-l
 `tsrs --lint`. Point oxlint at the launcher, `OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint`, not at `tsrs`:
 oxlint runs `<path> headless ...`, which `tsrs` would read as a root file.
 
+## Type checking in the lint run
+
+`oxlint --type-aware --type-check` asks the linter for compiler diagnostics too. Under the fast preset
+(`TSRS_FAST=1`) they are what `tsrs --noEmit` reports for each tsconfig program: every file it checks, including files
+oxlint did not send (ignored or generated files, declaration files), and the program's global diagnostics, reported on
+its tsconfig. Files outside every tsconfig are linted but not type-checked. One command then replaces type-aware lint
+plus a separate typecheck:
+
+```sh
+TSRS_FAST=1 OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware --type-check
+```
+
+Each tsconfig that oxlint's files map to is checked whole, so this pays when lint and the typecheck use the same
+tsconfigs; a monorepo that typechecks one root config while lint maps files to many overlapping package configs does
+more work ([measurements](../../notes/perf-tsgolint-check-program.md)). Without the fast preset, compiler diagnostics
+cover the files oxlint sent, as in tsgolint.
+
 Run imported suites with:
 
 ```sh

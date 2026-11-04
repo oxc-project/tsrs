@@ -2132,13 +2132,21 @@ impl Checker {
     ) {
         let Some(source) = source else { return };
         let mut lookup_table = lookup_table;
-        for (id, source_symbol) in source.entries() {
+        // tsrs-only: room for the remaining exports before the first insert (capacity only; see add_inherited_members).
+        let mut reserved = false;
+        let entries = source.entries();
+        let count = entries.len();
+        for (i, (id, source_symbol)) in entries.into_iter().enumerate() {
             if id == INTERNAL_SYMBOL_NAME_DEFAULT {
                 continue;
             }
             let target_symbol = target.lookup(id);
             match target_symbol {
                 None => {
+                    if !reserved {
+                        target.reserve(count - i);
+                        reserved = true;
+                    }
                     target.set(id, source_symbol);
                     if let (Some(lookup_table), Some(export_node)) =
                         (lookup_table.as_deref_mut(), export_node)

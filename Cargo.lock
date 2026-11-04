@@ -1563,6 +1563,7 @@ dependencies = [
  "rustc-hash",
  "rustix",
  "tsrs_core",
+ "xxhash-rust",
 ]
 
 [[package]]

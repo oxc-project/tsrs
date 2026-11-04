@@ -5,6 +5,16 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 0.22.0
+
+The package version is `0.22.0-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.
+The [release notes](releases/0.22.0.md) cover content mappers in the language server, the Node API and the linter,
+the opt-in whole-program type check in one lint pass, fast-mode build info that keeps interface caches on incremental
+edits, and two fast-mode checker shortcuts ([#854](https://github.com/oxc-project/tsrs/pull/854),
+[#875](https://github.com/oxc-project/tsrs/pull/875), [#883](https://github.com/oxc-project/tsrs/pull/883),
+[#885](https://github.com/oxc-project/tsrs/pull/885), [#897](https://github.com/oxc-project/tsrs/pull/897),
+[#900](https://github.com/oxc-project/tsrs/pull/900)).
+
 ## 0.21.0
 
 The package version is `0.21.0-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.

@@ -131,7 +131,7 @@ impl ProgramOptions {
             canonical_diagnostics: true,
             checker_regions: false,
             checker_diagnostic_regions: false,
-            regions: None,
+            regions: config.regions.map(|_| Arc::default()),
             reuse_synthetic_imports: false,
         }
     }
@@ -705,6 +705,7 @@ impl Program {
                 create_module_resolver,
             );
             opts.canonical_diagnostics = self.canonical_diagnostics;
+            opts.regions = Some(Arc::default());
             (new_program(opts), new_file, false)
         }
     }

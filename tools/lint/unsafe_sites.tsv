@@ -370,6 +370,10 @@ crates/tsrs_execute/src/build/orchestrator.rs	free_api_orchestrator	from_raw	own
 crates/tsrs_execute/src/build/orchestrator.rs	free_api_orchestrator	from_raw	ownership	as above.	safe-api-possible	a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_execute/src/build/orchestrator.rs	new_orchestrator	leak	ownership		safe-api-possible	paired with free_api_orchestrator; a program owner type with Drop (#646 milestone 1) replaces this manual free
 crates/tsrs_execute/src/build/orchestrator.rs	new_orchestrator	leak	ownership	#2	safe-api-possible	paired with free_api_orchestrator; a program owner type with Drop (#646 milestone 1) replaces this manual free
+crates/tsrs_execute/src/daemon/protocol.rs	directory	block	boundary	getuid has no preconditions and cannot fail.	keep	libc call with no arguments
+crates/tsrs_execute/src/daemon/server.rs	Server::keep	block	ownership	nothing refers to the program any more: the request that used it has been answered, its	safe-api-possible	frees the request's program as watch mode does; a program owner type with Drop (#646 milestone 1) replaces this manual free
+crates/tsrs_execute/src/daemon/server.rs	Server::wait	block	boundary	one valid pollfd for the listener this server owns.	keep	libc call with plain-data arguments
+crates/tsrs_execute/src/daemon/server.rs	close_inherited_fds	block	boundary	closes a descriptor no Rust object owns yet (or the listing's own, already closed: EBADF).	keep	runs first in the server process, before it opens anything
 crates/tsrs_execute/src/execute.rs	parse_config_host	leak	ownership		keep	process-lifetime by design; one allocation, no growth (tsc host; the server does not use it)
 crates/tsrs_execute/src/sys.rs	exit_on_broken_pipe	block	boundary	signal and raise take integer arguments only; the default action of SIGPIPE ends the process.	keep	libc call with plain-data arguments
 crates/tsrs_execute/src/tsc/compile.rs	format_local_time_03_04_05_pm	block	boundary	`libc::tm` is C integers (and, on some platforms, a nullable `char *`), for which all zeros is valid.	keep	libc call with plain-data arguments

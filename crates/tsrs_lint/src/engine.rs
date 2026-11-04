@@ -315,7 +315,8 @@ fn checker_count() -> Option<i64> {
 
 // Lints the files on the program's checker pool: one thread per checker, each over the files the pool assigned to
 // it (by import-graph locality under the fast preset), so a checker resolves the types of its own corner of the
-// program instead of nearly all of it. Output keeps the order of `files`.
+// program instead of nearly all of it. Under the fast preset a checker that runs out of files takes files from busier
+// ones, as in the type-check pass. Output keeps the order of `files`.
 fn run_program(
     program: &'static Program,
     files: &[String],
@@ -343,7 +344,7 @@ fn run_program(
     let outputs: Vec<Mutex<Vec<u8>>> = work.iter().map(|_| Mutex::new(Vec::new())).collect();
     let errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
     let pool_timings: Mutex<BTreeMap<String, (u64, u64)>> = Mutex::new(BTreeMap::new());
-    let pooled = program.for_each_checker_group(&lint_files, |checker, index, file| {
+    let pooled = program.for_each_checker_group_stealing(&lint_files, |checker, index, file| {
         let mut output = Vec::new();
         let mut file_timings = BTreeMap::new();
         let result = lint_one(

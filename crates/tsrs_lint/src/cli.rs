@@ -30,8 +30,10 @@ pub fn main(args: Vec<String>) -> i32 {
     }
 }
 
-/// Parses `headless [--fix] [--fix-suggestions] [--debug timings]`, reads the payload from `input`, lints it from the
-/// current directory and writes the frames to `output`. Returns the exit status.
+/// Parses `headless [--runExternalCode] [--fix] [--fix-suggestions] [--debug timings]`.
+///
+/// Reads the payload from `input`, lints it from the current directory and writes the frames to `output`.
+/// Returns the exit status.
 pub fn run(
     args: impl IntoIterator<Item = String>,
     input: &mut dyn Read,
@@ -44,11 +46,15 @@ pub fn run(
         .is_ok_and(|value| value == "true"),
         ..Default::default()
     };
+    if std::env::var("TSRS_RUN_EXTERNAL_CODE").is_ok_and(|value| value == "true" || value == "1") {
+        options.run_external_code = true;
+    }
     let mut headless = false;
     let mut args = args.into_iter();
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "headless" | "--headless" => headless = true,
+            "-runExternalCode" | "--runExternalCode" => options.run_external_code = true,
             "-fix" | "--fix" => options.fix = true,
             "-fix-suggestions" | "--fix-suggestions" => options.fix_suggestions = true,
             "-debug" | "--debug" => {
@@ -61,7 +67,7 @@ pub fn run(
             }
             "--help" | "-h" => {
                 eprintln!(
-                    "Usage: tsrs-lint headless [--fix] [--fix-suggestions] [--debug timings]"
+                    "Usage: tsrs-lint headless [--runExternalCode] [--fix] [--fix-suggestions] [--debug timings]"
                 );
                 return 0;
             }

@@ -49,6 +49,42 @@ fn frame_types(mut bytes: &[u8]) -> Vec<u8> {
 }
 
 #[test]
+fn lint_mode_accepts_run_external_code_for_content_mappers() {
+    let base = std::env::current_dir().unwrap().join("target/lint-content-mapper");
+    let file = base.join("a.ts").to_string_lossy().into_owned();
+    let mut overrides = JsonMap::default();
+    overrides.insert(
+        base.join("tsconfig.json").to_string_lossy().into_owned(),
+        Value::String(r#"{"compilerOptions":{"strict":true,"target":"esnext","types":[]},"contentMappers":[{"package":"vize","extensions":[".vue"]}],"include":["*.ts","*.vue"]}"#.into()),
+    );
+    overrides.insert(file.clone(), Value::String("export const x = 1;\n".into()));
+    let payload = json::marshal(&protocol::object([
+        ("version", Value::Integer(2)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                ("file_paths", Value::Array(vec![Value::String(file)])),
+                ("rules", Value::Array(Vec::new())),
+            ])]),
+        ),
+        ("source_overrides", Value::Object(overrides)),
+    ]))
+    .unwrap();
+
+    let (status, frames) = compare(&payload, &["--runExternalCode", "headless"]);
+    assert_eq!(status, 0);
+    let text = String::from_utf8_lossy(&frames);
+    assert!(
+        text.contains("could not be resolved"),
+        "expected mapper package resolution error, got: {text}"
+    );
+    assert!(
+        !text.contains("runExternalCode"),
+        "config parser should no longer complain about missing runExternalCode: {text}"
+    );
+}
+
+#[test]
 fn lint_mode_writes_the_same_frames_as_the_linter() {
     let base = std::env::current_dir().unwrap().join("target/lint-mode");
     let file = base.join("a.ts").to_string_lossy().into_owned();

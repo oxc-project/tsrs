@@ -9,10 +9,11 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use tsrs_ast::{Diagnostic as TsDiagnostic, SourceFile};
 use tsrs_compiler::{Context, Program, ProgramOptions};
+use tsrs_contentmapper as contentmapper;
 use tsrs_core::json::Value;
 use tsrs_core::tspath;
 use tsrs_core::{
-    CompilerOptions, JsxEmit, ModuleKind, ModuleResolutionKind, P, ScriptTarget, Tristate,
+    CompilerOptions, JsxEmit, Locale, ModuleKind, ModuleResolutionKind, P, ScriptTarget, Tristate,
 };
 use tsrs_tsoptions::{ParseConfigHost, ParsedCommandLine};
 use tsrs_vfs::{FS, bundled, cachedvfs, osvfs, wrapvfs};
@@ -27,6 +28,7 @@ pub struct Options {
     pub fix_suggestions: bool,
     pub debug_timings: bool,
     pub suppress_program_diagnostics: bool,
+    pub run_external_code: bool,
 }
 
 #[derive(Default)]
@@ -145,6 +147,15 @@ pub fn run(
     run_in_region(payload, options, cwd, writer, fs, &host, &regions)
 }
 
+#[expect(dead_code, reason = "the first field is kept for its Drop side effect")]
+struct OwnedProgram(ContentMapperCloser, ProgramOwner);
+
+impl OwnedProgram {
+    fn program(&self) -> &'static Program {
+        self.1.0
+    }
+}
+
 struct ProgramOwner(&'static Program);
 
 impl Drop for ProgramOwner {
@@ -154,6 +165,57 @@ impl Drop for ProgramOwner {
             tsrs_compiler::free_unshared_program(self.0);
         }
     }
+}
+
+struct ContentMapperCloser {
+    host: Option<Arc<dyn contentmapper::Host>>,
+}
+
+impl Drop for ContentMapperCloser {
+    fn drop(&mut self) {
+        if let Some(host) = self.host.take() {
+            let _ = host.close();
+        }
+    }
+}
+
+fn new_content_mapper_host(
+    options: Options,
+    config: P<ParsedCommandLine>,
+) -> Option<Arc<dyn contentmapper::Host>> {
+    if !options.run_external_code {
+        return None;
+    }
+    let compiler_options = config.compiler_options()?;
+    if !compiler_options.run_external_code.is_true() {
+        return None;
+    }
+    let spawner: Arc<dyn contentmapper::Spawner> = Arc::new(contentmapper::SpawnerFunc(
+        |command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>| {
+            contentmapper::spawn_process(command, dir, stderr)
+        },
+    ));
+    Some(contentmapper::new_host_with_options(
+        spawner,
+        Locale(compiler_options.locale.clone()),
+        contentmapper::HostOptions::default(),
+    ))
+}
+
+fn get_content_mapper_project(
+    host: Option<&Arc<dyn contentmapper::Host>>,
+    config: P<ParsedCommandLine>,
+) -> Option<Arc<dyn contentmapper::Project>> {
+    let host = host?;
+    let config = config.get();
+    if config.parsed_config.content_mappers.is_empty() {
+        return None;
+    }
+    host.project(contentmapper::ProjectSpec {
+        config_file_name: config.config_name().to_string(),
+        mappers: config.parsed_config.content_mappers.iter().collect(),
+        compiler_options: config.compiler_options(),
+    })
 }
 
 fn run_in_region(
@@ -190,9 +252,12 @@ fn run_in_region(
     }
     drop(config_cache);
     for (config_path, files) in programs {
+        let existing_options = options
+            .run_external_code
+            .then(|| CompilerOptions { run_external_code: Tristate::True, ..Default::default() });
         let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
             &config_path,
-            None,
+            existing_options.as_ref(),
             None,
             host,
             None,
@@ -203,32 +268,51 @@ fn run_in_region(
             }
             continue;
         }
-        let config = config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
+        let mut config =
+            config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
         if !config.errors.is_empty() && !options.suppress_program_diagnostics {
             for diagnostic in &config.errors {
                 report_config_error(*diagnostic, &config_path, false, writer)?;
             }
             continue;
         }
+        if let Some(checkers) = checker_count() {
+            let mut compiler_options = (*config.compiler_options().unwrap()).clone();
+            compiler_options.checkers = Some(checkers);
+            config.parsed_config.compiler_options = Some(P::new(compiler_options));
+        }
+        let config = P::new(config);
+        let content_mapper_host = new_content_mapper_host(options, config);
+        let content_mapper_project =
+            get_content_mapper_project(content_mapper_host.as_ref(), config);
         let program = create_program(
             config,
             Arc::clone(&fs),
             &tspath::get_directory_path(&config_path),
             true,
             Arc::clone(&regions.loaders),
+            content_mapper_host,
+            content_mapper_project,
         );
-        let program_ref = program.0;
-        let diagnostics = program_ref.get_program_diagnostics();
+        let diagnostics = program.program().get_program_diagnostics();
         if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
             for diagnostic in diagnostics {
                 report_config_error(diagnostic, &config_path, true, writer)?;
             }
             continue;
         }
-        run_program(program_ref, &files, payload, options, writer, &file_configs, &mut timings)?;
+        run_program(
+            program.program(),
+            &files,
+            payload,
+            options,
+            writer,
+            &file_configs,
+            &mut timings,
+        )?;
     }
     if !unmatched.is_empty() {
-        let config = tsrs_tsoptions::new_parsed_command_line(
+        let mut config = tsrs_tsoptions::new_parsed_command_line(
             P::new(CompilerOptions {
                 allow_js: Tristate::True,
                 module: ModuleKind::ES_NEXT,
@@ -251,8 +335,29 @@ fn run_in_region(
                 use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
             },
         );
-        let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders));
-        run_program(program.0, &unmatched, payload, options, writer, &file_configs, &mut timings)?;
+        if let Some(checkers) = checker_count() {
+            let mut compiler_options = (*config.compiler_options().unwrap()).clone();
+            compiler_options.checkers = Some(checkers);
+            config.parsed_config.compiler_options = Some(P::new(compiler_options));
+        }
+        let program = create_program(
+            P::new(config),
+            fs,
+            cwd,
+            false,
+            Arc::clone(&regions.loaders),
+            None,
+            None,
+        );
+        run_program(
+            program.program(),
+            &unmatched,
+            payload,
+            options,
+            writer,
+            &file_configs,
+            &mut timings,
+        )?;
     }
     if options.debug_timings {
         let mut records = timings.into_iter().collect::<Vec<_>>();
@@ -284,27 +389,32 @@ fn run_in_region(
 }
 
 fn create_program(
-    mut config: ParsedCommandLine,
+    config: P<ParsedCommandLine>,
     fs: Arc<dyn FS>,
     cwd: &str,
     references: bool,
     loader_regions: Arc<tsrs_compiler::ProgramRegions>,
-) -> ProgramOwner {
-    if let Some(checkers) = checker_count() {
-        config.parsed_config.compiler_options = Some(P::new(CompilerOptions {
-            checkers: Some(checkers),
-            ..(*config.compiler_options().unwrap()).clone()
-        }));
-    }
+    content_mapper_host: Option<Arc<dyn contentmapper::Host>>,
+    content_mapper_project: Option<Arc<dyn contentmapper::Project>>,
+) -> OwnedProgram {
     // As in the CLI, `TSRS_LIB_PATH` overrides where the default libraries are read from.
-    let host =
-        tsrs_compiler::new_compiler_host(cwd, fs, &bundled::default_lib_path(), None, None, None);
-    let mut options = ProgramOptions::new(P::new(config), host);
+    let host = tsrs_compiler::new_compiler_host(
+        cwd,
+        fs,
+        &bundled::default_lib_path(),
+        None,
+        None,
+        content_mapper_project,
+    );
+    let mut options = ProgramOptions::new(config, host);
     options.use_source_of_project_reference = references;
     options.regions = Some(loader_regions);
     // The checkers' memory goes back with the program (`free_unshared_program`), before the next program's is built.
     options.checker_regions = true;
-    ProgramOwner(tsrs_compiler::new_program(options))
+    OwnedProgram(
+        ContentMapperCloser { host: content_mapper_host },
+        ProgramOwner(tsrs_compiler::new_program(options)),
+    )
 }
 
 /// `RAYON_NUM_THREADS` (oxlint's thread count) caps the checkers as well as the loader threads, else the compiler's

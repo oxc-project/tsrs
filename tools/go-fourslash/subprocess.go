@@ -260,9 +260,12 @@ func (s *subprocessClient) serveFS(ctx context.Context, conn net.Conn, opts lsp.
 			}
 			encoded, marshalErr := json.Marshal(options)
 			err = marshalErr
+			// The harness's content-mapper spawner serves Go mappers in this process; the server substitutes the
+			// Rust port of the same test mappers (tsrs_contentmappertest).
 			result = map[string]any{
 				"compilerOptions": stdjson.RawMessage(encoded), "cwd": opts.Cwd,
 				"defaultLibraryPath": opts.DefaultLibraryPath, "caseSensitive": opts.FS.CaseSensitivity().IsCaseSensitive(),
+				"contentMapperSpawner": opts.Spawn != nil,
 			}
 		case "ready":
 			stateConn, acceptErr := s.stateListener.Accept()

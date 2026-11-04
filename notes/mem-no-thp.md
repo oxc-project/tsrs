@@ -207,7 +207,5 @@ compiled the way each crate compiles it and a C program that reads `/proc/self/s
 
 ## 2026-11-04: `--fast` gives the heap huge pages again
 
-Under `--fast` (or `TSRS_FAST=1`) on Linux with glibc the CLI sets `allow_thp = 1` before mimalloc starts, so the heap
-is advised as before `no_thp`: 4-14% less wall time on a 32-vCPU Graviton box for 23-42% more peak memory on the large
-catalog projects (+0.3-0.5 GiB on the small ones). The default mode keeps this note's policy. Details:
-`notes/perf-fast-heap-thp.md`.
+Under `--fast` (or `TSRS_FAST=1`) on Linux with glibc the CLI sets `allow_thp = 1` before mimalloc starts; the default
+mode keeps this note's policy. Measurements: `notes/perf-fast-heap-thp.md`.

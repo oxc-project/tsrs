@@ -94,6 +94,23 @@ Individual feature flags and their environment overrides take precedence over th
 `--checkerAssignment locality` or `TSRS_LAZY_DTS=1`. For a comparison with the reference defaults, leave those overrides unset
 and use `--fast false`. Match any explicit `--checkers` or `--singleThreaded` option on the reference compiler too.
 
+### Result cache
+
+On Linux and macOS, a `--fast` check that writes no files (`--noEmit`, not incremental, no `--build` or `--watch`)
+and prints no timings records its output together with every file system answer it used (stats, existence probes,
+directory listings, realpaths). The next run of the same command, from the same directory, binary and environment,
+replays that output and exit status without building a program when every answer still matches; any change (an
+edit, a new file a module lookup would now find, a changed config, a retargeted symlink) runs the check again and
+records the new result ([notes/fast-result-cache.md](../notes/fast-result-cache.md)).
+
+- A file is vouched for by its device, inode, size, mode and modification and change times; a file changed less
+  than two seconds before the recording run started is compared by content instead.
+- Entries live in `$XDG_CACHE_HOME/tsrs/result-cache` (default `~/.cache/tsrs/result-cache`) on Linux and
+  `~/Library/Caches/tsrs/result-cache` on macOS, at most 64 entries and 256 MiB; `TSRS_RESULT_CACHE_DIR` moves them.
+- `TSRS_RESULT_CACHE=0` turns the cache off; timing repeated `--fast` runs needs it (the repository's bench, perf and
+  determinism tools set it). Any other `TSRS_` variable, a response file, `--checkerCostCache`,
+  `--checkerAssignment file:` or `--runExternalCode` turns it off for that run.
+
 ### Individual controls
 
 Alongside the supported `tsc` flags, tsrs offers these controls:

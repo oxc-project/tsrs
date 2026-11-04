@@ -184,6 +184,8 @@ export function cleanEnvironment(workers, memoryGiB) {
   for (const key of Object.keys(env)) if (/^(TSRS_|TS_TEST_|RAYON_|MIMALLOC_|MALLOC_|Malloc)/.test(key) || ['GOGC', 'GOMEMLIMIT', 'GOMAXPROCS', 'GODEBUG'].includes(key)) { delete env[key]; removed.push(key); }
   // Older tsrs binaries ignore this variable and retain their then-default optimized mode.
   env.TSRS_FAST = '1';
+  // Timed runs repeat one command on an unchanged tree; the result cache would replay them.
+  env.TSRS_RESULT_CACHE = '0';
   if (workers !== undefined) { env.GOMAXPROCS = String(workers); env.RAYON_NUM_THREADS = String(workers); }
   if (memoryGiB) env.GOMEMLIMIT = `${memoryGiB}GiB`;
   return { env, removed: removed.sort() };

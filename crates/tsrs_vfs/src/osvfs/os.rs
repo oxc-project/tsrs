@@ -168,8 +168,8 @@ pub fn global_typings_cache_location(cache_dir: Option<&str>) -> String {
     tspath::combine_paths(&cache_path, &[subdir, tsrs_core::version_major_minor()])
 }
 
-// Go os.UserCacheDir.
-fn user_cache_dir() -> Option<String> {
+/// Go os.UserCacheDir.
+pub fn user_cache_dir() -> Option<String> {
     let non_empty = |name: &str| std::env::var(name).ok().filter(|v| !v.is_empty());
     if cfg!(windows) {
         return non_empty("LocalAppData");

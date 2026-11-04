@@ -20,6 +20,7 @@ fn run(args: &[&str]) -> (bool, String) {
         .args(args)
         .env_remove("TSRS_CHECKER_ASSIGNMENT")
         .env_remove("TSRS_HISTORY")
+        .env("TSRS_RESULT_CACHE", "0")
         .output()
         .unwrap();
     assert!(

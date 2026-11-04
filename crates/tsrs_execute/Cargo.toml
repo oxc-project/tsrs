@@ -23,6 +23,7 @@ tsrs_contentmapper.workspace = true
 tsrs_ipc.workspace = true
 tsrs_fswatch.workspace = true
 rustc-hash.workspace = true
+xxhash-rust.workspace = true
 
 [target.'cfg(unix)'.dependencies]
 libc.workspace = true

@@ -19,6 +19,8 @@ export const baseEnv = (mimalloc = false) => ({
         ),
     ),
     TSRS_FAST: "1",
+    // Timed runs repeat one command on an unchanged tree; the result cache would replay them.
+    TSRS_RESULT_CACHE: "0",
 });
 export function positiveList(text) {
     const values = text.split(",").map(Number);

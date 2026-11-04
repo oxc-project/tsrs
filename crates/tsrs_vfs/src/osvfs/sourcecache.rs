@@ -1,27 +1,15 @@
-//! tsrs-only, `--fast` command-line compilations: file text served from a persistent cache instead of an
-//! open + read + close per file (notes/perf-source-cache.md).
+//! tsrs-only, `--fast` command-line compilations: file text served from a per-project cache of the previous run's
+//! reads instead of an open + read + close per file (notes/perf-source-cache.md).
 //!
-//! On macOS with an Endpoint Security client every `open` is authorized by it, and the system tops out near 110k opens
-//! a second however many threads ask, while `stat` scales. The cache keeps the bytes of each file the previous run
-//! read, keyed by path and validated by the file's identity: device, inode, size, and modification and status-change
-//! times in nanoseconds. A hit is one `stat` of the file and a copy out of the cache file, which the run maps once
-//! (`pread` from many threads serializes on the file's vnode lock on macOS).
+//! A cached entry is served only while the file's device, inode, size, modification time and status-change time
+//! (nanoseconds) all match and its checksum verifies; anything else is read from disk. A file read from disk is
+//! stored only when both times are more than `SETTLED` older than the moment its read started (git's "racy" rule),
+//! so a later write always gives it a newer status-change time, even one that keeps the size and restores the
+//! modification time (`touch -r`).
 //!
-//! - An entry is stored only when the file's modification and status-change times are more than `SETTLED` older than
-//!   the moment its read started (git's "racy" rule, with the file system's timestamp granularity taken as unknown up
-//!   to that margin). Any later write to the file then gives it a newer status-change time, so the identity no longer
-//!   matches, even when the write keeps the size and restores the modification time (`touch -r`).
-//! - One cache file per project, `<user cache dir>/tsrs/source-cache/<hash of the key>.bin` (never inside the
-//!   project), written whole to a temporary file and renamed over the old one, never written in place: two runs at
-//!   once each map one complete file. The header, index and paths carry one checksum and each entry's bytes another; a
-//!   file that does not verify is ignored, and an entry that does not is read from disk.
-//! - Rewritten only when the run read at least 1/32 of its files from disk (any, with nothing cached yet) or left a
-//!   quarter of the cached entries unused, dropping the unused ones; the write runs on a thread of its own while the
-//!   program is checked. Otherwise the mapping is released once the program is built, so the check does not keep its
-//!   pages.
-//! - A cache directory over `DIRECTORY_LIMIT` loses its least recently written cache files.
-//!
-//! `TSRS_SOURCE_CACHE=0` turns it off; `TSRS_SOURCE_CACHE_DIR` moves it.
+//! The cache file lives under the user cache directory, never inside the project, and is written whole to a
+//! temporary file and renamed over the old one, never in place: a run maps one complete file, and the mapping stays
+//! valid while another run replaces the file. `TSRS_SOURCE_CACHE=0` turns the cache off.
 
 use std::fs::{self, File};
 use std::io::{self, BufWriter, Read, Write};
@@ -35,19 +23,19 @@ use std::time::{Duration, SystemTime};
 
 use xxhash_rust::xxh3::xxh3_64;
 
-// The format version is the last byte.
+// Layout, little-endian: header | key | entries | paths | data. The header's checksum covers key, entries and paths;
+// each entry's covers its data. Entries are sorted by path.
 const MAGIC: &[u8; 8] = b"tsrssrc1";
 // magic, entry count u32, key length u32, paths length u32, zero u32, file length u64, checksum u64.
 const HEADER_LEN: usize = 40;
-// path offset u32, path length u32, data offset u64, then the identity (device, inode, size, mtime, ctime: u64 /
-// i64) and the data's checksum u64.
+// path offset u32, path length u32, data offset u64, device, inode, size, mtime, ctime (u64), data checksum u64.
 const ENTRY_LEN: usize = 64;
-// A file modified less than this before its read began is not stored: a write in the same timestamp tick could leave
+// A file changed less than this before its read began is not stored: a write in the same timestamp tick could leave
 // its identity unchanged.
 const SETTLED: Duration = Duration::from_secs(2);
-// The bytes one cache file stores at most; entries past it in path order are left out.
+// Entries past this many bytes, in path order, are left out of a cache file.
 const CACHE_LIMIT: u64 = 1 << 30;
-// The size of the cache directory past which the least recently written cache files are removed.
+// Past this, the least recently written cache files are removed from the directory.
 const DIRECTORY_LIMIT: u64 = 4 << 30;
 
 static CACHE: OnceLock<SourceCache> = OnceLock::new();
@@ -61,13 +49,8 @@ pub fn install(key: &str) -> bool {
     if std::env::var_os("TSRS_SOURCE_CACHE").is_some_and(|v| v == "0") {
         return false;
     }
-    let dir = match std::env::var_os("TSRS_SOURCE_CACHE_DIR") {
-        Some(dir) if !dir.is_empty() => PathBuf::from(dir),
-        _ => match super::os::user_cache_dir() {
-            Some(dir) => Path::new(&dir).join("tsrs/source-cache"),
-            None => return false,
-        },
-    };
+    let Some(dir) = super::os::user_cache_dir() else { return false };
+    let dir = Path::new(&dir).join("tsrs/source-cache");
     let target = dir.join(format!("{:016x}.bin", xxh3_64(key.as_bytes())));
     let old = CacheFile::load(&target, key);
     CACHE
@@ -87,8 +70,8 @@ pub fn install(key: &str) -> bool {
 
 /// Ends the cached reads once the program is built; later reads go to disk.
 ///
-/// Records the `--extendedDiagnostics` rows (reads the cache served and reads it did not). When the cache is to be
-/// rewritten, starts the write on a thread of its own, so that it overlaps the check; otherwise releases the cache.
+/// Records the `--extendedDiagnostics` rows, then either starts the rewrite on a thread of its own, overlapping the
+/// check, or releases the cache.
 pub fn end_reads(diagnostics: bool) {
     let Some(cache) = CACHE.get() else { return };
     // Relaxed: the reads that counted are done (the program is built); only the totals are read.
@@ -147,8 +130,8 @@ impl Identity {
         })
     }
 
-    // Changed more than `SETTLED` before `start` (nanoseconds since the epoch, read before the file was opened). A file
-    // system that keeps no status-change time is never trusted.
+    // Changed more than `SETTLED` before `start` (nanoseconds since the epoch). A file system that keeps no
+    // status-change time is never trusted.
     fn settled(&self, start: i64) -> bool {
         let limit = start - SETTLED.as_nanos() as i64;
         self.ctime > 0 && self.mtime < limit && self.ctime < limit
@@ -235,8 +218,6 @@ struct CacheFile {
 }
 
 impl CacheFile {
-    // Layout, little-endian: header | key | entries | paths | data. The header's checksum covers key, entries and
-    // paths; each entry's covers its data. Entries are sorted by path.
     fn load(path: &Path, key: &str) -> Option<CacheFile> {
         let file = File::open(path).ok()?;
         let len = usize::try_from(file.metadata().ok()?.len()).ok()?;
@@ -307,7 +288,7 @@ impl CacheFile {
         if xxh3_64(bytes) != entry.hash {
             return None;
         }
-        // Relaxed: read after the reads are done (`wants_rewrite`, `write`).
+        // Relaxed: read after the reads are done (`decide`, `write`).
         self.seen[index].store(true, Ordering::Relaxed);
         Some(bytes.to_vec())
     }
@@ -327,8 +308,7 @@ struct SourceCache {
     // None once released (after the write, or by `end_reads`).
     old: RwLock<Option<CacheFile>>,
     pending: Mutex<Vec<Pending>>,
-    // Whether to rewrite the cache, decided once the reads are done (`end_reads`, else `finish`); later reads go to
-    // disk.
+    // Whether to rewrite the cache, decided once the reads are done; later reads go to disk.
     rewrite: OnceLock<bool>,
     // The thread writing the cache, joined by `finish`.
     writer: Mutex<Option<std::thread::JoinHandle<()>>>,
@@ -385,22 +365,22 @@ impl SourceCache {
         self.pending.lock().unwrap().clear();
     }
 
+    // Rewrite when at least 1/32 of the reads came from disk (any, with nothing cached yet) or a quarter of the cached
+    // entries went unused, so an edit loop touching a few files does not rewrite the cache every run.
     fn decide(&self) -> bool {
-        *self.rewrite.get_or_init(|| self.wants_rewrite())
-    }
-
-    fn wants_rewrite(&self) -> bool {
-        let pending = self.pending.lock().unwrap().len() as u64;
-        // Relaxed: the reads are done.
-        let reads = self.hits.load(Ordering::Relaxed) + self.misses.load(Ordering::Relaxed);
-        match &*self.old.read().unwrap() {
-            None => pending > 0,
-            Some(old) => {
-                // Relaxed: as above.
-                let unseen = old.seen.iter().filter(|s| !s.load(Ordering::Relaxed)).count();
-                pending * 32 >= reads.max(1) || unseen * 4 > old.entries.len()
+        *self.rewrite.get_or_init(|| {
+            let pending = self.pending.lock().unwrap().len() as u64;
+            // Relaxed: the reads are done.
+            let reads = self.hits.load(Ordering::Relaxed) + self.misses.load(Ordering::Relaxed);
+            match &*self.old.read().unwrap() {
+                None => pending > 0,
+                Some(old) => {
+                    // Relaxed: as above.
+                    let unseen = old.seen.iter().filter(|s| !s.load(Ordering::Relaxed)).count();
+                    pending * 32 >= reads.max(1) || unseen * 4 > old.entries.len()
+                }
             }
-        }
+        })
     }
 
     fn write(&self) -> io::Result<()> {
@@ -410,8 +390,7 @@ impl SourceCache {
         }
         let pending = std::mem::take(&mut *self.pending.lock().unwrap());
         let old = self.old.read().unwrap();
-        // Every file the run read that may be stored, in path order; one read from disk wins over a cached copy of
-        // the same path (it was read twice and changed in between).
+        // In path order; a read from disk wins over a cached copy of the same path (the stable sort keeps it first).
         let mut kept: Vec<(&[u8], Identity, Source<'_>)> =
             pending.iter().map(|p| (p.path.as_bytes(), p.id, Source::New(p))).collect();
         if let Some(old) = &*old {
@@ -483,8 +462,8 @@ impl SourceCache {
         written
     }
 
-    // Keeps the directory under `DIRECTORY_LIMIT`: removes the least recently written cache files, and temporary
-    // files that a run stopped while writing left an hour ago or more.
+    // Keeps the directory under `DIRECTORY_LIMIT`, removing the least recently written cache files, and removes
+    // temporary files left by a run stopped while writing an hour ago or more.
     fn evict(&self) {
         let Ok(entries) = fs::read_dir(&self.dir) else { return };
         let now = SystemTime::now();

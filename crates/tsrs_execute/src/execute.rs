@@ -349,9 +349,8 @@ fn tsc_compilation(
             watcher: watcher.map(|w| w as Box<dyn tsc::Watcher>),
         };
     }
-    // tsrs-only, `--fast` (tsrs_vfs osvfs/sourcecache.rs): file text from a cache of the previous run's reads,
-    // validated against each file's stat. When this run changed it, it is rewritten while the program is checked;
-    // the output is flushed before waiting for that write.
+    // tsrs-only, `--fast`: file text from a stat-validated cache (tsrs_vfs osvfs/sourcecache.rs), rewritten while
+    // the program is checked and joined after the output is flushed.
     let source_cache = testing.is_none()
         && tsrs_core::fast::enabled()
         && tsrs_vfs::osvfs::sourcecache::install(&source_cache_key(

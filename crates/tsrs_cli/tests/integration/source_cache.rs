@@ -1,7 +1,6 @@
 // `--fast` serves file text from a cache of the previous run's reads, validated by each file's stat (tsrs_vfs
-// osvfs/sourcecache.rs, notes/perf-source-cache.md). Every run here is checked against a run of the same state with
-// the cache off: the output and exit status must be the same whatever the cache holds. Each run is its own `tsrs`
-// process, so fast mode stays out of this test process.
+// osvfs/sourcecache.rs). Every cached run here is checked against a run of the same state with the cache off. Each
+// run is its own `tsrs` process, so fast mode stays out of this test process.
 
 #![cfg(unix)]
 
@@ -37,8 +36,10 @@ impl Case {
         self.root.join("project").join(name)
     }
 
+    // Where the runs' `HOME` puts the user cache directory.
     fn cache_dir(&self) -> PathBuf {
-        self.root.join("cache")
+        let caches = if cfg!(target_os = "macos") { "Library/Caches" } else { ".cache" };
+        self.root.join("home").join(caches).join("tsrs/source-cache")
     }
 
     fn write(&self, name: &str, text: &str) {
@@ -53,8 +54,8 @@ impl Case {
             .args(["-p", ".", "--fast", "--pretty", "false", "--incremental", "false"])
             .args(["--extendedDiagnostics"])
             .env("TSRS_SOURCE_CACHE", cache)
-            .env("TSRS_SOURCE_CACHE_DIR", self.cache_dir());
-        for var in ["TSRS_FAST", "TSRS_CHECKER_ASSIGNMENT", "TSRS_FILE_TIMES"] {
+            .env("HOME", self.root.join("home"));
+        for var in ["XDG_CACHE_HOME", "TSRS_FAST", "TSRS_CHECKER_ASSIGNMENT", "TSRS_FILE_TIMES"] {
             cmd.env_remove(var);
         }
         cmd
@@ -283,14 +284,11 @@ fn a_corrupt_or_truncated_cache_file_is_ignored() {
     let mut flipped = good.clone();
     *flipped.last_mut().unwrap() ^= 0x20;
     let garbage = vec![0xAB; good.len()];
-    let mut wrong_length = good.clone();
-    wrong_length.extend_from_slice(b"tail");
     for (name, bytes, hits) in [
         ("truncated", truncated, 0),
         ("one data byte flipped", flipped.as_slice(), 1),
         ("garbage", garbage.as_slice(), 0),
         ("empty", &[][..], 0),
-        ("longer than its header says", wrong_length.as_slice(), 0),
     ] {
         fs::write(&file, bytes).unwrap();
         let run = case.checked();

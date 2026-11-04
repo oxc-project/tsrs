@@ -114,11 +114,9 @@ Alongside the supported `tsc` flags, tsrs offers these controls:
   `TSRS_LAZY_MEMBERS=1` / `0` provides the environment equivalent; the explicit CLI flags win.
 - `TSRS_LAZY_DTS=1` enables lazy declaration parsing in eligible modes; `TSRS_LAZY_DTS=0` disables it even in fast
   mode. This is separate from lazy checker members.
-- `TSRS_SOURCE_CACHE=0` turns off the fast preset's source cache; `TSRS_SOURCE_CACHE_DIR=<dir>` moves it from
-  `tsrs/source-cache` in the user cache directory (`~/Library/Caches` on macOS, `$XDG_CACHE_HOME` or `~/.cache`
-  elsewhere). A cached file is used only while its device, inode, size and modification and status-change times
-  match, and only once those times are 2 s older than the read that stored it. It mainly saves time on macOS hosts
-  whose security software inspects every file open.
+- `TSRS_SOURCE_CACHE=0` turns off the fast preset's source cache (`tsrs/source-cache` in the user cache directory:
+  `~/Library/Caches` on macOS, `$XDG_CACHE_HOME` or `~/.cache` elsewhere). A cached file is served only while its
+  device, inode, size, modification time and status-change time match.
 
 `--fast`, `--checkers` and `--singleThreaded` work with `--build`. The other tsrs-only flags listed above are
 rejected with `--build`; use the supported environment overrides where applicable.

@@ -1559,6 +1559,7 @@ name = "tsrs_vfs"
 version = "0.21.0"
 dependencies = [
  "bitflags",
+ "libc",
  "rayon",
  "rustc-hash",
  "rustix",

@@ -9,7 +9,7 @@ pub mod sourcecache {
         false
     }
 
-    pub fn report_counts(_enabled: bool) {}
+    pub fn end_reads(_diagnostics: bool) {}
 
     pub fn finish() {}
 }

@@ -465,6 +465,11 @@ crates/tsrs_testrunner/src/compile.rs	create_program_like	leak	ownership	#2	keep
 crates/tsrs_testrunner/src/options.rs	new_option	leak	ownership		keep	test runner, bench or wasm one-shot; process lifetime
 crates/tsrs_testrunner/src/types_dump.rs	run	leak	ownership		keep	test runner, bench or wasm one-shot; process lifetime
 crates/tsrs_vfs/src/internal/internal.rs	decode_bytes	block	logic	simdutf8 validated every byte, and s has not been modified since validation.	keep	from_utf8_unchecked after validation, or deliberate WTF-8
+crates/tsrs_vfs/src/osvfs/sourcecache.rs	Mapping::bytes	block	ownership	`ptr .. ptr + len` stays mapped and readable until `drop`. Cache files are replaced by rename and	keep	read-only file mapping owned by Mapping; cache files are replaced by rename, never written in place
+crates/tsrs_vfs/src/osvfs/sourcecache.rs	Mapping::drop	block	boundary	the mapping `new` made; no slice of it outlives `self`.	keep	libc call with plain-data arguments
+crates/tsrs_vfs/src/osvfs/sourcecache.rs	Mapping::new	block	boundary	maps `len` bytes of an open file for reading at an address the system picks; checked below.	keep	libc call with plain-data arguments
+crates/tsrs_vfs/src/osvfs/sourcecache.rs	impl Send for Mapping	impl	ownership	read-only memory, shared between threads as a `&[u8]` is.	keep	read-only mapping without interior mutability
+crates/tsrs_vfs/src/osvfs/sourcecache.rs	impl Sync for Mapping	impl	ownership	as for Send.	keep	read-only mapping without interior mutability
 crates/tsrs_wasm/src/host.rs	(file)	extern	boundary		keep	OS, FFI or allocator call
 crates/tsrs_wasm/src/host.rs	call	block	boundary	the host reads `arg.len()` bytes at `arg.as_ptr()` during the call and keeps no reference to them.	keep	OS, FFI or allocator call
 crates/tsrs_wasm/src/host.rs	call	block	boundary	the host staged exactly `n` bytes for this call; `fs_take` copies them into `out`, which has `n` bytes.	keep	OS, FFI or allocator call

@@ -499,7 +499,7 @@ fn perform_compilation(
         tsc::DiagnosticTimer::new(sys, config.compiler_options().unwrap().diagnostics_enabled());
     let program = new_program(program_options);
     compile_times.parse_time = parse_start.elapsed();
-    tsrs_vfs::osvfs::sourcecache::report_counts(program.options().diagnostics_enabled());
+    tsrs_vfs::osvfs::sourcecache::end_reads(program.options().diagnostics_enabled());
     if let Some(content_mapper_host) = &content_mapper_host {
         compile_times.content_mapper_times = content_mapper_host.timings();
     }
@@ -598,7 +598,7 @@ fn perform_incremental_compilation(
         };
     compile_times.build_info_read_time = build_info_read_time;
     compile_times.parse_time = parse_time;
-    tsrs_vfs::osvfs::sourcecache::report_counts(
+    tsrs_vfs::osvfs::sourcecache::end_reads(
         config.compiler_options().unwrap().diagnostics_enabled(),
     );
     let changes_compute_start =

@@ -29,3 +29,5 @@ crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Send	FsEventStream
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Send	StreamCallback
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Sync	FsEventStream
 crates/tsrs_fswatch/src/fsevents_darwin_ffi.rs	Sync	StreamCallback
+crates/tsrs_vfs/src/osvfs/sourcecache.rs	Send	Mapping
+crates/tsrs_vfs/src/osvfs/sourcecache.rs	Sync	Mapping

@@ -2309,7 +2309,10 @@ impl Checker {
         // A parameter whose annotation is syntactically free of type variables and clean of conditional-flow
         // substitution (`NodeFlags::COND_FLOW_CLEAN`) resolves to a type no mapper can change, so the instantiated
         // signature keeps the original symbol, as the resolved-type shortcut below does once the type is known.
-        if symbol.flags().intersects(SymbolFlags::FunctionScopedVariable)
+        // Go creates the instantiated symbol here, and the reference mode keeps its Symbols counter, so the
+        // shortcut runs only under the fast preset's lazy-members switch.
+        if self.lazy_members
+            && symbol.flags().intersects(SymbolFlags::FunctionScopedVariable)
             && !symbol.check_flags().intersects(CheckFlags::Instantiated)
             && is_type_variable_free_parameter(symbol)
         {

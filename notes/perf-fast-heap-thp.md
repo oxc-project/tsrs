@@ -1,33 +1,30 @@
 # perf-fast-heap-thp: transparent huge pages for mimalloc's heap under `--fast`
 
 The build keeps transparent huge pages off mimalloc's heap (`no_thp`, notes/mem-no-thp.md): every partly filled
-thread-local mimalloc page was resident as a whole 2 MiB page, 25-33% of peak memory on 64 vCPUs, and the default was
-set to match `bun check`'s memory. That note also measured the price: 1-5% check time and 28-39% parse time. `--fast`
-does not have the memory constraint (it already spends memory on more checkers and caches), so under `--fast` the
-CLI gives the heap huge pages again. The arena keeps its own `MADV_HUGEPAGE` advice, unchanged.
+thread-local mimalloc page was resident as a whole 2 MiB page, 25-33% of peak memory on 64 vCPUs, and that note also
+measured the price, 1-5% check time and 28-39% parse time. `--fast` already spends memory on more checkers and
+caches, so under `--fast` the CLI gives the heap huge pages again. The arena's own `MADV_HUGEPAGE` advice is unchanged.
 
 ## Mechanism
 
 mimalloc fixes the heap's policy in its start-up constructor (`mi_process_attach`, priority 101): with `allow_thp = 0`
-it records that the OS has no THP and never advises an arena, and nothing set later turns that back on
-(`_mi_os_has_thp` reads the flag fixed at start-up). `main` runs too late to read the command line first. So
-`crates/tsrs_cli/src/main.rs` registers a priority-100 constructor (`.init_array.00100`; glibc calls constructors with
-argc, argv and envp, which Rust's std also relies on for its arguments). It reads the arguments the way the option
-parser decides `--fast` (the last `--fast [true|false]` wins, any case, one or two dashes; without one, `TSRS_FAST=1`)
-and, when fast mode is asked for, calls `mi_option_set(mi_option_allow_thp, 1)` before mimalloc starts. It allocates
-nothing: an allocation would start mimalloc with the default policy.
+it records that the OS has no THP and nothing set later turns that back on, and `main` runs too late to read the
+command line first. So `crates/tsrs_cli/src/main.rs` registers a priority-100 constructor that reads argv and envp
+(glibc passes them to constructors) the way the option parser decides `--fast` and calls
+`mi_option_set(mi_option_allow_thp, 1)` before mimalloc starts. It allocates nothing: the first allocation would
+start mimalloc with the default policy.
 
 - An explicit `MIMALLOC_ALLOW_THP` in the environment wins, as before.
-- `--lsp`, `--api` and `--lint` keep the build's policy (long-running processes, and not the type-check preset).
-- A `--fast` that appears only inside a response file is not seen; that run keeps the build's heap policy. This and
-  the other edge cases only change memory and speed, never output.
+- `--lsp`, `--api` and `--lint` keep the build's policy.
+- A `--fast` inside a response file is not seen; that run keeps the build's heap policy. A miss only changes memory
+  use and speed, never output.
 - musl builds keep the build's policy: musl calls constructors without arguments.
 - The integration test `fast_heap_huge_pages` (tsrs_cli, Linux glibc) reads the value mimalloc starts with from its
-  `MIMALLOC_VERBOSE=1` report. That also pins the option number: 43 in mimalloc v3's `mimalloc.h`;
+  `MIMALLOC_VERBOSE=1` report, which also pins the option number: 43 in mimalloc v3's `mimalloc.h`;
   `libmimalloc-sys2`'s Rust constant, 37, is v2's.
 
 `allow_thp = 2` (mimalloc's "full" mode, which also raises the minimum purge size to 2 MiB) measured the same as 1
-(second table), so the change uses 1, which leaves purging as it is in the default build.
+(second table), so the change uses 1 and leaves purging as it is in the default build.
 
 ## Measurements
 
@@ -68,13 +65,11 @@ pairs) gave the same numbers, and `MIMALLOC_ALLOW_THP=2` the same again:
 
 Read:
 
-- Every project is faster in wall time, 4-14%. CPU falls less (3-6% on the six large projects, flat on the two small
+- Wall time falls 4-14% on every project. CPU falls less (3-6% on the six large projects, flat on the two small
   ones), so most of the gain is the parallel phases waiting less on page faults: 32 parse threads and 16 checkers
-  faulting 4 KiB pages at once contend in the kernel (notes/mem-no-thp.md saw parse take 28-39% longer without huge
-  pages).
+  faulting 4 KiB pages at once contend in the kernel.
 - The memory cost is the one notes/mem-no-thp.md describes: about 0.5-0.8 GiB on the large projects (+23-42%), and a
-  fixed +0.3-0.5 GiB that doubles the small ones (webpack, xstate-main), from the partly used 2 MiB pages each of the
-  ~64 parse and checker threads holds.
+  fixed +0.3-0.5 GiB that doubles the small ones, from the partly used 2 MiB pages each of the ~64 parse and checker
+  threads holds.
 - Diagnostics are byte-identical to base in default mode and `--fast` on all eight projects, and the default-mode
-  `--extendedDiagnostics` counters are unchanged (the change is inert without `--fast`).
-- macOS and Windows have no transparent huge pages; nothing changes there.
+  `--extendedDiagnostics` counters are unchanged.

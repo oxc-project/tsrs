@@ -182,7 +182,7 @@ tsrs-only variables that change behavior:
 | `TSRS_WATCH_BACKEND` | unset | `kqueue` uses the macOS fallback watcher |
 | `TSRS_BINARY` | unset | Path of the binary the npm launcher runs |
 | `RAYON_NUM_THREADS` | `min(available parallelism, 32)` | Parse thread count |
-| `MIMALLOC_*` | Build-dependent; mimalloc heap THP is off, on with `--fast` on Linux (glibc) | Allocator settings; an explicit `MIMALLOC_ALLOW_THP` also controls whether tsrs restores process-wide THP for its arenas, and wins over `--fast` |
+| `MIMALLOC_*` | Build-dependent; mimalloc heap THP is off (on under `--fast`, Linux glibc) | Allocator settings; an explicit `MIMALLOC_ALLOW_THP` also controls whether tsrs restores process-wide THP for its arenas, and wins over `--fast` |
 
 The remaining `TSRS_*` variables tune or report on checker internals; [debugging](DEBUGGING.md) describes them.
 

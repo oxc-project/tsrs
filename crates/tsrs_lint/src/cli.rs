@@ -30,8 +30,10 @@ pub fn main(args: Vec<String>) -> i32 {
     }
 }
 
-/// Parses `headless [--fix] [--fix-suggestions] [--debug timings]`, reads the payload from `input`, lints it from the
-/// current directory and writes the frames to `output`. Returns the exit status.
+/// Parses `headless [--fix] [--fix-suggestions] [--runExternalCode] [--debug timings]`.
+///
+/// Reads the payload from `input`, lints it from the current directory and writes the frames to `output`. Returns
+/// the exit status.
 pub fn run(
     args: impl IntoIterator<Item = String>,
     input: &mut dyn Read,
@@ -42,6 +44,9 @@ pub fn run(
             "OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS",
         )
         .is_ok_and(|value| value == "true"),
+        // oxlint runs `<path> headless` with flags of its own, so `--runExternalCode` has an environment form.
+        run_external_code: std::env::var("TSRS_LINT_RUN_EXTERNAL_CODE")
+            .is_ok_and(|value| value == "1"),
         ..Default::default()
     };
     let mut headless = false;
@@ -51,6 +56,7 @@ pub fn run(
             "headless" | "--headless" => headless = true,
             "-fix" | "--fix" => options.fix = true,
             "-fix-suggestions" | "--fix-suggestions" => options.fix_suggestions = true,
+            "-runExternalCode" | "--runExternalCode" => options.run_external_code = true,
             "-debug" | "--debug" => {
                 if args.next().as_deref() == Some("timings") {
                     options.debug_timings = true;
@@ -61,7 +67,7 @@ pub fn run(
             }
             "--help" | "-h" => {
                 eprintln!(
-                    "Usage: tsrs-lint headless [--fix] [--fix-suggestions] [--debug timings]"
+                    "Usage: tsrs-lint headless [--fix] [--fix-suggestions] [--runExternalCode] [--debug timings]"
                 );
                 return 0;
             }

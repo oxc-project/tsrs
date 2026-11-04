@@ -1303,8 +1303,10 @@ dependencies = [
  "tsrs_ast",
  "tsrs_checker",
  "tsrs_compiler",
+ "tsrs_contentmapper",
  "tsrs_core",
  "tsrs_scanner",
+ "tsrs_spanmap",
  "tsrs_tsoptions",
  "tsrs_vfs",
 ]

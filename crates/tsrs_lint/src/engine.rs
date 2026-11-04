@@ -9,10 +9,11 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use tsrs_ast::{Diagnostic as TsDiagnostic, SourceFile};
 use tsrs_compiler::{Context, Program, ProgramOptions};
+use tsrs_contentmapper as contentmapper;
 use tsrs_core::json::Value;
 use tsrs_core::tspath;
 use tsrs_core::{
-    CompilerOptions, JsxEmit, ModuleKind, ModuleResolutionKind, P, ScriptTarget, Tristate,
+    CompilerOptions, JsxEmit, Locale, ModuleKind, ModuleResolutionKind, P, ScriptTarget, Tristate,
 };
 use tsrs_tsoptions::{ParseConfigHost, ParsedCommandLine};
 use tsrs_vfs::{FS, bundled, cachedvfs, osvfs, wrapvfs};
@@ -27,6 +28,8 @@ pub struct Options {
     pub fix_suggestions: bool,
     pub debug_timings: bool,
     pub suppress_program_diagnostics: bool,
+    /// tsc's `--runExternalCode`: tsconfig `contentMappers` are kept and their mapper processes run.
+    pub run_external_code: bool,
 }
 
 #[derive(Default)]
@@ -37,11 +40,13 @@ struct RequestRegions {
 pub struct ConfigHost {
     fs: Arc<dyn FS>,
     cwd: String,
+    // The command-line options every tsconfig is parsed with.
+    existing_options: Option<CompilerOptions>,
 }
 
 impl ConfigHost {
     pub fn new(fs: Arc<dyn FS>, cwd: String) -> Self {
-        Self { fs, cwd }
+        Self { fs, cwd, existing_options: None }
     }
 }
 
@@ -137,7 +142,12 @@ pub fn run(
         },
     );
     let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(cachedvfs::from(Arc::new(fs))));
-    let host = ConfigHost::new(Arc::clone(&fs), cwd.into());
+    let host = ConfigHost {
+        existing_options: options
+            .run_external_code
+            .then(|| CompilerOptions { run_external_code: Tristate::True, ..Default::default() }),
+        ..ConfigHost::new(Arc::clone(&fs), cwd.into())
+    };
     let region = tsrs_core::arena::Region::new_scratch(1 << 20);
     // Shared caches can receive loader allocations, so the loader regions outlive every request program.
     let regions = RequestRegions::default();
@@ -145,14 +155,58 @@ pub fn run(
     run_in_region(payload, options, cwd, writer, fs, &host, &regions)
 }
 
-struct ProgramOwner(&'static Program);
+struct ProgramOwner {
+    program: &'static Program,
+    // Dropped after the program is freed.
+    _content_mappers: Option<ContentMappers>,
+}
 
 impl Drop for ProgramOwner {
     fn drop(&mut self) {
         // SAFETY: each program is created once here, is never shared with another version, and all checker handles have been dropped.
         unsafe {
-            tsrs_compiler::free_unshared_program(self.0);
+            tsrs_compiler::free_unshared_program(self.program);
         }
+    }
+}
+
+// A program's content mapper project and host, closed in that order as the CLI's `ContentMapperCloser` does: a host
+// that is still open keeps its mapper processes running.
+struct ContentMappers {
+    host: Arc<dyn contentmapper::Host>,
+    project: Option<Arc<dyn contentmapper::Project>>,
+}
+
+impl ContentMappers {
+    // The CLI's `new_content_mapper_host` and `get_content_mapper_project` (tsc.go:394), without a host for a
+    // program that has no mappers.
+    fn open(config: P<ParsedCommandLine>) -> Option<Self> {
+        let options = config.compiler_options()?;
+        // References into the command line's own list: the host keys the project by their addresses.
+        let config: &'static ParsedCommandLine = config.get();
+        if !options.run_external_code.is_true() || config.content_mappers().is_empty() {
+            return None;
+        }
+        let host = contentmapper::new_host_with_options(
+            Arc::new(contentmapper::ProcessSpawner),
+            Locale(options.locale.clone()),
+            contentmapper::HostOptions::default(),
+        );
+        let project = host.project(contentmapper::ProjectSpec {
+            config_file_name: config.config_name().to_string(),
+            mappers: config.content_mappers().iter().collect(),
+            compiler_options: Some(options),
+        });
+        Some(Self { host, project })
+    }
+}
+
+impl Drop for ContentMappers {
+    fn drop(&mut self) {
+        if let Some(project) = &self.project {
+            let _ = project.close();
+        }
+        let _ = self.host.close();
     }
 }
 
@@ -192,7 +246,7 @@ fn run_in_region(
     for (config_path, files) in programs {
         let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
             &config_path,
-            None,
+            host.existing_options.as_ref(),
             None,
             host,
             None,
@@ -217,7 +271,7 @@ fn run_in_region(
             true,
             Arc::clone(&regions.loaders),
         );
-        let program_ref = program.0;
+        let program_ref = program.program;
         let diagnostics = program_ref.get_program_diagnostics();
         if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
             for diagnostic in diagnostics {
@@ -266,7 +320,7 @@ fn run_in_region(
         // With the whole-program check, compiler diagnostics follow `tsrs --noEmit`, which checks no such file.
         let types = !check_whole_program();
         run_program(
-            program.0,
+            program.program,
             &unmatched,
             false,
             types,
@@ -319,15 +373,23 @@ fn create_program(
             ..(*config.compiler_options().unwrap()).clone()
         }));
     }
+    let config = P::new(config);
+    let content_mappers = ContentMappers::open(config);
     // As in the CLI, `TSRS_LIB_PATH` overrides where the default libraries are read from.
-    let host =
-        tsrs_compiler::new_compiler_host(cwd, fs, &bundled::default_lib_path(), None, None, None);
-    let mut options = ProgramOptions::new(P::new(config), host);
+    let host = tsrs_compiler::new_compiler_host(
+        cwd,
+        fs,
+        &bundled::default_lib_path(),
+        None,
+        None,
+        content_mappers.as_ref().and_then(|mappers| mappers.project.clone()),
+    );
+    let mut options = ProgramOptions::new(config, host);
     options.use_source_of_project_reference = references;
     options.regions = Some(loader_regions);
     // The checkers' memory goes back with the program (`free_unshared_program`), before the next program's is built.
     options.checker_regions = true;
-    ProgramOwner(tsrs_compiler::new_program(options))
+    ProgramOwner { program: tsrs_compiler::new_program(options), _content_mappers: content_mappers }
 }
 
 /// `RAYON_NUM_THREADS` (oxlint's thread count) caps the checkers as well as the loader threads, else the compiler's
@@ -446,7 +508,9 @@ fn lint_one(
             report_type_error(diagnostic, file, output)?;
         }
     }
-    if configured.is_empty() {
+    // Rules see a content-mapped file's virtual text, whose ranges and fixes do not apply to the file on disk.
+    // oxlint does not send such files.
+    if configured.is_empty() || file.is_content_mapped() {
         return Ok(());
     }
     for diagnostic in lint_file(program, file, configured, options, checker, timings)? {
@@ -536,7 +600,7 @@ fn report_type_error(
     }
     emit(
         &Diagnostic {
-            range: diagnostic_range(diagnostic),
+            range: original_range(diagnostic, file),
             message: RuleMessage {
                 id: format!("TS{}", diagnostic.code()),
                 description: diagnostic.localize(),
@@ -584,6 +648,20 @@ fn diagnostic_range(diagnostic: P<TsDiagnostic>) -> Option<Range> {
     Some(Range { pos: diagnostic.pos()?, end: diagnostic.end()? })
 }
 
+// A compiler diagnostic on a content-mapped file has a range in the mapper's virtual text: as the CLI's diagnostic
+// writer does, it is reported at the original range, or on the whole file when it lies in synthesized code. A
+// mapper's own diagnostics (they have a source) already carry original ranges.
+fn original_range(diagnostic: P<TsDiagnostic>, file: P<SourceFile>) -> Option<Range> {
+    let Some(span_map) = file.span_map().filter(|_| diagnostic.source().is_empty()) else {
+        return diagnostic_range(diagnostic);
+    };
+    let (loc, fidelity) = span_map.virtual_to_original_span(diagnostic.loc()?);
+    if fidelity == tsrs_spanmap::Fidelity::None {
+        return None;
+    }
+    Some(Range { pos: loc.source_pos()?, end: loc.source_end()? })
+}
+
 pub(crate) fn emit(diagnostic: &Diagnostic, writer: &mut dyn Write) -> Result<(), String> {
     protocol::write_message(writer, MessageType::Diagnostic, &diagnostic.to_json())
         .map_err(|e| e.to_string())
@@ -609,7 +687,11 @@ pub fn find_tsconfig(
                 tspath::to_path(&path, &host.cwd, host.fs.use_case_sensitive_file_names());
             let config = configs.entry(config_path_key).or_insert_with(|| {
                 let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
-                    &path, None, None, host, None,
+                    &path,
+                    host.existing_options.as_ref(),
+                    None,
+                    host,
+                    None,
                 );
                 if !diagnostics.is_empty() {
                     return None;

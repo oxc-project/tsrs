@@ -6860,3 +6860,87 @@ fn check_program_reports_type_errors_like_no_emit() {
         vec!["listed.ts no-floating-promises", "unlisted.ts TS2322"]
     );
 }
+
+#[test]
+fn run_external_code_lints_content_mapped_projects() {
+    // testdata/contentmapper/types with its mapper installed, as tools/contentmapper-e2e.sh runs it. The mapper puts a
+    // synthesized header before a.vue's text, so a.vue's error has another position in the virtual text, and
+    // index.ts's error needs the types a.vue exports. tsgo reports `src/a.vue(1,14)` and `src/index.ts(2,7)`.
+    let fixtures =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/contentmapper");
+    let base = std::env::current_dir().unwrap().join("target/lint-content-mappers");
+    for (from, to) in [
+        ("types/tsconfig.json", "tsconfig.json"),
+        ("types/src/a.vue", "src/a.vue"),
+        ("types/src/index.ts", "src/index.ts"),
+        ("header-mapper/package.json", "node_modules/header-mapper/package.json"),
+        ("header-mapper/mapper.mjs", "node_modules/header-mapper/mapper.mjs"),
+    ] {
+        let to = base.join(to);
+        std::fs::create_dir_all(to.parent().unwrap()).unwrap();
+        std::fs::copy(fixtures.join(from), to).unwrap();
+    }
+    let files =
+        ["src/a.vue", "src/index.ts"].map(|file| base.join(file).to_string_lossy().into_owned());
+    let input = json::marshal(&protocol::object([
+        ("version", Value::Integer(2)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                ("file_paths", Value::Array(files.iter().cloned().map(Value::String).collect())),
+                ("rules", Value::Array(Vec::new())),
+            ])]),
+        ),
+        ("report_semantic", Value::Bool(true)),
+    ]))
+    .unwrap();
+    let diagnostics = |flags: &[&str], env: &[(&str, &str)]| {
+        let (status, frames) = run_raw_with_env(&input, flags, env);
+        assert_eq!(status, 0, "{frames:?}");
+        frames
+            .into_iter()
+            .map(|(_, value)| {
+                let Value::Object(diagnostic) = value else { panic!("{value:?}") };
+                diagnostic
+            })
+            .collect::<Vec<_>>()
+    };
+
+    // Without the flag the tsconfig is rejected, so index.ts is not linted (a.vue, no longer in the tsconfig, falls back
+    // to the inferred program).
+    let without = diagnostics(&[], &[]);
+    let Value::Object(message) = &without[0]["message"] else { panic!("{without:?}") };
+    assert_eq!(message["id"], Value::String("tsconfig-error".into()));
+    let Value::String(help) = &message["help"] else { panic!("{without:?}") };
+    assert!(help.contains("'--runExternalCode'"), "{help}");
+    assert!(
+        without.iter().all(|diagnostic| diagnostic["file_path"] != Value::String(files[1].clone())),
+        "{without:?}"
+    );
+
+    let expected = [(0, "count"), (1, "total")].map(|(index, name)| {
+        let text = std::fs::read_to_string(&files[index]).unwrap();
+        let pos = text.find(name).unwrap();
+        (Value::String(files[index].clone()), (pos, pos + name.len()))
+    });
+    for (flags, env) in
+        [(&["--runExternalCode"][..], &[][..]), (&[], &[("TSRS_LINT_RUN_EXTERNAL_CODE", "1")])]
+    {
+        let actual = diagnostics(flags, env)
+            .iter()
+            .map(|diagnostic| {
+                let Value::Object(message) = &diagnostic["message"] else {
+                    panic!("{diagnostic:?}")
+                };
+                assert_eq!(message["id"], Value::String("TS2322".into()), "{diagnostic:?}");
+                let Value::Object(range) = &diagnostic["range"] else { panic!("{diagnostic:?}") };
+                let [Value::Number(pos), Value::Number(end)] = [&range["pos"], &range["end"]]
+                else {
+                    panic!("{diagnostic:?}")
+                };
+                (diagnostic["file_path"].clone(), (*pos as usize, *end as usize))
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(actual, expected, "{flags:?} {env:?}");
+    }
+}

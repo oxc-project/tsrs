@@ -19,6 +19,7 @@ fn marshal_streams_the_marshal_json_document() {
             signature: signature.into(),
             affects_global_scope,
             implied_node_format,
+            declares_interface: None,
         })
     };
     let diagnostic = BuildInfoDiagnostic {
@@ -54,6 +55,7 @@ fn marshal_streams_the_marshal_json_document() {
         content_mapper_identities: None,
         tsrs_canonical_check_signature: "go4-v1:0123456789abcdef0123456789abcdef".into(),
         tsrs_performance: "canonical,lazy".into(),
+        tsrs_interface_files: Some(vec![1, 3]),
         file_names: vec!["lib.d.ts".into(), "../src/a.ts".into(), "../src/ü \"q\".ts".into()],
         file_infos: vec![
             info("v1", "v1", false, ModuleKind::COMMON_JS),
@@ -96,8 +98,12 @@ fn marshal_streams_the_marshal_json_document() {
         resolved_root: vec![BuildInfoResolvedRoot { resolved: 2, root: 1 }],
         semantic_errors: true,
     };
-    let empty =
-        BuildInfo { version: "7.1.0".into(), file_infos_non_nil: true, ..Default::default() };
+    let empty = BuildInfo {
+        version: "7.1.0".into(),
+        tsrs_interface_files: Some(Vec::new()),
+        file_infos_non_nil: true,
+        ..Default::default()
+    };
     let bare = BuildInfo { version: "7.1.0".into(), ..Default::default() };
     for build_info in [full, empty, bare] {
         let expected = tsrs_core::json::marshal(&build_info.marshal_json()).unwrap();
@@ -106,6 +112,10 @@ fn marshal_streams_the_marshal_json_document() {
             assert_eq!(
                 BuildInfo::unmarshal(&expected).unwrap().tsrs_canonical_check_signature,
                 build_info.tsrs_canonical_check_signature
+            );
+            assert_eq!(
+                BuildInfo::unmarshal(&expected).unwrap().tsrs_interface_files,
+                build_info.tsrs_interface_files
             );
         } else {
             assert!(

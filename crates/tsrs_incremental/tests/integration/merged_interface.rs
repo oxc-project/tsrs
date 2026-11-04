@@ -403,6 +403,47 @@ fn in_memory_interface_diagnostics_preserve_first_declaration_across_cache_polic
         assert_eq!(sites(edited), sites(build(None)), "{what}");
         previous = edited;
     }
+
+    // The same edits between runs that load the build info, which has no old text: it lists the files that declare
+    // an interface (`tsrsInterfaceFiles`). The declaration keeps f.ts's slot weight (ten more nodes, a hundred fewer
+    // padding characters each), so the slots stay the same and only the declaration can refresh the caches.
+    let declaration = "declare global { interface M { other?: string } }\n";
+    let padding = "x".repeat(1000 + declaration.len());
+    let with_declaration =
+        f_text.replacen(&padding, "", 1).replacen("/*", &format!("{declaration}/*"), 1);
+    let read_build_info =
+        || BuildInfo::unmarshal(&std::fs::read_to_string(&build_info_path).unwrap()).unwrap();
+    std::fs::write(&f, &f_text).unwrap();
+    let initial = build(None);
+    sites(initial);
+    emit(initial);
+    let slots = read_build_info().tsrs_canonical_check_signature;
+    for (text, unlisted, refreshed, what) in [
+        (comment_edit("yy"), false, false, "a comment edit in a file without interfaces"),
+        (with_declaration, false, true, "adding a declaration of the merged interface"),
+        (comment_edit("yy"), false, true, "removing it again"),
+        (comment_edit("zz"), false, false, "another comment edit"),
+        (comment_edit("yy"), true, true, "a comment edit from a build info without the list"),
+        (comment_edit("zz"), false, false, "a comment edit after that build info is rewritten"),
+    ] {
+        if unlisted {
+            let mut legacy = read_build_info();
+            legacy.tsrs_interface_files = None;
+            std::fs::write(&build_info_path, legacy.marshal()).unwrap();
+        }
+        std::fs::write(&f, &text).unwrap();
+        let edited = create(None, true);
+        let expected_state = if refreshed {
+            SemanticDiagnosticsState::NotCached
+        } else {
+            SemanticDiagnosticsState::Reused
+        };
+        assert_eq!(state(edited, "e.ts"), expected_state, "{what} after loading build info");
+        assert_eq!(state(edited, "g.ts"), SemanticDiagnosticsState::Reused, "{what}");
+        assert_eq!(sites(edited), sites(build(None)), "{what} after loading build info");
+        emit(edited);
+        assert_eq!(read_build_info().tsrs_canonical_check_signature, slots, "{what}");
+    }
     std::fs::write(&f, f_text).unwrap();
     std::fs::remove_dir_all(dir).unwrap();
 }

@@ -14,7 +14,7 @@
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime};
 
 use tsrs_core::CompilerOptions;
@@ -176,22 +176,26 @@ impl Session {
             }
         }
 
-        let recorder: &'static Recorder = Box::leak(Box::new(Recorder::new(osvfs::fs())));
-        let recording: &'static RecordingSys = Box::leak(Box::new(RecordingSys {
+        // Statics: the compiler keeps `&'static` references to its system and file system.
+        static RECORDER: OnceLock<Recorder> = OnceLock::new();
+        static RECORDING: OnceLock<RecordingSys> = OnceLock::new();
+        let recorder = RECORDER.get_or_init(|| Recorder::new(osvfs::fs()));
+        let recording = RECORDING.get_or_init(|| RecordingSys {
             os: sys,
             fs: Arc::new(bundled::wrap_fs(recorder)),
             output: Mutex::new(String::new()),
             recorder,
-        }));
+        });
         let result = execute::command_line(recording, args);
         // The user sees the output before the entry is written.
         sys.flush();
-        // Relaxed: stored by `note_compilation` on this thread.
+        // Relaxed (both): stored by `note_compilation` on this thread, and by the compilation's threads, which have
+        // joined.
         let recordable = RECORDABLE.load(Ordering::Relaxed);
+        let spoiled = recorder.spoiled.load(Ordering::Relaxed);
         let reason = if !recordable {
             "not a --fast --noEmit check without timings"
-        } else if recorder.spoiled.load(Ordering::Relaxed) {
-            // Relaxed: the compilation's threads have joined.
+        } else if spoiled {
             "a file was written or changed during the run"
         } else if result.status as i32 > ExitStatus::DiagnosticsPresentOutputsGenerated as i32 {
             "unexpected exit status"

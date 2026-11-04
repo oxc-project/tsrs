@@ -6839,13 +6839,12 @@ fn check_program_reports_type_errors_like_no_emit() {
                 let Value::Object(diagnostic) = frame else { panic!() };
                 let Value::String(path) = &diagnostic["file_path"] else { panic!() };
                 let name = path.rsplit_once("lint-check-program/").unwrap().1;
-                let id = match diagnostic.get("rule") {
-                    Some(Value::String(rule)) => rule.clone(),
-                    _ => {
-                        let Value::Object(message) = &diagnostic["message"] else { panic!() };
-                        let Value::String(id) = &message["id"] else { panic!() };
-                        id.clone()
-                    }
+                let id = if let Some(Value::String(rule)) = diagnostic.get("rule") {
+                    rule.clone()
+                } else {
+                    let Value::Object(message) = &diagnostic["message"] else { panic!() };
+                    let Value::String(id) = &message["id"] else { panic!() };
+                    id.clone()
                 };
                 format!("{name} {id}")
             })

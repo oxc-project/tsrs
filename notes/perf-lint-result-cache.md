@@ -98,6 +98,22 @@ a warm run after it.
 
 ### Quiet machine
 
-To be filled in: release builds with Hyperfine and hardware counters, instructions, peak RSS and wall time for a
-run without the cache, a cold run, a warm run with no change, and warm runs after a body-only edit and after an
-exported-type edit of a widely imported file.
+AWS m8g.4xlarge (Graviton4, 16 vCPU, 64 GiB), Ubuntu 24.04, `TSRS_FAST=1`, release builds (fat LTO, no PGO), the
+large private monorepo's oxlint request (no semantic reporting). One binary per arm pair: A runs without
+`TSRS_LINT_CACHE`, B with it. Both arms on one box, alternating with the order flipped every pair; changes are medians
+of per-pair ratios with ~95% intervals. Edit runs flip one edit before every B run, so each B run sees exactly one
+changed file against its last run. Cold and no-change runs are from `bc27853c`, edit runs from `21686efe`.
+
+| B run | Pairs | Wall (A 9.9 s) | Instructions | Peak RSS | Relinted |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| cold (empty cache) | 10 | 15.38 s, +55.9% [+54.8, +56.5] | +21.5% | +4.5% | all |
+| no change | 10 | 2.13 s, −78.6% [−78.7, −78.3] | −90.4% | −69.4% | 0 |
+| statement edit in a file nothing imports | 8 | 3.48 s, −64.7% [−64.9, −64.6] | −88.3% | −68.9% | 1 |
+| statement edit in a widely imported barrel | 8 | 2.28 s, −77.0% [−77.0, −76.8] | −90.3% | −69.4% | 1 |
+| function body edit in a widely imported module | 8 | 2.56 s, −74.1% [−74.2, −74.1] | −89.9% | −69.1% | 1 |
+| exported type change in that module | 8 | 16.69 s, +68.9% [+68.1, +69.5] | +22.8% | +6.1% | all |
+
+In separate checks on the same box, cold, no-change and each kind of body edit printed byte-for-byte what an
+uncached run printed. The exported-type change reaches nearly every file through its importers,
+so the run relints everything and also emits their declarations; the cache only pays for edits that keep a widely
+imported file's declarations.

@@ -31,6 +31,7 @@ pub struct Cache {
     binary: String,
     // The hash of each file's rules and their options, by file name as in the payload.
     rules: FxHashMap<String, [u8; HASH_LEN]>,
+    report_semantic: bool,
     stats: bool,
 }
 
@@ -85,6 +86,7 @@ impl Cache {
                 exe.and_then(|metadata| metadata.modified().ok())
             ),
             rules,
+            report_semantic: payload.report_semantic,
             stats: std::env::var("TSRS_LINT_CACHE_STATS").is_ok_and(|value| value == "1"),
         })
     }
@@ -141,6 +143,22 @@ impl Cache {
             None,
             false,
         );
+        // Under the fast preset, a change that may add or remove an interface declaration (any change, without the old
+        // text) drops the state of every file declaring an interface: their TS2320/TS2430 report sites can move.
+        // Frames without semantic diagnostics do not depend on those sites, and under the same compiler options (the
+        // fingerprint) nothing else drops the state of a file outside the change set.
+        let snapshot = incremental.snapshot;
+        if !self.report_semantic {
+            old.snapshot.semantic_diagnostics_per_file.range(|path, entry| {
+                if !snapshot.changed_files_set.has(path)
+                    && snapshot.file_infos.load(path).is_some()
+                    && snapshot.semantic_diagnostics_per_file.load(path).is_none()
+                {
+                    snapshot.semantic_diagnostics_per_file.store(path.clone(), Arc::clone(entry));
+                }
+                true
+            });
+        }
         incremental.collect_affected_files(&Context::default());
         cache.incremental = Some(incremental);
         cache.entries = entries;

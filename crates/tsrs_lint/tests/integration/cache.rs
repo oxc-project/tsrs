@@ -206,6 +206,35 @@ fn exported_type_change_relints_importers_and_their_semantic_diagnostics() {
 }
 
 #[test]
+fn unrelated_edit_does_not_relint_files_declaring_interfaces() {
+    let project = Project::new(
+        "interfaces",
+        &[
+            ("leaf.ts", "export {};\nvoid 0;\n"),
+            (
+                "model.ts",
+                "export interface Model { id: string }\nexport function load(): Promise<Model> { return Promise.resolve({ id: '' }); }\n",
+            ),
+            (
+                "model.test.ts",
+                "import { load } from './model';\ninterface Case { name: string }\nexport const cases: Case[] = [];\nload();\n",
+            ),
+        ],
+    );
+    let payload = project.payload(&["leaf.ts", "model.test.ts", "model.ts"], FLOATING, false);
+    let (cold, _) = project.lint_checked(&payload);
+    assert_eq!(reports(&cold), [report("model.test.ts", "no-floating-promises")]);
+    // The fast preset's merged-interface report sites (TS2320/TS2430) are refreshed in every file declaring an
+    // interface on any edit; frames without semantic diagnostics do not depend on them.
+    for text in ["export {};\nvoid 1;\n", "export {};\nvoid 0;\n"] {
+        project.write("leaf.ts", text);
+        let (warm, stats) = project.lint_checked(&payload);
+        assert_eq!(stats, (1, 2));
+        assert_eq!(warm, cold);
+    }
+}
+
+#[test]
 fn type_change_reaches_files_through_a_reexport_chain() {
     let project = chain("reexport");
     // b.ts re-exports without a declaration of its own, so its signature never changes.

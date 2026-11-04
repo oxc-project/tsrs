@@ -22,6 +22,17 @@ tsbuildinfo, and a file's frames replay while that snapshot keeps the file's sem
 - a file affecting the global scope changes or is deleted (every file), or a library changes;
 - a compiler option that affects semantic diagnostics changes.
 
+There is no isolatedModules shortcut: an exported-type change in a module most of the program imports relints most of
+the program, which costs more than a run without the cache.
+
+tsrs adds one rule of its own under the fast preset. Its canonical reporting puts TS2320/TS2430 on a merged interface
+at a fixed declaration, so a change that may add or remove an interface declaration drops the state of every file
+declaring an interface; started from a tsbuildinfo, with no old text to compare, every change counts. On a large
+private monorepo that relinted 17% of the files on any edit. These diagnostics are semantic diagnostics, so when the
+payload does not ask for them the cache restores the state of every file outside the change set before applying the
+changes (with the same compiler options, the fingerprint, nothing else drops it). With `report_semantic` the rule
+stays, and so does its cost; `tsrs --incremental` under the fast preset runs the same code.
+
 On top of that, every compiler option and the linter build (package version, executable size and modification time)
 are fingerprinted, so any option change or rebuild is a cold run; the payload's `fix`, `fix_suggestions`,
 `report_syntactic`, `report_semantic` and the suppress-program-diagnostics setting select the cache file, so runs
@@ -75,8 +86,10 @@ Preliminary, on a large private monorepo with the `ci` profile on a loaded lapto
 meaningless there): a cold run with the cache retires 22% more instructions than a run without it, of which the
 declaration signatures are about nine tenths; skipping files no other file references reduced the signature work by
 a third of its files but only 9% of its instructions. A warm run with no change retires 86% fewer instructions than
-a run without the cache, with about a third of its peak RSS. Cold output decoded equal to the uncached run's, and the warm
-run replayed every file with byte-identical output.
+a run without the cache, with about a third of its peak RSS. Cold output decoded equal to the uncached run's, and
+the warm run replayed every file with byte-identical output. On a copy of it, two consecutive edits of a file nothing
+imports each relinted 1 file (17% of the files before the interface fix), printing what a run without the cache
+printed.
 
 On a copy of webpack (all rules), every run with the cache printed exactly what a run without it printed on the same
 tree: cold, warm, a body-only edit of `lib/util/comparators.js` (imported by 69 modules; 1 file relinted), an edit of

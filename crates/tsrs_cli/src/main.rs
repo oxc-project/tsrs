@@ -72,6 +72,80 @@ fn mimalloc_collect(force: bool) {
     let _ = force;
 }
 
+// `--fast` (or `TSRS_FAST=1`) on Linux with glibc: mimalloc advises its heap for transparent huge pages too
+// (notes/perf-fast-heap-thp.md). The build keeps them off the heap for memory (`no_thp`, notes/mem-no-thp.md), and
+// mimalloc fixes that policy in its start-up constructor (priority 101), before `main` can read the command line,
+// so this priority-100 constructor sets the option first; glibc calls constructors with argc, argv and envp.
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+#[used]
+#[unsafe(link_section = ".init_array.00100")]
+static FAST_HEAP_HUGE_PAGES: extern "C" fn(
+    std::ffi::c_int,
+    *const *const std::ffi::c_char,
+    *const *const std::ffi::c_char,
+) = fast_heap_huge_pages;
+
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+extern "C" fn fast_heap_huge_pages(
+    argc: std::ffi::c_int,
+    argv: *const *const std::ffi::c_char,
+    envp: *const *const std::ffi::c_char,
+) {
+    unsafe extern "C" {
+        fn mi_option_set(option: std::ffi::c_int, value: std::ffi::c_long);
+    }
+    // `mi_option_allow_thp` in mimalloc v3's mimalloc.h (libmimalloc-sys2's constant, 37, is v2's). The integration
+    // test `fast_heap_huge_pages` reads the value back from mimalloc's start-up report.
+    const MI_OPTION_ALLOW_THP: std::ffi::c_int = 43;
+    // Nothing here may allocate: the first allocation would start mimalloc with the default policy.
+    let c_str = |p: *const std::ffi::c_char| {
+        // SAFETY: glibc's argument and environment strings are NUL-terminated and live as long as the process.
+        unsafe { std::ffi::CStr::from_ptr(p) }.to_bytes()
+    };
+    let mut env_fast = false;
+    for i in 0.. {
+        // SAFETY: glibc's environment vector is NULL-terminated; this stops at its end.
+        let var = unsafe { *envp.add(i) };
+        if var.is_null() {
+            break;
+        }
+        let var = c_str(var);
+        if var.starts_with(b"MIMALLOC_ALLOW_THP=") {
+            return;
+        }
+        env_fast |= var == b"TSRS_FAST=1";
+    }
+    // SAFETY: glibc passes `argc` argument pointers.
+    let args = unsafe { std::slice::from_raw_parts(argv, usize::try_from(argc).unwrap_or(0)) };
+    if fast_requested(args.iter().skip(1).map(|&p| c_str(p)), env_fast) {
+        // SAFETY: sets one integer option; mimalloc reads it when it starts, right after this constructor.
+        unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 1) };
+    }
+}
+
+/// The command line's `--fast` decision (`configure_performance` in tsrs_execute, `tsrs_core::fast::enabled`) from
+/// the raw arguments: the last `--fast` wins, `--fast false` turns it off, and without one `TSRS_FAST=1` turns it on.
+/// The language server, API server and linter keep the build's heap policy. Response files and `--fast` as the value
+/// of another option are not seen; a miss only changes memory use and speed, never output.
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+fn fast_requested<'a>(args: impl Iterator<Item = &'a [u8]>, env_fast: bool) -> bool {
+    let mut args = args.peekable();
+    if args.peek().is_some_and(|a| matches!(*a, b"--lsp" | b"--api" | b"--lint")) {
+        return false;
+    }
+    let mut fast = None;
+    while let Some(arg) = args.next() {
+        // At most two leading dashes, as `get_input_option_name` strips.
+        let Some(name) = arg.strip_prefix(b"-") else { continue };
+        let name = name.strip_prefix(b"-").unwrap_or(name);
+        if name.eq_ignore_ascii_case(b"fast") {
+            let value = args.next_if(|v| *v == b"true" || *v == b"false");
+            fast = Some(value != Some(b"false".as_slice()));
+        }
+    }
+    fast.unwrap_or(env_fast)
+}
+
 fn main() -> std::process::ExitCode {
     #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
     tsrs_core::allocator::init_mimalloc();

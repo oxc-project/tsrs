@@ -63,6 +63,9 @@ Linting and requested semantic diagnostics run on each program's checker pool wi
 `TSRS_FAST=1` gives the `--fast` count, and a positive `RAYON_NUM_THREADS` or a tsconfig `checkers` option sets it.
 The checker that owns a file runs both semantic reporting and the lint rules for it, and the checkers are freed with
 their program. Output frames are collected in file order.
+With `TSRS_FAST=1` and `TSRS_LINT_CACHE=<directory>`, each file's frames are kept between runs and replayed while
+TypeScript's incremental builder would keep the file's semantic diagnostics
+([result cache](../../notes/perf-lint-result-cache.md)).
 Go profiler output formats are outside this port's current scope.
 
 The npm `tsrs` package ships the linter inside the `tsrs` binary, with a `tsrs-lint` launcher that runs

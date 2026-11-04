@@ -1,5 +1,6 @@
 //! Native type-aware linting on the tsrs AST and checker.
 
+mod cache;
 pub mod cli;
 mod go_quote;
 pub mod payload;

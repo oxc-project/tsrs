@@ -2,6 +2,7 @@
 
 use std::collections::{BTreeMap, VecDeque};
 use std::io::Write;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
@@ -179,6 +180,7 @@ fn run_in_region(
             crate::registry::require_implemented(&rule.name)?;
         }
     }
+    let cache = crate::cache::Cache::new(payload, options);
     let mut config_cache = FxHashMap::default();
     for path in file_configs.keys() {
         let resolved = tspath::get_normalized_absolute_path(path, cwd);
@@ -203,7 +205,10 @@ fn run_in_region(
             }
             continue;
         }
-        let config = config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
+        let mut config =
+            config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
+        let cache_file =
+            cache.as_ref().and_then(|cache| cache.program_file(&config_path, &mut config));
         if !config.errors.is_empty() && !options.suppress_program_diagnostics {
             for diagnostic in &config.errors {
                 report_config_error(*diagnostic, &config_path, false, writer)?;
@@ -225,7 +230,16 @@ fn run_in_region(
             }
             continue;
         }
-        run_program(program_ref, &files, payload, options, writer, &file_configs, &mut timings)?;
+        run_program(
+            program_ref,
+            &files,
+            payload,
+            options,
+            writer,
+            &file_configs,
+            &mut timings,
+            cache.as_ref().zip(cache_file),
+        )?;
     }
     if !unmatched.is_empty() {
         let config = tsrs_tsoptions::new_parsed_command_line(
@@ -252,7 +266,16 @@ fn run_in_region(
             },
         );
         let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders));
-        run_program(program.0, &unmatched, payload, options, writer, &file_configs, &mut timings)?;
+        run_program(
+            program.0,
+            &unmatched,
+            payload,
+            options,
+            writer,
+            &file_configs,
+            &mut timings,
+            None,
+        )?;
     }
     if options.debug_timings {
         let mut records = timings.into_iter().collect::<Vec<_>>();
@@ -315,7 +338,8 @@ fn checker_count() -> Option<i64> {
 
 // Lints the files on the program's checker pool: one thread per checker, each over the files the pool assigned to
 // it (by import-graph locality under the fast preset), so a checker resolves the types of its own corner of the
-// program instead of nearly all of it. Output keeps the order of `files`.
+// program instead of nearly all of it. Output keeps the order of `files`. With the result cache (cache.rs), the files
+// whose stored frames still hold replay them instead.
 fn run_program(
     program: &'static Program,
     files: &[String],
@@ -324,6 +348,7 @@ fn run_program(
     writer: &mut dyn Write,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
+    cache: Option<(&crate::cache::Cache, PathBuf)>,
 ) -> Result<(), String> {
     program.bind_source_files();
     let mut work = Vec::with_capacity(files.len());
@@ -333,14 +358,19 @@ fn run_program(
             .ok_or_else(|| format!("Expected file '{name}' to be in program"))?;
         let configured = file_configs.get(name).copied().unwrap_or_default();
         if payload.report_syntactic || payload.report_semantic || !configured.is_empty() {
-            work.push((file, configured));
+            work.push((file, configured, name.as_str()));
         }
     }
     if work.is_empty() {
         return Ok(());
     }
-    let lint_files: Vec<P<SourceFile>> = work.iter().map(|&(file, _)| file).collect();
-    let outputs: Vec<Mutex<Vec<u8>>> = work.iter().map(|_| Mutex::new(Vec::new())).collect();
+    let cache = cache.map(|(cache, file)| cache.load(file, program));
+    let replays: Vec<Option<&[u8]>> =
+        work.iter().map(|&(file, _, name)| cache.as_ref()?.replay(file, name)).collect();
+    // The files to lint, by index into `work`.
+    let pending: Vec<usize> = (0..work.len()).filter(|&index| replays[index].is_none()).collect();
+    let lint_files: Vec<P<SourceFile>> = pending.iter().map(|&index| work[index].0).collect();
+    let outputs: Vec<Mutex<Vec<u8>>> = pending.iter().map(|_| Mutex::new(Vec::new())).collect();
     let errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
     let pool_timings: Mutex<BTreeMap<String, (u64, u64)>> = Mutex::new(BTreeMap::new());
     let pooled = program.for_each_checker_group(&lint_files, |checker, index, file| {
@@ -349,7 +379,7 @@ fn run_program(
         let result = lint_one(
             program,
             file,
-            work[index].1,
+            work[pending[index]].1,
             payload,
             options,
             checker,
@@ -370,10 +400,25 @@ fn run_program(
     if let Some(error) = errors.into_inner().unwrap().into_iter().next() {
         return Err(error);
     }
-    for output in outputs {
-        writer.write_all(&output.into_inner().unwrap()).map_err(|error| error.to_string())?;
+    let outputs: Vec<Vec<u8>> =
+        outputs.into_iter().map(|output| output.into_inner().unwrap()).collect();
+    let mut linted = outputs.iter();
+    for &replay in &replays {
+        let output: &[u8] = match replay {
+            Some(frames) => frames,
+            None => linted.next().unwrap(),
+        };
+        writer.write_all(output).map_err(|error| error.to_string())?;
     }
     merge_timings(timings, pool_timings.into_inner().unwrap());
+    if let Some(cache) = cache {
+        let linted: Vec<(P<SourceFile>, &str, &[u8])> = pending
+            .iter()
+            .zip(&outputs)
+            .map(|(&index, output)| (work[index].0, work[index].2, output.as_slice()))
+            .collect();
+        cache.finish(program, &linted, work.len() - pending.len());
+    }
     Ok(())
 }
 

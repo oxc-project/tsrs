@@ -247,6 +247,26 @@ impl Program {
         stored
     }
 
+    /// tsrs-only (`tsrs_lint`'s result cache): applies the changes from the old state as the first semantic
+    /// diagnostics request does, computing the declaration signatures of the changed files, without checking any
+    /// file. Afterwards a file has an entry in `snapshot.semantic_diagnostics_per_file` exactly when its semantic
+    /// diagnostics from the old state still hold.
+    pub fn collect_affected_files(&self, ctx: &Context) {
+        collect_all_affected_files(ctx, self);
+    }
+
+    /// tsrs-only (`tsrs_lint`'s result cache): the build info of the current state, as `emit_build_info` writes it,
+    /// without the error and package.json lookups that only build mode reads back.
+    pub fn build_info(&self) -> Result<crate::BuildInfo, tsrs_contentmapper::Error> {
+        let program = self.p();
+        let config = program.command_line();
+        let file_name = tspath::get_normalized_absolute_path(
+            &config.get_build_info_file_name(),
+            config.get_current_directory(),
+        );
+        snapshot_to_build_info(&self.snapshot, program, &file_name)
+    }
+
     /// tsrs-only (watch mode, Go's GC): runs the destructors of a program nothing reads any more and of its
     /// snapshot, giving back the heap they own (the snapshot's maps, the host and its file system caches, about 13 MB
     /// per full build on a 9.4k-file project). Their arena blocks stay (`free_replaced` gives them back too).

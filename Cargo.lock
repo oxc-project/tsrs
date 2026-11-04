@@ -1304,9 +1304,11 @@ dependencies = [
  "tsrs_checker",
  "tsrs_compiler",
  "tsrs_core",
+ "tsrs_incremental",
  "tsrs_scanner",
  "tsrs_tsoptions",
  "tsrs_vfs",
+ "xxhash-rust",
 ]
 
 [[package]]

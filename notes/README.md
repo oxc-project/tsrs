@@ -183,6 +183,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [perf-emit](perf-emit.md)
 - [perf-hub-edit-shortcut](perf-hub-edit-shortcut.md)
 - [perf-incremental-parallel](perf-incremental-parallel.md)
+- [perf-lint-result-cache](perf-lint-result-cache.md)
 - [wasm-build](wasm-build.md)
 - [watch-macos](watch-macos.md)
 - [watch-memory](watch-memory.md)

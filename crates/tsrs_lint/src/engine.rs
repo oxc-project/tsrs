@@ -225,7 +225,18 @@ fn run_in_region(
             }
             continue;
         }
-        run_program(program_ref, &files, payload, options, writer, &file_configs, &mut timings)?;
+        let whole = payload.report_semantic && check_whole_program();
+        run_program(
+            program_ref,
+            &files,
+            whole,
+            true,
+            payload,
+            options,
+            writer,
+            &file_configs,
+            &mut timings,
+        )?;
     }
     if !unmatched.is_empty() {
         let config = tsrs_tsoptions::new_parsed_command_line(
@@ -252,7 +263,19 @@ fn run_in_region(
             },
         );
         let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders));
-        run_program(program.0, &unmatched, payload, options, writer, &file_configs, &mut timings)?;
+        // With the whole-program check, compiler diagnostics follow `tsrs --noEmit`, which checks no such file.
+        let types = !check_whole_program();
+        run_program(
+            program.0,
+            &unmatched,
+            false,
+            types,
+            payload,
+            options,
+            writer,
+            &file_configs,
+            &mut timings,
+        )?;
     }
     if options.debug_timings {
         let mut records = timings.into_iter().collect::<Vec<_>>();
@@ -313,12 +336,24 @@ fn checker_count() -> Option<i64> {
     std::env::var("RAYON_NUM_THREADS").ok().and_then(|value| value.parse().ok()).filter(|&n| n > 0)
 }
 
+// tsrs-only: with the fast preset and `TSRS_LINT_CHECK_PROGRAM=1`, semantic reporting covers every file of each tsconfig
+// program that `tsrs --noEmit` would check, not only the files oxlint sent, so one `oxlint --type-aware --type-check`
+// run can replace a separate typecheck. Files outside every tsconfig are linted but, as with `tsrs --noEmit`, not
+// type-checked.
+fn check_whole_program() -> bool {
+    tsrs_core::fast::enabled() && std::env::var("TSRS_LINT_CHECK_PROGRAM").is_ok_and(|v| v == "1")
+}
+
 // Lints the files on the program's checker pool: one thread per checker, each over the files the pool assigned to
 // it (by import-graph locality under the fast preset), so a checker resolves the types of its own corner of the
 // program instead of nearly all of it. Output keeps the order of `files`.
+// `whole`: also report the compiler diagnostics of the program's other files (`check_whole_program`), after them;
+// `types`: report the payload's compiler diagnostics at all.
 fn run_program(
     program: &'static Program,
     files: &[String],
+    whole: bool,
+    types: bool,
     payload: &Payload,
     options: Options,
     writer: &mut dyn Write,
@@ -332,8 +367,18 @@ fn run_program(
             .get_source_file(name)
             .ok_or_else(|| format!("Expected file '{name}' to be in program"))?;
         let configured = file_configs.get(name).copied().unwrap_or_default();
-        if payload.report_syntactic || payload.report_semantic || !configured.is_empty() {
+        if (types && (payload.report_syntactic || payload.report_semantic))
+            || !configured.is_empty()
+        {
             work.push((file, configured));
+        }
+    }
+    if whole {
+        let listed: FxHashSet<P<SourceFile>> = work.iter().map(|&(file, _)| file).collect();
+        for &file in program.get_source_files() {
+            if !listed.contains(&file) && !program.skip_type_checking(file, false) {
+                work.push((file, &[]));
+            }
         }
     }
     if work.is_empty() {
@@ -350,6 +395,7 @@ fn run_program(
             program,
             file,
             work[index].1,
+            types,
             payload,
             options,
             checker,
@@ -381,6 +427,7 @@ fn lint_one(
     program: &'static Program,
     file: P<SourceFile>,
     configured: &[ConfiguredRule],
+    types: bool,
     payload: &Payload,
     options: Options,
     checker: &mut tsrs_checker::Checker,
@@ -388,12 +435,12 @@ fn lint_one(
     timings: &mut BTreeMap<String, (u64, u64)>,
 ) -> Result<(), String> {
     let context = Context::default();
-    if payload.report_syntactic {
+    if types && payload.report_syntactic {
         for diagnostic in program.get_syntactic_diagnostics(&context, Some(file)) {
             report_type_error(diagnostic, file, output)?;
         }
     }
-    if payload.report_semantic {
+    if types && payload.report_semantic {
         let diagnostics = program.get_semantic_diagnostics_with_checker(&context, checker, file);
         for diagnostic in tsrs_compiler::sort_and_deduplicate_diagnostics(&diagnostics) {
             report_type_error(diagnostic, file, output)?;

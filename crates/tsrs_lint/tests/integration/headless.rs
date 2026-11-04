@@ -6795,3 +6795,69 @@ fn unbound_method_accepts_untyped_this_without_panicking() {
         }
     }
 }
+
+// `TSRS_LINT_CHECK_PROGRAM=1` under the fast preset: semantic reporting covers the tsconfig program's files that the
+// payload did not list, as `tsrs --noEmit` does, and files outside every tsconfig are linted but not type-checked.
+#[test]
+fn check_program_reports_type_errors_like_no_emit() {
+    let root = std::env::current_dir().unwrap().join("target/lint-check-program");
+    std::fs::create_dir_all(root.join("sub")).unwrap();
+    std::fs::write(
+        root.join("tsconfig.json"),
+        r#"{"compilerOptions":{"strict":true,"noEmit":true},"include":["*.ts"]}"#,
+    )
+    .unwrap();
+    std::fs::write(root.join("listed.ts"), "export async function f() {}\nf();\n").unwrap();
+    std::fs::write(root.join("unlisted.ts"), "export const n: number = 'x';\n").unwrap();
+    std::fs::write(root.join("sub/outside.ts"), "export const s: string = 1;\n").unwrap();
+    let file = |name: &str| Value::String(root.join(name).to_string_lossy().into_owned());
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                ("file_paths", Value::Array(vec![file("listed.ts"), file("sub/outside.ts")])),
+                (
+                    "rules",
+                    Value::Array(vec![protocol::object([(
+                        "name",
+                        Value::String("no-floating-promises".into()),
+                    )])]),
+                ),
+            ])]),
+        ),
+        ("report_syntactic", Value::Bool(true)),
+        ("report_semantic", Value::Bool(true)),
+    ]);
+    let input = json::marshal(&payload).unwrap();
+    let reported = |env: &[(&str, &str)]| {
+        let (status, frames) = run_raw_with_env(&input, &[], env);
+        assert_eq!(status, 0);
+        let mut found: Vec<String> = frames
+            .iter()
+            .map(|(_, frame)| {
+                let Value::Object(diagnostic) = frame else { panic!() };
+                let Value::String(path) = &diagnostic["file_path"] else { panic!() };
+                let name = path.rsplit_once("lint-check-program/").unwrap().1;
+                let id = match diagnostic.get("rule") {
+                    Some(Value::String(rule)) => rule.clone(),
+                    _ => {
+                        let Value::Object(message) = &diagnostic["message"] else { panic!() };
+                        let Value::String(id) = &message["id"] else { panic!() };
+                        id.clone()
+                    }
+                };
+                format!("{name} {id}")
+            })
+            .collect();
+        found.sort();
+        found
+    };
+    let per_file = vec!["listed.ts no-floating-promises", "sub/outside.ts TS2322"];
+    assert_eq!(reported(&[("TSRS_FAST", "1")]), per_file);
+    assert_eq!(reported(&[("TSRS_FAST", "0"), ("TSRS_LINT_CHECK_PROGRAM", "1")]), per_file);
+    assert_eq!(
+        reported(&[("TSRS_FAST", "1"), ("TSRS_LINT_CHECK_PROGRAM", "1")]),
+        vec!["listed.ts no-floating-promises", "unlisted.ts TS2322"]
+    );
+}

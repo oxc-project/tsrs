@@ -2,11 +2,11 @@
 
 `--fast` picked `clamp(max(cores / 2, min(cores, 16)), 4, 32)` checkers (notes/perf-default-checkers-16.md): every core
 up to 16, then half the cores, so a 17-33 core machine stayed at 16 and a 64-core one got 32. The halving above 16
-came from matching `bun check`'s memory (notes/mem-round4.md section 3 left "16 would be -20..-30% peak for
--6..-32% speed" as a trade for the owner). `--fast` now trades memory for speed by design, so the rule is every core,
-capped at 32: `clamp(cores, 4, 32)`. Up to 16 cores and from 64 cores on nothing changes; 17-63 cores get up to 32.
-The small-program floor (one checker per 32 type-checked files beyond Go's 4), `-b`'s 4 per project, explicit
-`--checkers` and the default mode's 4 are unchanged. Above 16 checkers leaf freeing is off by default
+survived from the small-machine rule; notes/mem-round4.md section 3 measured 16 -> 32 on 64 vCPUs at -6..-32% wall
+for +24..+34% peak memory and left the count as an open trade against `bun check`'s memory. `--fast` trades memory
+for speed by design, so the rule is now `clamp(cores, 4, 32)`: up to 16 cores and from 64 cores on nothing changes,
+17-63 cores get up to 32. Unchanged: the floor of one checker per 32 type-checked files beyond Go's 4, `-b`'s 4 per
+project, explicit `--checkers` and the default mode's 4. Above 16 checkers leaf freeing is off by default
 (fileregions.rs `MAX_DEFAULT_CHECKERS`, notes/mem-leaf-regions-32.md), which is part of the memory below.
 
 ## Measurements
@@ -57,12 +57,10 @@ Peak RSS:
 | xstate-main | +29.9% | +37.7% | +44.9% | +52.3% |
 
 Wall time falls at every step up to 28 on all large projects; 32 is best or within the interval of 28 everywhere
-except mikro-orm (-12.7% against -16.9%), and it is the count a per-core rule gives. Every checker resolves the
-library types again, so CPU grows 6-30% from 16 to 32 on the large projects; on an otherwise idle machine that time
-runs on cores the old rule left idle.
-
-xstate-main and webpack in the sweep bypass the small-program floor (an explicit `--checkers` does): xstate-main has
-248 type-checked files, so its automatic count is 7, and webpack 909 (28). The rule below keeps the floor.
+except mikro-orm (-12.7% against -16.9%), and it is the count a per-core rule gives. The CPU growth is each checker
+resolving the library types again, on cores the old rule left idle. xstate-main (248 type-checked files, automatic
+count 7) and webpack (909, 28) run above their floor here because an explicit `--checkers` bypasses it; the rule
+below keeps the floor.
 
 ### The rule: base against this branch, both at their automatic count (16 -> 32 checkers here)
 
@@ -77,14 +75,10 @@ xstate-main and webpack in the sweep bypass the small-program floor (an explicit
 | webpack (16 -> 28) | -17.3% [-19.9, -14.7] (0.21 -> 0.18 s) | +19.7% | +22.0% (499 -> 612 MiB) |
 | xstate-main (7 -> 7) | -0.1% [-1.3, +1.6] | -0.9% | +2.4% (267 -> 270 MiB; leaf freeing off) |
 
-- 9-32% less wall time on every project the rule changes, for 22-33% more peak memory (0.4-0.7 GiB on the large
-  projects). Single-threaded and default-mode runs are untouched (instructions within 0.1%).
-- Diagnostics are byte-identical to base in default mode and in `--fast` (16 against 32 checkers) on all eight
-  projects; default-mode `--extendedDiagnostics` counters are unchanged. TypeScript's own count-dependent cases
-  (notes/open-history-dependence.md) apply as with any count.
-- Machines with 33-63 cores also move to 32 (24 on 48 cores before); notes/perf-checker-64.md measured 32 at or
-  below 24 on 64 vCPUs, but 33-63 cores were not measured here.
+Diagnostics are byte-identical to base in default mode and in `--fast` (16 against 32 checkers) on all eight
+projects; default-mode `--extendedDiagnostics` counters are unchanged, and single-threaded and default-mode
+instructions are within 0.1%. Machines with 33-63 cores also move to 32 (24 on 48 cores before);
+notes/perf-checker-64.md measured 32 at or below 24 on 64 vCPUs, but 33-63 cores were not measured here.
 
-Not changed: the floor of 32 type-checked files per checker. xstate-main runs at 7 checkers by it; the sweep's
-explicit 20 checkers took 22% off its wall time for +30% memory (265 -> 345 MiB), so a lower floor under `--fast`
-is a candidate, not measured as a rule here.
+Not measured as a rule: a lower file floor under `--fast`. xstate-main runs at 7 checkers by it, and the sweep's
+explicit 20 checkers took -22.6% wall for +29.9% peak RSS (265 -> 345 MiB).

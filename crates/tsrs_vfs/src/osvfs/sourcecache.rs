@@ -15,9 +15,10 @@
 //!   project), written whole to a temporary file and renamed over the old one, never written in place: two runs at
 //!   once each map one complete file. The header, index and paths carry one checksum and each entry's bytes another; a
 //!   file that does not verify is ignored, and an entry that does not is read from disk.
-//! - Rewritten after the output, and only when the run read at least 1/32 of its files from disk (any, with nothing
-//!   cached yet) or left a quarter of the cached entries unused; unused entries are dropped then. Otherwise the mapping
-//!   is released once the program is built, so the check pass does not keep its pages.
+//! - Rewritten only when the run read at least 1/32 of its files from disk (any, with nothing cached yet) or left a
+//!   quarter of the cached entries unused, dropping the unused ones; the write runs on a thread of its own while the
+//!   program is checked. Otherwise the mapping is released once the program is built, so the check does not keep its
+//!   pages.
 //! - A cache directory over `DIRECTORY_LIMIT` loses its least recently written cache files.
 //!
 //! `TSRS_SOURCE_CACHE=0` turns it off; `TSRS_SOURCE_CACHE_DIR` moves it.
@@ -76,7 +77,8 @@ pub fn install(key: &str) -> bool {
             key: key.to_string(),
             old: RwLock::new(old),
             pending: Mutex::new(Vec::new()),
-            closed: AtomicBool::new(false),
+            rewrite: OnceLock::new(),
+            writer: Mutex::new(None),
             hits: AtomicU64::new(0),
             misses: AtomicU64::new(0),
         })
@@ -85,39 +87,42 @@ pub fn install(key: &str) -> bool {
 
 /// Ends the cached reads once the program is built; later reads go to disk.
 ///
-/// Records the `--extendedDiagnostics` rows (reads the cache served and reads it did not) and, unless the cache is to
-/// be rewritten, releases it.
+/// Records the `--extendedDiagnostics` rows (reads the cache served and reads it did not). When the cache is to be
+/// rewritten, starts the write on a thread of its own, so that it overlaps the check; otherwise releases the cache.
 pub fn end_reads(diagnostics: bool) {
     let Some(cache) = CACHE.get() else { return };
-    cache.closed.store(true, Ordering::SeqCst);
     // Relaxed: the reads that counted are done (the program is built); only the totals are read.
     let hits = cache.hits.load(Ordering::Relaxed);
     // Relaxed: as above.
     let misses = cache.misses.load(Ordering::Relaxed);
     tsrs_core::phases::count(diagnostics, "Program:   source cache hits", hits);
     tsrs_core::phases::count(diagnostics, "Program:   source cache misses", misses);
-    if !cache.wants_rewrite() {
-        *cache.old.write().unwrap() = None;
-        cache.pending.lock().unwrap().clear();
+    if cache.decide() {
+        let writer = std::thread::Builder::new()
+            .name("tsrs-source-cache".to_string())
+            .spawn(move || cache.store());
+        *cache.writer.lock().unwrap() = writer.ok();
+    } else {
+        cache.release();
     }
 }
 
-/// Writes the cache for the next run when this one changed enough of it. Call after the output is written.
+/// Waits for the write `end_reads` started, or writes the cache if it did not. Call before the process exits.
 pub fn finish() {
     let Some(cache) = CACHE.get() else { return };
-    cache.closed.store(true, Ordering::SeqCst);
-    if cache.wants_rewrite() {
-        // A cache that cannot be written only makes the next run slower.
-        if cache.write().is_ok() {
-            cache.evict();
+    let writer = cache.writer.lock().unwrap().take();
+    match writer {
+        Some(writer) => {
+            let _ = writer.join();
         }
+        None if cache.decide() => cache.store(),
+        None => {}
     }
 }
 
 // The bytes of `full` (an OS path) as `fs::read` returns them, or None when the cache is off.
 pub(crate) fn read(full: &str) -> Option<io::Result<Vec<u8>>> {
-    // Relaxed: set once by the thread that built the program, after the reads that use the cache.
-    CACHE.get().filter(|cache| !cache.closed.load(Ordering::Relaxed)).map(|cache| cache.read(full))
+    CACHE.get().filter(|cache| cache.rewrite.get().is_none()).map(|cache| cache.read(full))
 }
 
 // What `stat` says about a file, the part that changes when the file does.
@@ -319,10 +324,14 @@ struct SourceCache {
     dir: PathBuf,
     target: PathBuf,
     key: String,
-    // None once released (`end_reads`).
+    // None once released (after the write, or by `end_reads`).
     old: RwLock<Option<CacheFile>>,
     pending: Mutex<Vec<Pending>>,
-    closed: AtomicBool,
+    // Whether to rewrite the cache, decided once the reads are done (`end_reads`, else `finish`); later reads go to
+    // disk.
+    rewrite: OnceLock<bool>,
+    // The thread writing the cache, joined by `finish`.
+    writer: Mutex<Option<std::thread::JoinHandle<()>>>,
     hits: AtomicU64,
     misses: AtomicU64,
 }
@@ -361,6 +370,23 @@ impl SourceCache {
             });
         }
         Ok(bytes)
+    }
+
+    // Writes the cache (a failed write only makes the next run slower), then releases it.
+    fn store(&self) {
+        if self.write().is_ok() {
+            self.evict();
+        }
+        self.release();
+    }
+
+    fn release(&self) {
+        *self.old.write().unwrap() = None;
+        self.pending.lock().unwrap().clear();
+    }
+
+    fn decide(&self) -> bool {
+        *self.rewrite.get_or_init(|| self.wants_rewrite())
     }
 
     fn wants_rewrite(&self) -> bool {

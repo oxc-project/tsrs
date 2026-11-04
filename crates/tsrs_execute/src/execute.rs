@@ -350,7 +350,8 @@ fn tsc_compilation(
         };
     }
     // tsrs-only, `--fast` (tsrs_vfs osvfs/sourcecache.rs): file text from a cache of the previous run's reads,
-    // validated against each file's stat. Written back after the output when this run changed it.
+    // validated against each file's stat. When this run changed it, it is rewritten while the program is checked;
+    // the output is flushed before waiting for that write.
     let source_cache = testing.is_none()
         && tsrs_core::fast::enabled()
         && tsrs_vfs::osvfs::sourcecache::install(&source_cache_key(

@@ -204,3 +204,10 @@ compiled the way each crate compiles it and a C program that reads `/proc/self/s
 | 3.3.2, `libmimalloc-sys` `no_thp` (before #248) | on | 8,192 KiB huge | 0 KiB huge |
 | 3.5.2, `libmimalloc-sys2` `no_thp` (#248) | off (`THP_enabled: 0`) | 0 KiB huge | not run |
 | 3.5.2, then `prctl(PR_SET_THP_DISABLE, 0)` (this fix) | on, also after a new thread allocates 3 GiB | 8,192 KiB huge | 0 KiB huge |
+
+## 2026-11-04: `--fast` gives the heap huge pages again
+
+Under `--fast` (or `TSRS_FAST=1`) on Linux with glibc the CLI sets `allow_thp = 1` before mimalloc starts, so the heap
+is advised as before `no_thp`: 4-14% less wall time on a 32-vCPU Graviton box for 23-42% more peak memory on the large
+catalog projects (+0.3-0.5 GiB on the small ones). The default mode keeps this note's policy. Details:
+`notes/perf-fast-heap-thp.md`.

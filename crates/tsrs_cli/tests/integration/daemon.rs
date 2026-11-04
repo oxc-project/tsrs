@@ -306,20 +306,6 @@ fn an_idle_server_exits_and_stop_stops_servers() {
 }
 
 #[test]
-fn a_server_over_its_memory_limit_exits() {
-    let p = Project::new("memory");
-    let cold = p.run(false);
-    let served = p.command(&p.binary, true).env("TSRS_DAEMON_MAX_MEMORY", "1M").output().unwrap();
-    assert_eq!(served.stdout, cold.stdout);
-    let pid = p.server_pids()[0];
-    wait_until("the server over its limit to exit", || !alive(pid));
-    assert!(p.log().contains("over 1048576: exiting"), "{}", p.log());
-    // The next request starts another server.
-    p.check();
-    assert_eq!(p.server_pids().len(), 2, "{}", p.log());
-}
-
-#[test]
 fn ineligible_commands_run_in_process() {
     let p = Project::new("ineligible");
     // Without --fast, and with a tsrs debugging variable, no server starts.

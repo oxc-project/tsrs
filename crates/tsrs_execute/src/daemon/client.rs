@@ -27,9 +27,9 @@ const REFUSED: &[&str] = &[
     "--lint",
 ];
 
-/// Whether a command can be served: a `--fast` compilation (not `--build`, `--watch`, a response file or one of the
-/// commands that print timings or write a cache of their own), and no `TSRS_*` tuning or debugging variable in the environment
-/// (those can print to standard error, which the server does not send back).
+/// Whether a command can be served: a `--fast` compilation (not `--build`, `--watch`, a response file or a command
+/// that prints timings or writes a cache of its own) with no `TSRS_*` variable in the environment but `TSRS_FAST`
+/// and the daemon's own (the others can print to standard error, which the server does not send back).
 pub fn eligible(args: &[String]) -> bool {
     let lower: Vec<String> = args.iter().map(|a| a.to_ascii_lowercase()).collect();
     if lower.first().is_some_and(|a| matches!(a.as_str(), "-b" | "--b" | "-build" | "--build")) {

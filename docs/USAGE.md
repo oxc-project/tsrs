@@ -108,12 +108,12 @@ Alongside the supported `tsc` flags, tsrs offers these controls:
 - `--fast --maxMemory <size>` (for example `12G`; `--noEmit` checks only) keeps the process near that much memory: above it,
   tsrs replaces its largest checker with a fresh one, trading CPU for memory. The diagnostics are the same.
 - `--fast --daemon` (or `TSRS_DAEMON=1`; Linux and macOS, `--noEmit` checks) sends the check to a resident server for
-  this binary, directory, command line and environment, starting one on first use. The server keeps the parsed files
-  and runs each request again with fresh checkers, reusing every file whose text is unchanged; when nothing it read
-  changed, it prints its last output again. The output and exit status are those of a run without `--daemon`. A
-  server exits after 30 idle minutes (`TSRS_DAEMON_IDLE`, seconds) or above its memory limit
-  (`TSRS_DAEMON_MAX_MEMORY`); `tsrs --daemon-stop` stops them all. Anything it cannot serve (`--build`, `--watch`,
-  emitting runs, timings, response files, other `TSRS_*` variables) runs in-process.
+  this binary, directory, command line and environment (started on first use), which reruns it with fresh checkers on
+  the parsed files whose text is unchanged, or prints its last output again when nothing it read changed; output and
+  exit status are those of a run without `--daemon`. A server exits after 30 idle minutes (`TSRS_DAEMON_IDLE`,
+  seconds) or when its memory doubles; `tsrs --daemon-stop` stops them all. `--build`, `--watch`, emitting runs,
+  timings, response files and any `TSRS_*` variable other than `TSRS_FAST` run in-process with no message: a
+  `TSRS_*` setting in the environment silently turns the server off.
 - `--checkerAssignment go` selects the default tsgo file assignment and checker history; `locality` opts into static
   locality assignment and canonical history. Explicit assignments disable work stealing.
 - `--lazyMembers` opts into lazy checker optimizations alone; `--noLazyMembers` disables them even in fast mode.

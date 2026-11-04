@@ -84,15 +84,11 @@ impl Paths {
     pub fn new(material: &str) -> Option<Paths> {
         let dir = directory()?;
         let name = format!("{:016x}", xxhash_rust::xxh3::xxh3_64(material.as_bytes()));
-        Some(Paths::in_dir(&dir, &name))
-    }
-
-    pub fn in_dir(dir: &std::path::Path, name: &str) -> Paths {
-        Paths {
+        Some(Paths {
             socket: dir.join(format!("{name}.sock")),
             lock: dir.join(format!("{name}.lock")),
             log: dir.join(format!("{name}.log")),
-        }
+        })
     }
 }
 
@@ -119,10 +115,6 @@ pub enum Response {
     Stopped,
 }
 
-fn write_u32(w: &mut Vec<u8>, v: u32) {
-    w.extend_from_slice(&v.to_le_bytes());
-}
-
 fn read_exact<const N: usize>(r: &mut impl Read) -> std::io::Result<[u8; N]> {
     let mut buf = [0; N];
     r.read_exact(&mut buf)?;
@@ -135,7 +127,8 @@ fn invalid(what: &str) -> std::io::Error {
 
 pub fn write_request(w: &mut impl Write, request: &Request) -> std::io::Result<()> {
     let mut buf = MAGIC.to_vec();
-    write_u32(&mut buf, u32::try_from(request.material.len()).map_err(|_| invalid("key"))?);
+    let len = u32::try_from(request.material.len()).map_err(|_| invalid("key"))?;
+    buf.extend_from_slice(&len.to_le_bytes());
     buf.extend_from_slice(request.material.as_bytes());
     buf.push(request.op as u8);
     buf.push(u8::from(request.stdout_is_tty));

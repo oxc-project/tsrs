@@ -25,11 +25,11 @@ use crate::watchmem::Freer;
 
 /// How long a server waits for a request before it exits (`TSRS_DAEMON_IDLE`, in seconds).
 const DEFAULT_IDLE: Duration = Duration::from_mins(30);
-/// Ids are 31-bit and only grow (`tsrs_ast::ids_handed_out`); a server stops well before they run out.
+/// Ids are 31-bit and only grow (`tsrs_ast::ids_handed_out`); a server stops at half of them.
 const ID_LIMIT: u64 = 1 << 30;
 
-/// A line of the server's log (standard error), written with one system call: other servers of the key and the
-/// free thread write to the same file, and `eprintln!` writes a formatted line in pieces.
+/// A log line (standard error) in one `write`: other servers of the key and the free thread write to the same file,
+/// and `eprintln!` writes a formatted line in pieces.
 macro_rules! log {
     ($($arg:tt)*) => {{
         let line = format!("tsrs daemon: {}\n", format_args!($($arg)*));
@@ -95,9 +95,9 @@ impl System for DaemonSys {
     }
 }
 
-/// The file system `DaemonSys::fs` hands out: the current request's (bundled libraries over `RecordFs`). A run
-/// keeps what it is handed past its end (the configuration parse host is leaked, as in a cold run); keeping this
-/// instead of the request's file system lets each request's recorded answers go once the next has replaced them.
+/// The current request's file system (bundled libraries over `RecordFs`), behind one indirection: a run keeps the
+/// file system it is handed past its end (the configuration parse host is leaked, as in a cold run), and this lets a
+/// request's recorded answers go once the next request has replaced them.
 #[derive(Default)]
 struct CurrentFs(std::sync::RwLock<Option<Arc<dyn FS>>>);
 
@@ -198,8 +198,8 @@ impl super::Resident for ResidentState {
     }
 
     fn program_options(&self, options: &mut ProgramOptions) {
-        // As watch mode: the program's checkers, their diagnostics and the file loader's data live in regions that
-        // are freed with the program once the request is answered (`Server::keep`).
+        // As watch mode: checkers, diagnostics and the file loader's data in regions freed with the program
+        // (`Server::keep`).
         options.checker_regions = true;
         options.checker_diagnostic_regions = true;
         let regions = Arc::new(ProgramRegions::default());
@@ -212,11 +212,10 @@ impl super::Resident for ResidentState {
     }
 }
 
-/// The compiler host of a request: the cold run's, with the files parsed for earlier requests handed out again while
-/// their text is unchanged (watch.rs `WatchCompilerHost`, with the request's validated reads instead of a
-/// modification time). A new file is parsed and bound in the thread's arena, as in a cold run: in per-file regions
-/// (watchmem.rs) the checks were slower, and the arena's huge pages are what a cold run's checkers read. The old
-/// version of an edited file is not freed; the memory limit bounds what accumulates (`Server::over_limit`).
+/// The cold run's compiler host, handing out the files parsed for earlier requests while their text is unchanged
+/// (watch.rs `WatchCompilerHost`, with the request's validated reads instead of a modification time). A new file is
+/// parsed and bound in the thread arena, as in a cold run; an edited file's old version is not freed, and the memory
+/// limit bounds what accumulates (`Server::over_limit`).
 struct ResidentHost {
     inner: Arc<dyn CompilerHost>,
     state: &'static ResidentState,
@@ -316,12 +315,12 @@ struct Last {
     stdout: Vec<u8>,
     status: u8,
     tty: bool,
-    // The configuration files the run read (the project's and those it extends): a change restarts the server, as
-    // the configuration sets process-wide state (`declaration_files_unchecked`).
+    // The project's configuration file and those it extends: a change restarts the server, as the configuration sets
+    // process-wide state (`declaration_files_unchecked`).
     config_files: FxHashSet<String>,
 }
 
-/// The process's memory once a request's program is freed (`process_memory`), for the limit (`Server::over_limit`).
+/// The process's memory once a request's program is freed (`process_memory`), for `Server::over_limit`.
 #[derive(Default)]
 struct Memory {
     first: AtomicUsize,
@@ -335,7 +334,6 @@ struct Server {
     lock: Option<std::fs::File>,
     listener: UnixListener,
     idle: Duration,
-    max_memory: Option<usize>,
     freer: Freer,
     contents: Arc<Contents>,
     last: Option<Last>,
@@ -364,15 +362,12 @@ pub fn serve(args: Vec<String>) -> u8 {
         .ok()
         .and_then(|v| v.parse::<f64>().ok())
         .map_or(DEFAULT_IDLE, Duration::from_secs_f64);
-    let max_memory = std::env::var("TSRS_DAEMON_MAX_MEMORY")
-        .ok()
-        .and_then(|v| tsrs_compiler::parse_memory_size(&v));
     log!("pid {}, serving {:?}", std::process::id(), args);
     let _ = super::RESIDENT.set(state());
-    // Lazily filled data of the kept files goes to their owner (the thread arenas), not to the region of the checker
-    // that fills it, which is freed after the request.
+    // Lazily filled data of a kept file goes to the file's arena, not to the region of the checker that fills it,
+    // which is freed after the request.
     tsrs_core::arena::route_by_owner();
-    // Checking recurses deeply: requests run on a thread with a large stack, like the command line's.
+    // Checking recurses deeply: a large stack, like the command line's.
     std::thread::Builder::new()
         .name("tsrs".to_string())
         .stack_size(512 << 20)
@@ -384,7 +379,6 @@ pub fn serve(args: Vec<String>) -> u8 {
                 lock: Some(lock),
                 listener,
                 idle,
-                max_memory,
                 freer: Freer::new(false),
                 contents: Arc::default(),
                 last: None,
@@ -675,14 +669,13 @@ impl Server {
         });
     }
 
-    /// Whether the server should stop: the process's memory after its last free passed the limit
-    /// (`TSRS_DAEMON_MAX_MEMORY`, else twice what it was after the first request, and at least 1 GiB more), or the
-    /// ids are half used.
+    /// Whether the server should stop: the process's memory after its last free is over twice what it was after the
+    /// first request (and 1 GiB more), or the ids are half used.
     fn over_limit(&self) -> bool {
         // Relaxed (both): see `keep`.
         let first = self.memory.first.load(Ordering::Relaxed);
         let latest = self.memory.latest.load(Ordering::Relaxed);
-        let limit = self.max_memory.unwrap_or_else(|| (2 * first).max(first + (1 << 30)));
+        let limit = (2 * first).max(first + (1 << 30));
         if first > 0 && latest > limit {
             log!("{latest} bytes after the last request, over {limit}: exiting");
             return true;

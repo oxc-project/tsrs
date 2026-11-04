@@ -2,8 +2,8 @@
 
 Git hooks and agents type-check the same project again and again, and every run rebuilds the front end: read, parse
 and bind every file, resolve every import. `tsrs -p <dir> --noEmit --fast --daemon` (or `TSRS_DAEMON=1`) sends the
-command to a resident server that keeps the parsed files of its last run. Design and exactness argument:
-`crates/tsrs_execute/src/daemon/mod.rs`. Earlier notes ruled a daemon out without measuring it
+command to a resident server that keeps the parsed files of its last run; the design and the exactness argument are
+in `crates/tsrs_execute/src/daemon/mod.rs`. Earlier notes ruled a daemon out without measuring it
 (notes/perf-round3.md, "holds several GiB per checkout"); `--fast` now accepts memory for speed, so this measures it.
 
 Verdict: a rerun with no change answers in 9-50 ms instead of 0.9-2.2 s (94-99% less wall), byte-identical. A rerun
@@ -13,36 +13,21 @@ The server holds 0.5-1.4 GB once idle, growing 25-60 MiB per rerun. The no-chang
 without a server gets (branch `feat/fast-result-cache`, about the same replay time), so the server earns its
 process only on edits, where it is weak on Linux.
 
-## What it does
+## Design decisions
 
-- The client (the same binary) hashes a key from the binary's path and file identity, the working directory, the
-  arguments and the environment variables tsrs reads, and connects to the server's Unix socket (in
-  `$XDG_RUNTIME_DIR/tsrs-daemon`, else `$TMPDIR/tsrs-daemon-<uid>`, mode 0700). Without a server it starts one
-  (detached, its own process group, inherited descriptors closed) and waits for it. The server compares the whole key
-  text of each request with its own, so an upgraded binary never talks to an old server.
-- Each request runs the cold command line in the server (`execute::command_line`) with fresh checkers. The only hook
-  in `perform_compilation`: a compiler host that hands out a file parsed for an earlier request when its text is
-  unchanged, program options that put the checkers and the loader's data in regions freed after the request, and a
-  call back once the program is checked. Leaf freeing is off (the files are kept).
-- Staleness: no file watcher. Every file system query a run makes is recorded with its answer
-  (`daemon/recordfs.rs`); the next request asks all of them again on the worker pool. A read is vouched for by the
-  file's stamp (device, inode, size, mode, mtime, ctime: the kernel sets ctime on every write and no call sets it
-  back); a stamp taken within 2 s of the file's newest time is "racy" and the file is hashed again instead (git's
-  rule for coarse file system clocks). A listing is vouched for by the directory's stamp only when every entry is a
-  plain file or directory: a symlink's target, or a dangling symlink's, can change without the directory changing.
-  If every answer is the same, a cold run would read the same bytes, and the server replays its last output. If
-  not, it reruns with the fresh answers (no second system call) and the unchanged files.
-- A change to a configuration file restarts the server (the configuration sets process-wide state such as lazy
-  declaration parsing). `--build`, `--watch`, emitting runs, timings, content mappers, response files and other
-  `TSRS_*` variables run in-process; so does any request whose server dies or answers anything unexpected.
-- One request at a time (others wait on the socket), idle exit after 30 minutes, a memory limit (twice the
-  resident memory after the first request, at least 1 GiB more, or `TSRS_DAEMON_MAX_MEMORY`), half of the 31-bit id
-  space, and `tsrs --daemon-stop`.
-
-Why stat validation rather than the watcher (`tsrs_fswatch`): it is exact by construction and cheap enough
-(below), it needs no thread, and it has none of a watcher's failure modes at request time: FSEvents delivers 11-13 ms
-after a write (notes/watch-macos.md), so a hook that runs right after a save could see a stale tree; events coalesce
-and overflow; inotify has watch limits; failed module lookups would each need a watch.
+- Staleness by asking every recorded file system query again (a stamp for reads and listings; a hash when the stamp
+  changed or was taken within 2 s of the file's newest time, git's rule for coarse clocks) rather than the watcher
+  (`tsrs_fswatch`): exact by construction, cheap enough (tables below), no thread, and none of a watcher's failure
+  modes at request time. FSEvents delivers 11-13 ms after a write (notes/watch-macos.md), so a hook that runs right
+  after a save could see a stale tree; events coalesce and overflow; inotify has watch limits; every failed module
+  lookup would need a watch.
+- Every request rebuilds the program with fresh checkers rather than reusing the last one (`Program::reuse_program`,
+  watch mode's fast path). Reuse would skip module resolution (50-170 ms, ~5-15% of an edit), but a reused program
+  inherits the old pool's checker assignment (`inherited_associations`) and fast mode is not assignment-independent
+  everywhere (notes/open-history-dependence.md), so the output would no longer be the cold run's in those cases.
+- The client waits for the server it starts. Running the command in-process beside a warming server costs the first
+  run +31% (t3code-server, 2.34 -> 3.07 s), +49% (mui-docs), +84% (supabase-studio) and +96% (vscode, 1.19 ->
+  2.33 s) on 16 vCPUs.
 
 ## Results
 
@@ -133,13 +118,8 @@ The server's footprint on macOS after 34 requests (24 of them reruns after an ed
 Output (stdout bytes) and exit status of the `--daemon` request equal a cold run of the same binary on all 17 prepared
 benchmark projects, at each of: first request, rerun, after appending a type error to a source file of the program,
 after reverting it, after adding a file next to it, after deleting that file (98 comparisons; webpack has no
-TypeScript source to edit). Every paired run above and on macOS compared its output too: all identical. The CLI tests
-(`crates/tsrs_cli/tests/integration/daemon.rs`) cover in-place and atomic saves, a same-size edit right after a read
-(a racy stamp), a rewrite with the same text (replayed), new, deleted and renamed files, a package appearing in
-`node_modules` for an import that did not resolve, a changed `package.json` `types`, a dangling symlink whose target
-appears, a tsconfig change (restart), six concurrent clients on a fresh key (one server), a server killed with SIGKILL
-while it reads a named pipe (the client runs the command itself), a request with another key and a copy of the binary
-(separate servers), idle exit, `--daemon-stop`, the memory limit and ineligible commands.
+TypeScript source to edit). Every paired run above compared its output too: all identical. The CLI tests are
+`crates/tsrs_cli/tests/integration/daemon.rs`.
 
 Node and symbol ids differ from a cold run's: ids of kept files were assigned by an earlier request, and new ones keep
 growing. A `--fast` run already numbers them differently every time (checkers take ids in parallel), and the
@@ -147,15 +127,15 @@ determinism gate holds its output to the program alone. One way an id's value is
 property name embeds its symbol id, and the node builder counts that name's length toward type truncation, so a type
 printed right at the truncation limit could print differently once ids gain a digit. No comparison above hit it.
 
-## What did not work, and what was measured on the way
+## Measured and rejected
 
 - **Edits do not reliably beat a cold run on Linux.** vscode -9%, supabase-studio -5%, but mui-docs +2-4% and
   t3code-server +4-5% (table above). An edit still pays every module resolution (the loader walks the import graph
   again; with every file cached that is 50-170 ms of a vscode, mui-docs or supabase-studio request, CPU-bound and
-  poorly parallel) and the whole check, which is 75-95% of a cold run and must be redone with fresh checkers. What the
-  server skips is reading, parsing and binding, which is small on Linux. On macOS reading files is slower (`open` is
-  capped near 110k/s by the endpoint security client), and the server's edits were 8-19% faster on vscode, mui-docs
-  and supabase-studio (t3code-server: within noise).
+  poorly parallel) and the whole check, 75-95% of a cold run, redone with fresh checkers. What the server skips is
+  reading, parsing and binding, which is small on Linux. On macOS reading files is slower (`open` is capped near
+  110k/s by the endpoint security client), and the server's edits were 8-19% faster on vscode, mui-docs and
+  supabase-studio (t3code-server: within noise).
 - **Later requests run slower than the first.** Over a session of hub edits on mui-docs the request's user cycles rose
   from 28.7 G to 31.1 G (+8%) for +1.5% instructions, with dTLB misses 352 M -> 425 M (+21%, system-wide `perf stat`
   around each request); it steps up at the third edit and then holds. The server's huge pages did not drop
@@ -163,44 +143,32 @@ printed right at the truncation limit could print differently once ids gain a di
   (links.rs `IdLinkStore`): the kept files' ids were handed out by the first request and new ids keep growing, so each
   checker's dense index spans an ever wider id range, touched sparsely. This, not the first edit, is what the paired
   runs above measure (each pair follows a priming request).
-- **Checker regions cost 5-10% of the check.** The first version freed each request's checkers by giving them
-  regions, as watch mode does. Its edit runs were slower than cold runs on mui-docs (+3%) and t3code-server (+7-10%):
-  a region grows in 4 KiB-page chunks, where a cold run's checkers use the thread arenas' 2 MiB huge-page chunks.
-  A t3code-server edit request took 405-480k minor faults and 0.7-0.8 s of system time with checker regions, 97-102k
-  and 0.25 s without them (`/proc/<pid>/stat`; `TSRS_DAEMON_EXPERIMENT` switches, since removed; without regions
-  every request leaks its checkers). Paired hub edits without checker regions: mui-docs -6.1%, t3code-server -2.8%,
-  vscode -15.2%, supabase-studio -8.4% against cold runs. A region chunk of 2 MiB or more is now whole huge-page blocks
-  on Linux, as a thread arena's are (tsrs_core arena.rs; the CLI's retired file regions excluded, so cold runs do not
-  change). A mui-docs edit request then took 74-185k faults (137k without checker regions), and the paired hub edits
-  went from +7.0% to +2.1% on t3code-server and from -10.1% to -12.2% on vscode. Watch mode, `-b` and `--maxMemory`
-  use the same regions and get the same pages; not measured there.
+- **Checker regions in 4 KiB pages cost 5-10% of the check.** Freeing each request's checkers through regions, as
+  watch mode does, made edit runs slower than cold runs on mui-docs (+3%) and t3code-server (+7-10%): a region grew
+  in 4 KiB-page chunks, where a cold run's checkers use the thread arenas' 2 MiB huge-page chunks. A t3code-server
+  edit request took 405-480k minor faults and 0.7-0.8 s of system time with checker regions, 97-102k and 0.25 s
+  without them (`/proc/<pid>/stat`); paired hub edits without checker regions were mui-docs -6.1%, t3code-server
+  -2.8%, vscode -15.2%, supabase-studio -8.4% against cold runs. A region chunk of 2 MiB or more is now whole
+  huge-page blocks on Linux, as a thread arena's are (tsrs_core arena.rs; the CLI's retired file regions excluded, so
+  cold runs do not change). A mui-docs edit request then took 74-185k faults (137k without checker regions), and the
+  paired hub edits went from +7.0% to +2.1% on t3code-server and from -10.1% to -12.2% on vscode. Watch mode, `-b`
+  and `--maxMemory` use the same regions and get the same pages; not measured there.
 - **Per-file regions for the kept files** (watch mode's watchmem.rs) changed nothing measurable against parsing into
-  the thread arenas (hub edits within 1% on all four projects); the files now go to the thread arenas, as in a cold
-  run, and an edited file's old version is not freed.
+  the thread arenas (hub edits within 1% on all four projects); the files go to the thread arenas, as in a cold run,
+  and an edited file's old version is not freed.
 - **Allocator retention.** Without `mi_collect` after each request, the server's resident memory on Linux rose
   ~100-150 MiB per request (freed checker memory kept by mimalloc), enough to trip the memory limit within a few
   edits. With it, 25-60 MiB per request remains (mostly the heap; the arena grows 4-17 MiB per request: old file
-  versions and thread-arena data). Not found yet; the memory limit restarts the server when it doubles.
-- **First request: wait for the server, or run in-process while it warms up.** The client waits, and its first
-  request costs about a cold run (table above). Running the command in-process while a server builds the same
-  program beside it is what the other choice costs: a cold run beside another cold run took +31% (t3code-server,
-  2.34 -> 3.07 s), +49% (mui-docs), +84% (supabase-studio) and +96% (vscode, 1.19 -> 2.33 s) on 16 vCPUs.
-- **Not tried:**
-  - reusing the last program for a one-file edit (`Program::reuse_program`, watch mode's fast path): it would skip
-    module resolution (the 50-170 ms above, ~5-15% of an edit), but the reused program inherits the old pool's
-    checker assignment (`inherited_associations`), and fast mode is not assignment-independent everywhere
-    (notes/open-history-dependence.md), so the output would no longer be the cold run's in those cases; it also
-    needs the program kept between requests or a checker-free copy of it.
-  - checking speculatively when a watcher sees a change, so that the request finds its answer ready: exact with
-    the same validation, but it spends 16 cores on every save.
-  - a fork per request (the checkers die with the child, ids never grow): the rayon pools do not survive `fork`
-    (notes/perf-checker-processes.md forked from a checker thread with the pools idle and avoided them in the
-    child; a whole check needs them).
+  versions and thread-arena data). Not found; the memory limit restarts the server when it doubles.
+- **Not tried:** checking speculatively when a watcher sees a change, so that the request finds its answer ready
+  (exact with the same validation, but it spends 16 cores on every save); a fork per request (the checkers die with
+  the child, ids never grow), as the rayon pools do not survive `fork` (notes/perf-checker-processes.md forked from a
+  checker thread with the pools idle and avoided them in the child; a whole check needs them).
 
 ## Overlap
 
-The result cache on branch `feat/fast-result-cache` validates the same way and replays a no-change run from a
-file without a server: its replays measured 26-42 ms on the same instance type, the server's 30-50 ms through the same
+The result cache on branch `feat/fast-result-cache` validates the same way and replays a no-change run from a file
+without a server: its replays measured 26-42 ms on the same instance type, the server's 30-50 ms through the same
 runner. If both land, the server is only worth its process and memory for edits. The source cache in `tsrs_vfs` on
-branch `perf/fast-source-cache` would take the file reads out of a cold run, which is most of what the
-server saves on macOS.
+branch `perf/fast-source-cache` would take the file reads out of a cold run, which is most of what the server saves
+on macOS.

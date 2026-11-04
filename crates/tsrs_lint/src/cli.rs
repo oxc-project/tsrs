@@ -51,6 +51,7 @@ pub fn run(
             "headless" | "--headless" => headless = true,
             "-fix" | "--fix" => options.fix = true,
             "-fix-suggestions" | "--fix-suggestions" => options.fix_suggestions = true,
+            "-runExternalCode" | "--runExternalCode" => options.run_external_code = true,
             "-debug" | "--debug" => {
                 if args.next().as_deref() == Some("timings") {
                     options.debug_timings = true;
@@ -61,7 +62,7 @@ pub fn run(
             }
             "--help" | "-h" => {
                 eprintln!(
-                    "Usage: tsrs-lint headless [--fix] [--fix-suggestions] [--debug timings]"
+                    "Usage: tsrs-lint headless [--fix] [--fix-suggestions] [--runExternalCode] [--debug timings]"
                 );
                 return 0;
             }

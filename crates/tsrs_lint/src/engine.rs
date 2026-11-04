@@ -12,7 +12,7 @@ use tsrs_compiler::{Context, Program, ProgramOptions};
 use tsrs_core::json::Value;
 use tsrs_core::tspath;
 use tsrs_core::{
-    CompilerOptions, JsxEmit, ModuleKind, ModuleResolutionKind, P, ScriptTarget, Tristate,
+    CompilerOptions, JsxEmit, Locale, ModuleKind, ModuleResolutionKind, P, ScriptTarget, Tristate,
 };
 use tsrs_tsoptions::{ParseConfigHost, ParsedCommandLine};
 use tsrs_vfs::{FS, bundled, cachedvfs, osvfs, wrapvfs};
@@ -27,6 +27,7 @@ pub struct Options {
     pub fix_suggestions: bool,
     pub debug_timings: bool,
     pub suppress_program_diagnostics: bool,
+    pub run_external_code: bool,
 }
 
 #[derive(Default)]
@@ -156,6 +157,53 @@ impl Drop for ProgramOwner {
     }
 }
 
+// Closes a content mapper project and its host in the right order when the owning program is done.
+// Mirrors `crates/tsrs_execute/src/tsc/compile.rs::ContentMapperCloser`.
+struct ContentMapperCloser {
+    project: Option<Arc<dyn tsrs_contentmapper::Project>>,
+    host: Option<Arc<dyn tsrs_contentmapper::Host>>,
+}
+
+impl Drop for ContentMapperCloser {
+    fn drop(&mut self) {
+        if let Some(project) = self.project.take() {
+            let _ = project.close();
+        }
+        if let Some(host) = self.host.take() {
+            let _ = host.close();
+        }
+    }
+}
+
+// Opens a content mapper project for `config` when `--runExternalCode` is enabled. The returned
+// `ContentMapperCloser` must outlive the program that uses the project.
+fn open_content_mapper_project(
+    config: P<ParsedCommandLine>,
+) -> (Option<Arc<dyn tsrs_contentmapper::Project>>, ContentMapperCloser) {
+    let Some(compiler_options) = config.compiler_options() else {
+        return (None, ContentMapperCloser { project: None, host: None });
+    };
+    if !compiler_options.run_external_code.is_true() {
+        return (None, ContentMapperCloser { project: None, host: None });
+    }
+    let host = tsrs_contentmapper::new_host_with_options(
+        Arc::new(tsrs_contentmapper::ProcessSpawner),
+        Locale(compiler_options.locale.clone()),
+        tsrs_contentmapper::HostOptions::default(),
+    );
+    if config.content_mappers().is_empty() {
+        return (None, ContentMapperCloser { project: None, host: Some(host) });
+    }
+    let static_config: &'static ParsedCommandLine = config.get();
+    let project = host.project(tsrs_contentmapper::ProjectSpec {
+        config_file_name: static_config.config_name().to_string(),
+        mappers: static_config.content_mappers().iter().collect(),
+        compiler_options: static_config.compiler_options(),
+    });
+    let project_for_host = project.clone();
+    (project_for_host, ContentMapperCloser { project, host: Some(host) })
+}
+
 fn run_in_region(
     payload: &Payload,
     options: Options,
@@ -182,7 +230,7 @@ fn run_in_region(
     let mut config_cache = FxHashMap::default();
     for path in file_configs.keys() {
         let resolved = tspath::get_normalized_absolute_path(path, cwd);
-        if let Some(config_path) = find_tsconfig(&resolved, host, &mut config_cache) {
+        if let Some(config_path) = find_tsconfig_impl(&resolved, host, &mut config_cache, options.run_external_code) {
             programs.entry(config_path).or_default().push(path.clone());
         } else {
             unmatched.push(path.clone());
@@ -190,9 +238,13 @@ fn run_in_region(
     }
     drop(config_cache);
     for (config_path, files) in programs {
+        let options_to_extend = options.run_external_code.then(|| CompilerOptions {
+            run_external_code: Tristate::True,
+            ..Default::default()
+        });
         let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
             &config_path,
-            None,
+            options_to_extend.as_ref(),
             None,
             host,
             None,
@@ -203,19 +255,23 @@ fn run_in_region(
             }
             continue;
         }
-        let config = config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
+        let mut config = config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
         if !config.errors.is_empty() && !options.suppress_program_diagnostics {
             for diagnostic in &config.errors {
                 report_config_error(*diagnostic, &config_path, false, writer)?;
             }
             continue;
         }
+        apply_checker_count_override(&mut config);
+        let config = P::new(config);
+        let (content_mapper_project, content_mapper_closer) = open_content_mapper_project(config);
         let program = create_program(
             config,
             Arc::clone(&fs),
             &tspath::get_directory_path(&config_path),
             true,
             Arc::clone(&regions.loaders),
+            content_mapper_project,
         );
         let program_ref = program.0;
         let diagnostics = program_ref.get_program_diagnostics();
@@ -226,24 +282,33 @@ fn run_in_region(
             continue;
         }
         run_program(program_ref, &files, payload, options, writer, &file_configs, &mut timings)?;
+        drop(program);
+        drop(content_mapper_closer);
     }
     if !unmatched.is_empty() {
+        let mut compiler_options = CompilerOptions {
+            allow_js: Tristate::True,
+            module: ModuleKind::ES_NEXT,
+            module_resolution: ModuleResolutionKind::BUNDLER,
+            target: ScriptTarget::ES2022,
+            jsx: JsxEmit::REACT_JSX,
+            allow_importing_ts_extensions: Tristate::True,
+            strict_null_checks: Tristate::True,
+            strict_function_types: Tristate::True,
+            source_map: Tristate::True,
+            es_module_interop: Tristate::True,
+            allow_non_ts_extensions: Tristate::True,
+            resolve_json_module: Tristate::True,
+            ..Default::default()
+        };
+        if options.run_external_code {
+            compiler_options.run_external_code = Tristate::True;
+        }
+        if let Some(checkers) = checker_count() {
+            compiler_options.checkers = Some(checkers);
+        }
         let config = tsrs_tsoptions::new_parsed_command_line(
-            P::new(CompilerOptions {
-                allow_js: Tristate::True,
-                module: ModuleKind::ES_NEXT,
-                module_resolution: ModuleResolutionKind::BUNDLER,
-                target: ScriptTarget::ES2022,
-                jsx: JsxEmit::REACT_JSX,
-                allow_importing_ts_extensions: Tristate::True,
-                strict_null_checks: Tristate::True,
-                strict_function_types: Tristate::True,
-                source_map: Tristate::True,
-                es_module_interop: Tristate::True,
-                allow_non_ts_extensions: Tristate::True,
-                resolve_json_module: Tristate::True,
-                ..Default::default()
-            }),
+            P::new(compiler_options),
             unmatched.clone(),
             Vec::new(),
             tspath::ComparePathsOptions {
@@ -251,8 +316,12 @@ fn run_in_region(
                 use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
             },
         );
-        let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders));
+        let config = P::new(config);
+        let (content_mapper_project, content_mapper_closer) = open_content_mapper_project(config);
+        let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders), content_mapper_project);
         run_program(program.0, &unmatched, payload, options, writer, &file_configs, &mut timings)?;
+        drop(program);
+        drop(content_mapper_closer);
     }
     if options.debug_timings {
         let mut records = timings.into_iter().collect::<Vec<_>>();
@@ -284,27 +353,31 @@ fn run_in_region(
 }
 
 fn create_program(
-    mut config: ParsedCommandLine,
+    config: P<ParsedCommandLine>,
     fs: Arc<dyn FS>,
     cwd: &str,
     references: bool,
     loader_regions: Arc<tsrs_compiler::ProgramRegions>,
+    content_mapper_project: Option<Arc<dyn tsrs_contentmapper::Project>>,
 ) -> ProgramOwner {
+    // As in the CLI, `TSRS_LIB_PATH` overrides where the default libraries are read from.
+    let host =
+        tsrs_compiler::new_compiler_host(cwd, fs, &bundled::default_lib_path(), None, None, content_mapper_project);
+    let mut options = ProgramOptions::new(config, host);
+    options.use_source_of_project_reference = references;
+    options.regions = Some(loader_regions);
+    // The checkers' memory goes back with the program (`free_unshared_program`), before the next program's is built.
+    options.checker_regions = true;
+    ProgramOwner(tsrs_compiler::new_program(options))
+}
+
+fn apply_checker_count_override(config: &mut ParsedCommandLine) {
     if let Some(checkers) = checker_count() {
         config.parsed_config.compiler_options = Some(P::new(CompilerOptions {
             checkers: Some(checkers),
             ..(*config.compiler_options().unwrap()).clone()
         }));
     }
-    // As in the CLI, `TSRS_LIB_PATH` overrides where the default libraries are read from.
-    let host =
-        tsrs_compiler::new_compiler_host(cwd, fs, &bundled::default_lib_path(), None, None, None);
-    let mut options = ProgramOptions::new(P::new(config), host);
-    options.use_source_of_project_reference = references;
-    options.regions = Some(loader_regions);
-    // The checkers' memory goes back with the program (`free_unshared_program`), before the next program's is built.
-    options.checker_regions = true;
-    ProgramOwner(tsrs_compiler::new_program(options))
 }
 
 /// `RAYON_NUM_THREADS` (oxlint's thread count) caps the checkers as well as the loader threads, else the compiler's
@@ -548,6 +621,15 @@ pub fn find_tsconfig(
     host: &ConfigHost,
     configs: &mut FxHashMap<tspath::Path, Option<ParsedCommandLine>>,
 ) -> Option<String> {
+    find_tsconfig_impl(file, host, configs, false)
+}
+
+fn find_tsconfig_impl(
+    file: &str,
+    host: &ConfigHost,
+    configs: &mut FxHashMap<tspath::Path, Option<ParsedCommandLine>>,
+    run_external_code: bool,
+) -> Option<String> {
     let mut next = compute_config_file_name(file, false, host);
     let mut visited = FxHashSet::default();
     let file_path = tspath::to_path(file, &host.cwd, host.fs.use_case_sensitive_file_names());
@@ -561,8 +643,12 @@ pub fn find_tsconfig(
             let config_path_key =
                 tspath::to_path(&path, &host.cwd, host.fs.use_case_sensitive_file_names());
             let config = configs.entry(config_path_key).or_insert_with(|| {
+                let options_to_extend = run_external_code.then(|| CompilerOptions {
+                    run_external_code: Tristate::True,
+                    ..Default::default()
+                });
                 let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
-                    &path, None, None, host, None,
+                    &path, options_to_extend.as_ref(), None, host, None,
                 );
                 if !diagnostics.is_empty() {
                     return None;

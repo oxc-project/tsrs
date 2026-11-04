@@ -6795,3 +6795,143 @@ fn unbound_method_accepts_untyped_this_without_panicking() {
         }
     }
 }
+
+const CONTENT_MAPPER_SCRIPT: &str = r#"#!/usr/bin/env node
+import process from 'node:process';
+
+function respond(message) {
+  const body = Buffer.from(JSON.stringify({ jsonrpc: '2.0', ...message }));
+  process.stdout.write(`Content-Length: ${body.length}\r\n\r\n`);
+  process.stdout.write(body);
+}
+
+function extractScript(content) {
+  const match = content.match(/<script\s+setup\s+lang\s*=\s*"ts"\s*>([\s\S]*?)<\/script>/i);
+  if (!match) return content;
+  return match[1].replace(/^\n/, '').replace(/\n$/, '') + '\n';
+}
+
+function handle(request) {
+  if (request.id === undefined) return;
+  switch (request.method) {
+    case 'initialize':
+      respond({ id: request.id, result: { positionEncoding: 'utf-8', diagnosticSource: 'vize' } });
+      break;
+    case 'openProject':
+      respond({ id: request.id, result: {} });
+      break;
+    case 'transform': {
+      const content = String(request.params?.content ?? '');
+      const text = extractScript(content);
+      const length = Buffer.byteLength(text, 'utf8');
+      const originalLength = Buffer.byteLength(content, 'utf8');
+      respond({
+        id: request.id,
+        result: {
+          text,
+          extension: '.ts',
+          mappings: length ? [[0, length, 0, originalLength, 1]] : [],
+          diagnostics: [],
+        },
+      });
+      break;
+    }
+    case 'closeProject':
+      respond({ id: request.id, result: {} });
+      break;
+    default:
+      respond({ id: request.id, result: {} });
+  }
+}
+
+let buffer = Buffer.alloc(0);
+process.stdin.on('data', (chunk) => {
+  buffer = Buffer.concat([buffer, chunk]);
+  for (;;) {
+    const headerEnd = buffer.indexOf('\r\n\r\n');
+    if (headerEnd === -1) return;
+    const header = buffer.subarray(0, headerEnd).toString('ascii');
+    const match = /Content-Length:\s*(\d+)/i.exec(header);
+    if (!match) {
+      buffer = buffer.subarray(headerEnd + 4);
+      continue;
+    }
+    const length = Number(match[1]);
+    const start = headerEnd + 4;
+    if (buffer.length < start + length) return;
+    const body = buffer.subarray(start, start + length).toString('utf8');
+    buffer = buffer.subarray(start + length);
+    try {
+      handle(JSON.parse(body));
+    } catch {}
+  }
+});
+process.stdin.on('end', () => process.exit(0));
+"#;
+
+#[test]
+fn content_mapper_run_external_code_reports_mapped_diagnostic() {
+    let base = std::env::current_dir().unwrap().join("target/lint-content-mapper");
+    let _ = std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(base.join("src")).unwrap();
+    std::fs::create_dir_all(base.join("node_modules/vize")).unwrap();
+    std::fs::write(
+        base.join("src/App.vue"),
+        "<script setup lang=\"ts\">\nconst n: number = \"hello\";\n</script>\n",
+    )
+    .unwrap();
+    std::fs::write(
+        base.join("tsconfig.json"),
+        r#"{"compilerOptions":{"strict":true,"noEmit":true,"module":"esnext","target":"es2022","types":[]},"contentMappers":[{"package":"vize","extensions":[".vue"]}],"include":["src"]}"#,
+    )
+    .unwrap();
+    std::fs::write(
+        base.join("node_modules/vize/package.json"),
+        r#"{"name":"vize","version":"0.0.0","typescript":{"contentMapper":{"exec":["node","mapper.mjs"]}},"exports":"./mapper.mjs"}"#,
+    )
+    .unwrap();
+    std::fs::write(base.join("node_modules/vize/mapper.mjs"), CONTENT_MAPPER_SCRIPT).unwrap();
+
+    let app_vue = base.join("src/App.vue").to_string_lossy().into_owned();
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        ("report_semantic", Value::Bool(true)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                ("file_paths", Value::Array(vec![Value::String(app_vue.clone())])),
+                ("rules", Value::Array(Vec::new())),
+            ])]),
+        ),
+    ]);
+
+    let (status, frames) = run(&payload, &["--runExternalCode"]);
+    assert_eq!(status, 0, "{frames:?}");
+    let diagnostics: Vec<_> = frames.iter().filter(|(kind, _)| *kind == protocol::MessageType::Diagnostic as u8).collect();
+    assert_eq!(diagnostics.len(), 1, "{frames:?}");
+    let Value::Object(diagnostic) = &diagnostics[0].1 else { panic!() };
+    assert_eq!(diagnostic["file_path"], Value::String(app_vue));
+    let Value::Object(message) = &diagnostic["message"] else { panic!() };
+    assert_eq!(message["id"], Value::String("TS2322".into()));
+
+    let (status_no_flag, frames_no_flag) = run(&payload, &[]);
+    assert_eq!(status_no_flag, 0, "{frames_no_flag:?}");
+    let ids: Vec<String> = frames_no_flag
+        .iter()
+        .filter_map(|(kind, value)| {
+            if *kind != protocol::MessageType::Diagnostic as u8 {
+                return None;
+            }
+            let Value::Object(diagnostic) = value else { return None };
+            let Value::Object(message) = &diagnostic["message"] else { return None };
+            match message.get("id")? {
+                Value::String(id) => Some(id.clone()),
+                _ => None,
+            }
+        })
+        .collect();
+    assert!(
+        ids.iter().any(|id| id == "TS2304" || id == "TS2552"),
+        "without --runExternalCode the .vue file should be parsed raw, producing syntax errors: {frames_no_flag:?}"
+    );
+}

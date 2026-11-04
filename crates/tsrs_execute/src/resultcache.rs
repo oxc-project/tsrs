@@ -1,15 +1,7 @@
-// tsrs-only: the `--fast` result cache (notes/fast-result-cache.md).
-//
-// A `--fast --noEmit` command-line check records every file system observation that can influence its output (each
-// answer the OS file system gave, beneath the bundled-library layer) and the bytes it wrote to stdout. The next run
-// with the same command line, working directory, binary and relevant environment asks the same questions again
-// (stats, directory listings, realpaths; file contents only for files changed too recently to trust their time
-// stamps) and, when every answer matches, writes the recorded output and exits with the recorded status without
-// building a program. The compiler is a function of those answers, so the same answers give the same output. Any
-// mismatch, unreadable entry or run that does not qualify runs normally, and a qualifying run records again.
-//
-// `TSRS_RESULT_CACHE=0` turns it off; `TSRS_RESULT_CACHE=log` prints one line to stderr saying what it did.
-// `TSRS_RESULT_CACHE_DIR` moves the entries out of the user cache directory.
+// tsrs-only: the `--fast` result cache (notes/fast-result-cache.md). A `--fast --noEmit` command-line check records
+// its stdout, its exit status and every file system answer it used; the next run of the same command asks those
+// questions again and, when every answer matches, prints the recorded output without building a program.
+// `TSRS_RESULT_CACHE=0` turns it off; `TSRS_RESULT_CACHE_DIR` moves the entries out of the user cache directory.
 
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
@@ -29,31 +21,27 @@ use crate::tsc::{CommandLineResult, ExitStatus, ReadWriteCloser, System};
 
 /// Changes the entry format; entries of another version never match.
 const MAGIC: &[u8; 8] = b"tsrsrc01";
-/// A file whose modification or change time is this close to the start of the recording run (or later) may change
-/// again within the same time stamp tick, so its content is hashed instead of trusting its time stamps (git's "racy
-/// git" rule). Two seconds covers the coarsest common granularity (FAT); APFS, ext4 and xfs tick in nanoseconds or
-/// kernel ticks.
+/// A file changed this close to the recording run's start (or later) could change again within one time stamp tick
+/// (git's "racy git" rule), so its content is hashed instead. Two seconds covers FAT's granularity.
 const RACY_WINDOW: Duration = Duration::from_secs(2);
 const MAX_ENTRIES: usize = 64;
 const MAX_BYTES: u64 = 256 << 20;
-/// `TSRS_*` variables that may be set without turning the cache off. Every other one is an experiment or a
-/// measurement switch (statistics on stderr, files written outside the VFS, alternative algorithms): a run with one
-/// set is a run someone wants to happen.
+/// `TSRS_*` variables that may be set without turning the cache off. Every other one is an experiment or measurement
+/// switch: a run with one set is a run someone wants to happen.
 const ALLOWED_TSRS_ENV: &[&str] =
     &["TSRS_FAST", "TSRS_LIB_PATH", "TSRS_RESULT_CACHE", "TSRS_RESULT_CACHE_DIR"];
-/// Environment variables that change a check's output (fast mode, the library directory, color) or its schedule.
+/// Environment variables that change a check's output or its schedule.
 const KEYED_ENV: &[&str] =
     &["TSRS_FAST", "TSRS_LIB_PATH", "FORCE_COLOR", "NO_COLOR", "RAYON_NUM_THREADS"];
 
 /// Set by `perform_compilation` when its program may be recorded.
 static RECORDABLE: AtomicBool = AtomicBool::new(false);
-// The recording run's file system and system: the compiler keeps `&'static` references to both.
+// The compiler keeps `&'static` references to the recording run's file system and system.
 static RECORDER: OnceLock<Recorder> = OnceLock::new();
 static RECORDING: OnceLock<RecordingSys> = OnceLock::new();
 
-/// Called by `perform_compilation` (the only compilation a recorded run may reach): whether this check's output can
-/// be replayed. Not with timings in the output, a trace or profile request, content mappers (external processes) or
-/// emitted files.
+/// Whether `perform_compilation`'s check can be recorded: no timings in the output, no trace or profile, no content
+/// mappers (external processes) and no emitted files.
 pub(crate) fn note_compilation(options: &CompilerOptions, testing: bool) {
     let recordable = !testing
         && tsrs_core::fast::enabled()
@@ -67,62 +55,76 @@ pub(crate) fn note_compilation(options: &CompilerOptions, testing: bool) {
     RECORDABLE.store(recordable, Ordering::Relaxed);
 }
 
-/// The `tsrs` command line over the OS: replays a recorded result when one applies, else runs `execute::command_line`
-/// (recording it when it qualifies).
+/// The `tsrs` command line over the OS: replays a recorded result when one applies, else runs
+/// `execute::command_line` and records the result when it qualifies.
 pub fn command_line(sys: &'static OsSys, args: Vec<String>) -> CommandLineResult {
-    let log = match std::env::var("TSRS_RESULT_CACHE").as_deref() {
-        Ok("0") => return execute::command_line(sys, args),
-        Ok("log") => true,
-        _ => false,
+    let Some(session) = Session::open(sys, &args) else {
+        return execute::command_line(sys, args);
     };
-    let session = match Session::open(sys, &args) {
-        Ok(session) => session,
-        Err(reason) => {
-            if log && !reason.is_empty() {
-                eprintln!("tsrs result cache: off ({reason})");
-            }
-            return execute::command_line(sys, args);
-        }
-    };
-    session.run(sys, args, log)
+    if let Ok(bytes) = std::fs::read(&session.path)
+        && let Some(entry) = Entry::decode(&bytes, session.key)
+        && validate(&entry.records)
+    {
+        sys.write(entry.output);
+        return CommandLineResult { watcher: None, status: entry.status };
+    }
+
+    let recorder = RECORDER.get_or_init(|| Recorder::new(osvfs::fs()));
+    let recording = RECORDING.get_or_init(|| RecordingSys {
+        os: sys,
+        fs: Arc::new(bundled::wrap_fs(recorder)),
+        output: Mutex::new(String::new()),
+        recorder,
+    });
+    let result = execute::command_line(recording, args);
+    // The user sees the output before the entry is written.
+    sys.flush();
+    // Relaxed (both): stored by `note_compilation` on this thread, and by the compilation's threads, which have
+    // joined.
+    if RECORDABLE.load(Ordering::Relaxed)
+        && !recorder.spoiled.load(Ordering::Relaxed)
+        && result.status as i32 <= ExitStatus::DiagnosticsPresentOutputsGenerated as i32
+    {
+        let output = recording.output.lock().unwrap();
+        save(&session.path, |file| recorder.write_entry(file, session.key, result.status, &output));
+    }
+    result
 }
 
 struct Session {
-    dir: PathBuf,
+    path: PathBuf,
     key: u128,
 }
 
 impl Session {
-    /// The cache directory and the key of this invocation, or why the cache does not apply (empty when the command
-    /// is not a fast-mode check at all).
-    fn open(sys: &OsSys, args: &[String]) -> Result<Session, &'static str> {
-        if !cfg!(unix) {
-            return Err("");
+    /// The entry file and key of this invocation, or `None` when the cache does not apply to it.
+    fn open(sys: &OsSys, args: &[String]) -> Option<Session> {
+        if !cfg!(unix) || std::env::var("TSRS_RESULT_CACHE").as_deref() == Ok("0") {
+            return None;
         }
         let fast = args.iter().any(|a| a.eq_ignore_ascii_case("--fast"))
             || std::env::var("TSRS_FAST").as_deref() == Ok("1");
         if !fast {
-            return Err("");
+            return None;
         }
         // `--build` and `--watch` never reach a recordable compilation; the rest read or write files outside the VFS
         // or hide arguments from this check.
         if args.first().is_some_and(|a| {
             matches!(a.to_ascii_lowercase().as_str(), "-b" | "--b" | "-build" | "--build")
         }) {
-            return Err("--build");
+            return None;
         }
         for (i, arg) in args.iter().enumerate() {
             if arg.starts_with('@') {
-                return Err("response file");
+                return None;
             }
             let option = arg.strip_prefix("--").or_else(|| arg.strip_prefix('-'));
             match option.map(str::to_ascii_lowercase).as_deref() {
-                Some("w" | "watch") => return Err("--watch"),
-                Some("checkercostcache") => return Err("--checkerCostCache"),
+                Some("w" | "watch" | "checkercostcache") => return None,
                 Some("checkerassignment")
                     if args.get(i + 1).is_some_and(|v| v.starts_with("file:")) =>
                 {
-                    return Err("--checkerAssignment file:");
+                    return None;
                 }
                 _ => {}
             }
@@ -132,113 +134,22 @@ impl Session {
                 && name.starts_with("TSRS_")
                 && !ALLOWED_TSRS_ENV.contains(&name)
             {
-                return Err("a TSRS_ environment variable is set");
+                return None;
             }
         }
-        let dir = cache_dir().ok_or("no cache directory")?;
-        let key = invocation_key(sys, args).ok_or("cannot identify the executable")?;
-        Ok(Session { dir, key })
-    }
-
-    fn entry_path(&self) -> PathBuf {
-        self.dir.join(format!("{:032x}", self.key))
-    }
-
-    fn run(self, sys: &'static OsSys, args: Vec<String>, log: bool) -> CommandLineResult {
-        let start = Instant::now();
-        if let Ok(bytes) = std::fs::read(self.entry_path()) {
-            match Entry::decode(&bytes, self.key) {
-                None => {
-                    if log {
-                        eprintln!("tsrs result cache: miss (unreadable entry)");
-                    }
-                }
-                Some(entry) => match validate(&entry.records) {
-                    Ok(()) => {
-                        sys.write(entry.output);
-                        if log {
-                            eprintln!(
-                                "tsrs result cache: hit ({} observations checked in {:.1} ms)",
-                                entry.records.len(),
-                                start.elapsed().as_secs_f64() * 1e3
-                            );
-                        }
-                        return CommandLineResult { watcher: None, status: entry.status };
-                    }
-                    Err(changed) => {
-                        if log {
-                            let record = &entry.records[changed];
-                            eprintln!(
-                                "tsrs result cache: miss ({} {} changed, found in {:.1} ms)",
-                                record.kind.name(),
-                                record.path,
-                                start.elapsed().as_secs_f64() * 1e3
-                            );
-                        }
-                    }
-                },
-            }
-        }
-
-        let recorder = RECORDER.get_or_init(|| Recorder::new(osvfs::fs()));
-        let recording = RECORDING.get_or_init(|| RecordingSys {
-            os: sys,
-            fs: Arc::new(bundled::wrap_fs(recorder)),
-            output: Mutex::new(String::new()),
-            recorder,
-        });
-        let result = execute::command_line(recording, args);
-        // The user sees the output before the entry is written.
-        sys.flush();
-        // Relaxed (both): stored by `note_compilation` on this thread, and by the compilation's threads, which have
-        // joined.
-        let recordable = RECORDABLE.load(Ordering::Relaxed);
-        let spoiled = recorder.spoiled.load(Ordering::Relaxed);
-        let reason = if !recordable {
-            "not a --fast --noEmit check without timings"
-        } else if spoiled {
-            "a file was written or changed during the run"
-        } else if result.status as i32 > ExitStatus::DiagnosticsPresentOutputsGenerated as i32 {
-            "unexpected exit status"
-        } else {
-            ""
+        let dir = match std::env::var_os("TSRS_RESULT_CACHE_DIR").filter(|d| !d.is_empty()) {
+            Some(dir) => PathBuf::from(dir),
+            None => Path::new(&osvfs::user_cache_dir()?).join("tsrs").join("result-cache"),
         };
-        if !reason.is_empty() {
-            if log {
-                eprintln!("tsrs result cache: not recorded ({reason})");
-            }
-            return result;
-        }
-        let save_start = Instant::now();
-        let output = recording.output.lock().unwrap();
-        let saved = save(&self.dir, &self.entry_path(), |file| {
-            recorder.write_entry(file, self.key, result.status, &output)
-        });
-        if log {
-            match saved {
-                Ok((hashed, bytes)) => eprintln!(
-                    "tsrs result cache: recorded {} observations ({hashed} by content), {bytes} bytes in {:.1} ms",
-                    recorder.seen.iter().map(SyncMap::size).sum::<usize>(),
-                    save_start.elapsed().as_secs_f64() * 1e3
-                ),
-                Err(err) => eprintln!("tsrs result cache: not recorded ({err})"),
-            }
-        }
-        result
+        let key = invocation_key(sys, args)?;
+        Some(Session { path: dir.join(format!("{key:032x}")), key })
     }
 }
 
-fn cache_dir() -> Option<PathBuf> {
-    if let Some(dir) = std::env::var_os("TSRS_RESULT_CACHE_DIR").filter(|d| !d.is_empty()) {
-        return Some(PathBuf::from(dir));
-    }
-    Some(Path::new(&osvfs::user_cache_dir()?).join("tsrs").join("result-cache"))
-}
-
-/// Everything outside the file system that the output depends on: the binary (its version and the identity of the
-/// executable file, which carries the embedded libraries), the arguments, the working directory, the environment
-/// variables the compiler reads, whether stdout is a terminal (the default of `--pretty`), the parallelism that sets
-/// the default checker count and the file system's case sensitivity.
+/// Everything outside the file system that the output depends on: the binary (its version and the executable
+/// file, which carries the embedded libraries), the arguments, the working directory, the keyed environment, whether
+/// stdout is a terminal (the default of `--pretty`), the parallelism (the default checker count) and the file
+/// system's case sensitivity.
 fn invocation_key(sys: &OsSys, args: &[String]) -> Option<u128> {
     let mut h = Xxh3Default::new();
     h.update(MAGIC);
@@ -280,9 +191,8 @@ fn add_opt_str(h: &mut Xxh3Default, s: Option<&str>) {
     }
 }
 
-// What the compiler observed, as the kind of question and a digest of the answer.
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+/// The kind of question the compiler asked; each is recorded with a digest of its answer.
+#[derive(Clone, Copy)]
 #[repr(u8)]
 enum Kind {
     FileExists,
@@ -306,36 +216,19 @@ const KINDS: [Kind; 7] = [
     Kind::ReadContent,
 ];
 
-impl Kind {
-    fn name(self) -> &'static str {
-        match self {
-            Kind::FileExists => "file exists",
-            Kind::DirectoryExists => "directory exists",
-            Kind::Stat => "stat",
-            Kind::Entries => "directory listing",
-            Kind::Realpath => "realpath",
-            Kind::ReadUnchanged | Kind::ReadContent => "file",
-        }
-    }
-}
-
-fn digest_bool(b: bool) -> u128 {
-    u128::from(b)
-}
-
 fn digest_text(text: Option<&str>) -> u128 {
     match text {
         None => 0,
-        // Never 0: `xxh3_128` of the empty text is not 0, and a collision with it is a 2^-128 event.
+        // Never 0: `xxh3_128` of the empty text is not 0.
         Some(text) => xxh3_128(text.as_bytes()),
     }
 }
 
 fn digest_info(info: Option<&FileInfo>) -> u128 {
-    let mut h = Xxh3Default::new();
     let Some(info) = info else {
         return 0;
     };
+    let mut h = Xxh3Default::new();
     add_str(&mut h, &info.name);
     h.update(&info.size.to_le_bytes());
     h.update(&info.mode.bits().to_le_bytes());
@@ -399,8 +292,8 @@ fn fingerprint_of(path: &Path) -> Option<Fingerprint> {
     Some(Fingerprint { digest: h.digest128(), changed: mtime.max(ctime) })
 }
 
-// Without a change time a fingerprint cannot see a content edit that restores the modification time: every read is
-// hashed. (`Session::open` also keeps the cache off there.)
+// `std` metadata has no change time elsewhere, so an edit that restores the modification time would go unseen;
+// `Session::open` keeps the cache off there.
 #[cfg(not(unix))]
 fn fingerprint_of(_path: &Path) -> Option<Fingerprint> {
     None
@@ -409,8 +302,8 @@ fn fingerprint_of(_path: &Path) -> Option<Fingerprint> {
 /// The answer `fs` gives now, digested the way it was recorded.
 fn answer(fs: &dyn FS, kind: Kind, path: &str) -> Option<u128> {
     Some(match kind {
-        Kind::FileExists => digest_bool(fs.file_exists(path)),
-        Kind::DirectoryExists => digest_bool(fs.directory_exists(path)),
+        Kind::FileExists => u128::from(fs.file_exists(path)),
+        Kind::DirectoryExists => u128::from(fs.directory_exists(path)),
         Kind::Stat => digest_info(fs.stat(path).as_ref()),
         Kind::Entries => digest_entries(&fs.get_accessible_entries(path)),
         Kind::Realpath => xxh3_128(fs.realpath(path).as_bytes()),
@@ -459,15 +352,14 @@ impl Recorder {
     }
 
     /// Writes the entry (layout at `Entry::decode`) straight from the maps, project paths before `node_modules`
-    /// ones and file reads and listings first (validation meets an edit sooner). Returns how many reads were recorded
-    /// by their text.
+    /// ones and file reads and listings first, so validation meets an edit sooner.
     fn write_entry(
         &self,
         out: impl std::io::Write,
         key: u128,
         status: ExitStatus,
         output: &str,
-    ) -> std::io::Result<usize> {
+    ) -> std::io::Result<()> {
         const ORDER: [Kind; KINDS.len()] = [
             Kind::ReadUnchanged,
             Kind::ReadContent,
@@ -507,8 +399,7 @@ impl Recorder {
         result?;
         let checksum = out.hasher.digest128();
         out.inner.write_all(&checksum.to_le_bytes())?;
-        out.inner.flush()?;
-        Ok(self.seen[Kind::ReadContent as usize].size())
+        out.inner.flush()
     }
 }
 
@@ -537,7 +428,7 @@ impl FS for Recorder {
 
     fn file_exists(&self, path: &str) -> bool {
         let exists = self.inner.file_exists(path);
-        self.observe(Kind::FileExists, path, digest_bool(exists));
+        self.observe(Kind::FileExists, path, u128::from(exists));
         exists
     }
 
@@ -576,7 +467,7 @@ impl FS for Recorder {
 
     fn directory_exists(&self, path: &str) -> bool {
         let exists = self.inner.directory_exists(path);
-        self.observe(Kind::DirectoryExists, path, digest_bool(exists));
+        self.observe(Kind::DirectoryExists, path, u128::from(exists));
         exists
     }
 
@@ -726,8 +617,8 @@ impl<'a> Reader<'a> {
     }
 }
 
-/// Asks every recorded question again on parallel threads; `Err` holds the index of a record whose answer changed.
-fn validate(records: &[Record<'_>]) -> Result<(), usize> {
+/// Asks every recorded question again on parallel threads: whether every answer is unchanged.
+fn validate(records: &[Record<'_>]) -> bool {
     const CHUNK: usize = 256;
     let fs = osvfs::fs();
     let chunks = records.len().div_ceil(CHUNK);
@@ -737,21 +628,22 @@ fn validate(records: &[Record<'_>]) -> Result<(), usize> {
         .min(chunks)
         .max(1);
     let next = AtomicUsize::new(0);
-    let changed = AtomicUsize::new(usize::MAX);
+    let changed = AtomicBool::new(false);
     let work = || {
         loop {
             // Relaxed (both): a work counter and a stop flag; the scope's join publishes the result.
             let chunk = next.fetch_add(1, Ordering::Relaxed);
-            if chunk >= chunks || changed.load(Ordering::Relaxed) != usize::MAX {
+            if chunk >= chunks || changed.load(Ordering::Relaxed) {
                 return;
             }
             let start = chunk * CHUNK;
-            for (i, r) in records[start..(start + CHUNK).min(records.len())].iter().enumerate() {
-                if answer(fs, r.kind, r.path) != Some(r.digest) {
-                    // Relaxed: see above.
-                    changed.fetch_min(start + i, Ordering::Relaxed);
-                    return;
-                }
+            let stale = records[start..(start + CHUNK).min(records.len())]
+                .iter()
+                .any(|r| answer(fs, r.kind, r.path) != Some(r.digest));
+            if stale {
+                // Relaxed: see above.
+                changed.store(true, Ordering::Relaxed);
+                return;
             }
         }
     };
@@ -761,37 +653,27 @@ fn validate(records: &[Record<'_>]) -> Result<(), usize> {
         }
         work();
     });
-    match changed.into_inner() {
-        usize::MAX => Ok(()),
-        index => Err(index),
-    }
+    !changed.into_inner()
 }
 
-/// Writes the entry atomically (a temporary file renamed over it), then keeps the directory to the newest
-/// `MAX_ENTRIES` entries and `MAX_BYTES`.
-fn save(
-    dir: &Path,
-    path: &Path,
-    write: impl FnOnce(&mut std::fs::File) -> std::io::Result<usize>,
-) -> std::io::Result<(usize, u64)> {
-    std::fs::create_dir_all(dir)?;
+/// Writes the entry atomically (a temporary file renamed over it), then prunes the directory.
+fn save(path: &Path, write: impl FnOnce(&mut std::fs::File) -> std::io::Result<()>) {
+    let dir = path.parent().unwrap();
+    if std::fs::create_dir_all(dir).is_err() {
+        return;
+    }
     let mut tmp = path.as_os_str().to_owned();
     tmp.push(format!(".{}.tmp", std::process::id()));
     let tmp = PathBuf::from(tmp);
-    let written = std::fs::File::create(&tmp).and_then(|mut file| {
-        let hashed = write(&mut file)?;
-        Ok((hashed, file.metadata()?.len()))
-    });
-    let renamed = written.and_then(|written| std::fs::rename(&tmp, path).map(|()| written));
-    if renamed.is_err() {
+    let written = std::fs::File::create(&tmp).and_then(|mut file| write(&mut file));
+    if written.and_then(|()| std::fs::rename(&tmp, path)).is_err() {
         let _ = std::fs::remove_file(&tmp);
     }
     prune(dir);
-    renamed
 }
 
-/// Removes only files named like entries (`<32 hex digits>`) or their temporary files, whatever else the directory
-/// (`TSRS_RESULT_CACHE_DIR`) holds.
+/// Keeps the newest `MAX_ENTRIES` entries within `MAX_BYTES`. Removes only files named like entries (32 hex digits)
+/// or temporary files a dead run left behind: `TSRS_RESULT_CACHE_DIR` may hold anything.
 fn prune(dir: &Path) {
     let is_key = |name: &str| name.len() == 32 && name.bytes().all(|b| b.is_ascii_hexdigit());
     let Ok(read_dir) = std::fs::read_dir(dir) else {
@@ -801,10 +683,7 @@ fn prune(dir: &Path) {
     let mut entries = Vec::new();
     for entry in read_dir.flatten() {
         let name = entry.file_name();
-        let Some(name) = name.to_str() else {
-            continue;
-        };
-        let Ok(md) = entry.metadata() else {
+        let (Some(name), Ok(md)) = (name.to_str(), entry.metadata()) else {
             continue;
         };
         let modified = md.modified().unwrap_or(SystemTime::UNIX_EPOCH);
@@ -812,7 +691,6 @@ fn prune(dir: &Path) {
             entries.push((modified, md.len(), entry.path()));
         } else if Path::new(name).extension().is_some_and(|e| e == "tmp")
             && name.split_once('.').is_some_and(|(key, _)| is_key(key))
-            // A temporary file left by a run that died before its rename.
             && now.duration_since(modified).is_ok_and(|age| age > Duration::from_secs(3600))
         {
             let _ = std::fs::remove_file(entry.path());

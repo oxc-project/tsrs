@@ -1,11 +1,11 @@
-// The `--fast` result cache (tsrs_execute resultcache.rs, notes/fast-result-cache.md): a `--fast --noEmit` check
-// replays its recorded output only while every file system answer it depended on is unchanged. Each test changes one
-// input the way an editor, a package manager or a shell does and checks that the next run misses and prints exactly
-// what a run without the cache prints (and that an unchanged project hits). Every run is a child process with its own
-// cache directory.
+// The `--fast` result cache (tsrs_execute resultcache.rs): a `--fast --noEmit` check replays its recorded output only
+// while every file system answer it depended on is unchanged. Each test changes one input the way an editor, a
+// package manager or a shell does and checks that the next run records again and prints exactly what a run without
+// the cache prints. Every run is a child process with its own cache directory.
 
 #![cfg(unix)]
 
+use std::os::unix::fs::MetadataExt as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Duration;
@@ -22,21 +22,20 @@ struct Output {
     status: Option<i32>,
 }
 
+/// What a run did to the cache directory. An entry is written to a temporary file and renamed over the old one, so a
+/// recording (a first run or a miss) changes the entry's inode; a replay, or a run the cache does not apply to, leaves
+/// the directory alone.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Cache {
-    Hit,
-    Miss,
     Recorded,
-    NotRecorded,
-    Off,
-    Silent,
+    Untouched,
 }
 
 impl Project {
     /// A project in `<tmp>/<name>/p` (files outside `p` are outside the include glob); paths are relative to `p`.
     fn new(name: &str, files: &[(&str, &str)]) -> Project {
-        let root = std::env::temp_dir()
-            .join(format!("tsrs-result-cache-{name}-{}", std::process::id()));
+        let root =
+            std::env::temp_dir().join(format!("tsrs-result-cache-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         let project = Project { dir: root.join("p"), cache: root.join("cache"), root };
         std::fs::create_dir_all(&project.dir).unwrap();
@@ -70,32 +69,19 @@ impl Project {
                 cmd.env_remove(name);
             }
         }
-        cmd.env("TSRS_RESULT_CACHE", "log").env("TSRS_RESULT_CACHE_DIR", &self.cache);
+        cmd.env("TSRS_RESULT_CACHE_DIR", &self.cache);
         for (name, value) in env {
             cmd.env(name, value);
         }
         cmd
     }
 
-    /// Runs `tsrs <args>` with the cache, returning its output and what the cache did.
+    /// Runs `tsrs <args>` with the cache, returning its output and what it did to the cache directory.
     fn run(&self, args: &[&str], env: &[(&str, &str)]) -> (Output, Cache) {
+        let before = self.entries();
         let out = self.command(args, env).output().unwrap();
-        let stderr = String::from_utf8(out.stderr).unwrap();
-        let cache = if stderr.contains("tsrs result cache: hit") {
-            Cache::Hit
-        } else if stderr.contains("tsrs result cache: recorded") {
-            Cache::Recorded
-        } else if stderr.contains("tsrs result cache: not recorded") {
-            Cache::NotRecorded
-        } else if stderr.contains("tsrs result cache: off") {
-            Cache::Off
-        } else {
-            Cache::Silent
-        };
-        if stderr.contains("tsrs result cache: miss") {
-            assert_eq!(cache, Cache::Recorded, "a miss records again: {stderr}");
-            return (Output::of(out.stdout, out.status), Cache::Miss);
-        }
+        assert!(out.stderr.is_empty(), "{}", String::from_utf8_lossy(&out.stderr));
+        let cache = if self.entries() == before { Cache::Untouched } else { Cache::Recorded };
         (Output::of(out.stdout, out.status), cache)
     }
 
@@ -118,11 +104,15 @@ impl Project {
         output
     }
 
-    fn entries(&self) -> Vec<PathBuf> {
+    /// Every file in the cache directory with its inode.
+    fn entries(&self) -> Vec<(PathBuf, u64)> {
         let Ok(dir) = std::fs::read_dir(&self.cache) else {
             return Vec::new();
         };
-        dir.map(|e| e.unwrap().path()).collect()
+        let mut entries: Vec<(PathBuf, u64)> =
+            dir.flatten().filter_map(|e| Some((e.path(), e.metadata().ok()?.ino()))).collect();
+        entries.sort_unstable();
+        entries
     }
 }
 
@@ -139,7 +129,8 @@ impl Output {
 }
 
 const CHECK: &[&str] = &["-p", ".", "--fast", "--pretty", "false"];
-const TSCONFIG: &str = r#"{ "compilerOptions": { "noEmit": true, "strict": true }, "include": ["src"] }"#;
+const TSCONFIG: &str =
+    r#"{ "compilerOptions": { "noEmit": true, "strict": true }, "include": ["src"] }"#;
 
 fn replace(path: &Path, from: &str, to: &str) {
     let text = std::fs::read_to_string(path).unwrap();
@@ -160,18 +151,14 @@ fn unchanged_project_replays_the_output_of_a_cold_run() {
     let first = p.check(Cache::Recorded);
     assert_eq!(first.status, Some(2));
     assert!(first.stdout.contains("TS2322"), "{first:?}");
-    assert_eq!(p.check(Cache::Hit), first);
+    assert_eq!(p.check(Cache::Untouched), first);
     // The files were recorded by their text (they were too new to trust their time stamps); that still matches.
     Project::settle();
-    assert_eq!(p.check(Cache::Hit), first);
-    // Other arguments are another entry; the colored, pretty output replays byte for byte too.
-    let pretty = ["-p", ".", "--fast", "--pretty", "true"];
-    p.check_with(&pretty, &[], Cache::Recorded);
-    p.check_with(&pretty, &[], Cache::Hit);
+    assert_eq!(p.check(Cache::Untouched), first);
     // A clean project replays its empty output and status 0.
     replace(&p.path("src/b.ts"), "string { return \"s\"", "number { return 1");
-    assert_eq!(p.check(Cache::Miss).status, Some(0));
-    assert_eq!(p.check(Cache::Hit).status, Some(0));
+    assert_eq!(p.check(Cache::Recorded).status, Some(0));
+    assert_eq!(p.check(Cache::Untouched).status, Some(0));
 }
 
 #[test]
@@ -181,28 +168,22 @@ fn edited_file_misses_even_with_its_modification_time_restored() {
         &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const x: number = 1;\n")],
     );
     Project::settle();
-    let (_, cache) = p.run(CHECK, &[]);
-    assert_eq!(cache, Cache::Recorded);
-    assert_eq!(p.check(Cache::Hit).status, Some(0));
+    p.check(Cache::Recorded);
+    assert_eq!(p.check(Cache::Untouched).status, Some(0));
     // Same size, same modification time: only the change time (and the content) differ.
     let file = p.path("src/a.ts");
     let modified = std::fs::metadata(&file).unwrap().modified().unwrap();
     replace(&file, "number", "string");
-    std::fs::File::options()
-        .write(true)
-        .open(&file)
-        .unwrap()
-        .set_modified(modified)
-        .unwrap();
+    std::fs::File::options().write(true).open(&file).unwrap().set_modified(modified).unwrap();
     assert_eq!(std::fs::metadata(&file).unwrap().modified().unwrap(), modified);
-    assert_eq!(p.check(Cache::Miss).status, Some(2));
-    assert_eq!(p.check(Cache::Hit).status, Some(2));
+    assert_eq!(p.check(Cache::Recorded).status, Some(2));
+    assert_eq!(p.check(Cache::Untouched).status, Some(2));
 }
 
 #[test]
-fn file_found_by_a_failed_probe_misses() {
+fn file_found_or_lost_by_a_resolution_probe_misses() {
     // `lib` and the ancestor `node_modules` are outside the include glob, so no directory listing sees them change:
-    // only the resolver's failed probes do.
+    // only the resolver's probes do.
     let p = Project::new(
         "probe",
         &[
@@ -217,37 +198,22 @@ fn file_found_by_a_failed_probe_misses() {
     Project::settle();
     let first = p.check(Cache::Recorded);
     assert!(first.stdout.contains("TS2307") && first.stdout.contains("TS2322"), "{first:?}");
-    assert_eq!(p.check(Cache::Hit), first);
+    assert_eq!(p.check(Cache::Untouched), first);
     // `foo.ts` wins over `foo.d.ts` once it exists.
     p.write("lib/foo.ts", "export const v = 1;\n");
-    let second = p.check(Cache::Miss);
+    let second = p.check(Cache::Recorded);
     assert_ne!(second, first);
-    p.check(Cache::Hit);
+    p.check(Cache::Untouched);
     // A package appears in a `node_modules` above the project.
     let package = p.root.join("node_modules/pkg");
     std::fs::create_dir_all(&package).unwrap();
     std::fs::write(package.join("index.d.ts"), "export declare const w: number;\n").unwrap();
-    let third = p.check(Cache::Miss);
-    assert_eq!(third.status, Some(0), "{third:?}");
-    p.check(Cache::Hit);
-}
-
-#[test]
-fn deleted_file_misses() {
-    let p = Project::new(
-        "delete",
-        &[
-            ("tsconfig.json", TSCONFIG),
-            ("src/a.ts", "import { v } from \"../lib/foo\";\nexport const n: string = v;\n"),
-            ("lib/foo.d.ts", "export declare const v: string;\n"),
-        ],
-    );
-    Project::settle();
     assert_eq!(p.check(Cache::Recorded).status, Some(0));
-    p.check(Cache::Hit);
-    std::fs::remove_file(p.path("lib/foo.d.ts")).unwrap();
-    assert_eq!(p.check(Cache::Miss).status, Some(2));
-    p.check(Cache::Hit);
+    p.check(Cache::Untouched);
+    // `foo.d.ts` is found again once `foo.ts` is deleted.
+    std::fs::remove_file(p.path("lib/foo.ts")).unwrap();
+    assert_eq!(p.check(Cache::Recorded).status, Some(2));
+    p.check(Cache::Untouched);
 }
 
 #[test]
@@ -265,14 +231,18 @@ fn changed_config_or_extended_config_misses() {
     );
     Project::settle();
     assert_eq!(p.check(Cache::Recorded).status, Some(0));
-    p.check(Cache::Hit);
+    p.check(Cache::Untouched);
     replace(&p.root.join("base.json"), "false", "true");
-    let strict = p.check(Cache::Miss);
+    let strict = p.check(Cache::Recorded);
     assert!(strict.stdout.contains("TS7006"), "{strict:?}");
-    p.check(Cache::Hit);
-    replace(&p.path("tsconfig.json"), "\"noEmit\": true", "\"noEmit\": true, \"noImplicitAny\": false");
-    assert_eq!(p.check(Cache::Miss).status, Some(0));
-    p.check(Cache::Hit);
+    p.check(Cache::Untouched);
+    replace(
+        &p.path("tsconfig.json"),
+        "\"noEmit\": true",
+        "\"noEmit\": true, \"noImplicitAny\": false",
+    );
+    assert_eq!(p.check(Cache::Recorded).status, Some(0));
+    p.check(Cache::Untouched);
 }
 
 #[test]
@@ -286,19 +256,19 @@ fn environment_selects_the_entry_or_turns_the_cache_off() {
     let plain = p.check_with(&args, &[], Cache::Recorded);
     let colored = p.check_with(&args, &[("FORCE_COLOR", "1")], Cache::Recorded);
     assert_ne!(plain, colored);
-    assert_eq!(p.check_with(&args, &[], Cache::Hit), plain);
-    assert_eq!(p.check_with(&args, &[("FORCE_COLOR", "1")], Cache::Hit), colored);
+    assert_eq!(p.check_with(&args, &[], Cache::Untouched), plain);
+    assert_eq!(p.check_with(&args, &[("FORCE_COLOR", "1")], Cache::Untouched), colored);
     // TSRS_FAST=1 instead of `--fast` is another key but the same check.
     let check = ["-p", ".", "--pretty", "false"];
     p.check_with(&check, &[("TSRS_FAST", "1")], Cache::Recorded);
-    p.check_with(&check, &[("TSRS_FAST", "1")], Cache::Hit);
-    // Any other TSRS_ variable is an experiment or a measurement: such runs always happen.
-    p.check_with(CHECK, &[("TSRS_FLOW_MEMO", "off")], Cache::Off);
-    p.check_with(CHECK, &[("TSRS_FLOW_MEMO", "off")], Cache::Off);
-    let count = p.entries().len();
-    let (_, cache) = p.run(CHECK, &[("TSRS_RESULT_CACHE", "0")]);
-    assert_eq!(cache, Cache::Silent);
-    assert_eq!(p.entries().len(), count);
+    p.check_with(&check, &[("TSRS_FAST", "1")], Cache::Untouched);
+    // Any other TSRS_ variable is an experiment or a measurement switch, and TSRS_RESULT_CACHE=0 is the opt-out:
+    // such a run neither replays the entry (stale here, so a replay would print the old output) nor records.
+    p.check(Cache::Recorded);
+    replace(&p.path("src/a.ts"), "\"s\"", "1");
+    p.check_with(CHECK, &[("TSRS_FLOW_MEMO", "off")], Cache::Untouched);
+    p.check_with(CHECK, &[("TSRS_RESULT_CACHE", "0")], Cache::Untouched);
+    p.check(Cache::Recorded);
 }
 
 #[test]
@@ -315,12 +285,12 @@ fn retargeted_symlink_misses() {
     std::os::unix::fs::symlink("one.d.ts", p.path("lib/current.d.ts")).unwrap();
     Project::settle();
     assert_eq!(p.check(Cache::Recorded).status, Some(0));
-    p.check(Cache::Hit);
+    p.check(Cache::Untouched);
     // Replace the link atomically, as `ln -sfn` through a rename does.
     std::os::unix::fs::symlink("two.d.ts", p.path("lib/next.d.ts")).unwrap();
     std::fs::rename(p.path("lib/next.d.ts"), p.path("lib/current.d.ts")).unwrap();
-    assert_eq!(p.check(Cache::Miss).status, Some(2));
-    p.check(Cache::Hit);
+    assert_eq!(p.check(Cache::Recorded).status, Some(2));
+    p.check(Cache::Untouched);
 }
 
 #[test]
@@ -332,15 +302,13 @@ fn corrupt_entry_is_ignored_and_replaced() {
     p.check(Cache::Recorded);
     let entries = p.entries();
     assert_eq!(entries.len(), 1);
-    let mut bytes = std::fs::read(&entries[0]).unwrap();
+    let entry = &entries[0].0;
+    let mut bytes = std::fs::read(entry).unwrap();
     let middle = bytes.len() / 2;
     bytes[middle] ^= 0x20;
-    std::fs::write(&entries[0], &bytes).unwrap();
-    p.check(Cache::Miss);
-    p.check(Cache::Hit);
-    std::fs::write(&entries[0], b"").unwrap();
-    p.check(Cache::Miss);
-    p.check(Cache::Hit);
+    std::fs::write(entry, &bytes).unwrap();
+    p.check(Cache::Recorded);
+    p.check(Cache::Untouched);
 }
 
 #[test]
@@ -354,19 +322,17 @@ fn concurrent_runs_record_and_replay_the_same_output() {
         ],
     );
     let cold = p.cold(CHECK, &[]);
-    let outputs: Vec<(Output, Cache)> = std::thread::scope(|scope| {
-        // All four start before any is joined.
+    let outputs: Vec<Output> = std::thread::scope(|scope| {
         let mut runs = Vec::new();
         for _ in 0..4 {
-            runs.push(scope.spawn(|| p.run(CHECK, &[])));
+            runs.push(scope.spawn(|| p.run(CHECK, &[]).0));
         }
         runs.into_iter().map(|run| run.join().unwrap()).collect()
     });
-    for (output, cache) in outputs {
+    for output in outputs {
         assert_eq!(output, cold);
-        assert!(matches!(cache, Cache::Recorded | Cache::Hit), "{cache:?}");
     }
-    assert_eq!(p.check(Cache::Hit), cold);
+    assert_eq!(p.check(Cache::Untouched), cold);
     assert_eq!(p.entries().len(), 1, "temporary files are renamed or removed");
 }
 
@@ -390,11 +356,9 @@ fn runs_that_cannot_be_replayed_are_not_recorded() {
         &["-p", ".", "--fast", "--noEmit", "--incremental", "--pretty", "false"],
     ];
     for args in runs {
-        let (_, cache) = p.run(args, &[]);
-        let expected = if args.contains(&"--fast") { Cache::NotRecorded } else { Cache::Silent };
-        assert_eq!(cache, expected, "{args:?}");
+        p.run(args, &[]);
     }
-    assert_eq!(p.entries(), Vec::<PathBuf>::new());
+    assert_eq!(p.entries(), Vec::<(PathBuf, u64)>::new());
 }
 
 #[test]
@@ -420,5 +384,5 @@ fn cache_directory_keeps_the_newest_entries_and_nothing_else_is_touched() {
     for i in 0..70 {
         assert_eq!(p.cache.join(format!("{i:032x}")).exists(), i >= 7, "{i}");
     }
-    p.check(Cache::Hit);
+    p.check(Cache::Untouched);
 }

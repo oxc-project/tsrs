@@ -108,7 +108,6 @@ fn main() -> std::process::ExitCode {
         .stack_size(512 << 20)
         .spawn(move || {
             let sys: &'static sys::OsSys = Box::leak(Box::new(sys::new_system()));
-            // `--fast --noEmit` checks replay a recorded result when nothing they read changed (resultcache.rs).
             let result = resultcache::command_line(sys, args);
             tsc::System::flush(sys);
             tsrs_compiler::dump_site_counts();

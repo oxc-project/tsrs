@@ -344,6 +344,7 @@ pub fn test_server_options(cwd: &str, files: &[(&str, &str)]) -> ServerOptions {
         typings_location: String::new(),
         parse_cache: None,
         npm_install: None,
+        spawn: None,
         progress_delay: Duration::ZERO,
         set_parent_process_id: None,
     }

@@ -55,6 +55,7 @@ fn options(out: Box<dyn Writer>) -> ServerOptions {
         typings_location: String::new(),
         parse_cache: None,
         npm_install: None,
+        spawn: None,
         progress_delay: std::time::Duration::ZERO,
         set_parent_process_id: None,
     }
@@ -256,7 +257,10 @@ fn server_shutdown_no_deadlock() {
         client: None,
         logger: Some(logger),
         npm_executor: None,
+        spawner: None,
+        content_mapper_logger: None,
         parse_cache: None,
+        content_mapped_parse_cache: None,
     });
     server.set_session_for_test(std::sync::Arc::clone(&session));
 

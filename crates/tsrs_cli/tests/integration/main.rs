@@ -3,6 +3,7 @@
 #[global_allocator]
 static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
+mod api_contentmapper;
 mod api_memory_test;
 mod api_test;
 mod base_type_cycle_entry;

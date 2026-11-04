@@ -47,12 +47,26 @@ pub struct ServerOptions {
     pub typings_location: String,
     pub parse_cache: Option<Arc<project::ParseCache>>,
     pub npm_install: Option<NpmInstallFunc>,
-    // Spawn (content mappers) is not ported: content mappers are out of scope (docs/LSP.md).
+    // Spawn launches a child process, returning its stdio as an io.ReadWriteCloser (Read is its stdout,
+    // Write is its stdin). It is nil when the host cannot spawn processes. Currently used for content mappers.
+    pub spawn: Option<SpawnFunc>,
     pub progress_delay: Duration, // delay before showing progress UI; 0 means no delay
     pub set_parent_process_id: Option<Box<dyn Fn(i32) + Send + Sync>>,
 }
 
 pub type NpmInstallFunc = Arc<dyn Fn(&str, &[String]) -> Result<Vec<u8>, String> + Send + Sync>;
+
+// Go's `func(command []string, dir string, stderr io.Writer) (io.ReadWriteCloser, error)` (a None stderr is
+// io.Discard, as for `contentmapper::Spawner`).
+pub type SpawnFunc = Arc<
+    dyn Fn(
+            &[String],
+            &str,
+            Option<Box<dyn Write + Send>>,
+        ) -> Result<tsrs_ipc::ReadWriteCloser, String>
+        + Send
+        + Sync,
+>;
 
 // server.go:60
 pub fn new_server(opts: ServerOptions) -> Arc<Server> {
@@ -91,6 +105,7 @@ pub fn new_server(opts: ServerOptions) -> Arc<Server> {
         compiler_options_for_inferred_projects: Mutex::new(None),
         parse_cache: opts.parse_cache,
         npm_install: opts.npm_install,
+        spawn: opts.spawn,
         progress_delay: opts.progress_delay,
         project_progress: OnceLock::new(),
         start_watchdog: opts.set_parent_process_id,
@@ -275,6 +290,7 @@ pub struct Server {
     parse_cache: Option<Arc<project::ParseCache>>,
 
     npm_install: Option<NpmInstallFunc>,
+    spawn: Option<SpawnFunc>,
 
     progress_delay: Duration,
     project_progress: OnceLock<Arc<ProjectLoadingProgress>>,
@@ -2081,7 +2097,10 @@ impl Server {
             logger: Some(logger),
             client: Some(client),
             npm_executor: Some(npm_executor),
+            spawner: self.content_mapper_spawner(),
+            content_mapper_logger: Some(self.content_mapper_logger()),
             parse_cache: self.parse_cache.clone(),
+            content_mapped_parse_cache: None,
         });
         let _ = self.session.set(Arc::clone(&session));
 
@@ -4206,6 +4225,30 @@ impl project::NpmExecutor for Server {
             Some(npm_install) => npm_install(cwd, args),
             None => panic!("NpmInstall called without an npm executor"),
         }
+    }
+}
+
+impl Server {
+    // server.go:2448
+    // contentMapperSpawner adapts the server's spawn callback to a content mapper spawner, or returns nil when
+    // the server cannot spawn processes.
+    fn content_mapper_spawner(&self) -> Option<Arc<dyn tsrs_contentmapper::Spawner>> {
+        let spawn = Arc::clone(self.spawn.as_ref()?);
+        Some(Arc::new(tsrs_contentmapper::SpawnerFunc(
+            move |command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>| {
+                spawn(command, dir, stderr)
+            },
+        )))
+    }
+
+    // server.go:2457
+    fn content_mapper_logger(&self) -> tsrs_contentmapper::Logger {
+        let logger = Arc::clone(&self.logger);
+        Arc::new(move |message: &str| {
+            if logger.is_tracing() {
+                logger.info(message);
+            }
+        })
     }
 }
 

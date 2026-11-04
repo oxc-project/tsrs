@@ -63,6 +63,7 @@ pub fn session(cwd: &str, binary: bool) -> Arc<Session> {
         fs,
         binary_responses: binary,
         run_external_code: false,
+        content_mapper_spawner: None,
     })
 }
 

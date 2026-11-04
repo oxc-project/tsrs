@@ -27,6 +27,10 @@ tsrs_projectutil.workspace = true
 rustc-hash.workspace = true
 xxhash-rust.workspace = true
 
+[dev-dependencies]
+tsrs_contentmappertest.workspace = true
+tsrs_ipc.workspace = true
+
 [lib]
 test = false
 doctest = false

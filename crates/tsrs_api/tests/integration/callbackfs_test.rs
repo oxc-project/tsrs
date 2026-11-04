@@ -101,6 +101,7 @@ fn program_reads_through_client_callbacks() {
         fs,
         binary_responses: false,
         run_external_code: false,
+        content_mapper_spawner: None,
     });
     let r = call(
         &s,

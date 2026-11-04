@@ -47,6 +47,9 @@ const KEYED_ENV: &[&str] =
 
 /// Set by `perform_compilation` when its program may be recorded.
 static RECORDABLE: AtomicBool = AtomicBool::new(false);
+// The recording run's file system and system: the compiler keeps `&'static` references to both.
+static RECORDER: OnceLock<Recorder> = OnceLock::new();
+static RECORDING: OnceLock<RecordingSys> = OnceLock::new();
 
 /// Called by `perform_compilation` (the only compilation a recorded run may reach): whether this check's output can
 /// be replayed. Not with timings in the output, a trace or profile request, content mappers (external processes) or
@@ -176,9 +179,6 @@ impl Session {
             }
         }
 
-        // Statics: the compiler keeps `&'static` references to its system and file system.
-        static RECORDER: OnceLock<Recorder> = OnceLock::new();
-        static RECORDING: OnceLock<RecordingSys> = OnceLock::new();
         let recorder = RECORDER.get_or_init(|| Recorder::new(osvfs::fs()));
         let recording = RECORDING.get_or_init(|| RecordingSys {
             os: sys,

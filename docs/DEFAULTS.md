@@ -179,7 +179,7 @@ tsrs-only variables that change behavior:
 | `TSRS_LAZY_MEMBERS` | off; on in fast mode | Same as `--lazyMembers` / `--noLazyMembers`; explicit CLI flags win |
 | `TSRS_LAZY_DTS` | off; on in eligible fast-mode compilations | `1` enables lazy declaration member parsing; `0` / `off` disables it even in fast mode. Requires skipped declaration checking; unavailable in watch, LSP and API modes |
 | `TSRS_LIB_PATH` | unset | Directory to load the default libs from |
-| `TSRS_RESULT_CACHE` | on in fast mode | `0` turns off the [result cache](USAGE.md#result-cache) of `--fast --noEmit` checks; `log` reports hits, misses and recordings on stderr |
+| `TSRS_RESULT_CACHE` | on in fast mode | `0` turns off the [result cache](USAGE.md#result-cache) of `--fast --noEmit` checks |
 | `TSRS_RESULT_CACHE_DIR` | the user cache directory | Where result cache entries are kept |
 | `TSRS_WATCH_BACKEND` | unset | `kqueue` uses the macOS fallback watcher |
 | `TSRS_BINARY` | unset | Path of the binary the npm launcher runs |

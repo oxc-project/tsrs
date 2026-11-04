@@ -1,74 +1,61 @@
 # fast-result-cache: replay a `--fast --noEmit` check when nothing it read changed
 
 Type checks are rerun constantly on trees where nothing that matters changed: git hooks, agents checking their own
-work, editor tasks. Deno's `deno check` skips checking when a hash of its module graph matches the last run;
-Turborepo, sccache and Bazel replay a task's outputs from recorded inputs. tsrs can do the same exactly and inside the
-compiler, because every file system question a check asks goes through one VFS. In `--fast` mode, a check that writes
-no files now records its output with every answer it got, and the next identical command replays the output when all
-those answers are unchanged: tens of milliseconds instead of seconds.
+work, editor tasks. `deno check` skips checking when a hash of its module graph matches; Turborepo, sccache and Bazel
+replay a task's outputs from recorded inputs. tsrs can do the same exactly, inside the compiler, because every file
+system question a check asks goes through one VFS: a `--fast` check that writes no files records its output with
+every answer it got, and the next identical command replays the output when all those answers are unchanged.
 
-Code: `crates/tsrs_execute/src/resultcache.rs` (the CLI's `main` calls `resultcache::command_line` instead of
-`execute::command_line`; `perform_compilation` reports whether its options allow recording). Tests:
+Code: `crates/tsrs_execute/src/resultcache.rs` (the CLI's `main` calls `resultcache::command_line`;
+`perform_compilation` reports whether its options allow recording). Tests:
 `crates/tsrs_cli/tests/integration/result_cache.rs`. User docs: [USAGE.md](../docs/USAGE.md#result-cache).
 
 ## Why the replay is exact
 
-The compiler's output is a function of its arguments, environment, binary and the answers the file system gives it.
-In fast mode it does not depend on the schedule (the determinism gate checks that). So if a run under schedule S asked
-questions Q and got answers A, a run today under the same schedule asks the same first question, gets the same
-answer if the file system still gives A for it, and by induction asks exactly Q and prints the same output; and any
-other schedule prints the same output too. The recorded run's questions need not be the same set every run (parallel
-parsing races on the resolver caches; observation counts differ by one or two between runs on vscode and cal-diy),
-because the argument only replays the recorded run.
+The compiler's output is a function of its arguments, environment, binary and the answers the file system gives it,
+and in fast mode not of the schedule (the determinism gate checks that). If a run asked questions Q and got answers
+A, a run today asks the same first question, gets the same answer if the file system still gives A for it, and by
+induction asks exactly Q and prints the same output. The recorded run's questions need not be the same set every run
+(parallel parsing races on the resolver caches; observation counts differ by one or two between runs on vscode and
+cal-diy): the argument only replays the recorded run.
 
-What that needs, and how it is enforced:
-
-- **Every question goes through the recorder.** The recorder wraps the OS file system beneath the bundled-library layer
-  (embedded libraries are part of the binary), and the CLI's system hands it to every consumer (config parsing, the
-  compiler host, resolution). Code that reads files outside the VFS is reached only through switches that turn the
-  cache off: `--checkerCostCache`, `--checkerAssignment file:`, the `TSRS_*` measurement variables, content mappers
-  (external processes; `System::spawn` also spoils a recording).
-- **The answers are compared exactly.** File existence, directory existence, `stat` (name, size, mode, mtime),
-  directory listings (files, directories, symlinked names) and realpaths are asked again on validation and compared by
-  a 128-bit xxh3 digest. File contents are vouched for by the file's device, inode, size, mode, and modification and
-  change times, taken *before* the read: an edit after the stat changes the change time, so the next run cannot match.
-  `touch -r` restores a modification time but not the change time. A failed read is retried on validation.
+- **Every question goes through the recorder.** It wraps the OS file system beneath the bundled-library layer
+  (embedded libraries are part of the binary). Code that reads files outside the VFS is reached only through
+  switches that turn the cache off: `--checkerCostCache`, `--checkerAssignment file:`, any `TSRS_*` variable other
+  than `TSRS_FAST`, `TSRS_LIB_PATH` and the cache's own, content mappers (`System::spawn` also spoils a recording).
+- **The answers are compared exactly.** File existence, directory existence, `stat`, directory listings (files,
+  directories, symlinked names) and realpaths are asked again on validation and compared by a 128-bit xxh3 digest.
+  File contents are vouched for by the file's device, inode, size, mode, and modification and change times, taken
+  before the read: an edit after the stat changes the change time, so the next run cannot match, and `touch -r`
+  restores a modification time but not the change time.
 - **Racy files are hashed.** A file whose modification or change time is within two seconds of the recording run's
-  start (or later) could be changed again within one time stamp tick without its stats changing (git's "racy git"
-  rule). Its text is digested instead and read on validation. Two seconds covers FAT's granularity; APFS, ext4 and xfs
-  use nanoseconds or the kernel tick.
+  start (or later) could change again within one time stamp tick without its stats changing (git's "racy git" rule),
+  so its text is digested instead and read again on validation.
 - **A question answered twice must get one answer.** The recorder keeps the first answer per (kind, path); a later
-  different answer (a file changed during the run) spoils the recording, as does any write through the VFS.
+  different answer, or any write through the VFS, spoils the recording.
 - **Everything else is in the key**: the binary (version string and the executable's device, inode, size and times,
-  which covers the embedded libraries), the full argument list, the working directory, `TSRS_FAST`, `TSRS_LIB_PATH`,
-  `FORCE_COLOR`, `NO_COLOR`, `TERM=dumb`, `RAYON_NUM_THREADS`, whether stdout is a terminal (the `--pretty` default),
-  the available parallelism (the default checker count) and the file system's case sensitivity. The environment
-  variables were found by auditing every `std::env::var` and `get_environment_variable` read on the CLI path; any
-  `TSRS_*` variable other than `TSRS_FAST`, `TSRS_LIB_PATH` and the cache's own turns the cache off (they are
-  experiment and measurement switches whose runs must happen, several write to stderr or to files).
-- **Only side-effect-free, timing-free runs are recorded**: fast mode, `--noEmit`, not incremental (a build info file
-  is a write), not `--build` or `--watch`, no `--diagnostics`/`--extendedDiagnostics`, `--generateTrace`,
+  which covers the embedded libraries), the argument list, the working directory, `TSRS_FAST`, `TSRS_LIB_PATH`,
+  `FORCE_COLOR`, `NO_COLOR`, `TERM=dumb`, `RAYON_NUM_THREADS` (every `std::env::var` and `get_environment_variable`
+  read on the CLI path), whether stdout is a terminal (the `--pretty` default), the available parallelism (the
+  default checker count) and the file system's case sensitivity.
+- **Only side-effect-free, timing-free runs are recorded**: fast mode, `--noEmit`, not incremental (a build info
+  file is a write), not `--build` or `--watch`, no `--diagnostics`/`--extendedDiagnostics`, `--generateTrace`,
   `--generateCpuProfile` or `--pprofDir`, no `--runExternalCode`, exit status 0-2, nothing written to stderr through
   the system. `--listFiles`, `--explainFiles`, `--traceResolution` and `--pretty` output are deterministic and replay.
 
 Not covered, by design: a network file system whose server clock lags the client's by more than the racy window
-(git has the same exposure); file contents changed without updating the change time (writes to the block device).
-Windows has no change time in `std` metadata, so the cache is Unix only.
+(git has the same exposure); file contents changed without updating the change time. Windows has no change time in
+`std` metadata, so the cache is Unix only.
 
 ## Storage
 
 One file per key in the user cache directory (`$XDG_CACHE_HOME` or `~/.cache` on Linux, `~/Library/Caches` on macOS,
-`/tsrs/result-cache`), or `TSRS_RESULT_CACHE_DIR`. Layout: magic, key, exit status, stdout bytes, the records (kind,
-path, digest), project paths before `node_modules` paths and file reads and listings first (a miss is found
-sooner), and an xxh3-128 of the whole file; a torn or corrupt file fails the checksum and is a miss. Entries are
-written to a temporary file and renamed, so concurrent runs never read a partial entry; the last writer wins. After each
-write the directory keeps the newest 64 entries within 256 MiB; it only ever deletes files named like entries (32 hex
-digits) or their temporary files.
-
-`TSRS_RESULT_CACHE=0` turns the cache off and `TSRS_RESULT_CACHE=log` prints one line per run (hit with the number of
-observations and the time to check them, miss with the first changed answer, recorded with size and write time).
-The bench, perf-probe and determinism tools and `tools/regressions.sh` set `TSRS_RESULT_CACHE=0`, since they repeat
-one command on an unchanged tree; so do three CLI tests that rerun regression fixtures.
+`/tsrs/result-cache`), or `TSRS_RESULT_CACHE_DIR`. The records are written project paths before `node_modules`
+paths and file reads and listings first, so a miss is found sooner; an xxh3-128 of the whole file ends it, so a
+corrupt file is a miss. Entries are written to a temporary file and renamed, so concurrent runs never read a
+partial entry; the last writer wins. After each write the directory keeps the newest 64 entries within 256 MiB,
+deleting only files named like entries or their temporary files. The bench, perf-probe and determinism tools and
+`tools/regressions.sh` set `TSRS_RESULT_CACHE=0`, since they repeat one command on an unchanged tree.
 
 ## Measurements
 
@@ -80,8 +67,7 @@ median paired ratio; `~` marks an interval that contains 0.
 
 **Correctness.** For every prepared project, with `--pretty false` and `--pretty true`: A's output, B with the cache
 off, B's recording run and B's replay are byte-identical in stdout and exit status (checked on `71dd343`, `6a3c2d959`
-and `f1408acaf`), and the replays print only the cache's log line on stderr. The 11 integration tests pass on Linux;
-the first 10 also passed on macOS (`71dd343`; the pruning test came later).
+and `f1408acaf`). The integration tests pass on Linux; all but the pruning test also passed on macOS (`71dd343`).
 
 **Replay against a normal `--fast` run** (cache primed; medians in ms; "checked" is the cache's own time from opening
 the entry to the end of validation, median of 5):
@@ -99,10 +85,10 @@ the entry to the end of validation, median of 5):
 
 Paired wall ratios: -86.0% (xstate-main) to -98.6% (t3code-server), every interval under half a point wide. A
 `tsrs --version` under the same runner takes 20.8 ms (process start plus the runner's `bash`, `perf stat` and `time`
-wrappers), so a replay is 5-21 ms above that floor. Where the checking time goes (one replay under `strace -c`):
-`statx` is 60-83% of the system call time (file reads' fingerprints and the existence probes, 76.7k calls on
-mui-docs), `readlinkat` from realpaths 12-17% on the pnpm projects (t3code-server, supabase-studio, cal-diy), the
-directory listings' `getdents64` 11% on vscode (2,693 directories) and under 3% elsewhere.
+wrappers), so a replay is 5-21 ms above that floor. Under `strace -c`, `statx` is 60-83% of a replay's system call
+time (file fingerprints and existence probes, 76.7k calls on mui-docs), `readlinkat` from realpaths 12-17% on the
+pnpm projects (t3code-server, supabase-studio, cal-diy), the directory listings' `getdents64` 11% on vscode (2,693
+directories) and under 3% elsewhere.
 
 | observations by kind | vscode | t3code-server | mui-docs | mikro-orm | supabase-studio | cal-diy | webpack | xstate-main |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -138,23 +124,20 @@ interval within 0.1 point; peak RSS -0.1% to +2.3% (the answers held in memory).
 single-threaded, 5 pairs, `6a3c2d959`): instructions +0.0% on all eight, every interval [-0.0%, +0.0%]; the cache
 never runs there.
 
-**How the recording path got here.** The first version (`71dd343`) cloned and sorted every recorded path and built the
-entry in memory before writing it: recording cost up to +5.6% wall (supabase-studio) and +3.2% peak RSS (mui-docs),
-stale entries up to +7.4%. Streaming the entry from the recorder's maps (`6a3c2d959`, with a non-copying
-`SyncMap::for_each`) brought peak RSS to at most +1.1% and recording wall to at most +4.1%; one write per record into
-a 1 MiB buffer, with reads and listings written first (`f1408acaf`), to the numbers above. Replays may have lost a
-little locality with the sorted order: `71dd343` checked mui-docs in 13.0 ms and supabase-studio in 14.6 ms, against
-16.9 and 17.5 ms now (separate sessions, not a paired comparison).
-
 **macOS** (Apple M5 Max, debug build, vscode, a loaded shared machine): a replay checks the 33,368 observations in
-56-143 ms; 40 replays run four at a time all hit and printed the recorded output. Validation re-lists directories, so
-it opens each listed directory once (2,693 on vscode); macOS caps `open` near 110k/s on that machine, about 25 ms of
-the replay. Before those runs, ten consecutive runs in a bash loop each missed on one `file_exists` probe of a file
-that had not changed in a month, then re-recorded; it did not happen again in 46 later runs and was not explained.
-A miss only re-runs the check, so the output stayed correct.
+56-143 ms; 40 replays run four at a time all hit and printed the recorded output. Validation re-lists directories,
+so it opens each listed directory once (2,693 on vscode); macOS caps `open` near 110k/s on that machine, about 25 ms
+of the replay. Before those runs, ten consecutive runs in a bash loop each missed on one `file_exists` probe of a
+file that had not changed in a month, then re-recorded; it did not happen again in 46 later runs and was not
+explained. A miss only re-runs the check, so the output stayed correct.
 
-## Not done, and why
+## Measured and rejected, or not done
 
+- **Building the entry in memory with sorted paths** (`71dd343`): recording cost up to +5.6% wall (supabase-studio)
+  and +3.2% peak RSS (mui-docs), stale entries up to +7.4%. Streaming the entry from the recorder's maps with one
+  write per record into a 1 MiB buffer gives the numbers above. Replays may have lost a little locality with the
+  sorted order: `71dd343` checked mui-docs in 13.0 ms and supabase-studio in 14.6 ms, against 16.9 and 17.5 ms now
+  (separate sessions, not a paired comparison).
 - **Directory fingerprints instead of re-listing.** A directory's modification time changes when an entry is added,
   removed or renamed, so a stat could replace a listing on validation (no `open`, which matters on macOS). But a
   listing also classifies symlinked entries by their targets and drops dangling ones; a dangling link that starts
@@ -163,5 +146,5 @@ A miss only re-runs the check, so the output stayed correct.
   checking.
 - **Racy entries stay racy.** A file recorded by its text is read on every replay until the entry is recorded again
   (after the next miss). After a large checkout followed at once by a check, that can be many files.
-- **Smaller entries.** Paths are stored whole (11 MB on mui-docs). Sorting and prefix-coding them would shrink entries
-  about 4x but put a sort of 78k long strings back on the recording path.
+- **Smaller entries.** Paths are stored whole (11 MB on mui-docs). Sorting and prefix-coding them would shrink
+  entries about 4x but put a sort of 78k long strings back on the recording path.

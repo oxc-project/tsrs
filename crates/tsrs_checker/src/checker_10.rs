@@ -544,8 +544,7 @@ impl Checker {
         base_symbols: &[P<Symbol>],
     ) -> Option<P<SymbolTable>> {
         let mut symbols = symbols;
-        // tsrs-only: before the first insert, room for the remaining bases (capacity only), so a large table grows
-        // once instead of rehashing at every doubling (notes/perf-presized-tables.md).
+        // tsrs-only: room for the remaining bases before the first insert (capacity only; notes/perf-presized-tables.md).
         let mut reserved = false;
         for (i, &base) in base_symbols.iter().enumerate() {
             if !is_static_private_identifier_property(base) {

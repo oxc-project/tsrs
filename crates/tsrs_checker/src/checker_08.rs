@@ -2135,8 +2135,7 @@ impl Checker {
         // tsrs-only: room for the remaining exports before the first insert (capacity only; see add_inherited_members).
         let mut reserved = false;
         let entries = source.entries();
-        let count = entries.len();
-        for (i, (id, source_symbol)) in entries.into_iter().enumerate() {
+        for (i, &(id, source_symbol)) in entries.iter().enumerate() {
             if id == INTERNAL_SYMBOL_NAME_DEFAULT {
                 continue;
             }
@@ -2144,7 +2143,7 @@ impl Checker {
             match target_symbol {
                 None => {
                     if !reserved {
-                        target.reserve(count - i);
+                        target.reserve(entries.len() - i);
                         reserved = true;
                     }
                     target.set(id, source_symbol);

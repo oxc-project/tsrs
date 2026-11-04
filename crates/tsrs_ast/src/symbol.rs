@@ -955,12 +955,11 @@ impl SymbolMap {
                 index_hash(hash_name(entries[m as usize].key()))
             });
         } else if self.entries.len() > SYMBOL_TABLE_LINEAR_MAX {
-            self.build_index();
+            self.build_index(self.entries.len());
         }
     }
 
-    /// Room for `additional` more entries: the entry buffer and, past `SYMBOL_TABLE_LINEAR_MAX`, the index grow once,
-    /// instead of step by step with every key rehashed at each step of the index.
+    /// Room for `additional` more entries in the entry buffer and, past `SYMBOL_TABLE_LINEAR_MAX`, the index.
     fn reserve(&mut self, additional: usize) {
         let needed = self.entries.len() + additional;
         self.entries.reserve_exact(additional);
@@ -972,18 +971,14 @@ impl SymbolMap {
             Some(index) => {
                 index.reserve(additional, |&m| index_hash(hash_name(entries[m as usize].key())));
             }
-            None => self.build_index_with_capacity(needed),
+            None => self.build_index(needed),
         }
     }
 
-    /// The index of a linear table that has grown past `SYMBOL_TABLE_LINEAR_MAX` entries.
+    /// The index of a linear table grown or reserved past `SYMBOL_TABLE_LINEAR_MAX` entries, with room for `capacity`.
     #[cold]
     #[inline(never)]
-    fn build_index(&mut self) {
-        self.build_index_with_capacity(self.entries.len());
-    }
-
-    fn build_index_with_capacity(&mut self, capacity: usize) {
+    fn build_index(&mut self, capacity: usize) {
         let len = self.entries.len();
         let mut index = HashTable::with_capacity(capacity);
         for j in 0..len {

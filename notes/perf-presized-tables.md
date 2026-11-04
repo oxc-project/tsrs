@@ -3,23 +3,22 @@
 A `perf record` of `--fast` on a 32-vCPU Graviton4 box (release build with frame pointers, 2,999 Hz) put hashbrown
 table growth at 2.6% of t3code-server's samples, 4.1% of mui-docs', 4.4% of cal-diy's and 1.7% of vscode's. On
 mui-docs and cal-diy the largest share is symbol-table index growth (`RawTable<u32>::reserve_rehash` under
-`SymbolMap::insert`), and its callers are two loops that fill a table from a list of known length:
+`SymbolMap::insert`) from two loops that fill a table from a list of known length:
 
 | caller | mui-docs | cal-diy | vscode | t3code-server |
 | --- | ---: | ---: | ---: | ---: |
 | `add_inherited_members` (a derived type's members: its own plus every base member) | 0.9% | 0.7% | 0.2% | <0.1% |
 | `extend_export_symbols` (`export *` re-exports) | <0.1% | 0.6% | <0.1% | <0.1% |
 
-(Percent of all samples; the rest of the growth is spread over per-type instantiation tables, the relation cache and
-link stores, none of which knows its final size up front.) A symbol table's index rehashes every key at each
-doubling, and rehashing a key means reading its symbol's name and hashing it, so a table filled one entry at a
-time rehashes about twice its final size in names on the way.
+(Percent of all samples. The rest of the growth is per-type instantiation tables, the relation cache and link
+stores, none of which knows its final size up front.) The index rehashes every key at each doubling, and rehashing a
+key reads the symbol's name and hashes it again, so a table filled one entry at a time hashes about twice its final
+size in names.
 
-The change: `SymbolTable::reserve` sizes the entry buffer and (past the linear-scan size of 16) the index once, and
-both loops call it before their first insert with the number of entries left in the source list. Capacity only:
-contents, order and lookups are unchanged, so it applies in both modes. The reserve happens only where the loop
-inserts anyway, so a table the loop would not write (a binder's table) is never touched. Over-reserving is bounded by
-the overridden members (a derived member that shadows a base member is not inserted).
+`SymbolTable::reserve` sizes the entry buffer and (past the linear-scan size of 16) the index once; both loops call
+it right before their first insert with the number of entries left in the source list. Capacity only, so it is not
+gated on `--fast`, and a table the loop would not write (a binder's table) is never touched. Over-reserving is bounded
+by the overridden members (a derived member that shadows a base member is not inserted).
 
 ## Measurements
 
@@ -39,13 +38,19 @@ default 16 checkers. Cells: median of per-pair ratios candidate / base - 1 (inte
 | webpack | -0.7% (10.28 -> 10.21 G) | -1.3% [-1.9, +0.2] | -1.0% [-3.3, +0.6] | -0.1% |
 | xstate-main | -0.3% (5.46 -> 5.45 G) | -0.6% [-1.8, +0.3] | -2.0% [-3.2, -0.0] | -1.1% |
 
-Single-threaded peak RSS moves by -0.7% to +0.7% (exact capacities replace growth slack). Diagnostics are
-byte-identical to base in default mode and `--fast` on all eight projects, and the default-mode
-`--extendedDiagnostics` counters are unchanged.
-
 Fewer instructions on all eight projects, 0.3-1.2%, most where large class and interface hierarchies or `export *`
-barrels are (mui-docs, cal-diy); CPU and wall time in `--fast` follow within their noise.
+barrels are (mui-docs, cal-diy); `--fast` CPU and wall time follow within their noise. Single-threaded peak RSS moves
+by -0.7% to +0.7% (exact capacities replace growth slack). Diagnostics are byte-identical to base in default mode and
+`--fast` on all eight projects, and the default-mode `--extendedDiagnostics` counters are unchanged.
 
-Measured on top and dropped (notes/perf-fast-memory-knobs.md section 2): hashing `ReferenceInstantiations` keys by
-argument handle (0.0-0.1 points more), and growing full instantiation tables 4x under `--fast` (no measurable
-change).
+## Measured on top and dropped
+
+The other large grower in the same profile, the per-generic `ReferenceInstantiations` tables (1.1% of t3code-server's
+samples), has no size estimate before it fills. Two candidates were measured on top of this change:
+
+Hashing `ReferenceInstantiations` keys by argument handle instead of type id, so a lookup does not read each argument
+type: 0.0 to -0.1 points more single-threaded instructions, not separable from noise under `--fast`. Dropped.
+
+Growing a full `ReferenceInstantiations` table 4x instead of 2x under `--fast`: with both candidates on top,
+t3code-server's `--fast` instructions were +0.2% [-0.4, +0.7] against -0.4% [-0.9, +0.2] for this change alone, wall
+the same within noise. Dropped: a `--fast` switch with no measurable gain.

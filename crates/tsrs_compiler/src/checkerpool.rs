@@ -491,8 +491,8 @@ pub struct PoolState {
     pub associations: Vec<usize>,
     // Estimated work per program file (checked_file_weights), what stealing balances.
     weights: Vec<i64>,
-    // TSRS_FILE_TIMES only: (file, checker, seconds, thread CPU seconds) per checked file, in completion order.
-    file_times: Mutex<Vec<(P<SourceFile>, usize, f64, f64)>>,
+    // TSRS_FILE_TIMES only: per checked file (or piece of a split file), in completion order.
+    file_times: Mutex<Vec<FileTime>>,
     // Cost cache only: (file, thread CPU seconds) per checked file, per checker pass.
     file_cpu: Mutex<Vec<(P<SourceFile>, f64)>>,
     // Whether checkers live in regions and the type-check pass may retire them (`max_memory`).
@@ -501,8 +501,10 @@ pub struct PoolState {
 }
 
 // TSRS_FILE_TIMES=<path> (experiments): after checking, write one line per file run by a checker group:
-// checker, seconds, thread CPU seconds, node count, text length, import count, file name, and the file's node-kind
-// histogram (`Kind=count` pairs), for fitting assignment cost models offline.
+// checker, seconds, thread CPU seconds, node count, text length, import count, file name, the file's node-kind
+// histogram (`Kind=count` pairs), then the start in seconds from the start of its group pass, the queue it was taken
+// from (its owner when the pass started; another checker's queue when it was stolen) and its scheduling weight, for
+// fitting assignment cost models and drawing the pass's timeline offline.
 pub(crate) fn file_times_path() -> Option<&'static str> {
     static PATH: OnceLock<Option<String>> = OnceLock::new();
     PATH.get_or_init(|| std::env::var("TSRS_FILE_TIMES").ok().filter(|v| !v.is_empty())).as_deref()
@@ -524,12 +526,16 @@ pub(crate) fn write_file_times(program: &'static Program) {
         return;
     };
     let mut out = String::new();
-    for &(file, checker, seconds, cpu) in state.file_times.lock().unwrap().iter() {
+    for t in state.file_times.lock().unwrap().iter() {
+        let file = t.file;
         let mut counts = vec![0u32; tsrs_ast::Kind::Count as usize + 1];
         count_kinds(file.as_node(), &mut counts);
         let _ = write!(
             out,
-            "{checker}\t{seconds:.6}\t{cpu:.6}\t{}\t{}\t{}\t{}\t",
+            "{}\t{:.6}\t{:.6}\t{}\t{}\t{}\t{}\t",
+            t.checker,
+            t.seconds,
+            t.cpu,
             file.node_count.get(),
             file.text().len(),
             file.imports().len(),
@@ -538,9 +544,20 @@ pub(crate) fn write_file_times(program: &'static Program) {
         for (kind, &count) in counts.iter().enumerate().filter(|&(_, &c)| c > 0) {
             let _ = write!(out, "{:?}={count} ", tsrs_ast::Kind::from_i16(kind as i16));
         }
-        out.push('\n');
+        let _ = writeln!(out, "\t{:.6}\t{}\t{}", t.start, t.queue, t.weight);
     }
     std::fs::write(path, out).expect("TSRS_FILE_TIMES");
+}
+
+// One TSRS_FILE_TIMES record (see `file_times_path`).
+struct FileTime {
+    file: P<SourceFile>,
+    checker: usize,
+    seconds: f64,
+    cpu: f64,
+    start: f64,
+    queue: usize,
+    weight: u64,
 }
 
 // CPU time of the calling thread: used by the per-file timing and checker-cost-cache tools.
@@ -1094,6 +1111,28 @@ impl CheckerPoolImpl {
                 crate::sharedgraph::start_seed(self.program, state.weights.clone(), state.recycle);
             });
         }
+        // TSRS_FILE_TIMES: the queue each position starts in, and the pass's start.
+        let mut queue_of: Vec<u32> = Vec::new();
+        if file_times {
+            queue_of = vec![0; files.len() + split.piece_items.len()];
+            for (q, p) in positions.iter().enumerate() {
+                for &i in p {
+                    queue_of[i as usize] = q as u32;
+                }
+            }
+        }
+        let pass_start = std::time::Instant::now();
+        let record_time = |file, checker, i: u32, start: std::time::Instant, cpu_start: f64| {
+            state.file_times.lock().unwrap().push(FileTime {
+                file,
+                checker,
+                seconds: start.elapsed().as_secs_f64(),
+                cpu: thread_cpu_seconds() - cpu_start,
+                start: start.duration_since(pass_start).as_secs_f64(),
+                queue: queue_of[i as usize] as usize,
+                weight: weight(i),
+            });
+        };
         let queues: Vec<FileQueue> =
             positions.into_iter().map(|p| FileQueue::new(p, weight)).collect();
         // `--maxMemory`: each checker's region size after its last file, to retire the largest.
@@ -1129,13 +1168,13 @@ impl CheckerPoolImpl {
                     let cpu_start = if file_times { thread_cpu_seconds() } else { 0.0 };
                     split.files[s].run_queued_piece(&mut guard, split_ctx.unwrap(), k);
                     if let Some(piece_start) = piece_start {
-                        let cpu = thread_cpu_seconds() - cpu_start;
-                        state.file_times.lock().unwrap().push((
+                        record_time(
                             split.files[s].file,
                             checker_idx,
-                            piece_start.elapsed().as_secs_f64(),
-                            cpu,
-                        ));
+                            i as u32,
+                            piece_start,
+                            cpu_start,
+                        );
                     }
                     continue;
                 }
@@ -1160,13 +1199,7 @@ impl CheckerPoolImpl {
                     split_file.shadow_compare(&whole);
                 }
                 if let Some(file_start) = file_start {
-                    let cpu = thread_cpu_seconds() - cpu_start;
-                    state.file_times.lock().unwrap().push((
-                        file,
-                        checker_idx,
-                        file_start.elapsed().as_secs_f64(),
-                        cpu,
-                    ));
+                    record_time(file, checker_idx, i as u32, file_start, cpu_start);
                 }
                 if cost_cache {
                     file_cpu.push((file, thread_cpu_seconds() - cpu_start));

@@ -62,8 +62,7 @@ mkdir -p ~/.tsrs-tsdk && ln -sf "$PWD/target/debug/tsrs" ~/.tsrs-tsdk/tsgo
 
 Then set `js/ts.tsdk.path` in user settings to that directory's absolute path, such as `/Users/<you>/.tsrs-tsdk`.
 Run "TypeScript 7: Restart Server" (or reload the window); the output channel names the executable it started.
-The server does not run content mappers yet (`js/ts.contentMappers.enabled`); turn them off if a workspace
-contributes any. `tsrs -p` and `tsrs -b` do run them.
+Content mappers (`js/ts.contentMappers.enabled`) run in trusted workspaces, as they do for `tsrs -p` and `tsrs -b`.
 
 **Neovim** (0.11+, built-in client):
 
@@ -115,8 +114,9 @@ The [initial port log](history/LSP.md) records the completed phases and their me
 
 The [Go fourslash subprocess runner](../tools/go-fourslash/README.md) keeps the upstream Go test bodies
 and assertions and drives the Rust language server over a local LSP socket. It uses a test-only server entry point,
-a filesystem bridge, and a read-only project-state bridge. Go content-mapper callbacks remain unsupported. The
-Go runner runs in Linux CI with zero failures and a floor of 4,074 exercised groups, including all 4,066 groups
+a filesystem bridge, and a read-only project-state bridge. Go content-mapper callbacks cannot cross the process
+boundary, so the server serves the Rust port of the same in-process test mappers to the tests that set one. The
+Go runner runs in Linux CI with zero failures and a floor of 4,149 exercised groups, including all 4,066 groups
 that passed in the former translated Rust suite. Release verification and PGO/BOLT training also use the Go runner.
 
 ## Protocol types and JSON
@@ -293,9 +293,6 @@ retains the translated runner's historical results and verify-family breakdown.
 - A pending API session with no connected client is stopped by an explicit LSP `shutdown`, but EOF or context
   cancellation alone leaves its listener pending and its private Unix socket directory behind. This matches
   `handleInitializeAPISession` and `closeAPISessions` in the pinned Go source (`3e9236361fa9`).
-- Content mappers are not loaded by the language server; 57 fourslash groups are explicitly skipped after source 79 adds two output-extension project-reference groups. `custom/setContentMapperContributions` validates contributions, including `outputExtensions`, and forwards them to the project session; the empty startup handshake succeeds.
-  CLI checks and builds support them ([content-mapper note](../notes/contentmappers.md)). The language service's
-  span-map branches are retained but receive no content-mapped scripts.
 - Automatic type acquisition, performance/project telemetry, profiling requests and localized messages are not
   ported. Request-failure telemetry, including flaky diagnostics, is sent when enabled.
 - Eight `@tsc` fixture groups use Go's `tsctests.GetFileMapWithBuild` before the Rust LSP session starts;

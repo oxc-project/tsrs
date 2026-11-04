@@ -504,9 +504,8 @@ pub struct PoolState {
 
 // TSRS_FILE_TIMES=<path> (experiments): after checking, write one line per file run by a checker group:
 // checker, seconds, thread CPU seconds, node count, text length, import count, file name, the file's node-kind
-// histogram (`Kind=count` pairs), then the start in seconds from the start of its group pass, the queue it was taken
-// from (its owner when the pass started; another checker's queue when it was stolen) and its scheduling weight, for
-// fitting assignment cost models and drawing the pass's timeline offline.
+// histogram (`Kind=count` pairs), start in seconds from the start of its pass, the queue it was taken from (another
+// checker's when stolen) and its scheduling weight, for fitting assignment cost models and drawing the pass offline.
 pub(crate) fn file_times_path() -> Option<&'static str> {
     static PATH: OnceLock<Option<String>> = OnceLock::new();
     PATH.get_or_init(|| std::env::var("TSRS_FILE_TIMES").ok().filter(|v| !v.is_empty())).as_deref()
@@ -834,12 +833,9 @@ impl CheckerPoolImpl {
         // Go `max(min(checkerCount, len(files), 256), 1)` on int: a negative or zero count is one checker.
         let checker_count = checker_count.min(program.files.len() as i64).clamp(1, 256) as usize;
 
-        let inherited_associations =
-            previous.and_then(|previous| inherited_associations(program, checker_count, previous));
-        let inherited_deep = match (previous.and_then(|p| p.state.get()), &inherited_associations) {
-            (Some(state), Some(_)) => state.deep.clone(),
-            _ => Vec::new(),
-        };
+        let (inherited_associations, inherited_deep) = previous
+            .and_then(|previous| inherited_associations(program, checker_count, previous))
+            .map_or((None, Vec::new()), |(associations, deep)| (Some(associations), deep));
         CheckerPoolImpl {
             program,
             checker_count,
@@ -1174,7 +1170,7 @@ impl CheckerPoolImpl {
         let queues: Vec<FileQueue> = positions
             .into_iter()
             .zip(pinned)
-            .map(|(p, pinned)| FileQueue::new(p, weight).with_pinned(pinned))
+            .map(|(p, pinned)| FileQueue::new(p, pinned, weight))
             .collect();
         // `--maxMemory`: each checker's region size after its last file, to retire the largest.
         let region_sizes: Vec<std::sync::atomic::AtomicUsize> =
@@ -1545,7 +1541,9 @@ pub struct FileQueue {
 const QUEUE_LOW: u64 = u32::MAX as u64;
 
 impl FileQueue {
-    pub fn new(positions: Vec<u32>, weight: impl Fn(u32) -> u64) -> FileQueue {
+    // The first `pinned` positions are the owner's alone.
+    pub fn new(positions: Vec<u32>, pinned: usize, weight: impl Fn(u32) -> u64) -> FileQueue {
+        debug_assert!(pinned <= positions.len());
         let mut prefix = Vec::with_capacity(positions.len() + 1);
         let mut sum = 0;
         prefix.push(0);
@@ -1557,32 +1555,25 @@ impl FileQueue {
         FileQueue {
             positions,
             prefix,
-            pinned: 0,
+            pinned: pinned as u32,
             range: std::sync::atomic::AtomicU64::new(len << 32),
             thieves: std::sync::atomic::AtomicU64::new(0),
         }
     }
 
-    /// The queue with its first `pinned` positions kept from thieves.
-    #[must_use]
-    pub fn with_pinned(mut self, pinned: usize) -> FileQueue {
-        self.pinned = pinned.min(self.positions.len()) as u32;
-        self
-    }
-
     pub fn remaining(&self) -> u64 {
-        // A heuristic read: a stale value only picks a different victim.
-        let r = self.range.load(std::sync::atomic::Ordering::Relaxed);
-        let (front, back) = ((r & QUEUE_LOW) as usize, (r >> 32) as usize);
-        if front < back { self.prefix[back] - self.prefix[front] } else { 0 }
+        self.left(0)
     }
 
     // The work left that a thief may take: `remaining` without the pinned positions.
     fn stealable(&self) -> u64 {
-        // A heuristic read, as in `remaining`.
+        self.left(self.pinned as usize)
+    }
+
+    fn left(&self, floor: usize) -> u64 {
+        // A heuristic read: a stale value only picks a different victim.
         let r = self.range.load(std::sync::atomic::Ordering::Relaxed);
-        let (front, back) =
-            (((r & QUEUE_LOW) as usize).max(self.pinned as usize), (r >> 32) as usize);
+        let (front, back) = (((r & QUEUE_LOW) as usize).max(floor), (r >> 32) as usize);
         if front < back { self.prefix[back] - self.prefix[front] } else { 0 }
     }
 
@@ -1854,12 +1845,12 @@ fn inherited_associations(
     program: &Program,
     checker_count: usize,
     previous: &CheckerPoolImpl,
-) -> Option<Vec<usize>> {
+) -> Option<(Vec<usize>, Vec<u32>)> {
     let state = previous.state.get()?;
     let reusable = matches!(checker_assignment(), CheckerAssignment::Locality)
         && previous.checker_count == checker_count
         && state.associations.len() == program.files.len();
-    reusable.then(|| state.associations.clone())
+    reusable.then(|| (state.associations.clone(), state.deep.clone()))
 }
 
 // tsrs-only: where tsgo's compiler pool at its default checker count (`newCheckerPool`) type checks each file: the
@@ -1894,19 +1885,16 @@ fn compute_associations(program: &Program, checker_count: usize) -> (Vec<usize>,
     if checker_count <= 1 {
         return (vec![0; program.files.len()], Vec::new());
     }
-    let mut deep = Vec::new();
-    let associations = match checker_assignment() {
-        CheckerAssignment::Go => go_associations(program, checker_count, true),
-        CheckerAssignment::Locality => {
-            let (associations, d) = locality_associations(program, checker_count);
-            deep = d;
-            associations
-        }
+    let (associations, deep) = match checker_assignment() {
+        CheckerAssignment::Go => (go_associations(program, checker_count, true), Vec::new()),
+        CheckerAssignment::Locality => locality_associations(program, checker_count),
         CheckerAssignment::Random(seed) => {
             let mut state = seed;
-            std::iter::repeat_with(|| (splitmix64(&mut state) % checker_count as u64) as usize)
-                .take(program.files.len())
-                .collect()
+            let associations =
+                std::iter::repeat_with(|| (splitmix64(&mut state) % checker_count as u64) as usize)
+                    .take(program.files.len())
+                    .collect();
+            (associations, Vec::new())
         }
         CheckerAssignment::File(path) => {
             let text = tsrs_core::utf8::read_to_string(path).expect("TSRS_CHECKER_ASSIGNMENT file");
@@ -1919,7 +1907,7 @@ fn compute_associations(program: &Program, checker_count: usize) -> (Vec<usize>,
                 program.files.len(),
                 "TSRS_CHECKER_ASSIGNMENT file length"
             );
-            associations
+            (associations, Vec::new())
         }
     };
     if let Ok(path) = std::env::var("TSRS_ASSIGNMENT_DUMP") {
@@ -2689,24 +2677,18 @@ pub fn import_depths(targets: &[Vec<usize>]) -> Vec<u32> {
 
 // tsrs-only (notes/perf-deep-files.md): the files at the top of the import graph, which their owner checks first and
 // keeps from thieves. Program order is dependencies first, so the back of a queue, where thieves take, holds the files
-// that import the most of the program: entry points, composition roots, the tests of whole services. Such a file
-// checked by a thief makes the thief build the types of everything it imports again, while the owner, which checks its
-// neighbourhood, builds them once. On t3code-server at 16 checkers the files that compose the server's Effect layers
-// cost 1.2-1.5 s each on the six thieves that took them half a second into the pass, and under 0.05 s each on a
-// checker that had checked two of them; the pass ended with the last of those thieves, at 2.1 s.
-//
-// A deep file is a checked file (weight above 0) whose import depth (`import_depths`) is at least DEEP_FILE_DEPTH of
-// the deepest checked file's; with it, the checked files of the same checker that it imports directly (on mui-docs a
-// template's theme module: 0.55 s on a thief, 0.04 s on the checker that has checked the template). By program file
-// index. `TSRS_DEEP_FILES=<fraction>` sets the fraction for experiments, `off` turns this off.
+// that import the most of the program (entry points, composition roots, the tests of whole services); a thief that
+// takes one builds the types of everything it imports again, which the owner, checking that neighbourhood, builds
+// once. A deep file is a checked file (weight above 0) whose import depth (`import_depths`) is at least
+// DEEP_FILE_DEPTH of the deepest checked file's, plus the checked files of the same checker that it imports directly.
+// By program file index. `TSRS_DEEP_FILES=0` turns this off, for A/B runs on one binary.
 fn deep_files(import_targets: &[Vec<usize>], weights: &[i64], associations: &[usize]) -> Vec<u32> {
-    let fraction = deep_file_depth();
-    if fraction <= 0.0 {
+    if !deep_files_enabled() {
         return Vec::new();
     }
     let depths = import_depths(import_targets);
     let max = (0..weights.len()).filter(|&i| weights[i] > 0).map(|i| depths[i]).max().unwrap_or(0);
-    let min = ((f64::from(max) * fraction).ceil() as u32).max(1);
+    let min = ((f64::from(max) * DEEP_FILE_DEPTH).ceil() as u32).max(1);
     let mut deep: Vec<u32> = (0..weights.len())
         .filter(|&i| weights[i] > 0 && depths[i] >= min)
         .map(|i| i as u32)
@@ -2727,15 +2709,11 @@ fn deep_files(import_targets: &[Vec<usize>], weights: &[i64], associations: &[us
     deep
 }
 
-// See deep_files. On the bench projects it marks 3-97 files by depth: the 7 server files and 6 cheap ones on
-// t3code-server, 9 on mui-docs.
+// A fraction of the deepest file's depth, not a number of levels below it: three levels marked 712 of webpack's 909
+// files (notes/perf-deep-files.md).
 const DEEP_FILE_DEPTH: f64 = 0.95;
 
-fn deep_file_depth() -> f64 {
-    static VALUE: OnceLock<f64> = OnceLock::new();
-    *VALUE.get_or_init(|| match std::env::var("TSRS_DEEP_FILES").ok().as_deref().map(str::trim) {
-        None | Some("") => DEEP_FILE_DEPTH,
-        Some("off") => 0.0,
-        Some(v) => v.parse::<f64>().ok().filter(|f| f.is_finite()).unwrap_or(DEEP_FILE_DEPTH),
-    })
+fn deep_files_enabled() -> bool {
+    static VALUE: OnceLock<bool> = OnceLock::new();
+    *VALUE.get_or_init(|| !std::env::var("TSRS_DEEP_FILES").is_ok_and(|v| v == "0"))
 }

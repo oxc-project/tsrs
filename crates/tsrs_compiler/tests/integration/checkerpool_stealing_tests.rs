@@ -26,8 +26,7 @@ fn every_position_is_taken_exactly_once() {
     }
 }
 
-// With `pin`, the first tenth of each queue (the deep files, some of them weighing 0) is its owner's alone: a pinned
-// file taken by a thief is checked without the types its owner built for it.
+// With `pin`, the first tenth of each queue (its deep files, some weighing 0) is its owner's alone.
 fn every_position_is_taken_exactly_once_with(max_thieves: u32, pin: bool) {
     let sizes = [5000usize, 0, 20000, 300, 1];
     let pinned = |n: usize| if pin { n.div_ceil(10) } else { 0 };
@@ -39,7 +38,7 @@ fn every_position_is_taken_exactly_once_with(max_thieves: u32, pin: bool) {
             base += n as u32;
             // Some positions weigh 0 (unchecked declaration files): they must still be handed out.
             let weight = |i: u32| u64::from(!i.is_multiple_of(7)) * u64::from(i % 5 + 1);
-            FileQueue::new(positions, weight).with_pinned(pinned(n))
+            FileQueue::new(positions, pinned(n), weight)
         })
         .collect();
     let taken: Mutex<Vec<(usize, usize)>> = Mutex::new(Vec::new());
@@ -83,7 +82,8 @@ fn every_position_is_taken_exactly_once_with(max_thieves: u32, pin: bool) {
 /// Without stealing a checker runs exactly its own files, in visiting order.
 #[test]
 fn without_stealing_a_checker_keeps_its_own_files_in_order() {
-    let queues = vec![FileQueue::new(vec![0, 2, 4], |_| 1), FileQueue::new(vec![1, 3], |_| 1)];
+    let queues =
+        vec![FileQueue::new(vec![0, 2, 4], 0, |_| 1), FileQueue::new(vec![1, 3], 0, |_| 1)];
     let mut slot = usize::MAX;
     let order: Vec<(usize, bool)> =
         std::iter::from_fn(|| queues_next(&queues, 0, false, 0, &mut slot, None)).collect();

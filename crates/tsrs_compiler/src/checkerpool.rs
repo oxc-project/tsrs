@@ -2008,14 +2008,12 @@ const GO_DEFAULT_CHECKERS: i64 = 4;
 const MAX_DEFAULT_CHECKERS: i64 = 32;
 // A checker beyond Go's 4 needs at least this many type-checked files to be worth its creation and duplicated work.
 const MIN_CHECKED_FILES_PER_DEFAULT_CHECKER: i64 = 32;
-// Up to this many cores every core gets a checker. Parsing and checking are sequential phases, so a checker takes no
-// core from the parser; what it costs is memory and the library types it resolves again. On the 16-vCPU README bench,
-// 16 checkers instead of 8 cut vscode's wall from 1.38 to 0.85 s, supabase-studio's from 0.95 to 0.68 and t3code-server's
-// from 1.69 to 1.42 for 8-30% more peak memory (notes/perf-default-checkers-16.md); on the 8-vCPU bench, 8 instead of
-// 4 cut 14-42% (notes/perf-default-checkers-small-machines.md). Above it, half the cores: from 16 to 32 checkers the
-// app projects gain 6-23% wall (vscode 32%) for 24-34% more memory (notes/mem-round4.md section 3), and leaf freeing
-// stops at 16 (fileregions.rs `MAX_DEFAULT_CHECKERS`).
-const SMALL_MACHINE_CHECKERS: i64 = 16;
+// Every core gets a checker, up to MAX_DEFAULT_CHECKERS. Parsing and checking are sequential phases, so a checker
+// takes no core from the parser; what it costs is memory and the library types it resolves again, which `--fast`
+// accepts. On a 32-vCPU Graviton box, 32 checkers instead of 16 cut wall time by 7-32% on the eight catalog projects
+// for 22-34% more peak memory on the large ones (notes/perf-fast-checker-count.md; 16 -> 32 on 64 vCPUs: 6-32% for
+// 24-34%, notes/mem-round4.md section 3). Above 16 checkers leaf freeing is off by default (fileregions.rs
+// `MAX_DEFAULT_CHECKERS`), part of that memory.
 
 static GO_DEFAULT_CHECKER_COUNT: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
@@ -2026,10 +2024,10 @@ pub fn use_go_default_checker_count() {
     GO_DEFAULT_CHECKER_COUNT.store(true, std::sync::atomic::Ordering::Relaxed);
 }
 
-// tsrs-only: --fast's checker count when neither --checkers nor --singleThreaded is given. The default is Go's 4. Fast mode uses half the
-// available parallelism but every core up to SMALL_MACHINE_CHECKERS, at least Go's 4 and at most MAX_DEFAULT_CHECKERS,
-// and no more than one checker per MIN_CHECKED_FILES_PER_DEFAULT_CHECKER type-checked files, so small programs keep
-// Go's 4: 4 checkers on 4 cores, 8 on 8, 16 on 16 to 33, 32 on 64 or more. TypeScript's own history-dependent cases can
+// tsrs-only: --fast's checker count when neither --checkers nor --singleThreaded is given. The default is Go's 4. Fast mode uses
+// one checker per core, at least Go's 4 and at most MAX_DEFAULT_CHECKERS, and no more than one checker per
+// MIN_CHECKED_FILES_PER_DEFAULT_CHECKER type-checked files, so small programs keep Go's 4: 4 checkers on 4 cores, 8 on
+// 8, 24 on 24, 32 on 32 or more. TypeScript's own history-dependent cases can
 // change diagnostics with the count (notes/open-history-dependence.md). The --extendedDiagnostics Types / Symbols /
 // Instantiations counters also depend on the count (each checker counts what it creates), and therefore on the
 // machine unless --checkers is given.
@@ -2065,9 +2063,7 @@ fn default_checker_count_by_machine() -> i64 {
 // The machine rule of `default_checker_count_by_machine` for a core count. Benchmark comparisons at default settings
 // leave the checker count unset so this rule applies.
 pub fn default_checkers_for_parallelism(parallelism: i64) -> i64 {
-    (parallelism / 2)
-        .max(parallelism.min(SMALL_MACHINE_CHECKERS))
-        .clamp(GO_DEFAULT_CHECKERS, MAX_DEFAULT_CHECKERS)
+    parallelism.clamp(GO_DEFAULT_CHECKERS, MAX_DEFAULT_CHECKERS)
 }
 
 /// Determines the checker limit before program files are loaded.

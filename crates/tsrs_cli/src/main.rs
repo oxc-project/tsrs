@@ -123,7 +123,7 @@ extern "C" fn fast_heap_huge_pages(
     }
 }
 
-/// The command line's `--fast` decision (`configure_performance` in tsrs_execute, `tsrs_core::fast::enabled`) from
+/// The command line's `--fast` decision (`configure_performance` in `tsrs_execute`, `tsrs_core::fast::enabled`) from
 /// the raw arguments: the last `--fast` wins, `--fast false` turns it off, and without one `TSRS_FAST=1` turns it on.
 /// The language server, API server and linter keep the build's heap policy. Response files and `--fast` as the value
 /// of another option are not seen; a miss only changes memory use and speed, never output.

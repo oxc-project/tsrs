@@ -89,6 +89,61 @@ fn incremental_merged_interface_sites_match_clean_builds() {
     }
 }
 
+// A module augmentation in aug.ts adds a conflicting declaration to an interface of m.ts, which reports TS2320 at its
+// own first declaration although it does not import aug.ts. Each run starts from the previous run's build info, which
+// has no old text: the build info lists the files that declare an interface, so adding the augmentation and removing
+// it again refresh m.ts's cached diagnostics.
+#[test]
+fn incremental_merged_interface_sites_follow_augmentations_from_build_info() {
+    for mode in [&["--singleThreaded"][..], &["--checkers", "4"][..]] {
+        let dir = std::env::temp_dir().join(format!(
+            "tsrs-merged-augmentation-{}-{}",
+            std::process::id(),
+            mode[0]
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("tsconfig.json"), r#"{"compilerOptions":{"strict":true,"noEmit":true,"incremental":true,"target":"es2020","module":"esnext","moduleResolution":"bundler","types":[]},"files":["m.ts","aug.ts","other.ts"]}"#).unwrap();
+        std::fs::write(dir.join("m.ts"), "export interface Left { kind: \"left\" }\nexport interface Right { kind: \"right\" }\nexport interface Merged extends Left { m: number }\n").unwrap();
+        std::fs::write(dir.join("other.ts"), "export const broken: number = \"0\";\n").unwrap();
+        let aug = |body: &str, augmentation: &str| {
+            std::fs::write(
+                dir.join("aug.ts"),
+                format!("import \"./m\";\nexport function aug() {{ return \"{body}\"; }}\n{augmentation}"),
+            )
+            .unwrap();
+        };
+        let info = dir.join("tsconfig.tsbuildinfo");
+        let clean = || {
+            let previous = std::fs::read(&info).unwrap();
+            std::fs::remove_file(&info).unwrap();
+            let fresh = run_in(&dir, mode);
+            std::fs::write(&info, previous).unwrap();
+            fresh
+        };
+        let augmentation = "declare module \"./m\" { interface Merged extends Right {} }\n";
+        aug("aaaa", "");
+        run_in(&dir, mode);
+        for (body, augmentation, reported, what) in [
+            ("bbbb", "", false, "a body edit"),
+            ("bbbb", augmentation, true, "adding the augmentation"),
+            ("cccc", augmentation, true, "a body edit in the augmenting file"),
+            ("cccc", "", false, "removing the augmentation"),
+            ("dddd", "", false, "another body edit"),
+        ] {
+            aug(body, augmentation);
+            let incremental = run_in(&dir, mode);
+            let fresh = clean();
+            assert_eq!(fresh.starts_with("m.ts(3,18): error TS2320"), reported, "{what}: {fresh}");
+            assert_eq!(incremental, fresh, "{what}: {mode:?}");
+            assert!(
+                std::fs::read_to_string(&info).unwrap().contains("\"tsrsInterfaceFiles\":["),
+                "{what}: {mode:?}"
+            );
+        }
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+}
+
 #[test]
 fn incremental_merged_interface_sites_follow_history_changes() {
     let dir = std::env::temp_dir().join(format!("tsrs-merged-history-{}", std::process::id()));

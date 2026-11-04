@@ -154,9 +154,11 @@ tuple encodings of the custom `MarshalJSON`s; unmarshaling follows the `Unmarsha
 
 The default CLI format follows Go. Fast mode (`--fast` or `TSRS_FAST=1`) records its checker-history and
 lazy-member settings in `tsrsPerformance`; canonical CLI diagnostics also record `tsrsCanonicalCheckSignature`
-for safe warm reuse. The reader rejects caches with incompatible settings in either direction, including in
-non-incremental `--build` projects. Switching modes can therefore require a fresh check. API builds omit the
-canonical CLI signature. See [the preset's scope and overrides](USAGE.md#precedence-and-scope) and
+for safe warm reuse, and `tsrsInterfaceFiles`, the files that declare an interface: editing a file that declares
+none before or after keeps the other files' cached merged-interface diagnostics. The reader rejects caches with
+incompatible settings in either direction, including in non-incremental `--build` projects. Switching modes can
+therefore require a fresh check. API builds omit both. See
+[the preset's scope and overrides](USAGE.md#precedence-and-scope) and
 [the incremental diagnostic rules](../notes/fix-history-dependent-diagnostics.md).
 
 ### Version

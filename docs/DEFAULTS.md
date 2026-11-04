@@ -39,7 +39,7 @@ by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this tabl
 | Types, Symbols and Instantiations counters | Counts the work of its checkers | Counts tsrs's work; checker count, assignment, caches and lazy members can all change the values. Matching `--checkers` alone does not make these counters identical |
 | Parallel parsing | Goroutines scheduled by the Go runtime | A thread pool of `min(available parallelism, 32)`, overridden by a positive `RAYON_NUM_THREADS`; `--singleThreaded` disables parallel parsing |
 | Incremental startup | Reads tsbuildinfo, then builds the program | Both at once on two threads, unless `--singleThreaded` |
-| tsbuildinfo contents | tsgo's fields | The same by default. Opt-in modes add `tsrsPerformance`; canonical history also adds `tsrsCanonicalCheckSignature`. Changing history or lazy members invalidates incompatible cached diagnostics |
+| tsbuildinfo contents | tsgo's fields | The same by default. Opt-in modes add `tsrsPerformance`; canonical history also adds `tsrsCanonicalCheckSignature` and `tsrsInterfaceFiles`. Changing history or lazy members invalidates incompatible cached diagnostics |
 | `--version` | `Version <TypeScript version>` | Appends `(tsrs <release>, microsoft/TypeScript@<commit>)`. Unstamped source builds use `7.1.0-beta`; npm builds use the pinned package version on both sides |
 | `--init` | Writes a tsconfig.json | `error: --init is not supported by tsrs.`, exit status 5, no file written |
 | `--showConfig` | Prints the resolved config as JSON | Not supported, exit status 5 |

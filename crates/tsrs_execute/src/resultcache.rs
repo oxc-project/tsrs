@@ -146,17 +146,22 @@ impl Session {
     }
 }
 
-/// Everything outside the file system that the output depends on: the binary (its version and the executable
-/// file, which carries the embedded libraries), the arguments, the working directory, the keyed environment, whether
-/// stdout is a terminal (the default of `--pretty`), the parallelism (the default checker count) and the file
-/// system's case sensitivity.
+/// Everything outside the file system that the output depends on: the binary (its version, path, size and
+/// modification time; it carries the embedded libraries), the arguments, the working directory, the keyed
+/// environment, whether stdout is a terminal (the default of `--pretty`), the parallelism (the default checker count)
+/// and the file system's case sensitivity.
 fn invocation_key(sys: &OsSys, args: &[String]) -> Option<u128> {
     let mut h = Xxh3Default::new();
     h.update(MAGIC);
     add_str(&mut h, env!("TSRS_RELEASE_VERSION"));
     let exe = std::env::current_exe().ok()?;
     add_str(&mut h, &exe.to_string_lossy());
-    h.update(&fingerprint_of(&exe)?.digest.to_le_bytes());
+    // Not the executable's change time or mode: a hard link or chmod of the binary (an npm install) is not a new
+    // binary.
+    let md = std::fs::metadata(&exe).ok()?;
+    h.update(&md.len().to_le_bytes());
+    let modified = md.modified().ok()?.duration_since(SystemTime::UNIX_EPOCH).ok()?;
+    h.update(&modified.as_nanos().to_le_bytes());
     add_str(&mut h, sys.get_current_directory());
     h.update(&args.len().to_le_bytes());
     for arg in args {

@@ -33,8 +33,9 @@ cal-diy): the argument only replays the recorded run.
   so its text is digested instead and read again on validation.
 - **A question answered twice must get one answer.** The recorder keeps the first answer per (kind, path); a later
   different answer, or any write through the VFS, spoils the recording.
-- **Everything else is in the key**: the binary (version string and the executable's device, inode, size and times,
-  which covers the embedded libraries), the argument list, the working directory, `TSRS_FAST`, `TSRS_LIB_PATH`,
+- **Everything else is in the key**: the binary (version string and the executable's path, size and modification
+  time, which covers the embedded libraries; not its change time, which a hard link or chmod of the binary updates),
+  the argument list, the working directory, `TSRS_FAST`, `TSRS_LIB_PATH`,
   `FORCE_COLOR`, `NO_COLOR`, `TERM=dumb`, `RAYON_NUM_THREADS` (every `std::env::var` and `get_environment_variable`
   read on the CLI path), whether stdout is a terminal (the `--pretty` default), the available parallelism (the
   default checker count) and the file system's case sensitivity.

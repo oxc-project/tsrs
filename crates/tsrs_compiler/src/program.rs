@@ -1179,6 +1179,21 @@ impl Program {
         true
     }
 
+    /// `for_each_checker_group` for a pass that is the only one over `files` (lint): as in the type-check pass, each
+    /// checker starts with its heavy files and, where stealing is on (the fast preset without a named assignment),
+    /// takes files from busier checkers once its own run out. No later pass may expect a file on its old checker.
+    pub fn for_each_checker_group_stealing(
+        &self,
+        files: &[P<SourceFile>],
+        cb: impl Fn(&mut Checker, usize, P<SourceFile>) + Sync,
+    ) -> bool {
+        let Some(pool) = self.compiler_checker_pool() else {
+            return false;
+        };
+        pool.for_each_checker_group_do_ex(files, self.single_threaded(), true, None, cb);
+        true
+    }
+
     // program.go:615
     // Return a checker for the given file. We may have multiple checkers in concurrent scenarios and this
     // method returns the checker that was tasked with checking the file. Note that it isn't possible to mix

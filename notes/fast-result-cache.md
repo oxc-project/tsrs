@@ -59,10 +59,11 @@ Windows has no change time in `std` metadata, so the cache is Unix only.
 
 One file per key in the user cache directory (`$XDG_CACHE_HOME` or `~/.cache` on Linux, `~/Library/Caches` on macOS,
 `/tsrs/result-cache`), or `TSRS_RESULT_CACHE_DIR`. Layout: magic, key, exit status, stdout bytes, the records (kind,
-path, digest), project paths before `node_modules` paths (a miss is found sooner), and an xxh3-128 of the whole file;
-a torn or corrupt file fails the checksum and is a miss. Entries are written to a temporary file and renamed, so
-concurrent runs never read a partial entry; the last writer wins. After each write the directory keeps the newest
-64 entries within 256 MiB; it only ever deletes files named like entries (32 hex digits) or their temporary files.
+path, digest), project paths before `node_modules` paths and file reads and listings first (a miss is found
+sooner), and an xxh3-128 of the whole file; a torn or corrupt file fails the checksum and is a miss. Entries are
+written to a temporary file and renamed, so concurrent runs never read a partial entry; the last writer wins. After each
+write the directory keeps the newest 64 entries within 256 MiB; it only ever deletes files named like entries (32 hex
+digits) or their temporary files.
 
 `TSRS_RESULT_CACHE=0` turns the cache off and `TSRS_RESULT_CACHE=log` prints one line per run (hit with the number of
 observations and the time to check them, miss with the first changed answer, recorded with size and write time).
@@ -72,72 +73,85 @@ one command on an unchanged tree; so do three CLI tests that rerun regression fi
 ## Measurements
 
 One `m8g.4xlarge` (Graviton4, 16 vCPU, Ubuntu 24.04), both arms release builds from the same source directory:
-A = main `48cf809ef`, B = this branch. `-p <project> --noEmit --incremental false --pretty false --fast`, default
-checker count, 15 alternating pairs per workload (the aws-bench-box runner: wall, CPU, `perf` instructions, peak RSS).
-Intervals are the 95% interval of the median paired ratio. The timing stages below ran on `71dd343`, whose only
-difference from the final code is how a recording run writes its entry (it cloned and sorted every path and built the
-entry in memory; the final code streams it from the recorder's maps).
+A = main `48cf809ef`, B = this branch at `f1408acaf` unless a row says otherwise.
+`-p <project> --noEmit --incremental false --pretty false --fast`, default checker count, 15 alternating pairs per
+workload (the aws-bench-box runner: wall, CPU, `perf` instructions, peak RSS). Intervals are the 95% interval of the
+median paired ratio; `~` marks an interval that contains 0.
 
 **Correctness.** For every prepared project, with `--pretty false` and `--pretty true`: A's output, B with the cache
-off, B's recording run and B's replay are byte-identical in stdout and exit status (both on `71dd343` and on the final
-`6a3c2d959`), and the replays printed only the cache's log line on stderr. The 11 integration tests pass on Linux
-(`ed9081af2`); the first 10 also passed on macOS (`71dd343`; the pruning test came later).
+off, B's recording run and B's replay are byte-identical in stdout and exit status (checked on `71dd343`, `6a3c2d959`
+and `f1408acaf`), and the replays print only the cache's log line on stderr. The 11 integration tests pass on Linux;
+the first 10 also passed on macOS (`71dd343`; the pruning test came later).
 
-**Replay against a normal `--fast` run** (cache primed; median ms; "checked" is the cache's own time from opening the
-entry to the end of validation, final binary):
+**Replay against a normal `--fast` run** (cache primed; medians in ms; "checked" is the cache's own time from opening
+the entry to the end of validation, median of 5):
 
 | project | normal wall | replay wall | normal CPU | replay CPU | replay instructions | replay peak RSS | observations | entry | checked |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| vscode | 1,179 | 31.2 | 16,029 | 89 | 89 M | 15 MiB | 33,359 | 4.1 MB | 8.6 |
-| t3code-server | 2,125 | 27.7 | 19,647 | 58 | 43 M | 11 MiB | 14,831 | 2.4 MB | 6.4 |
-| mui-docs | 1,213 | 38.0 | 10,819 | 136 | 174 M | 23 MiB | 77,564 | 11.0 MB | 17.2 |
-| mikro-orm | 1,049 | 25.8 | 13,220 | 42 | 25 M | 10 MiB | 10,536 | 1.1 MB | 3.2 |
-| supabase-studio | 951 | 40.3 | 11,087 | 155 | 182 M | 23 MiB | 67,793 | 11.4 MB | 17.7 |
-| cal-diy | 925 | 35.0 | 10,446 | 119 | 126 M | 18 MiB | 59,903 | 7.3 MB | 12.1 |
-| webpack | 215 | 25.1 | 2,260 | 39 | 21 M | 9 MiB | 8,841 | 1.1 MB | 3.0 |
-| xstate-main | 201 | 26.0 | 1,202 | 42 | 25 M | 9 MiB | 9,421 | 1.4 MB | 4.7 |
+| vscode | 1,188 | 32.0 | 16,041 | 101 | 88 M | 15 MiB | 33,359 | 4.1 MB | 7.6 |
+| t3code-server | 2,126 | 29.5 | 19,613 | 61 | 43 M | 11 MiB | 14,831 | 2.4 MB | 6.2 |
+| mui-docs | 1,220 | 41.0 | 10,740 | 153 | 172 M | 23 MiB | 77,564 | 11.0 MB | 16.9 |
+| mikro-orm | 1,034 | 25.7 | 13,009 | 42 | 24 M | 9 MiB | 10,536 | 1.1 MB | 2.5 |
+| supabase-studio | 931 | 41.7 | 10,804 | 177 | 181 M | 23 MiB | 67,793 | 11.4 MB | 17.5 |
+| cal-diy | 924 | 35.9 | 10,371 | 132 | 125 M | 18 MiB | 59,903 | 7.3 MB | 12.3 |
+| webpack | 213 | 26.2 | 2,251 | 39 | 20 M | 8 MiB | 8,841 | 1.1 MB | 2.7 |
+| xstate-main | 201 | 28.2 | 1,197 | 45 | 25 M | 10 MiB | 9,421 | 1.4 MB | 4.3 |
 
-Paired wall time ratios: -87.0% (xstate-main) to -98.7% (t3code-server), every interval under a point wide. About
-22 ms of each replay is process start and the runner's `bash`/`perf stat`/`time` wrappers: the smallest projects
-replay in 25-26 ms with 3-5 ms of checking. The rest scales with the observations (mostly `statx`; 2,693 directory
-listings on vscode, 132 realpaths).
+Paired wall ratios: -86.0% (xstate-main) to -98.6% (t3code-server), every interval under half a point wide. A
+`tsrs --version` under the same runner takes 20.8 ms (process start plus the runner's `bash`, `perf stat` and `time`
+wrappers), so a replay is 5-21 ms above that floor. Where the checking time goes (one replay under `strace -c`):
+`statx` is 60-83% of the system call time (file reads' fingerprints and the existence probes, 76.7k calls on
+mui-docs), `readlinkat` from realpaths 12-17% on the pnpm projects (t3code-server, supabase-studio, cal-diy), the
+directory listings' `getdents64` 11% on vscode (2,693 directories) and under 3% elsewhere.
 
-**Recording cost** (B finds no entry, checks and writes one; `71dd343`):
+| observations by kind | vscode | t3code-server | mui-docs | mikro-orm | supabase-studio | cal-diy | webpack | xstate-main |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| file exists | 15,207 | 8,394 | 52,584 | 6,514 | 40,034 | 34,882 | 5,910 | 5,490 |
+| directory exists | 4,816 | 2,298 | 6,431 | 845 | 10,359 | 11,660 | 919 | 1,759 |
+| file read (stats) | 10,511 | 3,184 | 17,680 | 2,870 | 14,474 | 10,849 | 1,656 | 1,791 |
+| directory listing | 2,693 | 157 | 290 | 195 | 1,015 | 489 | 227 | 75 |
+| realpath | 132 | 798 | 579 | 112 | 1,911 | 2,023 | 129 | 306 |
 
-| project | wall | CPU | instructions | peak RSS |
-| --- | --- | --- | --- | --- |
-| vscode | +1.7% [+1.0, +2.3] | +0.0% [-0.7, +1.7] | +0.2% [+0.1, +0.3] | +0.6% [+0.3, +0.8] |
-| t3code-server | +1.0% [-0.7, +2.7] | +0.1% [-1.1, +1.4] | -0.0% [-0.5, +0.8] | +0.1% [-0.8, +1.1] |
-| mui-docs | +5.4% [+3.0, +6.6] | +1.1% [-0.1, +2.4] | +0.3% [+0.2, +0.5] | +3.2% [+2.5, +3.4] |
-| mikro-orm | +0.4% [+0.0, +1.1] | +0.1% [-0.9, +0.7] | +0.0% [-0.8, +0.7] | +0.5% [-0.4, +0.8] |
-| supabase-studio | +5.6% [+4.7, +6.5] | +0.5% [+0.1, +1.6] | +0.4% [+0.3, +0.6] | +1.8% [+1.6, +1.9] |
-| cal-diy | +3.5% [+2.5, +4.6] | +1.1% [-0.5, +2.9] | +1.1% [+0.2, +1.7] | +2.0% [+1.3, +2.6] |
-| webpack | +1.4% [-1.4, +3.0] | +0.3% [-0.6, +1.6] | -0.1% [-1.0, +1.7] | +0.7% [+0.4, +1.0] |
-| xstate-main | +2.1% [+0.3, +4.9] | +1.2% [+0.8, +1.6] | +0.5% [+0.3, +0.7] | +0.8% [-0.1, +2.1] |
+**Misses.** "Recording": B finds no entry, checks and writes one. "Stale": a file the program reads gets a fresh
+comment line before every run, so B opens the entry, validates until it meets the edit, checks and records again.
+"Off": `TSRS_RESULT_CACHE=0`. Wall time, then CPU, instructions and peak RSS:
 
-The CPU barely moves while wall time grows on the projects with the largest entries: the cost is serial work after
-the output is flushed (cloning and sorting 60-78k paths and building an 11 MB entry). The final code streams the entry
-from the maps instead; its own timer puts the write at 25-27 ms on mui-docs and supabase-studio, 20 ms on cal-diy,
-11 ms on vscode and 2.5-6 ms on the rest. Its paired recording numbers are listed under "Pending" below.
+| project | recording wall | stale wall | off wall | recording CPU | recording instructions | recording peak RSS |
+| --- | --- | --- | --- | --- | --- | --- |
+| vscode | +0.4% ~ | +2.5% ~ | -1.3% ~ | +0.3% ~ | +0.1% ~ | +0.6% [+0.4, +0.8] |
+| t3code-server | -0.4% ~ | +0.8% ~ | +0.2% ~ | +0.1% ~ | +0.1% ~ | +0.4% ~ |
+| mui-docs | +3.7% [+2.3, +5.7] | +5.0% [+3.7, +6.6] | +0.6% ~ | +0.8% ~ | +0.2% [+0.1, +0.3] | +1.2% [+0.8, +1.7] |
+| mikro-orm | +1.2% ~ | +0.8% [+0.1, +2.3] | +0.1% ~ | +0.5% ~ | +0.8% ~ | +0.8% [+0.1, +1.6] |
+| supabase-studio | +3.3% [+1.8, +4.1] | +4.7% [+3.0, +5.8] | -0.5% ~ | +0.9% ~ | +0.3% [+0.0, +0.7] | +1.1% [+0.7, +1.2] |
+| cal-diy | +1.9% ~ | +3.5% [+1.1, +5.1] | -1.1% ~ | +0.7% ~ | -0.0% ~ | +0.8% [+0.1, +1.1] |
+| webpack | +1.2% ~ | +2.9% [+0.6, +4.3] | +0.1% ~ | +0.6% ~ | +0.1% ~ | +0.1% ~ |
+| xstate-main | +1.4% [+0.1, +3.4] | +2.8% [+1.9, +3.9] | +0.5% ~ | +1.0% [+0.6, +1.6] | +0.2% [+0.1, +0.5] | +0.7% [+0.0, +1.9] |
 
-**Stale entry** (a project file the program reads gets a new comment line before every run, so B opens the entry,
-validates until it meets the edit, checks and records again; `71dd343`): wall +0.6% (mikro-orm) to +7.4%
-(supabase-studio), CPU -0.3% to +1.5%, instructions +0.0% to +0.7%, peak RSS +0.3% to +3.4%. Per project, wall:
-vscode +1.9%, t3code-server +1.6% (interval crosses 0), mui-docs +6.5%, mikro-orm +0.6% (crosses 0),
-supabase-studio +7.4%, cal-diy +5.0%, webpack +3.3% (crosses 0), xstate-main +4.3%.
+The "off" column is from `6a3c2d959` (its path does not differ); all its CPU, instruction and RSS intervals contain 0
+too. CPU barely moves while wall time grows with the entry size: the cost is serial work after the output is flushed.
+The entry write itself takes 2.5-3.2 ms on the small projects, 9.6 ms on vscode, 17.6 ms on cal-diy and 22-23 ms on
+mui-docs and supabase-studio (11 MB). The rest of a stale miss is reading and decoding the old entry before the run.
 
-**Cache off** (`TSRS_RESULT_CACHE=0`): every wall, CPU, instruction and RSS interval contains 0.
+**Single-threaded** (`--singleThreaded`, recording every run, 5 pairs, `6a3c2d959`): instructions +0.1% (vscode,
+t3code-server, mikro-orm), +0.2% (webpack), +0.5% (supabase-studio, cal-diy, xstate-main), +0.6% (mui-docs), every
+interval within 0.1 point; peak RSS -0.1% to +2.3% (the answers held in memory). **Default mode** (no `--fast`,
+single-threaded, 5 pairs, `6a3c2d959`): instructions +0.0% on all eight, every interval [-0.0%, +0.0%]; the cache
+never runs there.
+
+**How the recording path got here.** The first version (`71dd343`) cloned and sorted every recorded path and built the
+entry in memory before writing it: recording cost up to +5.6% wall (supabase-studio) and +3.2% peak RSS (mui-docs),
+stale entries up to +7.4%. Streaming the entry from the recorder's maps (`6a3c2d959`, with a non-copying
+`SyncMap::for_each`) brought peak RSS to at most +1.1% and recording wall to at most +4.1%; one write per record into
+a 1 MiB buffer, with reads and listings written first (`f1408acaf`), to the numbers above. Replays may have lost a
+little locality with the sorted order: `71dd343` checked mui-docs in 13.0 ms and supabase-studio in 14.6 ms, against
+16.9 and 17.5 ms now (separate sessions, not a paired comparison).
 
 **macOS** (Apple M5 Max, debug build, vscode, a loaded shared machine): a replay checks the 33,368 observations in
-56-143 ms; 40 replays run four at a time all hit and printed the recorded output. Validation re-lists directories,
-so it opens each listed directory once (2,693 on vscode); macOS caps `open` near 110k/s on that machine, about 25 ms of
+56-143 ms; 40 replays run four at a time all hit and printed the recorded output. Validation re-lists directories, so
+it opens each listed directory once (2,693 on vscode); macOS caps `open` near 110k/s on that machine, about 25 ms of
 the replay. Before those runs, ten consecutive runs in a bash loop each missed on one `file_exists` probe of a file
 that had not changed in a month, then re-recorded; it did not happen again in 46 later runs and was not explained.
 A miss only re-runs the check, so the output stayed correct.
-
-**Pending** (on the box when its SSH access was lost to a client IP change): the final binary's paired recording,
-stale, single-threaded (`--singleThreaded`, recording) and default-mode instruction counts, and the `tsrs --version`
-floor.
 
 ## Not done, and why
 

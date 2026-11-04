@@ -146,6 +146,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [perf-default-checkers-16](perf-default-checkers-16.md)
 - [perf-default-checkers-small-machines](perf-default-checkers-small-machines.md)
 - [perf-fast-audit-20261027](perf-fast-audit-20261027.md)
+- [perf-fast-memory-knobs](perf-fast-memory-knobs.md)
 - [perf-heavy-files](perf-heavy-files.md)
 - [perf-heavy-first-threshold](perf-heavy-first-threshold.md)
 - [perf-next-heavy-files](perf-next-heavy-files.md)

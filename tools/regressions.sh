@@ -11,7 +11,7 @@ for dir in "$repo"/testdata/regressions/*/; do
   name="$(basename "$dir")"
   # Resolution traces print absolute paths; expected.txt has <dir> for the case's directory.
   here="$(cd "$dir" && pwd -P)"
-  actual="$(cd "$here" && "$tsrs" -p . --pretty false --singleThreaded --fast 2>&1)"
+  actual="$(cd "$here" && TSRS_RESULT_CACHE=0 "$tsrs" -p . --pretty false --singleThreaded --fast 2>&1)"
   actual="${actual//"$here"/<dir>}"
   if [ "$actual" == "$(cat "$dir/expected.txt")" ]; then
     echo "pass $name"

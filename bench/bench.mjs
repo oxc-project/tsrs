@@ -47,7 +47,7 @@ async function count(options) {
   const out = path.resolve(options['output-dir'] ?? path.join(BENCH, 'results', stamp()));
   await mkdir(out, { recursive: true });
   const hf = await hyperfine(work, options.hyperfine);
-  const result = await measureOne(hf, argv, { cwd: process.cwd(), env: process.env, output: path.join(out, 'hyperfine.json'), logFile: path.join(out, 'command.log'), showOutput: true });
+  const result = await measureOne(hf, argv, { cwd: process.cwd(), env: { TSRS_RESULT_CACHE: '0', ...process.env }, output: path.join(out, 'hyperfine.json'), logFile: path.join(out, 'command.log'), showOutput: true });
   const run = { schemaVersion: 2, kind: 'count', status: 'complete', startedAt: now(), completedAt: now(), machine: machine(), command: argv, samples: [{ repetition: 1, ...result }], hyperfine: { binary: hf, sha256: await fileSha(hf) } };
   await writeJson(path.join(out, 'run.json'), run);
   process.stdout.write(`${out}/run.json\n`);

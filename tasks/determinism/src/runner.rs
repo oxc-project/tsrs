@@ -519,7 +519,9 @@ fn invoke(
     }
     command
         .env("RAYON_NUM_THREADS", settings.max.to_string())
-        .env("GOMAXPROCS", settings.max.to_string());
+        .env("GOMAXPROCS", settings.max.to_string())
+        // Repeated runs of one command must each check; the result cache would replay them.
+        .env("TSRS_RESULT_CACHE", "0");
     let mut outcome = Outcome {
         command: std::iter::once(binary.to_string_lossy().into_owned()).chain(args).collect(),
         exit_code: None,

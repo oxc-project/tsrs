@@ -22,7 +22,7 @@ struct Output {
     status: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Cache {
     Hit,
     Miss,
@@ -355,7 +355,11 @@ fn concurrent_runs_record_and_replay_the_same_output() {
     );
     let cold = p.cold(CHECK, &[]);
     let outputs: Vec<(Output, Cache)> = std::thread::scope(|scope| {
-        let runs: Vec<_> = (0..4).map(|_| scope.spawn(|| p.run(CHECK, &[]))).collect();
+        // All four start before any is joined.
+        let mut runs = Vec::new();
+        for _ in 0..4 {
+            runs.push(scope.spawn(|| p.run(CHECK, &[])));
+        }
         runs.into_iter().map(|run| run.join().unwrap()).collect()
     });
     for (output, cache) in outputs {
@@ -390,5 +394,31 @@ fn runs_that_cannot_be_replayed_are_not_recorded() {
         let expected = if args.contains(&"--fast") { Cache::NotRecorded } else { Cache::Silent };
         assert_eq!(cache, expected, "{args:?}");
     }
-    assert!(p.entries().is_empty());
+    assert_eq!(p.entries(), Vec::<PathBuf>::new());
+}
+
+#[test]
+fn cache_directory_keeps_the_newest_entries_and_nothing_else_is_touched() {
+    let p = Project::new(
+        "prune",
+        &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const x: number = 1;\n")],
+    );
+    std::fs::create_dir_all(&p.cache).unwrap();
+    let old = std::time::SystemTime::now() - Duration::from_hours(24);
+    for i in 0..70 {
+        let file = std::fs::File::create(p.cache.join(format!("{i:032x}"))).unwrap();
+        file.set_modified(old + Duration::from_secs(i)).unwrap();
+    }
+    let foreign = p.cache.join("notes.txt");
+    std::fs::write(&foreign, "not an entry").unwrap();
+    std::fs::File::options().write(true).open(&foreign).unwrap().set_modified(old).unwrap();
+    p.check(Cache::Recorded);
+    let entries = p.entries();
+    assert_eq!(entries.len(), 65, "64 entries and the foreign file");
+    assert!(foreign.exists());
+    // The new entry and the 63 newest old ones remain.
+    for i in 0..70 {
+        assert_eq!(p.cache.join(format!("{i:032x}")).exists(), i >= 7, "{i}");
+    }
+    p.check(Cache::Hit);
 }

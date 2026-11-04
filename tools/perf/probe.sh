@@ -13,6 +13,8 @@
 #   PROBE_OUT   output directory
 set -euo pipefail
 export TSRS_FAST=1
+# Timed runs repeat one command on an unchanged tree; the result cache would replay them.
+export TSRS_RESULT_CACHE=0
 : "${TSRS_BIN:?}" "${BENCH_WORK:?}" "${PROBE_OUT:?}"
 mkdir -p "$PROBE_OUT"
 proj="$BENCH_WORK/solutions/vscode"

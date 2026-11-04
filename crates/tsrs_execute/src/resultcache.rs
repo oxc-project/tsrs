@@ -11,7 +11,7 @@
 // `TSRS_RESULT_CACHE=0` turns it off; `TSRS_RESULT_CACHE=log` prints one line to stderr saying what it did.
 // `TSRS_RESULT_CACHE_DIR` moves the entries out of the user cache directory.
 
-use std::borrow::Cow;
+use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -109,13 +109,18 @@ impl Session {
             return Err("--build");
         }
         for (i, arg) in args.iter().enumerate() {
-            match arg.to_ascii_lowercase().as_str() {
-                "-w" | "--watch" => return Err("--watch"),
-                "--checkercostcache" => return Err("--checkerCostCache"),
-                "--checkerassignment" if args.get(i + 1).is_some_and(|v| v.starts_with("file:")) => {
+            if arg.starts_with('@') {
+                return Err("response file");
+            }
+            let option = arg.strip_prefix("--").or_else(|| arg.strip_prefix('-'));
+            match option.map(str::to_ascii_lowercase).as_deref() {
+                Some("w" | "watch") => return Err("--watch"),
+                Some("checkercostcache") => return Err("--checkerCostCache"),
+                Some("checkerassignment")
+                    if args.get(i + 1).is_some_and(|v| v.starts_with("file:")) =>
+                {
                     return Err("--checkerAssignment file:");
                 }
-                _ if arg.starts_with('@') => return Err("response file"),
                 _ => {}
             }
         }
@@ -199,17 +204,17 @@ impl Session {
             }
             return result;
         }
-        let records = recorder.records();
+        let save_start = Instant::now();
         let output = recording.output.lock().unwrap();
-        let bytes = Entry::encode(self.key, result.status, &output, &records);
-        let saved = save(&self.dir, &self.entry_path(), &bytes);
+        let saved = save(&self.dir, &self.entry_path(), |file| {
+            recorder.write_entry(file, self.key, result.status, &output)
+        });
         if log {
-            let hashed = records.iter().filter(|r| r.kind == Kind::ReadContent).count();
             match saved {
-                Ok(()) => eprintln!(
-                    "tsrs result cache: recorded {} observations ({hashed} by content), {} bytes",
-                    records.len(),
-                    bytes.len()
+                Ok((hashed, bytes)) => eprintln!(
+                    "tsrs result cache: recorded {} observations ({hashed} by content), {bytes} bytes in {:.1} ms",
+                    recorder.seen.iter().map(SyncMap::size).sum::<usize>(),
+                    save_start.elapsed().as_secs_f64() * 1e3
                 ),
                 Err(err) => eprintln!("tsrs result cache: not recorded ({err})"),
             }
@@ -448,22 +453,60 @@ impl Recorder {
         self.spoiled.store(true, Ordering::Relaxed);
     }
 
-    /// The recorded questions, project files before `node_modules` (an edit is found sooner), each group by path.
-    fn records(&self) -> Vec<Record<'static>> {
-        let (mut project, mut dependencies) = (Vec::new(), Vec::new());
-        for kind in KINDS {
-            self.seen[kind as usize].range(|path, &digest| {
-                let group =
-                    if path.contains("/node_modules/") { &mut dependencies } else { &mut project };
-                group.push(Record { kind, path: Cow::Owned(path.clone()), digest });
-                true
-            });
+    /// Writes the entry (layout at `Entry::decode`) straight from the maps, project paths before `node_modules`
+    /// ones (validation meets an edit sooner). Returns how many reads were recorded by their text.
+    fn write_entry(
+        &self,
+        out: impl std::io::Write,
+        key: u128,
+        status: ExitStatus,
+        output: &str,
+    ) -> std::io::Result<usize> {
+        let mut out = HashingWriter { inner: std::io::BufWriter::new(out), hasher: Xxh3Default::new() };
+        let count: usize = self.seen.iter().map(SyncMap::size).sum();
+        out.write_all(MAGIC)?;
+        out.write_all(&key.to_le_bytes())?;
+        out.write_all(&[status as u8])?;
+        out.write_all(&(output.len() as u64).to_le_bytes())?;
+        out.write_all(output.as_bytes())?;
+        out.write_all(&(count as u64).to_le_bytes())?;
+        let mut result = Ok(());
+        for dependencies in [false, true] {
+            for kind in KINDS {
+                self.seen[kind as usize].for_each(|path, &digest| {
+                    if result.is_ok() && path.contains("/node_modules/") == dependencies {
+                        result = out
+                            .write_all(&[kind as u8])
+                            .and_then(|()| out.write_all(&(path.len() as u32).to_le_bytes()))
+                            .and_then(|()| out.write_all(path.as_bytes()))
+                            .and_then(|()| out.write_all(&digest.to_le_bytes()));
+                    }
+                });
+            }
         }
-        for group in [&mut project, &mut dependencies] {
-            group.sort_unstable_by(|a, b| (&a.path, a.kind as u8).cmp(&(&b.path, b.kind as u8)));
-        }
-        project.append(&mut dependencies);
-        project
+        result?;
+        let checksum = out.hasher.digest128();
+        out.inner.write_all(&checksum.to_le_bytes())?;
+        out.inner.flush()?;
+        Ok(self.seen[Kind::ReadContent as usize].size())
+    }
+}
+
+/// Hashes everything written through it (the entry's trailing checksum).
+struct HashingWriter<W: std::io::Write> {
+    inner: W,
+    hasher: Xxh3Default,
+}
+
+impl<W: std::io::Write> std::io::Write for HashingWriter<W> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let n = self.inner.write(buf)?;
+        self.hasher.update(&buf[..n]);
+        Ok(n)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.inner.flush()
     }
 }
 
@@ -600,7 +643,7 @@ impl System for RecordingSys {
 
 struct Record<'a> {
     kind: Kind,
-    path: Cow<'a, str>,
+    path: &'a str,
     digest: u128,
 }
 
@@ -613,26 +656,6 @@ struct Entry<'a> {
 // Entry layout (little endian): MAGIC, key (16), status (1), output length (8) and bytes, record count (8), then per
 // record its kind (1), path length (4) and bytes, digest (16); last, the xxh3-128 of everything before it (16).
 impl<'a> Entry<'a> {
-    fn encode(key: u128, status: ExitStatus, output: &str, records: &[Record<'_>]) -> Vec<u8> {
-        let size = records.iter().map(|r| 21 + r.path.len()).sum::<usize>() + output.len() + 64;
-        let mut out = Vec::with_capacity(size);
-        out.extend_from_slice(MAGIC);
-        out.extend_from_slice(&key.to_le_bytes());
-        out.push(status as u8);
-        out.extend_from_slice(&(output.len() as u64).to_le_bytes());
-        out.extend_from_slice(output.as_bytes());
-        out.extend_from_slice(&(records.len() as u64).to_le_bytes());
-        for r in records {
-            out.push(r.kind as u8);
-            out.extend_from_slice(&(r.path.len() as u32).to_le_bytes());
-            out.extend_from_slice(r.path.as_bytes());
-            out.extend_from_slice(&r.digest.to_le_bytes());
-        }
-        let checksum = xxh3_128(&out);
-        out.extend_from_slice(&checksum.to_le_bytes());
-        out
-    }
-
     /// The entry in `bytes` if it is whole, of this format and for `key`.
     fn decode(bytes: &'a [u8], key: u128) -> Option<Entry<'a>> {
         let (body, checksum) = bytes.split_last_chunk::<16>()?;
@@ -657,7 +680,7 @@ impl<'a> Entry<'a> {
             let kind = *KINDS.get(usize::from(r.take(1)?[0]))?;
             let path_len = u32::from_le_bytes(*r.take(4)?.first_chunk()?) as usize;
             let path = std::str::from_utf8(r.take(path_len)?).ok()?;
-            records.push(Record { kind, path: Cow::Borrowed(path), digest: r.u128()? });
+            records.push(Record { kind, path, digest: r.u128()? });
         }
         r.bytes.is_empty().then_some(Entry { status, output, records })
     }
@@ -704,7 +727,7 @@ fn validate(records: &[Record<'_>]) -> Result<(), usize> {
             }
             let start = chunk * CHUNK;
             for (i, r) in records[start..(start + CHUNK).min(records.len())].iter().enumerate() {
-                if answer(fs, r.kind, &r.path) != Some(r.digest) {
+                if answer(fs, r.kind, r.path) != Some(r.digest) {
                     // Relaxed: see above.
                     changed.fetch_min(start + i, Ordering::Relaxed);
                     return;
@@ -726,40 +749,54 @@ fn validate(records: &[Record<'_>]) -> Result<(), usize> {
 
 /// Writes the entry atomically (a temporary file renamed over it), then keeps the directory to the newest
 /// `MAX_ENTRIES` entries and `MAX_BYTES`.
-fn save(dir: &Path, path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+fn save(
+    dir: &Path,
+    path: &Path,
+    write: impl FnOnce(&mut std::fs::File) -> std::io::Result<usize>,
+) -> std::io::Result<(usize, u64)> {
     std::fs::create_dir_all(dir)?;
     let mut tmp = path.as_os_str().to_owned();
     tmp.push(format!(".{}.tmp", std::process::id()));
     let tmp = PathBuf::from(tmp);
-    std::fs::write(&tmp, bytes)?;
-    if let Err(err) = std::fs::rename(&tmp, path) {
+    let written = std::fs::File::create(&tmp).and_then(|mut file| {
+        let hashed = write(&mut file)?;
+        Ok((hashed, file.metadata()?.len()))
+    });
+    let renamed = written.and_then(|written| std::fs::rename(&tmp, path).map(|()| written));
+    if renamed.is_err() {
         let _ = std::fs::remove_file(&tmp);
-        return Err(err);
     }
     prune(dir);
-    Ok(())
+    renamed
 }
 
+/// Removes only files named like entries (`<32 hex digits>`) or their temporary files, whatever else the directory
+/// (`TSRS_RESULT_CACHE_DIR`) holds.
 fn prune(dir: &Path) {
+    let is_key = |name: &str| name.len() == 32 && name.bytes().all(|b| b.is_ascii_hexdigit());
     let Ok(read_dir) = std::fs::read_dir(dir) else {
         return;
     };
     let now = SystemTime::now();
     let mut entries = Vec::new();
     for entry in read_dir.flatten() {
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else {
+            continue;
+        };
         let Ok(md) = entry.metadata() else {
             continue;
         };
         let modified = md.modified().unwrap_or(SystemTime::UNIX_EPOCH);
-        let path = entry.path();
-        // A temporary file left by a run that died before its rename.
-        if path.extension().is_some_and(|e| e == "tmp") {
-            if now.duration_since(modified).is_ok_and(|age| age > Duration::from_secs(3600)) {
-                let _ = std::fs::remove_file(&path);
-            }
-            continue;
+        if is_key(name) {
+            entries.push((modified, md.len(), entry.path()));
+        } else if Path::new(name).extension().is_some_and(|e| e == "tmp")
+            && name.split_once('.').is_some_and(|(key, _)| is_key(key))
+            // A temporary file left by a run that died before its rename.
+            && now.duration_since(modified).is_ok_and(|age| age > Duration::from_secs(3600))
+        {
+            let _ = std::fs::remove_file(entry.path());
         }
-        entries.push((modified, md.len(), path));
     }
     entries.sort_unstable_by_key(|&(modified, ..)| std::cmp::Reverse(modified));
     let mut total = 0;

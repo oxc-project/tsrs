@@ -144,6 +144,16 @@ impl<K: Hash + Eq + Clone, V: Clone> SyncMap<K, V> {
         entries.iter().all(|(k, v)| f(k, v));
     }
 
+    /// Calls `f` on every entry in place, holding each shard's read lock while it visits that shard's entries, so `f`
+    /// must not use this map. `range` copies the entries first instead.
+    pub fn for_each(&self, mut f: impl FnMut(&K, &V)) {
+        for shard in self.initialized_shards() {
+            for (k, v) in read(shard).iter() {
+                f(k, v);
+            }
+        }
+    }
+
     // Size returns the approximate number of items in the map.
     pub fn size(&self) -> usize {
         self.initialized_shards().map(|s| s.read().unwrap().len()).sum()

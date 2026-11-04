@@ -1227,6 +1227,7 @@ dependencies = [
  "tsrs_ipc",
  "tsrs_tsoptions",
  "tsrs_vfs",
+ "xxhash-rust",
 ]
 
 [[package]]

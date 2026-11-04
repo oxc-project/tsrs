@@ -1408,14 +1408,9 @@ fn active_mapper_cache_key(t: P<Type>, alias: Option<P<TypeAlias>>) -> CacheHash
 }
 
 impl Checker {
-    /// `T[keyof T & K]` instantiated with `T` a tuple of required elements and `K` a literal (tsgo-opt): the element
-    /// type directly, without building `keyof <tuple>` (a union over the array method names) and intersecting it.
-    /// Exact under `try_fast_tuple_indexed_access`'s guards: `keyof <tuple> & "i"` reduces to `"i"` when element
-    /// `i` exists (every other constituent is a disjoint literal, `number` or a unique symbol) and to `never`
-    /// otherwise, which stays on the slow path; a literal index never attaches the alias of `t`. When `K` does not
-    /// instantiate to such a literal the slow path instantiates it once more inside the intersection. Fast preset
-    /// only (`lazy_tuples`, as `try_fast_tuple_indexed_access`): the skipped `keyof` and intersection
-    /// instantiations would lower the reference mode's instantiation counter.
+    /// `T[keyof T & K]` with `T` a tuple of required elements and `K` a literal: the element type, without building
+    /// `keyof <tuple>` and intersecting it (tsgo-opt). Fast preset only (`lazy_tuples`): the skipped instantiations
+    /// would lower the instantiation counter the default mode keeps equal to Go's.
     fn try_fast_tuple_keyof_indexed_access(
         &mut self,
         t: P<Type>,

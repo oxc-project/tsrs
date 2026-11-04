@@ -335,23 +335,13 @@ impl Checker {
         t
     }
 
-    /// The branch types `get_simplified_conditional_type_worker` tests, or `None` when neither of its two
-    /// simplifications can apply (the worker then returns `t`). Go resolves both branches first, and so does the
-    /// reference mode: the lazy path below skips instantiations, which lowers the instantiation counter that places
-    /// TS2589, so it runs only under the fast preset's lazy-members switch (`lazy_members`), where counters and
-    /// budgets already differ from Go (docs/USAGE.md, performance options). Under that switch this resolves only
-    /// what the tests can read (ported from the tsgo-opt fork). Both simplifications need the false type:
-    /// the first needs it to be `never`, the second needs it to be the check type variable. The true type is needed
-    /// only once one of those holds, so a false type that is neither settles the result without instantiating the
-    /// true type. An object true type can match neither test either: `instantiate_type` keeps an anonymous or
-    /// class/interface type an object (a reference, mapped or reverse-mapped type can instantiate to `never`, so
-    /// those are excluded; `testdata/regressions/simplified-conditional-mapped-never`), and an object is never
-    /// `never` nor equal to a non-object check type variable. The only side effects the eager path has that this
-    /// one may omit are the skipped instantiations themselves (and their `resolved_*` stores); every type node
-    /// is still resolved where Go resolves it, and `get_actual_type_variable` is only evaluated early where it
-    /// cannot intern a type (`actual_type_variable_without_interning`). When both branches turn out to be
-    /// needed, the true type is instantiated after the false one, except for the common literal `: never`
-    /// false branch, which keeps Go's order.
+    /// The branch types `get_simplified_conditional_type_worker` tests, or `None` when neither simplification can
+    /// apply. Go and the default mode resolve both branches up front. Under `lazy_members` (fast preset only: the
+    /// skipped instantiations lower the counter that places TS2589) the false type comes first and the true type only
+    /// when it can still match. An anonymous or class/interface true type never can; reference, mapped and
+    /// reverse-mapped types can instantiate to `never`, so they are not skipped
+    /// (`testdata/regressions/simplified-conditional-mapped-never`). A literal `: never` false branch keeps Go's
+    /// order of instantiation.
     fn get_simplification_branch_types(
         &mut self,
         t: P<Type>,
@@ -372,8 +362,7 @@ impl Checker {
             return Some((true_type, self.get_false_type_from_conditional_type(t)));
         };
         let node = d.root.get().unwrap().node.get().unwrap().as_conditional_type_node();
-        // The true type node's type once this resolved it (Go's first step too), so that the true type is
-        // instantiated from it below instead of walking the node again.
+        // Kept so the true type is instantiated from it below without resolving the node again.
         let mut raw_true = None;
         if !actual_check.flags().intersects(TypeFlags::Object) {
             let true_is_object = if let Some(true_type) = resolved_true {
@@ -410,8 +399,7 @@ impl Checker {
         Some((self.get_true_type_from_conditional_type_raw(t, raw_true), false_type))
     }
 
-    /// `get_true_type_from_conditional_type` for a caller that may already hold the true type node's type
-    /// (`get_type_from_type_node` is idempotent, so instantiating that value is the same computation).
+    /// `get_true_type_from_conditional_type`, reusing the true type node's type when the caller already resolved it.
     fn get_true_type_from_conditional_type_raw(
         &mut self,
         t: P<Type>,

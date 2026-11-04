@@ -2527,17 +2527,10 @@ impl Checker {
         result
     }
 
-    /// `tryFastTupleIndexedAccess` (tsgo-opt): a literal index into a tuple with no optional or variable elements
-    /// is the type argument itself, and `"length"` is the tuple's arity literal, so the property-lookup path is
-    /// skipped. Exact under the callers' guards (no access node, alias or access flags, `noUncheckedIndexedAccess`
-    /// off): the slow path resolves such a `tuple["i"]` to `get_type_of_symbol` of element `i`, whose type is type
-    /// argument `i` (a required element adds no `undefined`), and `tuple["length"]` to the one literal
-    /// `get_number_literal_type(arity)` that `create_tuple_target_type` interns when `min_length` is the arity.
-    /// An index the tuple does not have, a non-canonical digit string (`"01"`), a fraction or a negative number
-    /// returns `None` and keeps the slow path with its errors. The slow path also resolves the tuple's members on
-    /// its first access (`is_string_index_signature_only_type`) and counts the element symbol's instantiation;
-    /// this leaves that to the next member access, so the callers take it only under the fast preset's
-    /// `lazy_tuples` switch (lazy tuple member tables), where the reference mode's counters are not kept.
+    /// A literal index into a tuple of required elements is that element's type argument, and `"length"` is the
+    /// arity literal (tsgo-opt `tryFastTupleIndexedAccess`). Any other index returns `None` and takes the slow path
+    /// with its errors. Callers use it only under `lazy_tuples`: unlike the slow path it neither resolves the tuple's
+    /// members nor counts the element instantiation.
     pub(crate) fn try_fast_tuple_indexed_access(
         &mut self,
         object_type: P<Type>,
@@ -2549,11 +2542,9 @@ impl Checker {
             };
             let f = value.0;
             let index = f as usize;
-            // The round trip fails for fractions, negative values and NaN (the saturating cast of 2^64 and above
-            // survives it but is out of range for any tuple).
             #[expect(
                 clippy::float_cmp,
-                reason = "an exact round trip through usize is the test; any tolerance would admit fractions"
+                reason = "the exact round trip through usize rejects fractions, negatives and NaN"
             )]
             if index as f64 == f {
                 let type_arguments = self.get_type_arguments(object_type);
@@ -4090,8 +4081,8 @@ impl Checker {
     }
 }
 
-/// Go's `parseSmallTupleIndex`: a canonical decimal of at most six digits (`"0"`, otherwise no leading zero), which
-/// is the only string form a tuple element name takes; anything else goes to the property-lookup path.
+/// Go's `parseSmallTupleIndex`: a canonical decimal of at most six digits, the only string form of a tuple element
+/// name.
 fn parse_small_tuple_index(s: &str) -> Option<usize> {
     let bytes = s.as_bytes();
     if bytes.is_empty() || bytes.len() > 6 || (bytes.len() > 1 && bytes[0] == b'0') {

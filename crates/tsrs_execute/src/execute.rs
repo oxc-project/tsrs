@@ -436,6 +436,7 @@ fn perform_compilation(
     // diagnostics (`declaration`, `composite`), `--explainFiles` (the import nodes of each file), the tsctests harness,
     // or Go's check history (`--checkerAssignment go`, a per-name cache that keeps another file's declarations).
     let options = config.compiler_options().unwrap();
+    crate::resultcache::note_compilation(&options, testing.is_some());
     let leaf_freeing_allowed = testing.is_none()
         && options.no_emit.is_true()
         && !options.get_emit_declarations()

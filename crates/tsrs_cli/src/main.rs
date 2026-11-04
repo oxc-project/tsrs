@@ -5,7 +5,7 @@
 static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
 use tsrs_cli::{api, lsp, signals};
-use tsrs_execute::{execute, sys, tsc};
+use tsrs_execute::{resultcache, sys, tsc};
 
 // TSRS_MEM_SPLIT (tsrs_core::memsplit): mimalloc's view of its heap, every page of every thread.
 #[cfg(not(feature = "system-alloc"))]
@@ -108,7 +108,8 @@ fn main() -> std::process::ExitCode {
         .stack_size(512 << 20)
         .spawn(move || {
             let sys: &'static sys::OsSys = Box::leak(Box::new(sys::new_system()));
-            let result = execute::command_line(sys, args);
+            // `--fast --noEmit` checks replay a recorded result when nothing they read changed (resultcache.rs).
+            let result = resultcache::command_line(sys, args);
             tsc::System::flush(sys);
             tsrs_compiler::dump_site_counts();
             result.status

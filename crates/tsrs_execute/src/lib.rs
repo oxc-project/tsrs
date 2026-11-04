@@ -3,6 +3,7 @@
 
 pub mod build;
 pub mod execute;
+pub mod resultcache;
 pub mod sys;
 pub mod tsc;
 pub mod watcher;

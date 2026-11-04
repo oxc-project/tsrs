@@ -108,6 +108,11 @@ records output variants under stealing. This is separate from varying checker co
 With work stealing enabled, each checker begins the type-check pass with the files of its queue whose static
 weight exceeds 1/200 of an average checker's share, heaviest first, then the rest in program order (notes/perf-checker-64.md,
 notes/perf-heavy-first-threshold.md); `TSRS_HEAVY_SHARE_DIVISOR=<n>` changes the divisor for experiments.
+Before those come its deep files: files whose import depth (the longest chain of imports below them) is at least
+95% of the deepest checked file's, and the files of the same checker that they import directly. Thieves leave them to
+their owner, up to half an average share per checker (notes/perf-deep-files.md); `TSRS_DEEP_FILES=<fraction>` changes
+the fraction and `TSRS_DEEP_FILES=off` turns this off. `TSRS_FILE_TIMES=<path>` writes each checked file's start, queue
+and weight after its node-kind histogram, for drawing the pass's timeline.
 `--checkerCostCache <file>` (opt-in, locality only) balances the checkers on the previous run's per-file CPU times
 (notes/perf-balance.md).
 From 16 checkers on (or 8 for programs with at least 24,000 checked files), the locality placement also counts

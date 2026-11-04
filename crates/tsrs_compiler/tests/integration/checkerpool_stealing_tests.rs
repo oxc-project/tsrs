@@ -1,5 +1,5 @@
 use std::sync::Mutex;
-use tsrs_compiler::checkerpool::{FileQueue, heavy_files_first, queues_next};
+use tsrs_compiler::checkerpool::{FileQueue, heavy_files_first, import_depths, queues_next};
 
 /// Owners taking from the front and thieves from the back of the same queues must hand out every position exactly
 /// once: a lost position is a file that is never checked (missing diagnostics), a repeated one is checked twice.
@@ -21,12 +21,16 @@ fn memory_sizes() {
 fn every_position_is_taken_exactly_once() {
     // No limit on thieves per queue, and one or two thieves per queue (max_thieves_per_queue).
     for max_thieves in [0, 1, 2] {
-        every_position_is_taken_exactly_once_with(max_thieves);
+        every_position_is_taken_exactly_once_with(max_thieves, false);
+        every_position_is_taken_exactly_once_with(max_thieves, true);
     }
 }
 
-fn every_position_is_taken_exactly_once_with(max_thieves: u32) {
+// With `pin`, the first tenth of each queue (the deep files, some of them weighing 0) is its owner's alone: a pinned
+// file taken by a thief is checked without the types its owner built for it.
+fn every_position_is_taken_exactly_once_with(max_thieves: u32, pin: bool) {
     let sizes = [5000usize, 0, 20000, 300, 1];
+    let pinned = |n: usize| if pin { n.div_ceil(10) } else { 0 };
     let mut base = 0u32;
     let queues: Vec<FileQueue> = sizes
         .iter()
@@ -34,10 +38,11 @@ fn every_position_is_taken_exactly_once_with(max_thieves: u32) {
             let positions: Vec<u32> = (base..base + n as u32).collect();
             base += n as u32;
             // Some positions weigh 0 (unchecked declaration files): they must still be handed out.
-            FileQueue::new(positions, |i| u64::from(i % 7 != 0) * u64::from(i % 5 + 1))
+            let weight = |i: u32| u64::from(!i.is_multiple_of(7)) * u64::from(i % 5 + 1);
+            FileQueue::new(positions, weight).with_pinned(pinned(n))
         })
         .collect();
-    let taken: Mutex<Vec<(usize, bool)>> = Mutex::new(Vec::new());
+    let taken: Mutex<Vec<(usize, usize)>> = Mutex::new(Vec::new());
     std::thread::scope(|s| {
         for me in 0..queues.len() {
             let (queues, taken) = (&queues, &taken);
@@ -45,7 +50,7 @@ fn every_position_is_taken_exactly_once_with(max_thieves: u32) {
                 let mut mine = Vec::new();
                 // Every other thread keeps its victim (steal_sticky), so both rules are exercised.
                 let (mut slot, mut last_victim) = (usize::MAX, usize::MAX);
-                while let Some(t) = queues_next(
+                while let Some((i, _)) = queues_next(
                     queues,
                     me,
                     true,
@@ -53,15 +58,25 @@ fn every_position_is_taken_exactly_once_with(max_thieves: u32) {
                     &mut slot,
                     (me % 2 == 0).then_some(&mut last_victim),
                 ) {
-                    mine.push(t);
+                    mine.push((i, me));
                 }
                 taken.lock().unwrap().extend(mine);
             });
         }
     });
-    let mut ids: Vec<usize> = taken.into_inner().unwrap().iter().map(|&(i, _)| i).collect();
+    let taken = taken.into_inner().unwrap();
+    let mut ids: Vec<usize> = taken.iter().map(|&(i, _)| i).collect();
     ids.sort_unstable();
     assert_eq!(ids, (0..base as usize).collect::<Vec<_>>());
+    let mut start = 0;
+    for (owner, &n) in sizes.iter().enumerate() {
+        for &(i, by) in &taken {
+            if (start..start + pinned(n)).contains(&i) {
+                assert_eq!(by, owner, "pinned position {i} taken by checker {by}");
+            }
+        }
+        start += n;
+    }
     assert!(queues.iter().all(|q| q.remaining() == 0));
 }
 
@@ -87,4 +102,13 @@ fn heavy_files_come_first_and_the_rest_keep_their_order() {
     let mut unchanged = positions.clone();
     heavy_files_first(&mut unchanged, 100, |i| weights[i as usize]);
     assert_eq!(unchanged, positions);
+}
+
+/// Import depth is the longest chain of imports below a file; the files of an import cycle share one, one more than the
+/// deepest file the cycle imports from outside it.
+#[test]
+fn import_depth_counts_the_longest_chain_and_collapses_cycles() {
+    // 0 imports 1 and 4; 1 and 2 import each other and 3; 3 imports 4; 4 and 5 import nothing.
+    let targets = vec![vec![1, 4], vec![2, 3], vec![1, 3], vec![4], vec![], vec![]];
+    assert_eq!(import_depths(&targets), vec![3, 2, 2, 1, 0, 0]);
 }

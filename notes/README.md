@@ -143,6 +143,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [perf-checker-scaling](perf-checker-scaling.md)
 - [perf-checker-stealing](perf-checker-stealing.md)
 - [perf-clustered-assignment](perf-clustered-assignment.md)
+- [perf-deep-files](perf-deep-files.md)
 - [perf-default-checkers-16](perf-default-checkers-16.md)
 - [perf-default-checkers-small-machines](perf-default-checkers-small-machines.md)
 - [perf-fast-audit-20261027](perf-fast-audit-20261027.md)

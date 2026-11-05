@@ -96,7 +96,7 @@ impl OrchestratorResult {
 pub struct Orchestrator {
     pub(crate) opts: Options,
     pub(crate) compare_paths_options: ComparePathsOptions,
-    host: OnceLock<&'static HostImpl>,
+    host: OnceLock<Box<HostImpl>>,
 
     // contentMapperHost transforms content-mapped files; it is created once per build session (when
     // enabled) and shared across all projects so mapper processes are consolidated. It closes itself when
@@ -139,7 +139,7 @@ pub struct Orchestrator {
 }
 
 impl Orchestrator {
-    pub(crate) fn host(&self) -> &'static HostImpl {
+    pub(crate) fn host(&self) -> &HostImpl {
         self.host.get().unwrap()
     }
 
@@ -1678,13 +1678,8 @@ pub unsafe fn free_api_orchestrator(o: &'static Orchestrator) {
             regions.iter().map(tsrs_core::arena::Region::allocated_bytes).sum::<usize>() >> 10
         );
     }
-    let h = o.host();
-    // Order: the host and orchestrator are dropped before the regions. Their destructors only free heap containers
-    // (maps of `P<..>` pointers, Arcs); none dereferences arena memory, which is still alive here. Keep it that way:
-    // a destructor that reads region memory must run before `drop(regions)`.
-    // SAFETY: `new_orchestrator` leaked both from `Box`es, and nothing uses them afterwards (this function's contract).
-    drop(unsafe { Box::from_raw(std::ptr::from_ref::<HostImpl>(h).cast_mut()) });
-    // SAFETY: as above.
+    // SAFETY: `new_orchestrator` leaked it from a `Box`, and nothing uses it afterwards (this function's contract).
+    // Dropping before the regions keeps arena data alive through host and container destruction.
     drop(unsafe { Box::from_raw(std::ptr::from_ref::<Orchestrator>(o).cast_mut()) });
     drop(regions);
 }
@@ -1746,7 +1741,7 @@ pub fn new_orchestrator(opts: Options) -> &'static Orchestrator {
         None,
         None,
     );
-    let h: &'static HostImpl = Box::leak(Box::new(HostImpl {
+    let h = Box::new(HostImpl {
         orchestrator: OnceLock::new(),
         host: compiler_host,
         cached_fs,
@@ -1757,7 +1752,7 @@ pub fn new_orchestrator(opts: Options) -> &'static Orchestrator {
         m_times: std::sync::RwLock::new(Arc::default()),
         watch_source_files: watch.then(|| Mutex::new(FxHashMap::default())),
         watch_file_regions: crate::watchmem::FileRegions::default(),
-    }));
+    });
     let _ = h.orchestrator.set(orchestrator);
     let _ = orchestrator.host.set(h);
     orchestrator

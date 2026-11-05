@@ -346,6 +346,9 @@ fn is_node_prefix_of(shorter: P<Node>, longer: P<Node>) -> bool {
 }
 fn is_inside_jsx(mut node: Option<P<Node>>) -> bool {
     while let Some(n) = node {
+        if ast::is_function_like_declaration(n) {
+            return false;
+        }
         if matches!(
             n.kind(),
             Kind::JsxExpression

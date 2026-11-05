@@ -226,21 +226,17 @@ impl Parser {
 pub static VIABLE_KEYWORD_SUGGESTIONS: LazyLock<Vec<&'static str>> =
     LazyLock::new(scanner::get_viable_keyword_suggestions);
 
-// MISSING_LIST_NODES is a sentinel backing array used to distinguish "missing" node lists
-// (where the expected opening token was not found) from ordinary empty node lists.
-// A `usize` static gives a unique address, aligned for `P<Node>`, for a zero-length slice.
-static MISSING_LIST_NODES_BACKING: usize = 0;
+#[repr(C)]
+struct MissingListNodes {
+    nodes: [P<Node>; 0],
+    // Nonzero storage gives the empty list a unique address, as Go's missingListNodes backing array does.
+    _identity: usize,
+}
+
+static MISSING_LIST_NODES_BACKING: MissingListNodes = MissingListNodes { nodes: [], _identity: 0 };
 
 pub fn missing_list_nodes() -> &'static [P<Node>] {
-    // SAFETY: a zero-length slice needs only a non-null pointer aligned for `P<Node>`; a `usize`
-    // static is at least as aligned as `P<Node>` (a reference, or a 4-byte handle with compressed
-    // pointers), and nothing is ever read through this slice.
-    unsafe {
-        std::slice::from_raw_parts(
-            std::ptr::from_ref::<usize>(&MISSING_LIST_NODES_BACKING).cast::<P<Node>>(),
-            0,
-        )
-    }
+    &MISSING_LIST_NODES_BACKING.nodes
 }
 
 pub fn is_missing_node_list(list: Option<P<NodeList>>) -> bool {

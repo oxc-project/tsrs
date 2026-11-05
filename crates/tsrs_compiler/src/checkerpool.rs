@@ -869,6 +869,7 @@ impl CheckerPoolImpl {
                 tsrs_core::ptr::shared_check::freeze_shared_objects();
             }
             tsrs_core::memsplit::report("parse end");
+            tsrs_core::allocator::parse_ended();
             // The parse workers are done allocating: the checker threads continue in their arenas.
             if !self.single_threaded {
                 if self.checker_count > 1 {

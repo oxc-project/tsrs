@@ -3,10 +3,10 @@ use std::process::Command;
 use std::sync::Arc;
 
 use tsrs_compiler::{
-    new_compiler_host, new_program, worker_pool, CompilerHost, Program, ProgramOptions,
+    CompilerHost, Program, ProgramOptions, new_compiler_host, new_program, worker_pool,
 };
-use tsrs_core::tspath::Path;
 use tsrs_core::P;
+use tsrs_core::tspath::Path;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
 use tsrs_vfs::{FS, vfstest};
 
@@ -64,27 +64,19 @@ fn config_for(files: &[(&str, &str)]) -> P<tsoptions::ParsedCommandLine> {
 }
 
 fn total_worker_arena_bytes() -> usize {
-    worker_pool()
-        .broadcast(|_| tsrs_core::ptr::arena_used_bytes())
-        .into_iter()
-        .sum()
+    worker_pool().broadcast(|_| tsrs_core::ptr::arena_used_bytes()).into_iter().sum()
 }
 
 fn make_files(flipped: bool) -> Vec<(&'static str, &'static str)> {
-    let mut files: Vec<(&'static str, &'static str)> = vec![
-        (
-            "/src/tsconfig.json",
-            r#"{"compilerOptions":{"noLib":true,"module":"commonjs"},"files":["index.ts"]}"#,
-        ),
-    ];
+    let mut files: Vec<(&'static str, &'static str)> = vec![(
+        "/src/tsconfig.json",
+        r#"{"compilerOptions":{"noLib":true,"module":"commonjs"},"files":["index.ts"]}"#,
+    )];
     let mut index = String::new();
     for i in 0..64 {
         let specifier = if i == 0 && flipped { "./x0alt" } else { "./x" };
         let _ = writeln!(index, "import {{ v }} from '{specifier}{i}';");
-        files.push((
-            Box::leak(format!("/src/x{i}.ts").into_boxed_str()),
-            "export const v = 1;",
-        ));
+        files.push((Box::leak(format!("/src/x{i}.ts").into_boxed_str()), "export const v = 1;"));
     }
     files.push(("/src/x0alt.ts", "export const v = 2;"));
     files.push((
@@ -112,19 +104,16 @@ fn update_program_full_rebuild_uses_regions() {
         let flipped = i % 2 == 0;
         let files = make_files(flipped);
         let host = host_for(&files);
-        let (updated, _new_file, reused) = current.update_program(
-            &Path::from("/src/index.ts"),
-            host,
-            None,
-            None,
-        );
+        let (updated, _new_file, reused) =
+            current.update_program(&Path::from("/src/index.ts"), host, None, None);
         assert!(!reused, "iteration {i} should fall back to a full rebuild");
         current = updated;
     }
 
     let after = total_worker_arena_bytes();
     assert_eq!(
-        after, baseline,
+        after,
+        baseline,
         "worker thread arenas grew by {} bytes across full rebuilds",
         after.wrapping_sub(baseline)
     );

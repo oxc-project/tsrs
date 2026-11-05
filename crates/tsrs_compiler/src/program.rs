@@ -705,7 +705,6 @@ impl Program {
                 create_module_resolver,
             );
             opts.canonical_diagnostics = self.canonical_diagnostics;
-            opts.regions = Some(Arc::default());
             (new_program(opts), new_file, false)
         }
     }

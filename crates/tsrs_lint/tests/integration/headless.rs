@@ -6612,7 +6612,7 @@ fn parallel_rules_and_type_checking_match_serial_for_independent_modules() {
         let input_for = |single_threaded| {
             let mut overrides = overrides.clone();
             overrides.insert(base.join("tsconfig.json").to_string_lossy().into_owned(), Value::String(
-                format!(r#"{{"compilerOptions":{{"singleThreaded":{single_threaded},"strict":true,"target":"esnext","module":"commonjs","lib":["esnext","dom"],"types":[]}},"include":["*.ts"]}}"#)
+                format!(r#"{{"compilerOptions":{{"singleThreaded":{single_threaded},"strict":true,"skipLibCheck":true,"target":"esnext","module":"commonjs","lib":["esnext","dom"],"types":[]}},"include":["*.ts"]}}"#)
             ));
             let payload = protocol::object([
                 ("version", Value::Integer(2)),
@@ -6857,17 +6857,19 @@ fn type_check_uses_transitive_custom_project_options_without_rules() {
 #[test]
 fn type_check_uses_inferred_options_for_files_outside_referenced_configs() {
     let input = project_reference_type_check_payload(&["loose.ts", "lib/excluded.ts"]);
-    assert_eq!(
-        reported_ids(&input, &[("TSRS_FAST", "0")], "project_references"),
-        vec!["lib/excluded.ts TS2322", "loose.ts TS2322"],
-    );
+    for fast in ["0", "1"] {
+        assert_eq!(
+            reported_ids(&input, &[("TSRS_FAST", fast)], "project_references"),
+            vec!["lib/excluded.ts TS2322", "loose.ts TS2322"],
+            "fast={fast}",
+        );
+    }
 }
 
-// Under the fast preset, semantic reporting covers the tsconfig program's files that the payload did not list, as
-// `tsrs --noEmit` does, and files outside every tsconfig are linted but not type-checked. Default mode reports the
-// files the payload lists, as tsgolint does.
+// With or without the fast preset, semantic reporting covers the tsconfig program's files that the payload did not
+// list, as `tsrs --noEmit` does, and a listed file outside every tsconfig.
 #[test]
-fn fast_type_check_reports_type_errors_like_no_emit() {
+fn type_check_reports_type_errors_like_no_emit() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-program");
     std::fs::create_dir_all(root.join("sub")).unwrap();
     std::fs::write(
@@ -6880,20 +6882,54 @@ fn fast_type_check_reports_type_errors_like_no_emit() {
     std::fs::write(root.join("sub/outside.ts"), "export const s: string = 1;\n").unwrap();
     let file = |name: &str| Value::String(root.join(name).to_string_lossy().into_owned());
     let input = type_check_payload(vec![file("listed.ts"), file("sub/outside.ts")]);
-    assert_eq!(
-        reported_ids(&input, &[("TSRS_FAST", "0")], "lint-check-program"),
-        vec!["listed.ts no-floating-promises", "sub/outside.ts TS2322"]
-    );
-    assert_eq!(
-        reported_ids(&input, &[("TSRS_FAST", "1")], "lint-check-program"),
-        vec!["listed.ts no-floating-promises", "unlisted.ts TS2322"]
-    );
+    for fast in ["0", "1"] {
+        assert_eq!(
+            reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program"),
+            vec!["listed.ts no-floating-promises", "sub/outside.ts TS2322", "unlisted.ts TS2322"]
+        );
+    }
+}
+
+// Each file's type errors are reported once, though the root program imports every file here.
+// A listed file is reported by the program it maps to: `sub/b.ts` by `sub/tsconfig.json`, and `other/loose.ts`, which
+// no tsconfig includes, by the inferred program. The unlisted `lib/u.ts`, which both tsconfig programs import, is
+// reported by one of them.
+#[test]
+fn type_check_reports_each_file_once() {
+    let root = std::env::current_dir().unwrap().join("target/lint-check-program-once");
+    for dir in ["sub", "other", "lib"] {
+        std::fs::create_dir_all(root.join(dir)).unwrap();
+    }
+    let config = r#"{"compilerOptions":{"strict":true,"noEmit":true},"include":["*.ts"]}"#;
+    std::fs::write(root.join("tsconfig.json"), config).unwrap();
+    std::fs::write(root.join("sub/tsconfig.json"), config).unwrap();
+    std::fs::write(
+        root.join("listed.ts"),
+        "import { b } from './sub/b';\nimport { l } from './other/loose';\nexport const all = [b, l];\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("sub/b.ts"),
+        "import { u } from '../lib/u';\nexport const b: string = 1;\nexport const c = u;\n",
+    )
+    .unwrap();
+    std::fs::write(root.join("other/loose.ts"), "export const l: string = 1;\n").unwrap();
+    std::fs::write(root.join("lib/u.ts"), "export const u: string = 1;\n").unwrap();
+    let file = |name: &str| Value::String(root.join(name).to_string_lossy().into_owned());
+    let input =
+        type_check_payload(vec![file("listed.ts"), file("sub/b.ts"), file("other/loose.ts")]);
+    for fast in ["0", "1"] {
+        assert_eq!(
+            reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program-once"),
+            vec!["lib/u.ts TS2322", "other/loose.ts TS2322", "sub/b.ts TS2322"]
+        );
+    }
 }
 
 // The program's global diagnostics (here `noLib`'s missing global types, which `tsrs --noEmit` prints without a
-// location) are reported on its tsconfig under the fast preset, and not in default mode.
+// location) are reported on its tsconfig.
 #[test]
-fn fast_type_check_reports_global_diagnostics_on_the_tsconfig() {
+fn type_check_reports_global_diagnostics_on_the_tsconfig() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-program-global");
     std::fs::create_dir_all(&root).unwrap();
     std::fs::write(
@@ -6905,11 +6941,12 @@ fn fast_type_check_reports_global_diagnostics_on_the_tsconfig() {
     let input =
         type_check_payload(vec![Value::String(root.join("a.ts").to_string_lossy().into_owned())]);
     let global: Vec<String> = std::iter::repeat_n("tsconfig.json TS2318".to_string(), 10).collect();
-    assert_eq!(reported_ids(&input, &[("TSRS_FAST", "1")], "lint-check-program-global"), global);
-    assert_eq!(
-        reported_ids(&input, &[("TSRS_FAST", "0")], "lint-check-program-global"),
-        Vec::<String>::new()
-    );
+    for fast in ["0", "1"] {
+        assert_eq!(
+            reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program-global"),
+            global
+        );
+    }
 }
 
 #[test]

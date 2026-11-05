@@ -32,7 +32,7 @@ The native `tsrs` (`tsrs.exe` on Windows) and default libraries ship together at
 package root. The CLI and Node API resolve `tsrs[.exe]`. Version 0.20.1 adds an identical `tsgo.exe` to Windows
 packages for VS Code's native SDK discovery.
 
-On **Windows x64**, use the native platform package's root directory. Add
+On **Windows**, use the native platform package's root directory. The x64 example below uses
 `@tsrs/win32-x64` as a direct optional dependency at the same version as `tsrs`, so npm and pnpm both expose
 the project-local path. Keep both packages at the same version when upgrading:
 
@@ -48,6 +48,9 @@ Use these VS Code settings on Windows:
   "js/ts.tsdk.path": "./node_modules/@tsrs/win32-x64"
 }
 ```
+
+For Windows ARM64 builds from the updated release pipeline, use `@tsrs/win32-arm64` in both the dependency
+and `js/ts.tsdk.path` instead.
 
 The extension asks for workspace trust and consent before running a workspace SDK. Its automatic package
 resolver is specific to `@typescript` packages; pointing at the native package directory uses its executable

@@ -4512,28 +4512,19 @@ fn prefer_optional_chain_rejects_invalid_options() {
 }
 
 #[test]
-fn prefer_optional_chain_keeps_parenthesized_guards_and_invalid_utf8_fix_records() {
-    check_prefer_optional_chain_regressions(
-        include_str!("../fixtures/prefer_optional_chain/regressions.json"),
-        "a.ts",
-    );
-}
-
-#[test]
-fn prefer_optional_chain_stops_jsx_ancestor_checks_at_function_boundaries() {
-    check_prefer_optional_chain_regressions(
-        include_str!("../fixtures/prefer_optional_chain/jsx-regressions.json"),
-        "a.tsx",
-    );
-}
-
-fn check_prefer_optional_chain_regressions(fixture: &str, file_name: &str) {
-    let Value::Array(cases) = json::unmarshal(fixture).unwrap() else { panic!() };
+fn prefer_optional_chain_matches_regression_records() {
+    let Value::Array(cases) =
+        json::unmarshal(include_str!("../fixtures/prefer_optional_chain/regressions.json"))
+            .unwrap()
+    else {
+        panic!()
+    };
     let base = std::env::current_dir().unwrap().join("target/lint-optional-chain-regressions");
-    let file = base.join(file_name).to_string_lossy().into_owned();
     let config = base.join("tsconfig.json").to_string_lossy().into_owned();
     for case in cases {
         let Value::Object(case) = case else { panic!() };
+        let file_name = if case.get("tsx") == Some(&Value::Bool(true)) { "a.tsx" } else { "a.ts" };
+        let file = base.join(file_name).to_string_lossy().into_owned();
         let payload = protocol::object([
             ("version", Value::Integer(2)),
             ("configs", Value::Array(vec![protocol::object([

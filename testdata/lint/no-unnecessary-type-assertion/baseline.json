@@ -2184,6 +2184,17 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const nullable: string | null;\nconst satisfying = { value: nullable! } satisfies { value: string | null };\nsatisfying.value.toUpperCase();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [

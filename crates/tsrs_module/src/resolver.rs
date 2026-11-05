@@ -262,8 +262,6 @@ pub fn get_compiler_options_with_redirect(
     compiler_options
 }
 
-// `'h`: the host is borrowed for the resolver's life. Program and language-service resolvers hold a `'static`
-// host; config parsing builds short-lived resolvers on a host that lives on the caller's stack (issue #646).
 pub struct DefaultResolver<'h> {
     pub(crate) resolution_data: P<ResolutionData>,
     host: &'h dyn ResolutionHost,

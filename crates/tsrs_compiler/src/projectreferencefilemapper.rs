@@ -26,11 +26,8 @@ pub struct ProjectReferenceFileMapper {
 
     // Go builds a new dts-faking host on every `resolutionHost` call; the mapper is immutable once built, so the
     // host is built once (its caches only memoize file system queries).
-    pub(crate) dts_faking_host: OnceLock<&'static dyn ResolutionHost>,
-    // The leaked `resolution_host_for` host the file loader created for this mapper's program build
-    // (it keeps the compiler host, and with it the build's file system, alive). Freed with the mapper
-    // (`SharedProgramData::free`).
-    pub(crate) loader_host: Option<&'static dyn ResolutionHost>,
+    dts_faking_host: OnceLock<Box<dyn ResolutionHost>>,
+    pub(crate) loader_host: Option<Box<dyn ResolutionHost>>,
 }
 
 pub(crate) struct ProjectReferenceFileMapperBuilder {
@@ -50,8 +47,8 @@ impl ResolutionHost for CompilerResolutionHost {
     }
 }
 
-pub fn resolution_host_for(host: Arc<dyn CompilerHost>) -> &'static dyn ResolutionHost {
-    Box::leak(Box::new(CompilerResolutionHost(host)))
+pub fn resolution_host_for(host: Arc<dyn CompilerHost>) -> Box<dyn ResolutionHost> {
+    Box::new(CompilerResolutionHost(host))
 }
 
 pub(crate) fn as_resolved_project_reference(
@@ -80,15 +77,21 @@ impl ProjectReferenceFileMapper {
     }
 
     // projectreferencefilemapper.go:30
-    pub(crate) fn resolution_host(
+    pub(crate) fn resolution_host<'h>(
         &'static self,
-        host: &'static dyn ResolutionHost,
-    ) -> &'static dyn ResolutionHost {
+        host: &'h dyn ResolutionHost,
+    ) -> &'h dyn ResolutionHost {
         if self.use_source_of_project_reference && !self.output_dts_to_project_reference.is_empty()
         {
-            return *self
+            return self
                 .dts_faking_host
-                .get_or_init(|| new_project_reference_dts_faking_host(host, self));
+                .get_or_init(|| {
+                    new_project_reference_dts_faking_host(
+                        self.loader_host.as_deref().expect("file loader owns a resolution host"),
+                        self,
+                    )
+                })
+                .as_ref();
         }
         host
     }

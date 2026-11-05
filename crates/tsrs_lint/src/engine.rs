@@ -233,14 +233,16 @@ fn run_in_region(
             crate::registry::require_implemented(&rule.name)?;
         }
     }
-    // With the whole-program check, each file's type errors are reported once: a listed file by the program it maps
-    // to, any other file by the first program that has it.
-    let whole = payload.report_semantic && whole_program_type_check();
+    // tsrs-only: semantic reporting (oxlint `--type-check`) reports what `tsrs --noEmit` does for each tsconfig program:
+    // every file it checks and the program's global diagnostics, where tsgolint reports only the files oxlint sent. One
+    // `oxlint --type-aware --type-check` run can then replace a separate typecheck. Files oxlint sent that no tsconfig
+    // includes are checked in an inferred program. Each file's type errors are reported once: a listed file by the
+    // program it maps to, any other file by the first program that has it.
     let mut type_checked = FxHashSet::default();
     let mut config_cache = FxHashMap::default();
     for path in file_configs.keys() {
         let resolved = tspath::get_normalized_absolute_path(path, cwd);
-        if whole {
+        if payload.report_semantic {
             type_checked.insert(tspath::to_path(
                 &resolved,
                 cwd,
@@ -293,14 +295,14 @@ fn run_in_region(
         run_program(
             program_ref,
             &files,
-            whole.then_some(&mut type_checked),
+            payload.report_semantic.then_some(&mut type_checked),
             payload,
             options,
             writer,
             &file_configs,
             &mut timings,
         )?;
-        if whole {
+        if payload.report_semantic {
             for diagnostic in program_ref.get_global_diagnostics(&Context::default()) {
                 report_global_error(diagnostic, &config_path, writer)?;
             }
@@ -409,19 +411,10 @@ fn checker_count() -> Option<i64> {
     std::env::var("RAYON_NUM_THREADS").ok().and_then(|value| value.parse().ok()).filter(|&n| n > 0)
 }
 
-// tsrs-only: under the fast preset, semantic reporting (oxlint `--type-check`) reports what `tsrs --noEmit` does for
-// each tsconfig program: every file it checks, not only the files oxlint sent, and the program's global diagnostics.
-// One `oxlint --type-aware --type-check` run can then replace a separate typecheck. Default mode reports the files
-// oxlint sent, as tsgolint does. In both modes, files oxlint sent that no tsconfig includes are checked in an
-// inferred program.
-fn whole_program_type_check() -> bool {
-    tsrs_core::fast::enabled()
-}
-
 // Lints the files on the program's checker pool: one thread per checker, each over the files the pool assigned to
 // it (by import-graph locality under the fast preset), so a checker resolves the types of its own corner of the
 // program instead of nearly all of it. Output keeps the order of `files`.
-// `whole` (`whole_program_type_check`): the files that already have a program to report their type errors. Also
+// `whole` (with semantic reporting): the files that already have a program to report their type errors. Also
 // report the compiler diagnostics of the program's files outside that set, after `files`, and add them to it.
 fn run_program(
     program: &'static Program,

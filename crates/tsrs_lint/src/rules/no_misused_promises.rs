@@ -300,13 +300,30 @@ fn get_member_if_exists(
     context.checker.get_property_of_type(t, name)
 }
 
+fn visit_function_type_parts(
+    context: &mut RuleContext<'_>,
+    t: P<Type>,
+    visit: &mut impl FnMut(&mut RuleContext<'_>, P<Type>) -> bool,
+) -> bool {
+    let t = context.checker.get_reduced_apparent_type(t);
+    if t.flags().intersects(TypeFlags::Union) {
+        for &part in t.as_union_type().types() {
+            if !visit_function_type_parts(context, part, visit) {
+                return false;
+            }
+        }
+        return true;
+    }
+    visit(context, t)
+}
+
 fn is_void_returning_function_type(
     context: &mut RuleContext<'_>,
     node: P<Node>,
     t: P<Type>,
 ) -> bool {
     let mut had_void_return = false;
-    for &part in union_type_parts(&t) {
+    if !visit_function_type_parts(context, t, &mut |context, part| {
         for &signature in context.checker.get_signatures_of_type(part, SignatureKind::Call) {
             let return_type = context.checker.get_return_type_of_signature(signature);
             if is_thenable_type(context.checker, node, return_type) {
@@ -314,6 +331,9 @@ fn is_void_returning_function_type(
             }
             had_void_return |= return_type.flags().intersects(TypeFlags::Void);
         }
+        true
+    }) {
+        return false;
     }
     had_void_return
 }
@@ -323,7 +343,9 @@ fn is_thenable_returning_function_type(
     node: P<Node>,
     t: P<Type>,
 ) -> bool {
-    union_type_parts(&t).iter().any(|&part| any_signature_is_thenable_type(context, node, part))
+    !visit_function_type_parts(context, t, &mut |context, part| {
+        !any_signature_is_thenable_type(context, node, part)
+    })
 }
 
 fn check_thenable_or_void_argument(
@@ -377,6 +399,9 @@ fn void_function_arguments(context: &mut RuleContext<'_>, node: P<Node>) -> Void
         };
         for &signature in context.checker.get_signatures_of_type(part, kind) {
             for (index, &parameter) in signature.parameters().iter().enumerate() {
+                if index >= node.arguments().len() {
+                    break;
+                }
                 let t = context
                     .checker
                     .get_type_of_symbol_at_location(parameter, Some(callee))

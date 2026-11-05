@@ -866,7 +866,7 @@ impl Checker {
 
     // checker.go:22256
     #[inline]
-    pub(crate) fn get_reduced_apparent_type(&mut self, t: P<Type>) -> P<Type> {
+    pub fn get_reduced_apparent_type(&mut self, t: P<Type>) -> P<Type> {
         // An object type other than a mapped type is its own reduced and apparent type (most property lookups).
         if t.flags() == TypeFlags::Object && !t.object_flags().intersects(ObjectFlags::Mapped) {
             return t;

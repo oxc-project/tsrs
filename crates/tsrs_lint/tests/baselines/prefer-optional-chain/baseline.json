@@ -7508,6 +7508,39 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "declare const foo: { bar: string } | undefined;\nconst element = <div value={foo && foo.bar} />;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "declare const foo: { bar: string } | undefined;\nconst element = <div>{foo && foo.bar}</div>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "declare const foo: { bar: string } | undefined;\nconst element = <Component render={() => <div>{foo && foo.bar}</div>} />;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [
@@ -41722,6 +41755,295 @@
                 "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
               },
               "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const ref: { current: HTMLDivElement | null };\nexport const inJsx = (\n  <div\n    onClick={() => {\n      const g = ref.current;\n      if (g && g.parentNode) g.remove();\n    }}\n  />\n);\nexport const outsideJsx = () => {\n  const g = ref.current;\n  if (g && g.parentNode) g.remove();\n};\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferOptionalChain",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "optionalChainSuggest",
+                  "Output": "\ndeclare const ref: { current: HTMLDivElement | null };\nexport const inJsx = (\n  <div\n    onClick={() => {\n      const g = ref.current;\n      if (g?.parentNode) g.remove();\n    }}\n  />\n);\nexport const outsideJsx = () => {\n  const g = ref.current;\n  if (g && g.parentNode) g.remove();\n};\n"
+                }
+              ]
+            },
+            {
+              "MessageId": "preferOptionalChain",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "optionalChainSuggest",
+                  "Output": "\ndeclare const ref: { current: HTMLDivElement | null };\nexport const inJsx = (\n  <div\n    onClick={() => {\n      const g = ref.current;\n      if (g && g.parentNode) g.remove();\n    }}\n  />\n);\nexport const outsideJsx = () => {\n  const g = ref.current;\n  if (g?.parentNode) g.remove();\n};\n"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-optional-chain",
+              "message": {
+                "id": "preferOptionalChain",
+                "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 146,
+                "end": 163
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "optionalChainSuggest",
+                    "description": "Change to an optional chain."
+                  },
+                  "fixes": [
+                    {
+                      "text": "g?.parentNode",
+                      "range": {
+                        "pos": 146,
+                        "end": 163
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 257,
+                "end": 274
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "optionalChainSuggest",
+                    "description": "Change to an optional chain."
+                  },
+                  "fixes": [
+                    {
+                      "text": "g?.parentNode",
+                      "range": {
+                        "pos": 257,
+                        "end": 274
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-optional-chain",
+              "message": {
+                "id": "preferOptionalChain",
+                "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "declare const foo: { bar: string } | undefined;\nconst element = <div onClick={() => foo && foo.bar} />;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "declare const foo: { bar: string } | undefined;\nconst element = <div onClick={() => foo?.bar} />;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferOptionalChain",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferOptionalChain",
+                "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 84,
+                "end": 98
+              },
+              "fixes": [
+                {
+                  "text": "foo?.bar",
+                  "range": {
+                    "pos": 84,
+                    "end": 98
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-optional-chain"
+            }
+          ]
+        },
+        {
+          "Code": "declare const foo: { bar: string } | undefined;\nconst element = <div onClick={function () { return foo && foo.bar; }} />;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "declare const foo: { bar: string } | undefined;\nconst element = <div onClick={function () { return foo?.bar; }} />;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferOptionalChain",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-optional-chain",
+              "message": {
+                "id": "preferOptionalChain",
+                "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 99,
+                "end": 113
+              },
+              "fixes": [
+                {
+                  "text": "foo?.bar",
+                  "range": {
+                    "pos": 99,
+                    "end": 113
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "declare const foo: { bar: string } | undefined;\nconst element = <Component handlers={{ onClick() { return foo && foo.bar; } }} />;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "declare const foo: { bar: string } | undefined;\nconst element = <Component handlers={{ onClick() { return foo?.bar; } }} />;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferOptionalChain",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "foo?.bar",
+                  "range": {
+                    "pos": 106,
+                    "end": 120
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-optional-chain",
+              "message": {
+                "id": "preferOptionalChain",
+                "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 106,
+                "end": 120
+              }
+            }
+          ]
+        },
+        {
+          "Code": "declare const foo: { bar: string } | undefined;\nconst element = <Component>{() => foo && foo.bar}</Component>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "declare const foo: { bar: string } | undefined;\nconst element = <Component>{() => foo?.bar}</Component>;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferOptionalChain",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-optional-chain",
+              "message": {
+                "id": "preferOptionalChain",
+                "description": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 82,
+                "end": 96
+              },
+              "fixes": [
+                {
+                  "text": "foo?.bar",
+                  "range": {
+                    "end": 96,
+                    "pos": 82
+                  }
+                }
+              ],
+              "kind": 0
             }
           ]
         }

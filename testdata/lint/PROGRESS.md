@@ -2,7 +2,7 @@
 
 Reference: tsgolint v7.0.2005 `4ebf80fd2b166cba4890c6896220fec4a1462b29`, typescript-go
 `2bd066d87f5bafd315be9f40889d0a60b9e58e0b`, with all six shipped compiler patches.
-All 61 suites follow this reference; each directory records the same pins in `REFERENCE`.
+All 61 suites use this base reference; each directory records its pins and later rule fixes in `REFERENCE`.
 
 Every rule must pass its active upstream cases, options, diagnostic snapshots, fixes,
 and suggestions before its implementation commit. Upstream skips remain explicit.
@@ -27,7 +27,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | no-mixed-enums | Updated to Go HEAD | 51 current cases; initializer types, merged declarations and namespace/module augmentation |
 | no-redundant-type-constituents | Updated to Go HEAD | 104 current cases; union/intersection overrides, aliases, literals and function return exceptions |
 | no-unnecessary-boolean-literal-compare | Updated to Go HEAD | 50 current cases; nullable options, unary/precedence fixes and strictNullChecks diagnostics |
-| no-unnecessary-condition | Updated to Go HEAD | 384 current cases; truthiness, nullish checks, optional chains, comparisons, loops and predicates |
+| no-unnecessary-condition | Updated to Go HEAD | 398 current cases; truthiness, nullish checks, optional chains, comparisons, loops and predicates; unresolved conditional types and resolved base constraints (tsgolint#1330) |
 | no-unnecessary-qualifier | Updated to Go HEAD | 18 current cases; namespace/enum scope, alias resolution, shadowing and qualifier fixes |
 | no-unnecessary-template-expression | Updated to Go HEAD | 183 current cases; string constraints, type templates, comments, canonical literals and raw escaping fixes |
 | no-unnecessary-type-conversion | Updated to Go HEAD | 77 current cases; primitive calls, unary/concatenation conversions, enum exclusions and satisfies suggestions |

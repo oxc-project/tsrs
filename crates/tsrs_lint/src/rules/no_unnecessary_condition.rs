@@ -331,12 +331,16 @@ fn string_index_type(context: &mut RuleContext<'_>, t: P<Type>) -> Option<P<Type
 }
 
 fn get_resolved_type(context: &mut RuleContext<'_>, node: P<Node>) -> Option<P<Type>> {
-    let t = context.checker.get_type_at_location(node);
-    let t = if t.flags().intersects(TypeFlags::TypeParameter) {
-        context.checker.get_base_constraint_of_type(t)?
-    } else {
-        t
-    };
+    let mut t = context.checker.get_type_at_location(node);
+    if t.flags().intersects(TypeFlags::TypeParameter) {
+        let constraint = context.checker.get_base_constraint_of_type(t)?;
+        return Some(resolve_indexed_access_type(context, constraint));
+    }
+    if t.flags().intersects(TypeFlags::Conditional)
+        && let Some(constraint) = context.checker.get_base_constraint_of_type(t)
+    {
+        t = constraint;
+    }
     Some(resolve_indexed_access_type(context, t))
 }
 
@@ -366,7 +370,9 @@ fn is_array_index_expression(context: &mut RuleContext<'_>, node: P<Node>) -> bo
 
 fn is_conditional_always_necessary(t: P<Type>) -> bool {
     union_type_parts(&t).iter().any(|part| {
-        part.flags().intersects(TypeFlags::Any | TypeFlags::Unknown | TypeFlags::TypeVariable)
+        part.flags().intersects(
+            TypeFlags::Any | TypeFlags::Unknown | TypeFlags::TypeVariable | TypeFlags::Conditional,
+        )
     })
 }
 

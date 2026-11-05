@@ -1,2 +1,8 @@
 tsgolint 4ebf80fd2b166cba4890c6896220fec4a1462b29
 typescript-go 2bd066d87f5bafd315be9f40889d0a60b9e58e0b
+
+Includes the rule fix and all 14 added cases from tsgolint PR #1330,
+commit b022fe5d76eb258aa1e9d3e85af9091f019a09a0.
+Diagnostics exported from the base revision above with that PR applied,
+using all six shipped compiler patches. All 398 Go rule cases pass;
+the existing 384 case records are unchanged.

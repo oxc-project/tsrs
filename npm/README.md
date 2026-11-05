@@ -274,6 +274,6 @@ the command line to include config-read timing.
 ## Type-aware linting
 
 `tsrs --lint` runs the type-aware linter that oxlint drives (tsgolint's headless protocol; all pinned tsgolint rules,
-see [progress](../testdata/lint/PROGRESS.md)). The `tsrs-lint` command is the launcher with `--lint` added, so
-`OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware` uses it: oxlint runs `<path> headless ...`,
+see [progress](../crates/tsrs_lint/tests/baselines/PROGRESS.md)). The `tsrs-lint` command is the launcher with `--lint`
+added, so `OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware` uses it: oxlint runs `<path> headless ...`,
 which the bare `tsrs` would read as a root file.

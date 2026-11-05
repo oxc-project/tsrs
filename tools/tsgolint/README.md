@@ -2,8 +2,8 @@
 
 The Rust implementation lives in `crates/tsrs_lint`, with binary `tsrs-lint`; `tsrs --lint` runs the same command
 line (`tsrs_lint::cli`).
-Its rule inventory and progress are recorded in `testdata/lint/PROGRESS.md`.
-All 60 pinned rules are implemented; requesting an unimplemented rule fails explicitly.
+Its rule inventory and progress are recorded in `crates/tsrs_lint/tests/baselines/PROGRESS.md`.
+All pinned rules are implemented; requesting an unimplemented rule fails explicitly.
 
 ## Reference and attribution
 
@@ -13,11 +13,10 @@ The original imported specification is oxc-project/tsgolint at
 Ported protocol, traversal, and test-export code follows that reference.
 The upstream MIT license is preserved in `LICENSE` in this directory.
 
-The exporter now targets Go HEAD as of 2026-10-16:
-`8897346fff24a9bd0c719099dc1af8e7200572c1`, compiler
-`2bd066d87f5bafd315be9f40889d0a60b9e58e0b`, with its six compiler patches.
+The exporter targets the revisions recorded in
+[`REFERENCE`](../../crates/tsrs_lint/tests/baselines/REFERENCE), with the six compiler patches shipped by that checkout.
 All imported suites and shared declarations follow this reference. Each rule records the
-pins in `REFERENCE`; the [progress table](../../testdata/lint/PROGRESS.md) records coverage.
+pins in `REFERENCE`; the [progress table](../../crates/tsrs_lint/tests/baselines/PROGRESS.md) records coverage.
 
 Keep the reference in a disposable checkout outside the working repository. The exporter
 applies upstream compiler patches and instruments its rule tester; never point it at a
@@ -27,16 +26,17 @@ The exporter preserves those declaration packages and their licenses in `depende
 the runner installs them into each disposable fixture tree. Set `GOCACHE` to a writable location if the default cache is unavailable.
 
 ```sh
-GOCACHE=/private/tmp/tsrs-go-build python3 tools/tsgolint/export.py \
+GOCACHE=/private/tmp/tsrs-go-build node tools/tsgolint/export.mts \
   /private/tmp/tsrs-tsgolint-reference /private/tmp/tsrs-lint-baselines \
   --rule await_thenable
 ```
 
 The exporter executes the real Go test constructors, preserving generated cases, options,
-extra files, output expectations, and upstream skip markers. Original test sources are
-exported alongside the cases to preserve skip reasons. It also exports the diagnostics
+extra files, output expectations, and upstream skip markers. The exported corpus contains
+test data and revision metadata, without copied Go sources. Original tests and skip reasons
+can be read in the upstream checkout at the recorded revision. It also exports the diagnostics
 from each executed case, including fixes and suggestions, without updating Go snapshots.
-Copy each rule's exported cases and diagnostics into `testdata/lint` in its implementation
+Copy each rule's exported cases and diagnostics into `crates/tsrs_lint/tests/baselines` in its implementation
 commit. Fixture roots are represented by paths relative to the upstream fixtures directory.
 
 ## Build and invocation
@@ -89,7 +89,7 @@ cover the files oxlint sent, as in tsgolint.
 Run imported suites with:
 
 ```sh
-python3 tools/tsgolint/run-baselines.py target/debug/tsrs-lint testdata/lint --rule await-thenable
+node tools/tsgolint/run-baselines.mjs target/debug/tsrs-lint crates/tsrs_lint/tests/baselines --rule await-thenable
 ```
 
 The runner compares complete initial diagnostic records and repeats linting after fixes,

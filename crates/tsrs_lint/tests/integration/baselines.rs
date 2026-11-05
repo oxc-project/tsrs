@@ -7,7 +7,7 @@ fn all_imported_rule_baselines_match() {
     let output = Command::new("node")
         .arg(root.join("tools/tsgolint/run-baselines.mjs"))
         .arg(env!("CARGO_BIN_EXE_tsrs-lint"))
-        .arg(root.join("testdata/lint"))
+        .arg(root.join("crates/tsrs_lint/tests/baselines"))
         .output()
         .unwrap();
     assert!(

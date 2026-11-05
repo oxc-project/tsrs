@@ -357,6 +357,116 @@
           "Diagnostics": []
         },
         {
+          "Code": "\nconst truthy = <T,>(value: Awaited<T>) => (value ? 1 : 2);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst nullish = <T,>(value: Awaited<T>) => value ?? 1;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst fromPromise = async <T,>(promise: Promise<T>) => {\n  const value = await promise;\n  return value ? 1 : 2;\n};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Id<T> = T extends unknown ? T : never;\nfunction test<T>(t: Id<T>) {\n  return t ? 'yes' : 'no';\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst truthyUnion = <T,>(value: Awaited<T> | string) => (value ? 1 : 2);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst truthy = <T extends string>(value: Awaited<T>) => (value ? 1 : 2);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst nullish = <T extends Promise<string | null>>(value: Awaited<T>) =>\n  value ?? 1;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst isUndefined = <T,>(value: Awaited<T>) => value === undefined;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst isNull = <T,>(value: Awaited<T>) => value === null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction test<T, K extends keyof T>(value: Awaited<T[K]>) {\n  return value ?? 1;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
           "Code": "\nfunction test<T>(arg: T, key: keyof T) {\n  if (arg[key]?.toString()) {\n  }\n}\n    ",
           "Only": false,
           "Skip": false,
@@ -10979,6 +11089,154 @@
                 "end": 117
               },
               "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction test<T extends string>(a: Awaited<T>) {\n  return a ?? 'default';\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "neverNullish",
+              "Line": 3,
+              "Column": 10,
+              "EndLine": 3,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-condition",
+              "message": {
+                "id": "neverNullish",
+                "description": "Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined.",
+                "help": "The checked value has type `string`."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 59,
+                "end": 60
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction test<T extends Promise<object>>(a: Awaited<T>) {\n  return a ? 'yes' : 'no';\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "alwaysTruthy",
+              "Line": 3,
+              "Column": 10,
+              "EndLine": 3,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "alwaysTruthy",
+                "description": "Unnecessary conditional, value is always truthy.",
+                "help": "The checked value has type `object`."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 69
+              },
+              "kind": 0,
+              "rule": "no-unnecessary-condition"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction test<T>(a: T extends string ? 'a' : 'b') {\n  return a ? 'yes' : 'no';\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "alwaysTruthy",
+              "Line": 3,
+              "Column": 10,
+              "EndLine": 3,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unnecessary-condition",
+              "message": {
+                "id": "alwaysTruthy",
+                "description": "Unnecessary conditional, value is always truthy.",
+                "help": "The checked value has type `\"a\" | \"b\"`."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 62,
+                "end": 63
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction test<T>(a: T extends string ? 'a' : 'b') {\n  return a ?? 'default';\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "neverNullish",
+              "Line": 3,
+              "Column": 10,
+              "EndLine": 3,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "neverNullish",
+                "description": "Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined.",
+                "help": "The checked value has type `\"a\" | \"b\"`."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 62,
+                "end": 63
+              },
+              "kind": 0,
+              "rule": "no-unnecessary-condition"
             }
           ]
         }

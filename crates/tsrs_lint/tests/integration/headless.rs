@@ -4512,7 +4512,7 @@ fn prefer_optional_chain_rejects_invalid_options() {
 }
 
 #[test]
-fn prefer_optional_chain_keeps_parenthesized_guards_and_invalid_utf8_fix_records() {
+fn prefer_optional_chain_matches_regression_records() {
     let Value::Array(cases) =
         json::unmarshal(include_str!("../fixtures/prefer_optional_chain/regressions.json"))
             .unwrap()
@@ -4520,10 +4520,11 @@ fn prefer_optional_chain_keeps_parenthesized_guards_and_invalid_utf8_fix_records
         panic!()
     };
     let base = std::env::current_dir().unwrap().join("target/lint-optional-chain-regressions");
-    let file = base.join("a.ts").to_string_lossy().into_owned();
     let config = base.join("tsconfig.json").to_string_lossy().into_owned();
     for case in cases {
         let Value::Object(case) = case else { panic!() };
+        let file_name = if case.get("tsx") == Some(&Value::Bool(true)) { "a.tsx" } else { "a.ts" };
+        let file = base.join(file_name).to_string_lossy().into_owned();
         let payload = protocol::object([
             ("version", Value::Integer(2)),
             ("configs", Value::Array(vec![protocol::object([
@@ -4535,7 +4536,7 @@ fn prefer_optional_chain_keeps_parenthesized_guards_and_invalid_utf8_fix_records
             ])])),
             ("source_overrides", Value::Object([
                 (file.clone(), case["source"].clone()),
-                (config.clone(), Value::String(r#"{"compilerOptions":{"strict":true,"target":"esnext"},"files":["a.ts"]}"#.into())),
+                (config.clone(), Value::String(r#"{"compilerOptions":{"strict":true,"target":"esnext","jsx":"preserve","types":[]},"files":["a.ts"]}"#.replace("a.ts", file_name))),
             ].into_iter().collect())),
         ]);
         let Value::Array(expected) = &case["expected"] else { panic!() };

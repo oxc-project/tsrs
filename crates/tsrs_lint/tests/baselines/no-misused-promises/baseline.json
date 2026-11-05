@@ -1,6 +1,235 @@
 {
   "Name": "no-misused-promises",
   "Suites": {
+    "TestNoMisusedPromisesGenericOverloads": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ntype EventName = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p';\ntype Hook = {\n  [K in EventName]: (event: Record<K, 1> | Record<K, 2>) => void;\n}[EventName];\ninterface On {\n  (): void;\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): void;\n}\ndeclare const on: On;\ninterface OptionalOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M | undefined, hook: NoInfer<M>): void;\n}\ndeclare const optionalOn: OptionalOn;\ninterface AsyncOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook | (() => Promise<void>)>(pattern: P, matcher: M, hook?: NoInfer<M>): void;\n}\ndeclare const asyncOn: AsyncOn;\ninterface NewOn {\n  new (pattern: 'start', hook: () => void): object;\n  new <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): object;\n}\ndeclare const newOn: NewOn;\non('start', () => {});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype EventName = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p';\ntype Hook = {\n  [K in EventName]: (event: Record<K, 1> | Record<K, 2>) => void;\n}[EventName];\ninterface On {\n  (): void;\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): void;\n}\ndeclare const on: On;\ninterface OptionalOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M | undefined, hook: NoInfer<M>): void;\n}\ndeclare const optionalOn: OptionalOn;\ninterface AsyncOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook | (() => Promise<void>)>(pattern: P, matcher: M, hook?: NoInfer<M>): void;\n}\ndeclare const asyncOn: AsyncOn;\ninterface NewOn {\n  new (pattern: 'start', hook: () => void): object;\n  new <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): object;\n}\ndeclare const newOn: NewOn;\non('start', () => {}, () => {});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype EventName = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p';\ntype Hook = {\n  [K in EventName]: (event: Record<K, 1> | Record<K, 2>) => void;\n}[EventName];\ninterface On {\n  (): void;\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): void;\n}\ndeclare const on: On;\ninterface OptionalOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M | undefined, hook: NoInfer<M>): void;\n}\ndeclare const optionalOn: OptionalOn;\ninterface AsyncOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook | (() => Promise<void>)>(pattern: P, matcher: M, hook?: NoInfer<M>): void;\n}\ndeclare const asyncOn: AsyncOn;\ninterface NewOn {\n  new (pattern: 'start', hook: () => void): object;\n  new <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): object;\n}\ndeclare const newOn: NewOn;\non();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype EventName = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p';\ntype Hook = {\n  [K in EventName]: (event: Record<K, 1> | Record<K, 2>) => void;\n}[EventName];\ninterface On {\n  (): void;\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): void;\n}\ndeclare const on: On;\ninterface OptionalOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M | undefined, hook: NoInfer<M>): void;\n}\ndeclare const optionalOn: OptionalOn;\ninterface AsyncOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook | (() => Promise<void>)>(pattern: P, matcher: M, hook?: NoInfer<M>): void;\n}\ndeclare const asyncOn: AsyncOn;\ninterface NewOn {\n  new (pattern: 'start', hook: () => void): object;\n  new <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): object;\n}\ndeclare const newOn: NewOn;\nasyncOn('start', async () => {});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype EventName = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p';\ntype Hook = {\n  [K in EventName]: (event: Record<K, 1> | Record<K, 2>) => void;\n}[EventName];\ninterface On {\n  (): void;\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): void;\n}\ndeclare const on: On;\ninterface OptionalOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M | undefined, hook: NoInfer<M>): void;\n}\ndeclare const optionalOn: OptionalOn;\ninterface AsyncOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook | (() => Promise<void>)>(pattern: P, matcher: M, hook?: NoInfer<M>): void;\n}\ndeclare const asyncOn: AsyncOn;\ninterface NewOn {\n  new (pattern: 'start', hook: () => void): object;\n  new <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): object;\n}\ndeclare const newOn: NewOn;\nnew newOn('start', () => {});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Choice<K extends string> = (Record<K, 0> & (() => void)) | (Record<K, 1> & (() => void));\ndeclare function use(callback: () => void): void;\ndeclare function use<\n  A extends Choice<'a'>,\n  B extends Choice<'b'>,\n  C extends Choice<'c'>,\n  D extends Choice<'d'>,\n  E extends Choice<'e'>,\n  F extends Choice<'f'>,\n  G extends Choice<'g'>,\n  H extends Choice<'h'>,\n  I extends Choice<'i'>,\n  J extends Choice<'j'>,\n  K extends Choice<'k'>,\n  L extends Choice<'l'>,\n  M extends Choice<'m'>,\n  N extends Choice<'n'>\n>(callback: A & { kind: 'a' } & B & C & D & E & F & G & H & I & J & K & L & M & N & { kind: 'b' }): void;\nuse(() => {});\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ntype EventName = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p';\ntype Hook = {\n  [K in EventName]: (event: Record<K, 1> | Record<K, 2>) => void;\n}[EventName];\ninterface On {\n  (): void;\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): void;\n}\ndeclare const on: On;\ninterface OptionalOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M | undefined, hook: NoInfer<M>): void;\n}\ndeclare const optionalOn: OptionalOn;\ninterface AsyncOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook | (() => Promise<void>)>(pattern: P, matcher: M, hook?: NoInfer<M>): void;\n}\ndeclare const asyncOn: AsyncOn;\ninterface NewOn {\n  new (pattern: 'start', hook: () => void): object;\n  new <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): object;\n}\ndeclare const newOn: NewOn;\non('start', async () => {});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "voidReturnArgument",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 1021,
+                "end": 1023
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This callback has type `() => Promise<void>`.",
+                  "range": {
+                    "end": 1023,
+                    "pos": 1021
+                  }
+                },
+                {
+                  "label": "This context accepts a `void`-returning callback through type `M`.",
+                  "range": {
+                    "pos": 338,
+                    "end": 339
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "voidReturnArgument",
+                "description": "Promise returned in function argument where a void return was expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype EventName = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p';\ntype Hook = {\n  [K in EventName]: (event: Record<K, 1> | Record<K, 2>) => void;\n}[EventName];\ninterface On {\n  (): void;\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): void;\n}\ndeclare const on: On;\ninterface OptionalOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M | undefined, hook: NoInfer<M>): void;\n}\ndeclare const optionalOn: OptionalOn;\ninterface AsyncOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook | (() => Promise<void>)>(pattern: P, matcher: M, hook?: NoInfer<M>): void;\n}\ndeclare const asyncOn: AsyncOn;\ninterface NewOn {\n  new (pattern: 'start', hook: () => void): object;\n  new <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): object;\n}\ndeclare const newOn: NewOn;\noptionalOn('start', async () => {});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "voidReturnArgument",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "voidReturnArgument",
+                "description": "Promise returned in function argument where a void return was expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 1029,
+                "end": 1031
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This callback has type `() => Promise<void>`.",
+                  "range": {
+                    "pos": 1029,
+                    "end": 1031
+                  }
+                },
+                {
+                  "label": "This context accepts a `void`-returning callback through type `M | undefined`.",
+                  "range": {
+                    "pos": 517,
+                    "end": 530
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype EventName = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p';\ntype Hook = {\n  [K in EventName]: (event: Record<K, 1> | Record<K, 2>) => void;\n}[EventName];\ninterface On {\n  (): void;\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): void;\n}\ndeclare const on: On;\ninterface OptionalOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook>(pattern: P, matcher: M | undefined, hook: NoInfer<M>): void;\n}\ndeclare const optionalOn: OptionalOn;\ninterface AsyncOn {\n  (pattern: 'start', hook: () => void): void;\n  <P extends string, M extends Hook | (() => Promise<void>)>(pattern: P, matcher: M, hook?: NoInfer<M>): void;\n}\ndeclare const asyncOn: AsyncOn;\ninterface NewOn {\n  new (pattern: 'start', hook: () => void): object;\n  new <P extends string, M extends Hook>(pattern: P, matcher: M, hook: NoInfer<M>): object;\n}\ndeclare const newOn: NewOn;\nnew newOn('start', async () => {});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "voidReturnArgument",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "voidReturnArgument",
+                "description": "Promise returned in function argument where a void return was expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 1028,
+                "end": 1030
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This callback has type `() => Promise<void>`.",
+                  "range": {
+                    "pos": 1028,
+                    "end": 1030
+                  }
+                },
+                {
+                  "label": "This context accepts a `void`-returning callback through type `M`.",
+                  "range": {
+                    "pos": 940,
+                    "end": 941
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-promises"
+            }
+          ]
+        }
+      ]
+    },
     "TestNoMisusedPromisesRule": {
       "TSConfig": "tsconfig.minimal.json",
       "Valid": [

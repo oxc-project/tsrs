@@ -6804,8 +6804,8 @@ fn type_check_payload(files: Vec<Value>) -> String {
 }
 
 // Under the fast preset, semantic reporting covers the tsconfig program's files that the payload did not list, as
-// `tsrs --noEmit` does, and files outside every tsconfig are linted but not type-checked. Default mode reports the
-// files the payload lists, as tsgolint does.
+// `tsrs --noEmit` does. Default mode reports the files the payload lists, as tsgolint does. A listed file outside every
+// tsconfig is type-checked in both modes.
 #[test]
 fn fast_type_check_reports_type_errors_like_no_emit() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-program");
@@ -6826,7 +6826,45 @@ fn fast_type_check_reports_type_errors_like_no_emit() {
     );
     assert_eq!(
         reported_ids(&input, &[("TSRS_FAST", "1")], "lint-check-program"),
-        vec!["listed.ts no-floating-promises", "unlisted.ts TS2322"]
+        vec!["listed.ts no-floating-promises", "sub/outside.ts TS2322", "unlisted.ts TS2322"]
+    );
+}
+
+// Under the fast preset each file's type errors are reported once, though the root program imports every file here.
+// A listed file is reported by the program it maps to: `sub/b.ts` by `sub/tsconfig.json`, and `other/loose.ts`, which
+// no tsconfig includes, by the inferred program. The unlisted `lib/u.ts`, which both tsconfig programs import, is
+// reported by one of them.
+#[test]
+fn fast_type_check_reports_each_file_once() {
+    let root = std::env::current_dir().unwrap().join("target/lint-check-program-once");
+    for dir in ["sub", "other", "lib"] {
+        std::fs::create_dir_all(root.join(dir)).unwrap();
+    }
+    let config = r#"{"compilerOptions":{"strict":true,"noEmit":true},"include":["*.ts"]}"#;
+    std::fs::write(root.join("tsconfig.json"), config).unwrap();
+    std::fs::write(root.join("sub/tsconfig.json"), config).unwrap();
+    std::fs::write(
+        root.join("listed.ts"),
+        "import { b } from './sub/b';\nimport { l } from './other/loose';\nexport const all = [b, l];\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("sub/b.ts"),
+        "import { u } from '../lib/u';\nexport const b: string = 1;\nexport const c = u;\n",
+    )
+    .unwrap();
+    std::fs::write(root.join("other/loose.ts"), "export const l: string = 1;\n").unwrap();
+    std::fs::write(root.join("lib/u.ts"), "export const u: string = 1;\n").unwrap();
+    let file = |name: &str| Value::String(root.join(name).to_string_lossy().into_owned());
+    let input =
+        type_check_payload(vec![file("listed.ts"), file("sub/b.ts"), file("other/loose.ts")]);
+    assert_eq!(
+        reported_ids(&input, &[("TSRS_FAST", "0")], "lint-check-program-once"),
+        vec!["other/loose.ts TS2322", "sub/b.ts TS2322"]
+    );
+    assert_eq!(
+        reported_ids(&input, &[("TSRS_FAST", "1")], "lint-check-program-once"),
+        vec!["lib/u.ts TS2322", "other/loose.ts TS2322", "sub/b.ts TS2322"]
     );
 }
 

@@ -2,7 +2,7 @@
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::{self as ast, Kind, Node};
-use tsrs_checker::{Type, TypeFlags};
+use tsrs_checker::{ContextFlags, Type, TypeFlags};
 use tsrs_core::P;
 
 use crate::protocol::RuleMessage;
@@ -304,7 +304,7 @@ fn receiver_type(
     comparison: Comparison,
 ) -> P<Type> {
     if comparison == Comparison::Contextual {
-        if let Some(ty) = utils::get_contextual_type(context.checker, sender_node) {
+        if let Some(ty) = context.checker.get_contextual_type(sender_node, ContextFlags::None) {
             return ty;
         }
         if let Some(ty) = utils::get_contextual_type(context.checker, receiver) {

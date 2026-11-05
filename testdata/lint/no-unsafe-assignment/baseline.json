@@ -409,6 +409,39 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function getValue(): any;\nexport const plain = { value: getValue() } satisfies Record<string, unknown>;\nexport const quoted = { \"value\": getValue() } satisfies Record<string, unknown>;\nexport const dotted = { \"example.key\": getValue() } satisfies Record<string, unknown>;\nexport const annotated: Record<string, unknown> = { \"example.key\": getValue() };\nconst opaque: unknown = getValue();\nexport const held = { \"example.key\": opaque };\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function getValue(): any;\nconst quoted: { \"value\": unknown } = { \"value\": getValue() };\nconst numeric: { 0: unknown } = { 0: getValue() };\nconst computed = { [\"example.key\"]: getValue() } satisfies Record<string, unknown>;\nconst parenthesized = { \"example.key\": (getValue()) } satisfies Record<string, unknown>;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: any;\ndeclare const source: { value: any };\nconst identifier = { \"example.key\": value } satisfies Record<string, unknown>;\nconst member = { \"example.key\": source.value } satisfies Record<string, unknown>;\nconst assertion = { \"example.key\": 1 as any } satisfies Record<string, unknown>;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [
@@ -2574,6 +2607,109 @@
                 "id": "anyAssignment",
                 "description": "Unsafe assignment of an any value.",
                 "help": "Assigned value has type `any`; the target has type `{ foo: 1; }`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function getValue(): any;\nconst inferred = { \"value\": getValue() };\nconst satisfies = { \"example.key\": getValue() } satisfies Record<string, string>;\nconst annotated: Record<string, string> = { \"example.key\": getValue() };\ndeclare function getSet(): Set<any>;\nconst generic = { \"example.key\": getSet() } satisfies Record<string, Set<string>>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "anyAssignment",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "anyAssignment",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "unsafeAssignment",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 54,
+                "end": 73
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            },
+            {
+              "kind": 0,
+              "range": {
+                "pos": 97,
+                "end": 122
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `string`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            },
+            {
+              "kind": 0,
+              "range": {
+                "pos": 203,
+                "end": 228
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `string`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            },
+            {
+              "kind": 0,
+              "range": {
+                "pos": 287,
+                "end": 310
+              },
+              "message": {
+                "id": "unsafeAssignment",
+                "description": "Unsafe assignment between incompatible types.",
+                "help": "Assigned value has type `Set<any>`; the target has type `Set<string>`. Use a safely typed value or `unknown`, and narrow it before use."
               },
               "file_path": "file.ts",
               "rule": "no-unsafe-assignment"

@@ -366,6 +366,17 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const unsafe: any;\nconst property: { f: () => number } = { f: (): any => unsafe };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [
@@ -1804,6 +1815,43 @@
                 "pos": 104,
                 "end": 109
               }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const unsafe: any;\nconst property: { f: () => unknown } = { f: (): number => unsafe };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 86,
+                "end": 92
+              },
+              "message": {
+                "id": "unsafeReturn",
+                "description": "Unsafe return of a value of type `any`.",
+                "help": "Returned expression has type `any`; the function return type is `number`. Return a safely typed value or narrow the value before returning it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-return"
             }
           ]
         }

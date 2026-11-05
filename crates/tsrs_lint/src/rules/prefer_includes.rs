@@ -4,7 +4,7 @@ use tsrs_core::P;
 
 use crate::protocol::{Fix, Range, RuleMessage};
 use crate::rule::{Listener, Rule, RuleContext, trim_node_range};
-use crate::utils::get_constrained_type_at_location;
+use crate::utils::{get_constrained_type_at_location, quote_single_string_literal};
 
 pub struct PreferIncludes;
 
@@ -24,157 +24,88 @@ fn build_prefer_string_includes_message() -> RuleMessage {
     }
 }
 
+fn pattern_string_literal(pattern: &str) -> String {
+    let mut decoded = String::with_capacity(pattern.len());
+    let mut chars = pattern.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch != '\\' {
+            decoded.push(ch);
+            continue;
+        }
+        let ch = chars.next().expect("simple pattern has no trailing backslash");
+        match ch {
+            'n' => decoded.push('\n'),
+            'r' => decoded.push('\r'),
+            't' => decoded.push('\t'),
+            'v' => decoded.push('\u{b}'),
+            'f' => decoded.push('\u{c}'),
+            '0'..='7' => {
+                let mut value = u32::from(ch) - u32::from('0');
+                let max_digits = if ch <= '3' { 3 } else { 2 };
+                for _ in 1..max_digits {
+                    let Some(&next @ '0'..='7') = chars.peek() else {
+                        break;
+                    };
+                    chars.next();
+                    value = value * 8 + u32::from(next) - u32::from('0');
+                }
+                decoded.push(char::from_u32(value).unwrap());
+            }
+            _ => decoded.push(ch),
+        }
+    }
+    quote_single_string_literal(&decoded)
+}
+
 fn is_simple_literal_pattern(pattern: &str) -> bool {
-    let mut prev_rune = '\0';
+    let mut escaped = false;
     for ch in pattern.chars() {
-        if prev_rune != '\\' {
-            if matches!(
-                ch,
-                '.' | '*' | '+' | '?' | '|' | '^' | '$' | '[' | ']' | '(' | ')' | '{' | '}'
-            ) {
+        if escaped {
+            escaped = false;
+            if matches!(ch, 'd' | 'D' | 'w' | 'W' | 's' | 'S' | 'b' | 'B' | 'c' | 'x' | 'u') {
                 return false;
             }
-        } else if matches!(ch, 'd' | 'D' | 'w' | 'W' | 's' | 'S' | 'b' | 'B' | 'c' | 'x' | 'u') {
-            return false;
-        }
-        prev_rune = ch;
-    }
-    true
-}
-
-fn scan_char_escape(ch: char, chars: &mut std::iter::Peekable<std::str::Chars<'_>>) -> char {
-    match ch {
-        '0'..='7' => {
-            let mut value = ch as u32 - '0' as u32;
-            for _ in 0..2 {
-                if value >= 0x20 {
-                    break;
-                }
-                let Some(&digit @ '0'..='7') = chars.peek() else {
-                    break;
-                };
-                chars.next();
-                value = value * 8 + digit as u32 - '0' as u32;
-            }
-            char::from_u32(value).unwrap()
-        }
-        'a' => '\u{7}',
-        'e' => '\u{1b}',
-        'f' => '\u{c}',
-        'n' => '\n',
-        'r' => '\r',
-        't' => '\t',
-        'v' => '\u{b}',
-        other => other,
-    }
-}
-
-fn scan_char_set(chars: &mut std::iter::Peekable<std::str::Chars<'_>>) -> bool {
-    let mut ch_prev = '\0';
-    let mut in_range = false;
-    while let Some(mut ch) = chars.next() {
-        if ch == ']' {
-            return true;
+            continue;
         }
         if ch == '\\' {
-            let Some(escaped) = chars.next() else {
-                return false;
-            };
-            match escaped {
-                'P' => {
-                    if in_range
-                        || !chars.next().is_some_and(|category| {
-                            matches!(category, 'C' | 'L' | 'M' | 'N' | 'P' | 'S' | 'Z')
-                        })
-                    {
-                        return false;
-                    }
-                    continue;
-                }
-                'p' => {
-                    if in_range {
-                        if ch_prev > 'p' {
-                            return false;
-                        }
-                        in_range = false;
-                    } else {
-                        let mut lookahead = chars.clone();
-                        if lookahead.next() == Some('-')
-                            && lookahead.peek().is_some_and(|&next| next != ']')
-                        {
-                            chars.next();
-                            if 'p' > chars.next().unwrap() {
-                                return false;
-                            }
-                        }
-                    }
-                    continue;
-                }
-                '-' => continue,
-                other => ch = scan_char_escape(other, chars),
-            }
+            escaped = true;
+            continue;
         }
-        if in_range {
-            in_range = false;
-            if ch_prev > ch {
-                return false;
-            }
-        } else {
-            let mut lookahead = chars.clone();
-            if lookahead.next() == Some('-') && lookahead.peek().is_some_and(|&next| next != ']') {
-                ch_prev = ch;
-                in_range = true;
-                chars.next();
-            }
+        if matches!(ch, '.' | '*' | '+' | '?' | '|' | '^' | '$' | '[' | ']' | '(' | ')' | '{' | '}')
+        {
+            return false;
         }
     }
-    false
+    !escaped
 }
 
 fn is_valid_simple_literal_pattern(pattern: &str) -> bool {
-    if !is_simple_literal_pattern(pattern) {
+    let pattern = String::from_utf8_lossy(pattern.as_bytes());
+    if !is_simple_literal_pattern(&pattern) {
         return false;
     }
-    // The pinned previous-rune filter excludes group prefixes and braced quantifiers.
-    // Character classes still need regexp2's range and escape validation.
-    let mut chars = pattern.chars().peekable();
-    let mut groups = 0usize;
+    let mut chars = pattern.chars();
     while let Some(ch) = chars.next() {
-        match ch {
-            '\\' => {
-                let Some(escaped) = chars.next() else {
-                    return false;
-                };
-                if matches!(escaped, '1'..='9') {
-                    let mut number = escaped as i32 - '0' as i32;
-                    for digit in chars.clone().take_while(char::is_ascii_digit) {
-                        let Some(next) = number
-                            .checked_mul(10)
-                            .and_then(|n| n.checked_add(digit as i32 - '0' as i32))
-                        else {
-                            return false;
-                        };
-                        number = next;
-                    }
-                }
-                scan_char_escape(escaped, &mut chars);
-            }
-            '[' => {
-                if !scan_char_set(&mut chars) {
-                    return false;
-                }
-            }
-            '(' => groups += 1,
-            ')' => {
-                let Some(remaining) = groups.checked_sub(1) else {
-                    return false;
-                };
-                groups = remaining;
-            }
-            _ => {}
+        if ch != '\\' {
+            continue;
+        }
+        let Some(escaped) = chars.next() else {
+            return false;
+        };
+        if !matches!(escaped, '1'..='9') {
+            continue;
+        }
+        let mut number = escaped as i32 - '0' as i32;
+        for digit in chars.clone().take_while(char::is_ascii_digit) {
+            let Some(next) =
+                number.checked_mul(10).and_then(|n| n.checked_add(digit as i32 - '0' as i32))
+            else {
+                return false;
+            };
+            number = next;
         }
     }
-    groups == 0
+    true
 }
 
 fn extract_regex_literal_pattern(node: P<Node>) -> &'static str {
@@ -356,6 +287,10 @@ impl PreferIncludes {
         {
             return;
         }
+        if std::str::from_utf8(pattern.as_bytes()).is_err() {
+            context.report_node(node, build_prefer_string_includes_message());
+            return;
+        }
         let file = context.source_file;
         context.report_node_with_fixes(node, build_prefer_string_includes_message(), || {
             let needs_parens = !matches!(
@@ -385,7 +320,7 @@ impl PreferIncludes {
             }
             fixes.push(Fix {
                 range: Range { pos: arg_end, end: arg_end },
-                text: format!(".includes('{}')", pattern.replace('\'', "\\'")),
+                text: format!(".includes({})", pattern_string_literal(pattern)),
             });
             fixes
         });

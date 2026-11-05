@@ -4248,7 +4248,7 @@ fn prefer_includes_preserves_pinned_edges_utf8_options_and_fix_flags() {
 }
 
 #[test]
-fn prefer_includes_keeps_pinned_negated_unicode_category_validation() {
+fn prefer_includes_rejects_character_classes_after_escaped_backslashes() {
     let file = std::env::current_dir()
         .unwrap()
         .join("target/lint-prefer-includes-categories/virtual.ts")
@@ -4288,54 +4288,14 @@ fn prefer_includes_keeps_pinned_negated_unicode_category_validation() {
         ),
         (
             "source_overrides",
-            Value::Object(std::iter::once((file.clone(), Value::String(source.clone()))).collect()),
+            Value::Object(std::iter::once((file, Value::String(source))).collect()),
         ),
     ]);
     for flags in [vec![], vec!["-fix"], vec!["-fix-suggestions"], vec!["-fix", "-fix-suggestions"]]
     {
         let (status, frames) = run(&payload, &flags);
         assert_eq!(status, 0, "{frames:?}");
-        assert_eq!(frames.len(), 7, "{frames:?}");
-        for (index, (kind, value)) in frames.iter().enumerate() {
-            let needle = format!("p{index}.test(字)");
-            let pos: u32 = source.find(&needle).unwrap().try_into().unwrap();
-            let end = pos + u32::try_from(needle.len()).unwrap();
-            let argument_pos = pos + u32::try_from(format!("p{index}.test(").len()).unwrap();
-            let argument_end = argument_pos + u32::try_from("字".len()).unwrap();
-            let fixes = if flags.contains(&"-fix") {
-                vec![
-                    protocol::Fix {
-                        range: protocol::Range { pos, end: argument_pos },
-                        text: String::new(),
-                    },
-                    protocol::Fix {
-                        range: protocol::Range { pos: argument_end, end },
-                        text: String::new(),
-                    },
-                    protocol::Fix {
-                        range: protocol::Range { pos: argument_end, end: argument_end },
-                        text: format!(".includes('{}')", patterns[index]),
-                    },
-                ]
-            } else {
-                Vec::new()
-            };
-            let expected = protocol::Diagnostic {
-                range: Some(protocol::Range { pos, end }),
-                message: protocol::RuleMessage {
-                    id: "preferStringIncludes".into(),
-                    description: "Use `String#includes()` method with a string instead.".into(),
-                    ..Default::default()
-                },
-                fixes,
-                file_path: Some(file.clone()),
-                rule: Some("prefer-includes".into()),
-                ..Default::default()
-            }
-            .to_json();
-            assert_eq!(*kind, protocol::MessageType::Diagnostic as u8);
-            assert_eq!(*value, json::unmarshal(&json::marshal(&expected).unwrap()).unwrap());
-        }
+        assert!(frames.is_empty(), "{frames:?}");
     }
 }
 

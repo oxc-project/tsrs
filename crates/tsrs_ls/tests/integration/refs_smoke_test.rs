@@ -135,7 +135,11 @@ struct TestPoolState {
 struct TestPool(&'static TestPoolState);
 
 impl CheckerPool for TestPool {
-    fn get_checker(&self, _ctx: &Context, _file: Option<P<tsrs_ast::SourceFile>>) -> CheckerHandle {
+    fn get_checker(
+        &self,
+        _ctx: &Context,
+        _file: Option<P<tsrs_ast::SourceFile>>,
+    ) -> CheckerHandle<'_> {
         let state = self.0;
         let mut slots = state.slots.lock().unwrap();
         let index = if let Some(index) = slots.iter().position(|(_, held)| !held) {

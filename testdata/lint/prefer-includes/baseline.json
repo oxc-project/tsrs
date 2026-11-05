@@ -190,6 +190,50 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(body: string): void {\n        /scopeName\\\\?\":\\\\?\"source\\./.test(body);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(body: string): void {\n        /a\\\\?b/.test(body);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(body: string): void {\n        /a\\\\+/.test(body);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(body: string): void {\n        /a\\\\\\d/.test(body);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [
@@ -2342,7 +2386,7 @@
           "Skip": false,
           "FileName": "",
           "Output": [
-            "\n        function f(a: string): void {\n          a.includes('\\0\\'\\\\n\\r\\v\\t\\f');\n        }\n      "
+            "\n        function f(a: string): void {\n          a.includes('\\u0000\\'\\\\n\\r\\v\\t\\f');\n        }\n      "
           ],
           "Errors": [
             {
@@ -2381,7 +2425,7 @@
                   }
                 },
                 {
-                  "text": ".includes('\\0\\'\\\\n\\r\\v\\t\\f')",
+                  "text": ".includes('\\u0000\\'\\\\n\\r\\v\\t\\f')",
                   "range": {
                     "pos": 72,
                     "end": 72
@@ -2957,6 +3001,591 @@
                   }
                 }
               ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          /a\\\\b\\.c/.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes('a\\\\b.c');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 66
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 49,
+                    "end": 64
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 65,
+                    "end": 66
+                  }
+                },
+                {
+                  "text": ".includes('a\\\\b.c')",
+                  "range": {
+                    "pos": 65,
+                    "end": 65
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a: string) { /a\\\\b\\'c/.test(a); }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function f(a: string) { a.includes('a\\\\b\\'c'); }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 41
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 39
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 40,
+                    "end": 41
+                  }
+                },
+                {
+                  "text": ".includes('a\\\\b\\'c')",
+                  "range": {
+                    "pos": 40,
+                    "end": 40
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a: string) { /a\\\\b\\\\'c/.test(a); }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function f(a: string) { a.includes('a\\\\b\\\\\\'c'); }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 42
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 40
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 41,
+                    "end": 42
+                  }
+                },
+                {
+                  "text": ".includes('a\\\\b\\\\\\'c')",
+                  "range": {
+                    "pos": 41,
+                    "end": 41
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a: string) { /a\\\\b\\1/.test(a); }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function f(a: string) { a.includes('a\\\\b\\u0001'); }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 40
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 38
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 39,
+                    "end": 40
+                  }
+                },
+                {
+                  "text": ".includes('a\\\\b\\u0001')",
+                  "range": {
+                    "pos": 39,
+                    "end": 39
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a: string) { /a\\\\b\\8/.test(a); }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function f(a: string) { a.includes('a\\\\b8'); }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 40
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 38
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 39,
+                    "end": 40
+                  }
+                },
+                {
+                  "text": ".includes('a\\\\b8')",
+                  "range": {
+                    "pos": 39,
+                    "end": 39
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a: string) { /a\\\\b\\377/.test(a); }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function f(a: string) { a.includes('a\\\\bÿ'); }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 42
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 40
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 41,
+                    "end": 42
+                  }
+                },
+                {
+                  "text": ".includes('a\\\\bÿ')",
+                  "range": {
+                    "pos": 41,
+                    "end": 41
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a: string) { /a\\\\b\\400/.test(a); }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function f(a: string) { a.includes('a\\\\b 0'); }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 42
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 40
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 41,
+                    "end": 42
+                  }
+                },
+                {
+                  "text": ".includes('a\\\\b 0')",
+                  "range": {
+                    "pos": 41,
+                    "end": 41
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a: string) { /a\\\\b\\08/.test(a); }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function f(a: string) { a.includes('a\\\\b\\u00008'); }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 41
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 39
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 40,
+                    "end": 41
+                  }
+                },
+                {
+                  "text": ".includes('a\\\\b\\u00008')",
+                  "range": {
+                    "pos": 40,
+                    "end": 40
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a: string) { const p = new RegExp('a\\\\\\\\b\\n'); p.test(a); }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function f(a: string) { const p = new RegExp('a\\\\\\\\b\\n'); a.includes('a\\\\b\\n'); }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 67
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 65
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 66,
+                    "end": 67
+                  }
+                },
+                {
+                  "text": ".includes('a\\\\b\\n')",
+                  "range": {
+                    "pos": 66,
+                    "end": 66
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a: string) { const p = new RegExp('a\\\\\\\\b\\uD800'); p.test(a); }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 62,
+                "end": 71
+              }
             }
           ]
         }

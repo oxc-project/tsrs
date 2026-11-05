@@ -5,6 +5,18 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 0.22.0
+
+The package version is `0.22.0-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.
+The [release notes](releases/0.22.0.md) lead with one run for type-aware lint and type checking: under the fast preset,
+`oxlint --type-aware --type-check` reports the same type errors as `tsrs --noEmit`, so it can replace a separate
+typecheck. They also cover content mappers in the language server, the Node API and the linter, fast-mode build info
+that keeps interface caches on incremental edits, and two fast-mode checker shortcuts
+([#854](https://github.com/oxc-project/tsrs/pull/854), [#875](https://github.com/oxc-project/tsrs/pull/875),
+[#883](https://github.com/oxc-project/tsrs/pull/883), [#885](https://github.com/oxc-project/tsrs/pull/885),
+[#897](https://github.com/oxc-project/tsrs/pull/897), [#900](https://github.com/oxc-project/tsrs/pull/900),
+[#902](https://github.com/oxc-project/tsrs/pull/902)).
+
 ## 0.21.0
 
 The package version is `0.21.0-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.

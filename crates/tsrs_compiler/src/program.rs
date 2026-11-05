@@ -131,7 +131,7 @@ impl ProgramOptions {
             canonical_diagnostics: true,
             checker_regions: false,
             checker_diagnostic_regions: false,
-            regions: None,
+            regions: config.regions.map(|_| Arc::default()),
             reuse_synthetic_imports: false,
         }
     }

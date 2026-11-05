@@ -1,4 +1,5 @@
 mod affinity_test;
+mod arena_leak_889_test;
 mod checkerpool_default_checker_tests;
 mod checkerpool_stealing_tests;
 mod contentmapper_test;

@@ -1,2 +1,11 @@
-tsgolint 4ebf80fd2b166cba4890c6896220fec4a1462b29
+tsgolint 6b043c5f3dd19e3a162b7f0edf587a9ae83bfe81
 typescript-go 2bd066d87f5bafd315be9f40889d0a60b9e58e0b
+
+Scoped rule refresh, including f68cde8c8c7e0d826b4a78ff3862784b0103d5cd (#1333).
+All six compiler patches; Go 1.26.10; @types/node 24.13.2; undici-types 7.18.2.
+Exported with tools/tsgolint/export.mts in a disposable checkout, changing only
+the exporter's tsgolint reference constant in a temporary copy. The shared corpus
+REFERENCE, exporter pins, fixtures and other rules retain their existing provenance.
+The headless semantic regression, including empty type-argument lists and a comma
+wrapper, was checked against this oracle in all four fix modes, with and without
+semantic reporting, at one and two checkers.

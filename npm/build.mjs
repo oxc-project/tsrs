@@ -37,6 +37,7 @@ const TARGETS = {
     "x86_64-unknown-linux-musl": { os: "linux", cpu: "x64", libc: "musl" },
     "aarch64-unknown-linux-musl": { os: "linux", cpu: "arm64", libc: "musl" },
     "x86_64-pc-windows-msvc": { os: "win32", cpu: "x64" },
+    "aarch64-pc-windows-msvc": { os: "win32", cpu: "arm64" },
 };
 
 function usage(message) {

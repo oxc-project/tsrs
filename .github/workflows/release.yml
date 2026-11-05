@@ -290,11 +290,17 @@ jobs:
   # The Windows profile trains compiler code through tsrs-test and the native CLI. The Unix
   # Fourslash bridge and benchmark installers are not used on Windows.
   build-windows:
-    name: build x86_64-pc-windows-msvc
+    name: build ${{ matrix.target }}
     needs: version
     if: needs.version.outputs.release == 'true'
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-pc-windows-msvc, os: windows-latest }
+          - { target: aarch64-pc-windows-msvc, os: windows-11-arm }
     env:
       TSRS_TS_VERSION: ${{ needs.version.outputs.ts_nightly }}
       CARGO_PROFILE_RELEASE_STRIP: symbols
@@ -320,7 +326,7 @@ jobs:
           restore-cache: false
           components: llvm-tools
 
-      - run: rustup target add x86_64-pc-windows-msvc
+      - run: rustup target add ${{ matrix.target }}
 
       - name: Instrumented build
         shell: pwsh
@@ -330,13 +336,13 @@ jobs:
           $env:CARGO_TARGET_DIR = Join-Path $env:RUNNER_TEMP "pgo/target"
           # Override rustc's LTO while keeping Cargo's release profile identical to the final build.
           $env:CARGO_ENCODED_RUSTFLAGS = @("-Cprofile-generate=$raw", "-Clto=thin") -join [char]31
-          cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --features tsrs_cli/noembed --target x86_64-pc-windows-msvc
+          cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --features tsrs_cli/noembed --target ${{ matrix.target }}
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Training run
         shell: pwsh
         run: |
-          $bin = Join-Path $env:RUNNER_TEMP "pgo/target/x86_64-pc-windows-msvc/release"
+          $bin = Join-Path $env:RUNNER_TEMP "pgo/target/${{ matrix.target }}/release"
           $raw = Join-Path $env:RUNNER_TEMP "pgo/raw"
           & ./.github/scripts/pgo-train-windows.ps1 -BinDir $bin -RawDir $raw
 
@@ -344,7 +350,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: windows-conformance-results
+          name: windows-conformance-results-${{ matrix.target }}
           path: ${{ runner.temp }}/pgo/test-results/
           if-no-files-found: ignore
 
@@ -352,7 +358,8 @@ jobs:
         id: profile
         shell: pwsh
         run: |
-          $profdata = Join-Path (rustc --print sysroot) "lib/rustlib/x86_64-pc-windows-msvc/bin/llvm-profdata.exe"
+          $hostTriple = (rustc -vV | Select-String '^host: ').ToString().Substring(6)
+          $profdata = Join-Path (rustc --print sysroot) "lib/rustlib/$hostTriple/bin/llvm-profdata.exe"
           if (-not (Test-Path $profdata)) { throw "missing llvm-profdata at $profdata" }
           $raw = Join-Path $env:RUNNER_TEMP "pgo/raw"
           $profiles = @(Get-ChildItem $raw -Filter "*.profraw" | Where-Object Length -gt 0 | ForEach-Object FullName)
@@ -373,13 +380,13 @@ jobs:
           PROFILE_PATH: ${{ steps.profile.outputs.path }}
         run: |
           $env:CARGO_ENCODED_RUSTFLAGS = "-Cprofile-use=$env:PROFILE_PATH"
-          cargo build --release --locked -p tsrs_cli --features tsrs_cli/noembed --target x86_64-pc-windows-msvc
+          cargo build --release --locked -p tsrs_cli --features tsrs_cli/noembed --target ${{ matrix.target }}
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Stage and smoke binary
         shell: pwsh
         run: |
-          $target = "x86_64-pc-windows-msvc"
+          $target = "${{ matrix.target }}"
           $out = Join-Path $env:GITHUB_WORKSPACE "out/$target"
           New-Item -ItemType Directory -Force $out | Out-Null
           $exe = Join-Path $out "tsrs.exe"
@@ -404,7 +411,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: bin-x86_64-pc-windows-msvc
+          name: bin-${{ matrix.target }}
           path: out/
           if-no-files-found: error
 
@@ -564,7 +571,9 @@ jobs:
             x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
             test -f "artifacts/$t/tsrs" || { echo "::error::missing binary for $t"; exit 1; }
           done
-          test -f artifacts/x86_64-pc-windows-msvc/tsrs.exe || { echo "::error::missing Windows binary"; exit 1; }
+          for t in x86_64-pc-windows-msvc aarch64-pc-windows-msvc; do
+            test -f "artifacts/$t/tsrs.exe" || { echo "::error::missing binary for $t"; exit 1; }
+          done
           ls -lR artifacts wasm-dist
 
       - name: Assemble and pack

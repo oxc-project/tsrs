@@ -442,6 +442,61 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { a: any }): never;\n<Foo a={\"safe\"} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { a: unknown }): never;\ndeclare const value: unknown;\n<Foo a={value} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare namespace JSX {\n  interface IntrinsicElements { foo: { a: any }; }\n}\n<foo a={\"safe\"} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: any;\nconst x: { p: unknown } = { 'p': value };\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: any;\nconst x: { p: unknown } = { ['p']: value };\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [
@@ -2712,6 +2767,383 @@
                 "help": "Assigned value has type `Set<any>`; the target has type `Set<string>`. Use a safely typed value or `unknown`, and narrow it before use."
               },
               "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare namespace JSX {\n  interface Element {}\n  interface IntrinsicAttributes { key?: string; }\n}\ndeclare function Foo(props: { a: any; b: string }): never;\ndeclare const v: any;\n<Foo a={v} b=\"x\" />;\n<Foo a={1} b={v} />;\nconst x: any = v;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 8,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 10,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "anyAssignment",
+              "Line": 9,
+              "Column": 15,
+              "EndLine": 0,
+              "EndColumn": 16,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "anyAssignment",
+              "Line": 10,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-assignment",
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 189,
+                "end": 190
+              }
+            },
+            {
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 216,
+                "end": 217
+              },
+              "kind": 0,
+              "rule": "no-unsafe-assignment",
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `string`. Use a safely typed value or `unknown`, and narrow it before use."
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "no-unsafe-assignment",
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 229,
+                "end": 239
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { a: any }): never;\n<Foo a={1 as any} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 57,
+                "end": 65
+              },
+              "kind": 0,
+              "rule": "no-unsafe-assignment",
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { a: unknown }): never;\ndeclare const value: any;\n<Foo a={value} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 87,
+                "end": 92
+              },
+              "kind": 0,
+              "rule": "no-unsafe-assignment",
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `unknown`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "react.tsx"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare namespace JSX {\n  interface IntrinsicElements { foo: { a: any }; }\n}\ndeclare const value: any;\n<foo a={value} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 6,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-assignment",
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 112,
+                "end": 117
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { [key: string]: string }): never;\ndeclare const value: any;\n<Foo a={value} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-assignment",
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `string`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 98,
+                "end": 103
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare namespace JSX {\n  interface IntrinsicAttributes { key?: string; }\n}\ndeclare function Foo(props: { kind: \"a\"; a: string } | { kind: \"b\"; b: number }): never;\ndeclare const value: any;\n<Foo kind=\"a\" a={value} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 7,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 209,
+                "end": 214
+              },
+              "kind": 0,
+              "rule": "no-unsafe-assignment",
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `string`. Use a safely typed value or `unknown`, and narrow it before use."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare namespace JSX {\n  interface IntrinsicAttributes { key?: string; }\n}\ndeclare function Foo(props: { kind: \"a\"; a: any } | { kind: \"b\"; b: number }): never;\ndeclare const value: any;\n<Foo kind=\"a\" a={value} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 7,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 206,
+                "end": 211
+              },
+              "kind": 0,
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare namespace JSX {\n  interface IntrinsicAttributes { key?: string; }\n}\ndeclare function Foo(props: { [key: string]: any }): never;\ndeclare const value: any;\n<Foo a={value} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 7,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-assignment",
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 171,
+                "end": 176
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { a: Set<string> }): never;\ndeclare const value: Set<any>;\n<Foo a={value} />;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeAssignment",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unsafeAssignment",
+                "description": "Unsafe assignment between incompatible types.",
+                "help": "Assigned value has type `Set<any>`; the target has type `Set<string>`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 96,
+                "end": 101
+              },
+              "kind": 0,
               "rule": "no-unsafe-assignment"
             }
           ]

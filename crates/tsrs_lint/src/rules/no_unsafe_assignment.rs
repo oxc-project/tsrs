@@ -301,10 +301,14 @@ fn receiver_type(
     context: &mut RuleContext<'_>,
     receiver: P<Node>,
     sender_node: P<Node>,
+    sender: P<Type>,
     comparison: Comparison,
 ) -> P<Type> {
     if comparison == Comparison::Contextual {
-        if let Some(ty) = context.checker.get_contextual_type(sender_node, ContextFlags::None) {
+        if (receiver.parent().is_none_or(|parent| parent.kind() != Kind::JsxAttribute)
+            || !sender.flags().intersects(TypeFlags::Any))
+            && let Some(ty) = context.checker.get_contextual_type(sender_node, ContextFlags::None)
+        {
             return ty;
         }
         if let Some(ty) = utils::get_contextual_type(context.checker, receiver) {
@@ -326,9 +330,29 @@ fn check_assignment(
     }
     let sender = context.checker.get_type_at_location(sender_node);
     if sender.flags().intersects(TypeFlags::Any) {
-        let receiver = receiver_type(context, receiver, sender_node, comparison);
-        if receiver.flags().intersects(TypeFlags::Unknown) {
+        let receiver_ty = receiver_type(context, receiver, sender_node, sender, comparison);
+        if receiver_ty.flags().intersects(TypeFlags::Unknown) {
             return false;
+        }
+        let mut diagnostic_receiver = receiver_ty;
+        if let Some(attribute) =
+            receiver.parent().filter(|parent| parent.kind() == Kind::JsxAttribute)
+        {
+            if let Some(ty) = utils::get_contextual_type(context.checker, sender_node) {
+                diagnostic_receiver = ty;
+            }
+            if diagnostic_receiver.flags().intersects(TypeFlags::Unknown)
+                && let Some(attributes_type) = context.checker.get_apparent_type_of_contextual_type(
+                    attribute.parent().unwrap(),
+                    ContextFlags::None,
+                )
+                && let Some(ty) = context.checker.get_type_of_property_or_index_signature_of_type(
+                    attributes_type,
+                    receiver.text(),
+                )
+            {
+                diagnostic_receiver = ty;
+            }
         }
         let options = context.program.options();
         if !options.get_strict_option_value(options.no_implicit_this)
@@ -340,7 +364,7 @@ fn check_assignment(
             let message = assignment_message(
                 context,
                 sender,
-                receiver,
+                diagnostic_receiver,
                 comparison == Comparison::None,
                 MessageId::AnyAssignmentThis.message(sender),
             );
@@ -352,7 +376,7 @@ fn check_assignment(
         let message = assignment_message(
             context,
             sender,
-            receiver,
+            diagnostic_receiver,
             comparison == Comparison::None,
             MessageId::AnyAssignment.message(sender),
         );
@@ -364,7 +388,7 @@ fn check_assignment(
     if comparison == Comparison::None || !tsrs_checker::is_non_deferred_type_reference(sender) {
         return false;
     }
-    let receiver = receiver_type(context, receiver, sender_node, comparison);
+    let receiver = receiver_type(context, receiver, sender_node, sender, comparison);
     let Some((receiver, sender)) =
         utils::is_unsafe_assignment(sender, receiver, context.checker, Some(sender_node))
     else {

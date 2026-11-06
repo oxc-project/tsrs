@@ -456,6 +456,10 @@ impl Project {
         self.id.clone()
     }
 
+    pub(crate) fn id_ref(&self) -> &ID {
+        &self.id
+    }
+
     // project.go:338
     // ConfigFileName panics if Kind() is not KindConfigured.
     pub fn config_file_name(&self) -> &str {

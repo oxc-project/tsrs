@@ -38,8 +38,6 @@ pub struct FrozenCell<T> {
 // SAFETY: shared access is read-only except through `borrow_mut`, whose callers follow the ownership
 // contract in the module docs (only the owning thread writes, and never while other threads can read).
 unsafe impl<T: Send + Sync> Sync for FrozenCell<T> {}
-// SAFETY: the cell owns its `T` like an `UnsafeCell<T>`, so it is `Send` when `T` is.
-unsafe impl<T: Send> Send for FrozenCell<T> {}
 
 impl<T> FrozenCell<T> {
     #[inline]

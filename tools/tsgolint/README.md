@@ -80,7 +80,7 @@ files outside every tsconfig are linted and type-checked in an inferred program 
 options. That inferred program reports diagnostics only for those listed loose files.
 
 Shared files' type errors are reported once per request: a listed file by the program it maps to, any other file by
-the first configured program containing it. This whole-program scope extends upstream tsgolint's requested-file
+the first selected configured program eligible to check it. This whole-program scope extends upstream tsgolint's requested-file
 reporting; the fast preset is not required to enable it.
 
 ```sh

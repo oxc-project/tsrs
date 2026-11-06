@@ -2340,7 +2340,11 @@ impl Checker {
         let mut covariant = true;
         let mut node = node;
         while let Some(n) = node {
-            if ast::is_statement(n) || n.kind() == Kind::JSDoc {
+            // A clean ancestor (`NodeFlags::COND_FLOW_CLEAN`) has no constraint-adding step above it.
+            if n.flags().intersects(NodeFlags::COND_FLOW_CLEAN)
+                || ast::is_statement(n)
+                || n.kind() == Kind::JSDoc
+            {
                 break;
             }
             let parent = n.parent().unwrap();

@@ -233,9 +233,22 @@ fn run_in_region(
             crate::registry::require_implemented(&rule.name)?;
         }
     }
+    // tsrs-only: semantic reporting (oxlint `--type-check`) reports what `tsrs --noEmit` does for each tsconfig program:
+    // every file it checks and the program's global diagnostics, where tsgolint reports only the files oxlint sent. One
+    // `oxlint --type-aware --type-check` run can then replace a separate typecheck. Files oxlint sent that no tsconfig
+    // includes are checked in an inferred program. Each file's type errors are reported once: a listed file by the
+    // program it maps to, any other file by the first program that has it.
+    let mut type_checked = FxHashSet::default();
     let mut config_cache = FxHashMap::default();
     for path in file_configs.keys() {
         let resolved = tspath::get_normalized_absolute_path(path, cwd);
+        if payload.report_semantic {
+            type_checked.insert(tspath::to_path(
+                &resolved,
+                cwd,
+                fs.use_case_sensitive_file_names(),
+            ));
+        }
         if let Some(config_path) = find_tsconfig(&resolved, host, &mut config_cache) {
             programs.entry(config_path).or_default().push(path.clone());
         } else {
@@ -279,19 +292,17 @@ fn run_in_region(
             }
             continue;
         }
-        let whole = payload.report_semantic && whole_program_type_check();
         run_program(
             program_ref,
             &files,
-            whole,
-            true,
+            payload.report_semantic.then_some(&mut type_checked),
             payload,
             options,
             writer,
             &file_configs,
             &mut timings,
         )?;
-        if whole {
+        if payload.report_semantic {
             for diagnostic in program_ref.get_global_diagnostics(&Context::default()) {
                 report_global_error(diagnostic, &config_path, writer)?;
             }
@@ -322,13 +333,10 @@ fn run_in_region(
             },
         );
         let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders));
-        // With the whole-program check, compiler diagnostics follow `tsrs --noEmit`, which checks no such file.
-        let types = !whole_program_type_check();
         run_program(
             program.program,
             &unmatched,
-            false,
-            types,
+            None,
             payload,
             options,
             writer,
@@ -403,24 +411,15 @@ fn checker_count() -> Option<i64> {
     std::env::var("RAYON_NUM_THREADS").ok().and_then(|value| value.parse().ok()).filter(|&n| n > 0)
 }
 
-// tsrs-only: under the fast preset, semantic reporting (oxlint `--type-check`) reports what `tsrs --noEmit` does for
-// each tsconfig program: every file it checks, not only the files oxlint sent, and the program's global diagnostics.
-// Files outside every tsconfig are linted but, as with `tsrs --noEmit`, not type-checked. One `oxlint --type-aware
-// --type-check` run can then replace a separate typecheck. Default mode reports the files oxlint sent, as tsgolint does.
-fn whole_program_type_check() -> bool {
-    tsrs_core::fast::enabled()
-}
-
 // Lints the files on the program's checker pool: one thread per checker, each over the files the pool assigned to
 // it (by import-graph locality under the fast preset), so a checker resolves the types of its own corner of the
 // program instead of nearly all of it. Output keeps the order of `files`.
-// `whole`: also report the compiler diagnostics of the program's other files (`whole_program_type_check`), after them;
-// `types`: report the payload's compiler diagnostics at all.
+// `whole` (with semantic reporting): the files that already have a program to report their type errors. Also
+// report the compiler diagnostics of the program's files outside that set, after `files`, and add them to it.
 fn run_program(
     program: &'static Program,
     files: &[String],
-    whole: bool,
-    types: bool,
+    whole: Option<&mut FxHashSet<tspath::Path>>,
     payload: &Payload,
     options: Options,
     writer: &mut dyn Write,
@@ -434,16 +433,14 @@ fn run_program(
             .get_source_file(name)
             .ok_or_else(|| format!("Expected file '{name}' to be in program"))?;
         let configured = file_configs.get(name).copied().unwrap_or_default();
-        if (types && (payload.report_syntactic || payload.report_semantic))
-            || !configured.is_empty()
-        {
+        if payload.report_syntactic || payload.report_semantic || !configured.is_empty() {
             work.push((file, configured));
         }
     }
-    if whole {
-        let listed: FxHashSet<P<SourceFile>> = work.iter().map(|&(file, _)| file).collect();
+    if let Some(type_checked) = whole {
         for &file in program.get_source_files() {
-            if !listed.contains(&file) && !program.skip_type_checking(file, false) {
+            if !program.skip_type_checking(file, false) && type_checked.insert(file.path().clone())
+            {
                 work.push((file, &[]));
             }
         }
@@ -462,7 +459,6 @@ fn run_program(
             program,
             file,
             work[index].1,
-            types,
             payload,
             options,
             checker,
@@ -494,7 +490,6 @@ fn lint_one(
     program: &'static Program,
     file: P<SourceFile>,
     configured: &[ConfiguredRule],
-    types: bool,
     payload: &Payload,
     options: Options,
     checker: &mut tsrs_checker::Checker,
@@ -502,12 +497,12 @@ fn lint_one(
     timings: &mut BTreeMap<String, (u64, u64)>,
 ) -> Result<(), String> {
     let context = Context::default();
-    if types && payload.report_syntactic {
+    if payload.report_syntactic {
         for diagnostic in program.get_syntactic_diagnostics(&context, Some(file)) {
             report_type_error(diagnostic, file, output)?;
         }
     }
-    if types && payload.report_semantic {
+    if payload.report_semantic {
         let diagnostics = program.get_semantic_diagnostics_with_checker(&context, checker, file);
         for diagnostic in tsrs_compiler::sort_and_deduplicate_diagnostics(&diagnostics) {
             report_type_error(diagnostic, file, output)?;

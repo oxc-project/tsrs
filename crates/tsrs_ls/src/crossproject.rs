@@ -143,10 +143,6 @@ impl LanguageService {
         let mut queue: Vec<ProjectAndTextDocumentPosition> = Vec::new();
         let mut err: Option<lsproto::Error> = None;
         let mut panics_occurred: Vec<String> = Vec::new();
-        // tsrs-only: each file's projects are looked up once per request (Go updates the snapshot on every lookup); a
-        // later lookup could only add projects that the lookup which loaded them has already queued.
-        let mut projects_for_file: FxHashMap<lsproto::DocumentUri, Vec<Arc<dyn Project>>> =
-            FxHashMap::default();
 
         // Initial set of projects and locations in the queue, starting with default project
         let initial_item = ProjectAndTextDocumentPosition {
@@ -284,21 +280,14 @@ impl LanguageService {
                     }
                     for (uri, position) in searched.found {
                         // Get default configured project for this file
-                        let def_projects = if let Some(def_projects) = projects_for_file.get(&uri) {
-                            def_projects.clone()
-                        } else {
-                            match catch_unwind(AssertUnwindSafe(|| {
-                                orchestrator.get_projects_for_file(ctx, &uri)
-                            })) {
-                                Ok(Ok(def_projects)) => {
-                                    projects_for_file.insert(uri.clone(), def_projects.clone());
-                                    def_projects
-                                }
-                                Ok(Err(_)) => continue,
-                                Err(payload) => {
-                                    panics_occurred.push(panic_message(&*payload));
-                                    continue;
-                                }
+                        let def_projects = match catch_unwind(AssertUnwindSafe(|| {
+                            orchestrator.get_projects_for_file(ctx, &uri)
+                        })) {
+                            Ok(Ok(def_projects)) => def_projects,
+                            Ok(Err(_)) => continue,
+                            Err(payload) => {
+                                panics_occurred.push(panic_message(&*payload));
+                                continue;
                             }
                         };
                         for def_project in def_projects {
@@ -501,6 +490,9 @@ fn search_project<Req, Resp>(
     options: SymbolEntryTransformOptions,
 ) -> ProjectSearch<Resp> {
     let mut searched = ProjectSearch { result: None, found: Vec::new(), default_definition: None };
+    if ctx.err().is_some() {
+        return searched;
+    }
     let (data, ok) = match symbol_data {
         Some(data) => (data, true),
         None => {

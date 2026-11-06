@@ -11,3 +11,5 @@ mod server_projectinfo_test;
 mod server_test;
 mod stack_sanitizer_test;
 mod workerpool_test;
+
+mod server_crossproject_test;

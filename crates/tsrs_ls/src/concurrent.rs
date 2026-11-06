@@ -20,23 +20,27 @@ pub fn run_concurrently<T: Send, R: Send>(
     let count = items.len();
     let queue = std::sync::Mutex::new(items.into_iter().enumerate().rev().collect::<Vec<_>>());
     let done = std::sync::Mutex::new(Vec::with_capacity(count));
-    std::thread::scope(|scope| {
-        for _ in 0..threads {
-            std::thread::Builder::new()
-                .name("tsrs-ls-worker".to_owned())
-                .stack_size(STACK_SIZE)
-                .spawn_scoped(scope, || {
-                    around(&mut || {
-                        loop {
-                            let next = queue.lock().unwrap().pop();
-                            let Some((index, item)) = next else { break };
-                            let result = work(item);
-                            done.lock().unwrap().push((index, result));
-                        }
-                    });
-                })
-                .expect("failed to spawn a language service worker thread");
-        }
+    tsrs_core::runslots::blocking(|| {
+        std::thread::scope(|scope| {
+            for _ in 0..threads {
+                std::thread::Builder::new()
+                    .name("tsrs-ls-worker".to_owned())
+                    .stack_size(STACK_SIZE)
+                    .spawn_scoped(scope, || {
+                        tsrs_core::runslots::run(|| {
+                            around(&mut || {
+                                loop {
+                                    let next = queue.lock().unwrap().pop();
+                                    let Some((index, item)) = next else { break };
+                                    let result = work(item);
+                                    done.lock().unwrap().push((index, result));
+                                }
+                            })
+                        });
+                    })
+                    .expect("failed to spawn a language service worker thread");
+            }
+        })
     });
     let mut done = done.into_inner().unwrap();
     done.sort_by_key(|(index, _)| *index);

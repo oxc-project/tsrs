@@ -1561,10 +1561,12 @@ name = "tsrs_vfs"
 version = "0.22.0"
 dependencies = [
  "bitflags",
+ "libc",
  "rayon",
  "rustc-hash",
  "rustix",
  "tsrs_core",
+ "xxhash-rust",
 ]
 
 [[package]]

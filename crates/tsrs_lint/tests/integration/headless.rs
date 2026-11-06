@@ -6806,6 +6806,63 @@ fn type_check_payload(files: Vec<Value>) -> String {
     .unwrap()
 }
 
+fn project_reference_type_check_payload(selected: &[&str]) -> String {
+    let root =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/project_references");
+    json::marshal(&protocol::object([
+        ("version", Value::Integer(2)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                (
+                    "file_paths",
+                    Value::Array(
+                        selected
+                            .iter()
+                            .map(|file| {
+                                Value::String(root.join(file).to_string_lossy().into_owned())
+                            })
+                            .collect(),
+                    ),
+                ),
+                ("rules", Value::Array(Vec::new())),
+            ])]),
+        ),
+        ("report_syntactic", Value::Bool(true)),
+        ("report_semantic", Value::Bool(true)),
+    ]))
+    .unwrap()
+}
+
+#[test]
+fn type_check_uses_transitive_custom_project_options_without_rules() {
+    for selected in [
+        vec!["app/index.ts", "lib/index.ts"],
+        vec!["core/index.ts"],
+        vec!["app/index.ts", "tool/index.ts", "lib/index.ts", "core/index.ts"],
+    ] {
+        let input = project_reference_type_check_payload(&selected);
+        let mut expected: Vec<_> = selected.iter().map(|file| format!("{file} TS2322")).collect();
+        expected.sort();
+        for fast in ["0", "1"] {
+            assert_eq!(
+                reported_ids(&input, &[("TSRS_FAST", fast)], "project_references"),
+                expected,
+                "fast={fast}, selected={selected:?}",
+            );
+        }
+    }
+}
+
+#[test]
+fn type_check_uses_inferred_options_for_files_outside_referenced_configs() {
+    let input = project_reference_type_check_payload(&["loose.ts", "lib/excluded.ts"]);
+    assert_eq!(
+        reported_ids(&input, &[("TSRS_FAST", "0")], "project_references"),
+        vec!["lib/excluded.ts TS2322", "loose.ts TS2322"],
+    );
+}
+
 // Under the fast preset, semantic reporting covers the tsconfig program's files that the payload did not list, as
 // `tsrs --noEmit` does, and files outside every tsconfig are linted but not type-checked. Default mode reports the
 // files the payload lists, as tsgolint does.

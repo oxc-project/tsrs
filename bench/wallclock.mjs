@@ -307,7 +307,7 @@ export function renderReport(a) {
         "",
         `[Workflow run](${a["run-url"]}) · main \`${a["base-sha"].slice(0, 12)}\` → PR merge \`${a["merge-sha"].slice(0, 12)}\` (head \`${a["head-sha"].slice(0, 12)}\`)`,
         "",
-        `Clef gate: ${a.reason}.`,
+        `Clef gate: ${a.reason?.trim() ? a.reason : "decision reason unavailable"}.`,
         "",
     ];
     if (a.decision !== "true") return lines.concat("Benchmarks skipped.", "").join("\n");
@@ -465,10 +465,10 @@ if (isMain(import.meta.url))
                             "run-url",
                             "decision",
                             "identical",
-                            "reason",
                             "results",
                         ].map((k) => [k, null]),
                     ),
+                    reason: "",
                     lint: "",
                     "lint-results": "",
                 },

@@ -3052,7 +3052,7 @@ fn semantic_reporting_reuses_the_lint_checker_in_serial_and_parallel_runs() {
     let files: Vec<_> = (0..2)
         .map(|index| base.join(format!("{index}.ts")).to_string_lossy().into_owned())
         .collect();
-    let source = "export {}; declare function factory<T = unknown>(): T; declare function takeString(value: string): void; const a = factory() as string; takeString(a); declare const n: number; n as number; const wrong: string = 1;";
+    let source = "export {}; declare function factory<T = unknown>(): T; declare function takeString(value: string): void; const a = factory() as string; takeString(a); const b = factory<>() as string; const c = (0, factory<>()) as string; declare const n: number; n as number; const wrong: string = 1;";
     let mut overrides: JsonMap =
         files.iter().map(|file| (file.clone(), Value::String(source.into()))).collect();
     overrides.insert(base.join("tsconfig.json").to_string_lossy().into_owned(), Value::String(r#"{"compilerOptions":{"strict":true,"noLib":true,"types":[]},"files":["0.ts","1.ts"]}"#.into()));
@@ -3103,17 +3103,18 @@ fn semantic_reporting_reuses_the_lint_checker_in_serial_and_parallel_runs() {
                         .iter()
                         .filter(|diagnostic| diagnostic.contains_key("rule"))
                         .collect();
-                    let expressions: &[&str] = if semantic {
-                        &["factory() as string", "n as number"]
-                    } else {
-                        &["n as number"]
-                    };
+                    let expressions = [
+                        ("factory() as string", "contextuallyInferredTypeArguments"),
+                        ("factory<>() as string", "contextuallyInferredTypeArguments"),
+                        ("(0, factory<>()) as string", "contextuallyInferredTypeArguments"),
+                        ("n as number", "unnecessaryAssertion"),
+                    ];
                     assert_eq!(
                         lint.len(),
                         expressions.len(),
                         "{semantic} {threads} {flags:?}: {frames:?}"
                     );
-                    for (diagnostic, expression) in lint.iter().zip(expressions) {
+                    for (diagnostic, (expression, message_id)) in lint.iter().zip(expressions) {
                         let start = source.find(expression).unwrap();
                         let end = start + expression.len();
                         assert_eq!(
@@ -3121,8 +3122,8 @@ fn semantic_reporting_reuses_the_lint_checker_in_serial_and_parallel_runs() {
                             json::unmarshal(&format!(r#"{{"pos":{start},"end":{end}}}"#)).unwrap()
                         );
                         let Value::Object(message) = &diagnostic["message"] else { panic!() };
-                        assert_eq!(message["id"], Value::String("unnecessaryAssertion".into()));
-                        if flags.contains(&"-fix") {
+                        assert_eq!(message["id"], Value::String(message_id.into()));
+                        if flags.contains(&"-fix") && message_id == "unnecessaryAssertion" {
                             let start = start + expression.find(" as ").unwrap();
                             assert_eq!(
                                 diagnostic["fixes"],
@@ -3140,10 +3141,12 @@ fn semantic_reporting_reuses_the_lint_checker_in_serial_and_parallel_runs() {
                         .iter()
                         .filter(|diagnostic| !diagnostic.contains_key("rule"))
                         .collect();
-                    assert_eq!(compiler.len(), usize::from(semantic), "{frames:?}");
-                    if let Some(diagnostic) = compiler.first() {
+                    let expected_ids: &[&str] =
+                        if semantic { &["TS1099", "TS2695", "TS1099", "TS2322"] } else { &[] };
+                    assert_eq!(compiler.len(), expected_ids.len(), "{frames:?}");
+                    for (diagnostic, &id) in compiler.iter().zip(expected_ids) {
                         let Value::Object(message) = &diagnostic["message"] else { panic!() };
-                        assert_eq!(message["id"], Value::String("TS2322".into()));
+                        assert_eq!(message["id"], Value::String(id.into()));
                     }
                 }
             }

@@ -965,17 +965,6 @@
           "Diagnostics": []
         },
         {
-          "Code": "\ninterface Element {\n  tagName: string;\n}\n\ninterface HTMLCanvasElement extends Element {\n  getContext(contextId: string): unknown;\n}\n\ninterface HTMLElementTagNameMap {\n  canvas: HTMLCanvasElement;\n}\n\ndeclare const document: {\n  querySelector<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;\n  querySelector<E extends Element = Element>(selectors: string): E | null;\n};\n\nexport const a = document.querySelector('.foo') as HTMLCanvasElement | null;\n\t\t",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Options": null,
-          "TSConfig": "",
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": []
-        },
-        {
           "Code": "\ninterface Element { tagName: string; }\n\ninterface HTMLCanvasElement extends Element { getContext(contextId: string): unknown; }\n\ninterface Factory { new <E extends Element = Element>(): E | null; }\n\ndeclare const CanvasFactory: Factory;\n\nexport const a = new CanvasFactory() as HTMLCanvasElement | null;\n\t\t",
           "Only": false,
           "Skip": false,
@@ -998,29 +987,7 @@
           "Diagnostics": []
         },
         {
-          "Code": "\ndeclare function load<T = unknown>(): Promise<T>;\n\nexport async function main() {\n  const actual = (await load()) as Record<string, unknown>;\n  return { ...actual };\n}\n\t\t",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Options": null,
-          "TSConfig": "",
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": []
-        },
-        {
           "Code": "\ndeclare function load<T = unknown>(): Promise<Promise<T>>;\n\nexport async function main() {\n  const actual = (await await load()) as Record<string, unknown>;\n  return { ...actual };\n}\n\t\t",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Options": null,
-          "TSConfig": "",
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": []
-        },
-        {
-          "Code": "\ndeclare function load<T = unknown>(): Promise<T>;\nexport async function main() {\n  const actual = <Record<string, unknown>>(await load());\n  return { ...actual };\n}\n\t\t",
           "Only": false,
           "Skip": false,
           "FileName": "",
@@ -2192,6 +2159,77 @@
           "FileName": "",
           "Options": null,
           "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function get<T = unknown>(): T;\nconst value = get() as string;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checkLiteralConstAssertions": false,
+            "typesToIgnore": [
+              "string"
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function get<T>(value: T): T;\nconst value = get(1) as number;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function get<T = unknown>(): T;\nconst value = (get(), 1) as string | number;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function get<T = unknown>(): T;\nconst value = get<unknown>() as string;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function get<T>(): T | null;\nlet value: number | null = get() as number;\nvalue.toFixed();\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nexport function buttons() {\n  return Array.from(document.querySelectorAll<HTMLButtonElement>('[aria-label=\"Next\"]'));\n}\n\nexport function chip(el: HTMLElement) {\n  return el.closest<HTMLElement>('[data-id]');\n}\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "tsconfig.lib-dom.json",
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
@@ -9297,6 +9335,611 @@
                 }
               ],
               "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Storage = {\n  list<T = unknown>(): Promise<Map<string, T>>;\n};\ndeclare const db: Storage;\nconst results = (await db.list()) as Map<string, Uint8Array>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 6,
+              "Column": 17,
+              "EndLine": 6,
+              "EndColumn": 61,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 112,
+                "end": 156
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Storage = {\n  list<T = unknown>(): Promise<Map<string, T>>;\n};\ndeclare const db: Storage;\nconst results = (alert(), db.list()) as Promise<Map<string, Uint8Array>>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 6,
+              "Column": 17,
+              "EndLine": 6,
+              "EndColumn": 73,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 112,
+                "end": 168
+              },
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Storage = {\n  list<T = unknown>(): Promise<Map<string, T>>;\n};\ndeclare const db: Storage;\nconst results = db?.list() as Promise<Map<string, Uint8Array>>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 6,
+              "Column": 17,
+              "EndLine": 6,
+              "EndColumn": 63,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 112,
+                "end": 158
+              },
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Storage = {\n  list<T = unknown>(): Promise<Map<string, T>>;\n};\ndeclare const db: Storage;\nconst results = (await db?.list()) as Map<string, Uint8Array>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 6,
+              "Column": 17,
+              "EndLine": 6,
+              "EndColumn": 62,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 112,
+                "end": 157
+              },
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Storage = {\n  list<T = unknown>(): Promise<Map<string, T>> | undefined;\n};\ndeclare const db: Storage;\nconst results = db.list()! as Promise<Map<string, Uint8Array>>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 6,
+              "Column": 17,
+              "EndLine": 6,
+              "EndColumn": 63,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 124,
+                "end": 170
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function get<T>(): T;\nconst value = get<string>() as string;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ndeclare function get<T>(): T;\nconst value = get<string>();\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryAssertion",
+              "Line": 3,
+              "Column": 15,
+              "EndLine": 3,
+              "EndColumn": 38,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 68
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "unnecessaryAssertion",
+                "description": "This assertion is unnecessary since it does not change the type of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 68
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Element {\n  tagName: string;\n}\n\ninterface HTMLCanvasElement extends Element {\n  getContext(contextId: string): unknown;\n}\n\ninterface HTMLElementTagNameMap {\n  canvas: HTMLCanvasElement;\n}\n\ndeclare const document: {\n  querySelector<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;\n  querySelector<E extends Element = Element>(selectors: string): E | null;\n};\n\nexport const a = document.querySelector('.foo') as HTMLCanvasElement | null;\n\t\t",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 483,
+                "pos": 425
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function load<T = unknown>(): Promise<T>;\n\nexport async function main() {\n  const actual = (await load()) as Record<string, unknown>;\n  return { ...actual };\n}\n\t\t",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 141,
+                "pos": 100
+              },
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function load<T = unknown>(): Promise<T>;\nexport async function main() {\n  const actual = <Record<string, unknown>>(await load());\n  return { ...actual };\n}\n\t\t",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 138,
+                "pos": 99
+              }
+            }
+          ]
+        },
+        {
+          "Code": "/** @template T @returns {T} */\nfunction get() { throw new Error(); }\nconst value = /** @type {string} */ (get());\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "generic.js",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 3,
+              "Column": 15,
+              "EndLine": 3,
+              "EndColumn": 36,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "tsconfig.checkJs.json",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "generic.js",
+              "range": {
+                "pos": 84,
+                "end": 105
+              },
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nexport function buttons() {\n  return Array.from(\n    document.querySelectorAll('[aria-label=\"Next\"]'),\n  ) as HTMLButtonElement[];\n}\n\nexport function chip(el: HTMLElement) {\n  return el.closest('[data-id]') as HTMLElement | null;\n}\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 3,
+              "Column": 10,
+              "EndLine": 5,
+              "EndColumn": 27,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 9,
+              "Column": 10,
+              "EndLine": 9,
+              "EndColumn": 55,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "tsconfig.lib-dom.json",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 130
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 184,
+                "end": 229
+              }
+            }
+          ]
+        },
+        {
+          "Code": "declare function f(): string;\ndeclare function f<T>(x: T): T;\nconst value = f() as string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "declare function f(): string;\ndeclare function f<T>(x: T): T;\nconst value = f();"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryAssertion",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "unnecessaryAssertion",
+                "description": "This assertion is unnecessary since it does not change the type of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 76,
+                "end": 89
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 79,
+                    "end": 89
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "declare function f<T>(x: T): T;\ndeclare function f(): string;\nconst value = f() as string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "declare function f<T>(x: T): T;\ndeclare function f(): string;\nconst value = f();"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryAssertion",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 76,
+                "end": 89
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 79,
+                    "end": 89
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "unnecessaryAssertion",
+                "description": "This assertion is unnecessary since it does not change the type of the expression."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "declare function f(): Promise<string>;\ndeclare function f<T>(x: T): Promise<T>;\nconst value = (await f()) as string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "declare function f(): Promise<string>;\ndeclare function f<T>(x: T): Promise<T>;\nconst value = (await f());"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryAssertion",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 94,
+                "end": 115
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 115,
+                    "pos": 105
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "unnecessaryAssertion",
+                "description": "This assertion is unnecessary since it does not change the type of the expression."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "declare function f(): number;\ndeclare function f<T>(key: string): T;\nconst value = f('value') as string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "contextuallyInferredTypeArguments",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-assertion",
+              "message": {
+                "id": "contextuallyInferredTypeArguments",
+                "description": "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 83,
+                "end": 103
+              }
             }
           ]
         }

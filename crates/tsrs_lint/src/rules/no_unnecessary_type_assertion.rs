@@ -749,6 +749,42 @@ fn has_generic_signature(context: &mut RuleContext<'_>, ty: P<Type>) -> bool {
         .iter()
         .any(|signature| !signature.type_parameters().is_empty())
 }
+fn is_generic_call_with_inferred_type_arguments(
+    context: &mut RuleContext<'_>,
+    mut expression: P<Node>,
+) -> bool {
+    loop {
+        expression = ast::skip_parentheses(expression);
+        match expression.kind() {
+            Kind::CallExpression => {
+                if !expression.type_arguments().is_empty() {
+                    return false;
+                }
+                let callee = context.checker.get_type_at_location(expression.expression().unwrap());
+                if !has_generic_signature(context, callee) {
+                    return false;
+                }
+                let mut signature =
+                    context.checker.get_resolved_signature(expression, None, CheckMode::Normal);
+                while let Some(target) = signature.target() {
+                    signature = target;
+                }
+                return !signature.type_parameters().is_empty();
+            }
+            Kind::AwaitExpression | Kind::NonNullExpression => {
+                expression = expression.expression().unwrap();
+            }
+            Kind::BinaryExpression => {
+                let binary = expression.as_binary_expression();
+                if binary.operator_token.kind() != Kind::CommaToken {
+                    return false;
+                }
+                expression = binary.right();
+            }
+            _ => return false,
+        }
+    }
+}
 fn generic_mismatch(context: &mut RuleContext<'_>, uncast: P<Type>, contextual: P<Type>) -> bool {
     context.checker.get_properties_of_type(contextual).iter().any(|&property| {
         let contextual_type = context.checker.get_type_of_symbol_exported(property);
@@ -1283,7 +1319,13 @@ impl NoUnnecessaryTypeAssertion {
             return;
         }
         let expression = node.expression().unwrap();
-        let mut uncast = uncast_type(context, node);
+        let generic_call_with_inferred_type_arguments =
+            is_generic_call_with_inferred_type_arguments(context, expression);
+        let mut uncast = if generic_call_with_inferred_type_arguments {
+            context.checker.get_type_at_location(expression)
+        } else {
+            uncast_type(context, node)
+        };
         let expression_for_type = ast::skip_parentheses(expression);
         if uncast == cast
             && expression_for_type.kind() == Kind::Identifier
@@ -1310,8 +1352,23 @@ impl NoUnnecessaryTypeAssertion {
         } else {
             !const_assertion
         };
+        if unchanged && same_inferred && generic_call_with_inferred_type_arguments {
+            context.report_diagnostic(Diagnostic {
+                range: Some(assertion_range(context, node)),
+                message: RuleMessage {
+                    id: "contextuallyInferredTypeArguments".into(),
+                    description: "The type arguments for this generic call may be inferred from the assertion. Specify them explicitly instead.".into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+            return;
+        }
         if unchanged && same_inferred {
             report_unnecessary(context, node);
+            return;
+        }
+        if generic_call_with_inferred_type_arguments {
             return;
         }
         let cast_any = cast.flags().intersects(TypeFlags::Any) && !skip_parent_contextual_any(node);

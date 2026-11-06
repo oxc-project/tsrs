@@ -328,6 +328,16 @@ jobs:
 
       - run: rustup target add ${{ matrix.target }}
 
+      - name: Select linker for Windows ARM64 profiles
+        if: matrix.target == 'aarch64-pc-windows-msvc'
+        shell: pwsh
+        run: |
+          # link.exe pads LLVM's one-byte profile section markers on ARM64, corrupting profiles.
+          $hostTriple = (rustc -vV | Select-String '^host: ').ToString().Substring(6)
+          $linker = Join-Path (rustc --print sysroot) "lib/rustlib/$hostTriple/bin/rust-lld.exe"
+          if (-not (Test-Path $linker)) { throw "missing rust-lld at $linker" }
+          "CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER=$linker" >> $env:GITHUB_ENV
+
       - name: Instrumented build
         shell: pwsh
         run: |

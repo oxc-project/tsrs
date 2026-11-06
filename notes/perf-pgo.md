@@ -248,3 +248,26 @@ history; 12,778 each in canonical history with its documented `objectLiteralNorm
 Both fourslash gates pass with the same 4,066 passes / 63 known failures. There are no conformance crashes or timeouts.
 
 Raw build, runtime, profile-coverage and gate measurements for this run are in `/tmp/tsrs-thin-pgo/ab/`.
+
+## 2026-11-06: Windows ARM64 profile sections need rust-lld
+
+The 0.23.0 release dry run at `49a75718` completed all 15,448 Windows ARM64 conformance variants, with no
+reported failures, crashes or timeouts, then the parent test runner exited with `0xC0000005`. A native
+[linker comparison](https://github.com/oxc-project/tsrs/actions/runs/42274844204) used the same instrumented
+build flags and unchanged training workload with MSVC's linker and the Rust toolchain's `rust-lld`.
+
+With MSVC, the first `tsrs-test --help` run exited successfully, but the second run using the same `%m` profile
+crashed. Separate `%p` profiles avoided that crash, but `llvm-profdata show` rejected both as malformed with
+"symbol name is empty". Full training reproduced the shutdown crash, and its profile could not be merged.
+With `rust-lld`, both `%m` runs and both `%p` runs exited successfully; the matching `llvm-profdata` read the
+one merged profile and two distinct per-process profiles. Full conformance, CLI and lint training completed,
+and their profiles merged successfully. LLVM reported limited value-profile counter capacity during training;
+this comparison does not measure the resulting optimized binary's performance.
+
+The failure matches the ARM64 `link.exe` profile-section alignment problem documented in
+[ts-rust's release workflow](https://github.com/pingdotgg/ts-rust/blob/91f3d021c4f1f102cebee704ac285e85ae0c8ff5/.github/workflows/release.yml):
+LLVM's Windows runtime uses one-byte section-boundary markers that MSVC pads. The comparison isolates the
+linker-dependent profile corruption; it does not identify the faulting instruction without a crash stack.
+The Windows ARM64 release job now selects the toolchain's `rust-lld` for both instrumented and final builds.
+All training, profile-validity and installed-package gates remain enabled. Final packaged-release validation
+is separate from the diagnostic comparison.

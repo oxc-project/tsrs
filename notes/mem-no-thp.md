@@ -207,5 +207,6 @@ compiled the way each crate compiles it and a C program that reads `/proc/self/s
 
 ## 2026-11-04: `--fast` gives the heap huge pages again
 
-Under `--fast` (or `TSRS_FAST=1`) on Linux with glibc the CLI sets `allow_thp = 1` before mimalloc starts; the default
-mode keeps this note's policy. Measurements: `notes/perf-fast-heap-thp.md`.
+Under `--fast` (or `TSRS_FAST=1`) on Linux with glibc the CLI sets `allow_thp = 1` before mimalloc starts, then turns
+it off until the program is parsed; the default mode keeps this note's policy. Measurements:
+`notes/perf-fast-heap-thp.md`.

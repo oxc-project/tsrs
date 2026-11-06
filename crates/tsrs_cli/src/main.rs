@@ -83,13 +83,12 @@ const MI_OPTION_ALLOW_THP: std::ffi::c_int = 43;
 #[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
 const MI_OPTION_ARENA_RESERVE: std::ffi::c_int = 23;
 
-/// Set by `fast_heap_huge_pages` when `--fast` gave the heap huge pages.
 #[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
 static FAST_HEAP: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 // `--fast` on Linux with glibc gives mimalloc's heap transparent huge pages too (notes/perf-fast-heap-thp.md; the
 // build keeps them off for memory, notes/mem-no-thp.md). mimalloc fixes that policy in its own constructor (priority
-// 101), before `main` can read the command line, so this priority-100 constructor sets the option first.
+// 101), before `main` can read the command line, so this priority-100 constructor sets the options first.
 #[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
 #[used]
 #[unsafe(link_section = ".init_array.00100")]
@@ -144,9 +143,8 @@ extern "C" fn fast_heap_huge_pages(
         // SAFETY: sets one integer option; mimalloc reads it when it starts, right after this constructor.
         unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 1) };
         if !reserve_set {
-            // 64 MiB reservations (in KiB) instead of 1 GiB, so the checkers' heap is mapped after the parse
-            // phase and gets huge pages (`main`).
-            // SAFETY: as above.
+            // 64 MiB arenas (in KiB), not 1 GiB: the checkers' heap is mapped after the parse phase, with huge pages.
+            // SAFETY: sets the arena reservation size; mimalloc reads it when it starts, right after this constructor.
             unsafe { mi_option_set(MI_OPTION_ARENA_RESERVE, 64 * 1024) };
         }
         // Relaxed: written before `main` runs, read by `main` on the same thread.
@@ -157,14 +155,14 @@ extern "C" fn fast_heap_huge_pages(
 fn main() -> std::process::ExitCode {
     #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
     tsrs_core::allocator::init_mimalloc();
-    // Huge pages stay off while the parse threads allocate: each one's partly used heap pages would be resident
-    // as whole 2 MiB pages, about 0.5 GiB however small the program (notes/perf-fast-heap-thp.md).
+    // Huge pages stay off while the parse threads allocate: their partly used heap pages would be resident as whole
+    // 2 MiB pages, about 0.5 GiB however small the program (notes/perf-fast-heap-thp.md).
     #[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
     // Relaxed: see the store in `fast_heap_huge_pages`.
     if FAST_HEAP.load(std::sync::atomic::Ordering::Relaxed) {
         // SAFETY: sets one integer option; mimalloc reads it on each later OS allocation.
         unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 0) };
-        // SAFETY: as above; the checker threads have not started yet.
+        // SAFETY: sets one integer option at parse end, before any checker thread starts.
         tsrs_core::allocator::at_parse_end(|| unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 1) });
     }
     let args: Vec<String> = std::env::args().skip(1).collect();

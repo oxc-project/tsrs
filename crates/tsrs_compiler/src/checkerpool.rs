@@ -109,8 +109,6 @@ pub struct PooledChecker(Box<Checker>);
 // SAFETY: the checker's `Rc`s and closures are reachable only from the checker, and the pool lets one thread at a time
 // hold it (see above), so moving it to that thread moves all of them together.
 unsafe impl Send for PooledChecker {}
-// SAFETY: a `&PooledChecker` is only used by the thread that holds the checker (see above).
-unsafe impl Sync for PooledChecker {}
 
 impl PooledChecker {
     pub fn new(checker: Box<Checker>) -> PooledChecker {

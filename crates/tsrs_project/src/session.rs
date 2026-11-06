@@ -414,7 +414,7 @@ impl Session {
         self.cancel_warm_auto_import_cache();
         self.schedule_idle_cache_clean();
         self.cancel_scheduled_snapshot_update();
-        let _update = self.snapshot_update_mu.lock().unwrap();
+        let _update = tsrs_core::runslots::blocking(|| self.snapshot_update_mu.lock().unwrap());
         let mut pending = self.pending_file_changes.lock().unwrap();
         pending.push(FileChange {
             kind: FileChangeKind::Open,
@@ -451,7 +451,7 @@ impl Session {
             return;
         }
         self.cancel_scheduled_snapshot_update();
-        let _update = self.snapshot_update_mu.lock().unwrap();
+        let _update = tsrs_core::runslots::blocking(|| self.snapshot_update_mu.lock().unwrap());
         let mut pending = self.pending_file_changes.lock().unwrap();
         let (changes, overlays) = self.flush_changes_locked(ctx, &mut pending);
         drop(pending);
@@ -749,7 +749,7 @@ impl Session {
                 s.logger.log("Running scheduled snapshot update");
             }
 
-            let _update = s.snapshot_update_mu.lock().unwrap();
+            let _update = tsrs_core::runslots::blocking(|| s.snapshot_update_mu.lock().unwrap());
 
             let (file_changes, overlays, ata_changes, new_config) = s.flush_changes(ctx);
             if file_changes.is_empty() && ata_changes.is_empty() && new_config.is_none() {
@@ -822,7 +822,7 @@ impl Session {
                 }
             }
 
-            let _update = s.snapshot_update_mu.lock().unwrap();
+            let _update = tsrs_core::runslots::blocking(|| s.snapshot_update_mu.lock().unwrap());
             if s.background_ctx.is_canceled() {
                 return;
             }
@@ -915,7 +915,17 @@ impl Session {
         request: ResourceRequest,
         caller_ref: bool,
     ) -> Arc<Snapshot> {
-        let _update = self.snapshot_update_mu.lock().unwrap();
+        self.get_snapshot_with_cached_project_lookup(ctx, request, caller_ref, None)
+    }
+
+    fn get_snapshot_with_cached_project_lookup(
+        &self,
+        ctx: &Context,
+        request: ResourceRequest,
+        caller_ref: bool,
+        cached_snapshot_id: Option<u64>,
+    ) -> Arc<Snapshot> {
+        let _update = tsrs_core::runslots::blocking(|| self.snapshot_update_mu.lock().unwrap());
         self.cancel_scheduled_snapshot_update();
 
         let (file_changes, overlays, ata_changes, new_config) = self.flush_changes(ctx);
@@ -943,6 +953,14 @@ impl Session {
         // If there are no pending file changes, we can try to use the current snapshot.
         let guard = self.snapshot.read().unwrap();
         let snapshot = Arc::clone(guard.as_ref().expect("session is closed"));
+        // A cached lookup may skip a closed-file update only after pending changes have been handled with
+        // the original URI-bearing request: configuration invalidation can force fresh project discovery.
+        if cached_snapshot_id == Some(snapshot.id()) {
+            if caller_ref {
+                snapshot.ref_();
+            }
+            return snapshot;
+        }
         let mut update_reason = UpdateReason::Unknown;
         if !request.projects.is_empty() {
             update_reason = UpdateReason::RequestedLanguageServiceProjectDirty;
@@ -1060,6 +1078,39 @@ impl Session {
         // !!! TODO: sheetal:  Get other projects that contain the file with symlink
         let all_projects = snapshot.get_language_service_projects_containing_file(uri);
         Ok((project, default_ls, all_projects))
+    }
+
+    // Reuse membership only while the snapshot that produced it is current. Tree discovery and pending edits
+    // can add projects containing another declaration of a merged symbol during the same request.
+    pub fn get_projects_for_file_cached(
+        &self,
+        ctx: &Context,
+        uri: &lsproto::DocumentUri,
+        cache: &mut ProjectLookupCache,
+    ) -> Vec<Arc<dyn tsrs_ls::Project>> {
+        let cached_snapshot_id =
+            if cache.projects.contains_key(uri) { cache.snapshot_id } else { None };
+        let snapshot = self.get_snapshot_with_cached_project_lookup(
+            ctx,
+            ResourceRequest {
+                configured_project_documents: vec![uri.clone()],
+                ..Default::default()
+            },
+            false,
+            cached_snapshot_id,
+        );
+        if cache.snapshot_id == Some(snapshot.id())
+            && let Some(projects) = cache.projects.get(uri)
+        {
+            return projects.clone();
+        }
+        let projects = snapshot.get_language_service_projects_containing_file(uri);
+        if cache.snapshot_id != Some(snapshot.id()) {
+            cache.projects.clear();
+            cache.snapshot_id = Some(snapshot.id());
+        }
+        cache.projects.insert(uri.clone(), projects.clone());
+        projects
     }
 
     // session.go:1136
@@ -1297,7 +1348,7 @@ impl Session {
         api_file_changes: &FileChangeSummary,
         api_request: Option<Arc<APISnapshotRequest>>,
     ) -> Result<Arc<Snapshot>, lsproto::Error> {
-        let _update = self.snapshot_update_mu.lock().unwrap();
+        let _update = tsrs_core::runslots::blocking(|| self.snapshot_update_mu.lock().unwrap());
         self.cancel_scheduled_snapshot_update();
 
         let (host_file_changes, overlays, ata_changes, _) = self.flush_changes(ctx);
@@ -1910,7 +1961,7 @@ impl Session {
         self.background_cancel.call();
         self.background_queue.close();
 
-        let _update = self.snapshot_update_mu.lock().unwrap();
+        let _update = tsrs_core::runslots::blocking(|| self.snapshot_update_mu.lock().unwrap());
         let snapshot = self.snapshot.write().unwrap().take();
         if let Some(snapshot) = snapshot {
             snapshot.deref();
@@ -2523,4 +2574,11 @@ impl Drop for DerefOnDrop<'_> {
 
 fn tsrs_overlays(fs: &OverlayFS) -> OverlayMap {
     crate::overlayfs::LayeredFileSystem::overlays(fs)
+}
+
+/// Membership from one snapshot, owned by one request in one session. Snapshot IDs are session-local.
+#[derive(Default)]
+pub struct ProjectLookupCache {
+    snapshot_id: Option<u64>,
+    projects: FxHashMap<lsproto::DocumentUri, Vec<Arc<dyn tsrs_ls::Project>>>,
 }

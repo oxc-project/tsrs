@@ -30,3 +30,5 @@ mod lsutil {
 }
 mod refs_smoke_test;
 mod string_completions_test;
+
+mod concurrent_test;

@@ -549,7 +549,7 @@ jobs:
           DECISION: ${{ needs.decide.outputs.run }}
           IDENTICAL: ${{ needs.build.outputs.identical || 'false' }}
           LINT: ${{ needs.build.outputs.lint }}
-          REASON: ${{ needs.decide.outputs.reason }}
+          REASON: ${{ needs.decide.outputs.reason || 'Benchmark decision reason unavailable.' }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           node bench/wallclock.mjs comment --pr-number "$PR_NUMBER" \

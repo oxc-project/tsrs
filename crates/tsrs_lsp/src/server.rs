@@ -1754,6 +1754,7 @@ impl Server {
                 server: Arc::clone(self),
                 default_project: Arc::<project::Project>::clone(default_project.arc()),
                 all_projects,
+                project_lookup_cache: Mutex::new(project::session::ProjectLookupCache::default()),
             });
         Ok((default_ls, orchestrator))
     }
@@ -4057,6 +4058,7 @@ struct CrossProjectOrchestratorImpl {
     server: Arc<Server>,
     default_project: Arc<dyn tsrs_ls::Project>,
     all_projects: Vec<Arc<dyn tsrs_ls::Project>>,
+    project_lookup_cache: Mutex<project::session::ProjectLookupCache>,
 }
 
 impl tsrs_ls::CrossProjectOrchestrator for CrossProjectOrchestratorImpl {
@@ -4090,7 +4092,11 @@ impl tsrs_ls::CrossProjectOrchestrator for CrossProjectOrchestratorImpl {
         ctx: &Context,
         uri: &lsproto::DocumentUri,
     ) -> Result<Vec<Arc<dyn tsrs_ls::Project>>, Error> {
-        Ok(self.server.session().get_projects_for_file(ctx, uri))
+        Ok(self.server.session().get_projects_for_file_cached(
+            ctx,
+            uri,
+            &mut self.project_lookup_cache.lock().unwrap(),
+        ))
     }
 
     // server.go:1456. Go returns an iterator that loads the snapshot while it is consumed; the projects are
@@ -4115,6 +4121,10 @@ impl tsrs_ls::CrossProjectOrchestrator for CrossProjectOrchestratorImpl {
             },
         );
         Box::new(projects.into_iter())
+    }
+
+    fn enter_search_thread(&self, ctx: &Context) -> Box<dyn std::any::Any> {
+        Box::new(project::enter_checker_data_lease(ctx))
     }
 }
 

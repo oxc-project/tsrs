@@ -72,9 +72,99 @@ fn mimalloc_collect(force: bool) {
     let _ = force;
 }
 
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+unsafe extern "C" {
+    fn mi_option_set(option: std::ffi::c_int, value: std::ffi::c_long);
+}
+
+// mimalloc v3's option numbers (`mimalloc.h`); `libmimalloc-sys2`'s constants are v2's (37 for allow_thp).
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+const MI_OPTION_ALLOW_THP: std::ffi::c_int = 43;
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+const MI_OPTION_ARENA_RESERVE: std::ffi::c_int = 23;
+
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+static FAST_HEAP: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+// `--fast` on Linux with glibc gives mimalloc's heap transparent huge pages too (notes/perf-fast-heap-thp.md; the
+// build keeps them off for memory, notes/mem-no-thp.md). mimalloc fixes that policy in its own constructor (priority
+// 101), before `main` can read the command line, so this priority-100 constructor sets the options first.
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+#[used]
+#[unsafe(link_section = ".init_array.00100")]
+static FAST_HEAP_HUGE_PAGES: extern "C" fn(
+    std::ffi::c_int,
+    *const *const std::ffi::c_char,
+    *const *const std::ffi::c_char,
+) = fast_heap_huge_pages;
+
+/// Reads `--fast` as the option parser does (any case, one or two dashes, the last one wins, `--fast false` turns it
+/// off; otherwise `TSRS_FAST=1`), except inside response files. An explicit `MIMALLOC_ALLOW_THP` wins, and `--lsp`,
+/// `--api` and `--lint` keep the build's policy. Nothing here may allocate: the first allocation starts mimalloc.
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+extern "C" fn fast_heap_huge_pages(
+    argc: std::ffi::c_int,
+    argv: *const *const std::ffi::c_char,
+    envp: *const *const std::ffi::c_char,
+) {
+    let c_str = |p: *const std::ffi::c_char| {
+        // SAFETY: glibc's argument and environment strings are NUL-terminated and live as long as the process.
+        unsafe { std::ffi::CStr::from_ptr(p) }.to_bytes()
+    };
+    let mut fast = false;
+    let mut reserve_set = false;
+    for i in 0.. {
+        // SAFETY: glibc's environment vector is NULL-terminated; this stops at its end.
+        let var = unsafe { *envp.add(i) };
+        if var.is_null() {
+            break;
+        }
+        let var = c_str(var);
+        if var.starts_with(b"MIMALLOC_ALLOW_THP=") {
+            return;
+        }
+        fast |= var == b"TSRS_FAST=1";
+        reserve_set |= var.starts_with(b"MIMALLOC_ARENA_RESERVE=");
+    }
+    // SAFETY: glibc passes `argc` argument pointers.
+    let args = unsafe { std::slice::from_raw_parts(argv, usize::try_from(argc).unwrap_or(0)) };
+    let mut args = args.iter().skip(1).map(|&p| c_str(p)).peekable();
+    if args.peek().is_some_and(|a| matches!(*a, b"--lsp" | b"--api" | b"--lint")) {
+        return;
+    }
+    while let Some(arg) = args.next() {
+        let Some(name) = arg.strip_prefix(b"-") else { continue };
+        let name = name.strip_prefix(b"-").unwrap_or(name);
+        if name.eq_ignore_ascii_case(b"fast") {
+            fast = args.next_if(|v| *v == b"false").is_none();
+        }
+    }
+    if fast {
+        // SAFETY: sets one integer option; mimalloc reads it when it starts, right after this constructor.
+        unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 1) };
+        if !reserve_set {
+            // 64 MiB arenas (in KiB), not 1 GiB: the checkers' heap is mapped after the parse phase, with huge pages.
+            // SAFETY: sets the arena reservation size; mimalloc reads it when it starts, right after this constructor.
+            unsafe { mi_option_set(MI_OPTION_ARENA_RESERVE, 64 * 1024) };
+        }
+        // Relaxed: written before `main` runs, read by `main` on the same thread.
+        FAST_HEAP.store(true, std::sync::atomic::Ordering::Relaxed);
+    }
+}
+
 fn main() -> std::process::ExitCode {
     #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
     tsrs_core::allocator::init_mimalloc();
+    // Huge pages stay off while the parse threads allocate: their partly used heap pages would be resident as whole
+    // 2 MiB pages, about 0.5 GiB however small the program (notes/perf-fast-heap-thp.md).
+    #[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+    // Relaxed: see the store in `fast_heap_huge_pages`.
+    if FAST_HEAP.load(std::sync::atomic::Ordering::Relaxed) {
+        // SAFETY: sets one integer option; mimalloc reads it on each later OS allocation.
+        unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 0) };
+        // SAFETY: sets one integer option at parse end, before any checker thread starts.
+        tsrs_core::allocator::at_parse_end(|| unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 1) });
+    }
     let args: Vec<String> = std::env::args().skip(1).collect();
     // `--lint` is the type-aware linter that oxlint runs (`tsrs-lint`, tools/tsgolint/README.md). It returns before
     // any compiler command-line setup, so it runs exactly as the `tsrs-lint` binary does.

@@ -60,7 +60,7 @@ by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this tabl
 | Default lib location | Embedded source builds; npm builds require libs beside the executable | The same build-time choice since 0.17.0 (`noembed` for npm), plus the `TSRS_LIB_PATH` override. npm binaries have no embedded fallback |
 | Case sensitivity detection | At startup | On first use (same test) |
 | Realpath on Linux | `O_PATH` and `/proc/self/fd`, falling back to walking symlinks | Rust's `std::fs::canonicalize` |
-| Memory management | Go garbage collection; honors Go runtime environment settings | Arenas and mimalloc. On Linux, huge pages are enabled for eligible arena allocations, not mimalloc's heap by default. Go runtime variables have no effect |
+| Memory management | Go garbage collection; honors Go runtime environment settings | Arenas and mimalloc. On Linux, huge pages are enabled for eligible arena allocations, and for mimalloc's heap only with `--fast` or `TSRS_FAST=1` once the program is parsed (glibc builds). Go runtime variables have no effect |
 | Arguments that aren't UTF-8 (Unix) | Accepted as byte strings | Panic while collecting arguments, before the compilation thread starts (normally exit status 101) |
 | tsrs-only flags with `-b` | — | The tsrs-only flags (`--checkerAssignment`, `--checkerCostCache`, `--maxMemory`, `--lazyMembers`, `--noLazyMembers`) are rejected with TS5072 |
 
@@ -183,7 +183,7 @@ tsrs-only variables that change behavior:
 | `TSRS_WATCH_BACKEND` | unset | `kqueue` uses the macOS fallback watcher |
 | `TSRS_BINARY` | unset | Path of the binary the npm launcher runs |
 | `RAYON_NUM_THREADS` | `min(available parallelism, 32)` | Parse thread count |
-| `MIMALLOC_*` | Build-dependent; mimalloc heap THP is off | Allocator settings; an explicit `MIMALLOC_ALLOW_THP` also controls whether tsrs restores process-wide THP for its arenas |
+| `MIMALLOC_*` | Build-dependent; mimalloc heap THP is off (on under `--fast` after parsing, with 64 MiB arena reservations, Linux glibc) | Allocator settings; an explicit `MIMALLOC_ALLOW_THP` also controls whether tsrs restores process-wide THP for its arenas. Explicit `MIMALLOC_ALLOW_THP` and `MIMALLOC_ARENA_RESERVE` win over `--fast` |
 
 The remaining `TSRS_*` variables tune or report on checker internals; [debugging](DEBUGGING.md) describes them.
 

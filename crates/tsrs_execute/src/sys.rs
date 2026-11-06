@@ -70,7 +70,7 @@ impl System for OsSys {
 // descriptors 1 or 2 will cause the program to exit with a SIGPIPE signal"), so `tsc | head` stops tsc with status
 // 141. Rust ignores SIGPIPE; this restores the default action and raises it. Other write errors are ignored, as Go's
 // fmt.Fprint callers do.
-fn exit_on_broken_pipe(result: &std::io::Result<()>) {
+pub(crate) fn exit_on_broken_pipe(result: &std::io::Result<()>) {
     if !matches!(result, Err(err) if err.kind() == std::io::ErrorKind::BrokenPipe) {
         return;
     }

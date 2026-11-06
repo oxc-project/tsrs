@@ -54,7 +54,7 @@ are where a lifetime fix starts. Each is one safe API, not many unsafe blocks.
   One owner type with `Drop` replaces all of them; the program ownership
   package of #646 is exactly this set.
 - **Checker handles (`CheckerHandle::from_raw` and its derefs, `checkerPool::create_release`,
-  `get_persistent_checker`, `View::checker`, the API's `node_index_table` / `encode_source_file`).** The lifetime is
+  `get_persistent_checker`, `View::checker`).** The lifetime is
   a pool lease or a held checker, enforced at run time (docs/LSP.md "Memory management"), not by the type.
 - **Allocations #638 already owns** (`format/rule.rs`, `rulecontext.rs`, `lsproto::intern`, the background
   worker pool and timer, `includeProcessor::get_reference_location`): the rows change to `keep` or disappear when it

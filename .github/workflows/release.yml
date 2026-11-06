@@ -300,7 +300,6 @@ jobs:
       matrix:
         include:
           - { target: x86_64-pc-windows-msvc, os: windows-latest }
-          - { target: aarch64-pc-windows-msvc, os: windows-11-arm }
     env:
       TSRS_TS_VERSION: ${{ needs.version.outputs.ts_nightly }}
       CARGO_PROFILE_RELEASE_STRIP: symbols
@@ -327,16 +326,6 @@ jobs:
           components: llvm-tools
 
       - run: rustup target add ${{ matrix.target }}
-
-      - name: Select linker for Windows ARM64 profiles
-        if: matrix.target == 'aarch64-pc-windows-msvc'
-        shell: pwsh
-        run: |
-          # link.exe pads LLVM's one-byte profile section markers on ARM64, corrupting profiles.
-          $hostTriple = (rustc -vV | Select-String '^host: ').ToString().Substring(6)
-          $linker = Join-Path (rustc --print sysroot) "lib/rustlib/$hostTriple/bin/rust-lld.exe"
-          if (-not (Test-Path $linker)) { throw "missing rust-lld at $linker" }
-          "CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER=$linker" >> $env:GITHUB_ENV
 
       - name: Instrumented build
         shell: pwsh
@@ -581,7 +570,7 @@ jobs:
             x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
             test -f "artifacts/$t/tsrs" || { echo "::error::missing binary for $t"; exit 1; }
           done
-          for t in x86_64-pc-windows-msvc aarch64-pc-windows-msvc; do
+          for t in x86_64-pc-windows-msvc; do
             test -f "artifacts/$t/tsrs.exe" || { echo "::error::missing binary for $t"; exit 1; }
           done
           ls -lR artifacts wasm-dist

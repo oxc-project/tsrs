@@ -49,8 +49,7 @@ Use these VS Code settings on Windows:
 }
 ```
 
-For Windows ARM64 builds from the updated release pipeline, use `@tsrs/win32-arm64` in both the dependency
-and `js/ts.tsdk.path` instead.
+Windows ARM64 npm packages are not published yet.
 
 The extension asks for workspace trust and consent before running a workspace SDK. Its automatic package
 resolver is specific to `@typescript` packages; pointing at the native package directory uses its executable

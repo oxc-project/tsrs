@@ -268,6 +268,8 @@ The failure matches the ARM64 `link.exe` profile-section alignment problem docum
 [ts-rust's release workflow](https://github.com/pingdotgg/ts-rust/blob/91f3d021c4f1f102cebee704ac285e85ae0c8ff5/.github/workflows/release.yml):
 LLVM's Windows runtime uses one-byte section-boundary markers that MSVC pads. The comparison isolates the
 linker-dependent profile corruption; it does not identify the faulting instruction without a crash stack.
-The Windows ARM64 release job now selects the toolchain's `rust-lld` for both instrumented and final builds.
-All training, profile-validity and installed-package gates remain enabled. Final packaged-release validation
-is separate from the diagnostic comparison.
+The subsequent [release dry run at `4c48d3fa`](https://github.com/oxc-project/tsrs/actions/runs/42276909483/job/128109541953)
+used `rust-lld` and completed conformance training, but profile merging failed with "malformed instrumentation
+profile data: not enough space for another header" and "no profile can be merged". The diagnostic comparison
+does not establish a working packaged release. Windows ARM64 packaging is deferred until its npm package is
+set up and native release validation passes.

@@ -1,17 +1,13 @@
-name: Windows ARM64 PGO diagnosis
+name: Windows ARM64 PGO profile diagnosis
 on:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   compare:
-    name: Windows ARM64 (${{ matrix.linker }})
+    name: Windows ARM64 shared and per-process profiles
     runs-on: windows-11-arm
     timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        linker: [msvc, lld]
     env:
       CARGO_TERM_COLOR: always
       TSRS_TS_VERSION: 7.1.0-beta
@@ -39,10 +35,8 @@ jobs:
           rustc -vV
           $hostTriple = (rustc -vV | Select-String '^host: ').ToString().Substring(6)
           $rustBin = Join-Path (rustc --print sysroot) "lib/rustlib/$hostTriple/bin"
-          if ("${{ matrix.linker }}" -eq "lld") {
-            $env:CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER = Join-Path $rustBin "rust-lld.exe"
-            if (-not (Test-Path $env:CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER)) { throw "missing rust-lld" }
-          }
+          $env:CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER = Join-Path $rustBin "rust-lld.exe"
+          if (-not (Test-Path $env:CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER)) { throw "missing rust-lld" }
           $raw = Join-Path $env:RUNNER_TEMP "pgo/raw"
           New-Item -ItemType Directory -Force $raw | Out-Null
           $env:CARGO_TARGET_DIR = Join-Path $env:RUNNER_TEMP "pgo/target"
@@ -50,15 +44,16 @@ jobs:
           cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --features tsrs_cli/noembed --target aarch64-pc-windows-msvc
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "PROFDATA=$(Join-Path $rustBin 'llvm-profdata.exe')" >> $env:GITHUB_ENV
-      - name: Probe profile writing and run unchanged training
+      - name: Compare profile patterns with full training
         shell: pwsh
         run: node .github/scripts/windows-pgo-probe.mjs
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
-          name: windows-pgo-${{ matrix.linker }}
+          name: windows-pgo-profile-patterns
           path: |
             ${{ runner.temp }}/pgo/probe-report.json
             ${{ runner.temp }}/pgo/probe-logs/
-            ${{ runner.temp }}/pgo/test-results/
+            ${{ runner.temp }}/pgo/training/
+          retention-days: 7
           if-no-files-found: warn

@@ -32,7 +32,15 @@ for (const pattern of ["m", "p"]) {
             LLVM_PROFILE_FILE: path.join(dir, `probe-%${pattern}.profraw`),
         }) && ok;
     }
-    for (const [index, file] of fs.readdirSync(dir).filter(file => file.endsWith(".profraw")).entries()) {
+    const files = fs.readdirSync(dir).filter(file => file.endsWith(".profraw"));
+    const profiles = files.map(file => ({ file, bytes: fs.statSync(path.join(dir, file)).size }));
+    const valid = profiles.length === (pattern === "p" ? 2 : 1) && profiles.every(profile => profile.bytes > 0);
+    const entry = { name: `profiles-${pattern}`, status: valid ? 0 : 1, profiles };
+    results.push(entry);
+    console.log(JSON.stringify(entry));
+    fs.writeFileSync(path.join(root, "probe-report.json"), JSON.stringify(results, null, 2));
+    ok = valid && ok;
+    for (const [index, file] of files.entries()) {
         ok = run(`read-${pattern}-${index}`, process.env.PROFDATA, ["show", path.join(dir, file)]) && ok;
     }
 }

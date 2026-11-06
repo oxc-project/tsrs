@@ -10,3 +10,5 @@ mod refcountcache_test;
 mod session_test;
 mod snapshot_test;
 mod watch_test;
+
+mod snapshot_perf_tests;

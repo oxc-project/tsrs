@@ -5,6 +5,23 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 0.23.0
+
+Package version `0.23.0-ts7.1.0-beta`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`).
+The [release notes](releases/0.23.0.md) cover whole-program type checking in both lint modes, loose-file checking,
+project-reference discovery, faster language-server requests, lint fixes and rebuild memory fixes. Windows x64
+stays supported; Windows ARM64 awaits npm setup and a passing native release dry run.
+
+[Oxlint's program tests](https://github.com/oxc-project/oxc/pull/28912) at `582b5756` exercised the lint changes
+on `28e42fc6b`: six snapshots gained errors from unlisted files in the same tsconfig. Default mode, fast mode and
+a repeat run matched. All 124 lint tests passed on the rebased `33db0ae496fa`.
+
+The [release dry run](https://github.com/oxc-project/tsrs/actions/runs/42287456170/attempts/2) at `87138a91` built
+seven native targets and WASM, assembled nine packages and skipped publication. Installed-package CLI/SDK smokes
+passed on GNU Linux, macOS and Windows x64; Node API smokes ran on GNU Linux and macOS. Musl checks ran `--version`;
+WASM passed 14 tests under Node. Linux x64 passed the unchanged Fourslash gate on one retry after a shutdown EOF
+whose cause remains unconfirmed.
+
 ## 0.22.0
 
 The package version is `0.22.0-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.

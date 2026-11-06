@@ -248,3 +248,20 @@ history; 12,778 each in canonical history with its documented `objectLiteralNorm
 Both fourslash gates pass with the same 4,066 passes / 63 known failures. There are no conformance crashes or timeouts.
 
 Raw build, runtime, profile-coverage and gate measurements for this run are in `/tmp/tsrs-thin-pgo/ab/`.
+
+## 2026-11-06: Windows ARM64 PGO remains blocked
+
+The release dry run at `49a75718` completed 15,448 Windows ARM64 conformance variants without reported failures,
+then the test runner exited with `0xC0000005`.
+
+A native [linker comparison](https://github.com/oxc-project/tsrs/actions/runs/42274844204) kept the build flags and
+training workload unchanged. MSVC crashed when reusing a `%m` profile; separate `%p` profiles avoided the crash
+but were malformed ("symbol name is empty"). With `rust-lld`, both forms worked and full conformance, CLI and lint
+training produced mergeable profiles. This matches the ARM64 profile-section padding problem documented in
+[ts-rust's workflow](https://github.com/pingdotgg/ts-rust/blob/91f3d021c4f1f102cebee704ac285e85ae0c8ff5/.github/workflows/release.yml),
+but no crash stack identified the faulting instruction and no performance comparison was made.
+
+The [full release run at `4c48d3fa`](https://github.com/oxc-project/tsrs/actions/runs/42276909483/job/128109541953)
+still failed with `rust-lld`: training completed, but profile merging reported "not enough space for another
+header" and "no profile can be merged". Windows ARM64 stays disabled until its npm package is set up and the
+native release dry run passes.

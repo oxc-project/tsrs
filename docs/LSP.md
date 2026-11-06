@@ -17,7 +17,7 @@ editors' documented mechanisms.
 `js/ts.tsdk.path` points at a directory that contains an executable named `tsgo` or `tsc` (`.exe` on Windows;
 `src/util.ts`: `tsdkConfigSources`, `packagedExeBaseNames`).
 Since 0.20.0, the package includes `tsdk/tsgo` for macOS and Linux. Install it with
-`pnpm add -D tsrs@0.22.0-ts7.1.0-beta` and commit this `.vscode/settings.json` so each teammate's editor uses the
+`pnpm add -D tsrs@0.23.0-ts7.1.0-beta` and commit this `.vscode/settings.json` so each teammate's editor uses the
 version in the project's lockfile:
 
 ```jsonc
@@ -37,7 +37,7 @@ On **Windows**, use the native platform package's root directory. The x64 exampl
 the project-local path. Keep both packages at the same version when upgrading:
 
 ```sh
-pnpm add -O --save-exact @tsrs/win32-x64@0.22.0-ts7.1.0-beta
+pnpm add -O --save-exact @tsrs/win32-x64@0.23.0-ts7.1.0-beta
 ```
 
 Use these VS Code settings on Windows:
@@ -49,8 +49,7 @@ Use these VS Code settings on Windows:
 }
 ```
 
-For Windows ARM64 builds from the updated release pipeline, use `@tsrs/win32-arm64` in both the dependency
-and `js/ts.tsdk.path` instead.
+Windows ARM64 npm packages are not published yet.
 
 The extension asks for workspace trust and consent before running a workspace SDK. Its automatic package
 resolver is specific to `@typescript` packages; pointing at the native package directory uses its executable

@@ -99,3 +99,59 @@ fn project_discovery_uses_canonical_file_membership() {
         );
     }
 }
+
+#[test]
+fn project_discovery_traverses_non_matching_composite_references() {
+    let region = tsrs_core::arena::Region::new(1 << 20);
+    let _scope = region.enter();
+    let fs = vfstest::from_map(
+        [
+            (
+                "/project/tsconfig.json",
+                r#"{"compilerOptions":{"composite":true,"strict":true,"strictNullChecks":false},"files":[],"references":[{"path":"./app/tsconfig.app.json"},{"path":"./tool/tsconfig.tool.json"}]}"#,
+            ),
+            (
+                "/project/app/tsconfig.app.json",
+                r#"{"extends":"../tsconfig.json","include":["*.ts"],"references":[{"path":"../lib/tsconfig.lib.json"}]}"#,
+            ),
+            (
+                "/project/tool/tsconfig.tool.json",
+                r#"{"extends":"../tsconfig.json","include":["*.ts"],"references":[{"path":"../lib/tsconfig.lib.json"}]}"#,
+            ),
+            (
+                "/project/lib/tsconfig.lib.json",
+                r#"{"extends":"../tsconfig.json","include":["*.ts"],"exclude":["excluded.ts"],"references":[{"path":"../core/tsconfig.core.json"},{"path":"./tsconfig.lib.json"}]}"#,
+            ),
+            (
+                "/project/core/tsconfig.core.json",
+                r#"{"extends":"../tsconfig.json","include":["*.ts"],"references":[{"path":"../app/tsconfig.app.json"}]}"#,
+            ),
+            ("/project/app/index.ts", "export {};"),
+            ("/project/tool/index.ts", "export {};"),
+            ("/project/lib/index.ts", "export {};"),
+            ("/project/core/index.ts", "export {};"),
+            ("/project/lib/excluded.ts", "export {};"),
+            ("/project/loose.ts", "export {};"),
+        ],
+        true,
+    );
+    let host = ConfigHost::new(Arc::new(fs), "/project".into());
+    let mut configs = FxHashMap::default();
+    for _ in 0..2 {
+        for project in ["core", "lib", "tool", "app"] {
+            let expected = format!("/project/{project}/tsconfig.{project}.json");
+            assert_eq!(
+                find_tsconfig(&format!("/project/{project}/index.ts"), &host, &mut configs),
+                Some(expected.clone()),
+            );
+            let config =
+                configs[&tsrs_core::tspath::to_path(&expected, "/project", true)].as_ref().unwrap();
+            assert!(config.compiler_options().unwrap().strict.is_true());
+            assert!(config.compiler_options().unwrap().strict_null_checks.is_false());
+        }
+        for file in ["loose.ts", "lib/excluded.ts"] {
+            assert_eq!(find_tsconfig(&format!("/project/{file}"), &host, &mut configs), None);
+        }
+    }
+    assert_eq!(configs.len(), 5);
+}

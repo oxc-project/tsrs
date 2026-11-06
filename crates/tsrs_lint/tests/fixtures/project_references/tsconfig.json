@@ -1,0 +1,1 @@
+{"compilerOptions":{"composite":true,"strict":true,"strictNullChecks":false,"types":[]},"files":[],"references":[{"path":"./app/tsconfig.app.json"},{"path":"./tool/tsconfig.tool.json"}]}

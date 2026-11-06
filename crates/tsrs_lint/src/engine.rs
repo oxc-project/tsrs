@@ -737,16 +737,13 @@ pub fn find_tsconfig(
                         .compiler_options()
                         .is_some_and(|options| options.disable_solution_searching.is_true());
                 }
-                if config.file_names().is_empty() {
-                    queue.extend(config.resolved_project_reference_paths().iter().cloned());
-                    continue;
-                }
-                if config.compiler_options().is_some_and(|options| options.composite.is_true())
-                    && !config.possibly_matches_file_name(file)
+                if !config.file_names().is_empty()
+                    && (config
+                        .compiler_options()
+                        .is_none_or(|options| !options.composite.is_true())
+                        || config.possibly_matches_file_name(file))
+                    && config.file_names_by_path().contains_key(&file_path)
                 {
-                    continue;
-                }
-                if config.file_names_by_path().contains_key(&file_path) {
                     return Some(path);
                 }
                 queue.extend(config.resolved_project_reference_paths().iter().cloned());

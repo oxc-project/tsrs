@@ -1,0 +1,1 @@
+{"extends":"../tsconfig.json","include":["*.ts"],"exclude":["excluded.ts"],"references":[{"path":"../core/tsconfig.core.json"}]}

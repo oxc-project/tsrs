@@ -955,16 +955,32 @@ impl SymbolMap {
                 index_hash(hash_name(entries[m as usize].key()))
             });
         } else if self.entries.len() > SYMBOL_TABLE_LINEAR_MAX {
-            self.build_index();
+            self.build_index(self.entries.len());
         }
     }
 
-    /// The index of a linear table that has grown past `SYMBOL_TABLE_LINEAR_MAX` entries.
+    /// Room for `additional` more entries in the entry buffer and, past `SYMBOL_TABLE_LINEAR_MAX`, the index.
+    fn reserve(&mut self, additional: usize) {
+        let needed = self.entries.len() + additional;
+        self.entries.reserve_exact(additional);
+        if needed <= SYMBOL_TABLE_LINEAR_MAX {
+            return;
+        }
+        let entries = &self.entries;
+        match self.extra.get_mut() {
+            Some(index) => {
+                index.reserve(additional, |&m| index_hash(hash_name(entries[m as usize].key())));
+            }
+            None => self.build_index(needed),
+        }
+    }
+
+    /// The index of a linear table grown or reserved past `SYMBOL_TABLE_LINEAR_MAX` entries, with room for `capacity`.
     #[cold]
     #[inline(never)]
-    fn build_index(&mut self) {
+    fn build_index(&mut self, capacity: usize) {
         let len = self.entries.len();
-        let mut index = HashTable::with_capacity(len);
+        let mut index = HashTable::with_capacity(capacity);
         for j in 0..len {
             index.insert_unique(index_hash(self.entry_hash(j)), j as u32, |&m| {
                 index_hash(self.entry_hash(m as usize))
@@ -1108,6 +1124,11 @@ impl SymbolTable {
     #[inline]
     pub fn set(&self, name: &'static str, symbol: P<Symbol>) {
         self.0.borrow_mut().insert(name, symbol);
+    }
+
+    /// Makes room for `additional` more names before a run of `set`s (no Go counterpart: capacity only).
+    pub fn reserve(&self, additional: usize) {
+        self.0.borrow_mut().reserve(additional);
     }
 
     pub fn delete(&self, name: &str) {

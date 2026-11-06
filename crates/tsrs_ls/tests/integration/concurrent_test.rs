@@ -47,10 +47,10 @@ fn blocked_parallel_requests_release_their_execution_slots() {
                     },
                     &|work| work(),
                 );
-            })
+            });
         }));
     }
-    for _ in 0..count * 2 {
+    for _ in 0..count * count.min(2) {
         started_rx.recv_timeout(Duration::from_secs(15)).expect("parallel search did not start");
     }
     let (done_tx, done_rx) = mpsc::channel();

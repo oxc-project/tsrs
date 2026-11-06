@@ -268,6 +268,9 @@ impl LanguageService {
                 }
                 outcomes.sort_by_key(|(index, _)| *index);
                 for (_, (project_id, for_original_location, found)) in outcomes {
+                    if let Some(err) = ctx.err() {
+                        return Err(err.into());
+                    }
                     let searched = match found {
                         Ok(searched) => searched,
                         Err(panic) => {
@@ -279,6 +282,9 @@ impl LanguageService {
                         default_definition = searched.default_definition;
                     }
                     for (uri, position) in searched.found {
+                        if let Some(err) = ctx.err() {
+                            return Err(err.into());
+                        }
                         // Get default configured project for this file
                         let def_projects = match catch_unwind(AssertUnwindSafe(|| {
                             orchestrator.get_projects_for_file(ctx, &uri)

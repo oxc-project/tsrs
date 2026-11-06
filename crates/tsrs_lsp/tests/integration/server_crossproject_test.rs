@@ -50,9 +50,11 @@ fn check_merged_declarations(rename: bool) {
         test_server_options("/home/projects", FILES),
         Some(acknowledge_registrations()),
     );
-    let mut init = lsproto::InitializeParams::default();
-    init.root_uri = lsproto::DocumentUriOrNull {
-        document_uri: Some(lsproto::DocumentUri::from("file:///home/projects")),
+    let init = lsproto::InitializeParams {
+        root_uri: lsproto::DocumentUriOrNull {
+            document_uri: Some(lsproto::DocumentUri::from("file:///home/projects")),
+        },
+        ..Default::default()
     };
     let (msg, _) = client.send_request(lsproto::INITIALIZE_INFO, init);
     assert!(msg.error.is_none(), "{:?}", msg.error);

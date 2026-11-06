@@ -4,8 +4,9 @@
 /// Stack of each thread: checker recursion needs what the checker threads get (`CHECKER_STACK_SIZE`, `tsrs_compiler`).
 const STACK_SIZE: usize = 512 << 20;
 
-/// Runs `work` on every item and returns the results in item order. One item runs on the calling thread; more run on
-/// up to one scoped thread per core, each of which calls `around` once with a function that works through items.
+/// Runs `work` on every item and returns the results in item order.
+///
+/// One item runs on the calling thread; more run on up to one scoped thread per core. Each worker calls `around` once.
 /// `around` sets up what the calling thread has and the others lack (an allocation region, a checker data lease).
 pub fn run_concurrently<T: Send, R: Send>(
     items: Vec<T>,
@@ -35,12 +36,12 @@ pub fn run_concurrently<T: Send, R: Send>(
                                     let result = work(item);
                                     done.lock().unwrap().push((index, result));
                                 }
-                            })
+                            });
                         });
                     })
                     .expect("failed to spawn a language service worker thread");
             }
-        })
+        });
     });
     let mut done = done.into_inner().unwrap();
     done.sort_by_key(|(index, _)| *index);

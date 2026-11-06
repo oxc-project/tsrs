@@ -5,25 +5,22 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
-## 0.23.0 candidate (unreleased)
+## 0.23.0
 
-The intended package version is `0.23.0-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.
-The candidate covers the 14 commits after `v0.22.0` through main `b8b21271`, including the merged
-[#930](https://github.com/oxc-project/tsrs/pull/930).
-The [release notes](releases/0.23.0.md) lead with whole-program `--type-check` in both modes, inferred checking for
-loose and excluded files, and reporting each file's type errors once across overlapping programs. Selecting only
-a clean file can now fail on errors elsewhere in its tsconfig. The notes also cover transitive project-reference
-config discovery, lint rule fixes and refreshed baselines, and allocation regions for full compiler rebuilds.
-Windows ARM64 packaging is deferred until its npm package is set up and native release validation passes;
-Windows x64 remains in the release.
+Package version `0.23.0-ts7.1.0-beta`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`).
+The [release notes](releases/0.23.0.md) cover whole-program type checking in both lint modes, loose-file checking,
+project-reference discovery, faster language-server requests, lint fixes and rebuild memory fixes. Windows x64
+stays supported; Windows ARM64 awaits npm setup and a passing native release dry run.
 
-External Oxlint program tests at `oxc@582b5756`, including
-[oxc#28912](https://github.com/oxc-project/oxc/pull/28912), exercised main `28e42fc6b` with the
-[#930](https://github.com/oxc-project/tsrs/pull/930) engine changes. Exactly six snapshots changed, all additions
-from unlisted files in the same tsconfig. Default mode, `TSRS_FAST=1`, and a repeat run produced identical output.
-On the rebased commit `33db0ae496fa`, CI passed all 124 lint tests and an independent static review reported no
-findings. These checks do not validate packaged 0.23.0 artifacts. Packaged-release validation remains pending.
-No release has been published from this candidate.
+[Oxlint's program tests](https://github.com/oxc-project/oxc/pull/28912) at `582b5756` exercised the lint changes
+on `28e42fc6b`: six snapshots gained errors from unlisted files in the same tsconfig. Default mode, fast mode and
+a repeat run matched. All 124 lint tests passed on the rebased `33db0ae496fa`.
+
+The [release dry run](https://github.com/oxc-project/tsrs/actions/runs/42287456170/attempts/2) at `87138a91` built
+seven native targets and WASM, assembled nine packages and skipped publication. Installed-package CLI/SDK smokes
+passed on GNU Linux, macOS and Windows x64; Node API smokes ran on GNU Linux and macOS. Musl checks ran `--version`;
+WASM passed 14 tests under Node. Linux x64 passed the unchanged Fourslash gate on one retry after a shutdown EOF
+whose cause remains unconfirmed.
 
 ## 0.22.0
 

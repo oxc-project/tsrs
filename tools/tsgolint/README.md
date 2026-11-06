@@ -71,20 +71,27 @@ oxlint runs `<path> headless ...`, which `tsrs` would read as a root file.
 
 ## Type checking in the lint run
 
-`oxlint --type-aware --type-check` asks the linter for compiler diagnostics too. Under the fast preset
-(`TSRS_FAST=1`) they are what `tsrs --noEmit` reports for each tsconfig program: every file it checks, including files
-oxlint did not send (ignored or generated files, declaration files), and the program's global diagnostics, reported on
-its tsconfig. Files outside every tsconfig are linted but not type-checked. One command then replaces type-aware lint
-plus a separate typecheck:
+`oxlint --type-aware --type-check` asks the linter for compiler diagnostics too, with or without `TSRS_FAST=1`.
+Each tsconfig selected from the files oxlint sends checks eligible files across its whole program, including files
+oxlint did not send (ignored or generated files and declaration files). Oxlint ignores do not hide those files' type
+errors; compiler options such as `skipLibCheck` still control library and declaration checking. Configured-program
+global diagnostics without a source location, such as missing global types, are reported on the tsconfig. Listed
+files outside every tsconfig are linted and type-checked in an inferred program with the linter's default compiler
+options. That inferred program reports diagnostics only for those listed loose files.
+
+Shared files' type errors are reported once per request: a listed file by the program it maps to, any other file by
+the first configured program containing it. This whole-program scope extends upstream tsgolint's requested-file
+reporting; the fast preset is not required to enable it.
 
 ```sh
-TSRS_FAST=1 OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware --type-check
+OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware --type-check
 ```
 
-Each tsconfig that oxlint's files map to is checked whole, so this pays when lint and the typecheck use the same
-tsconfigs; a monorepo that typechecks one root config while lint maps files to many overlapping package configs does
-more work ([measurements](../../notes/perf-tsgolint-check-program.md)). Without the fast preset, compiler diagnostics
-cover the files oxlint sent, as in tsgolint.
+This can replace lint plus a separate no-emit typecheck only when the selected programs, compiler options and
+diagnostic scope match. Referenced projects need their own selected program for independent checking; this does not
+discover unrelated tsconfigs or run a solution build (`tsrs --build`). Checking shared files once also does not
+establish their diagnostics under every overlapping config's options. See the existing
+[measurements](../../notes/perf-tsgolint-check-program.md) for comparisons under specific lint/typecheck configurations.
 
 Run imported suites with:
 

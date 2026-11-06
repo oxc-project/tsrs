@@ -2,7 +2,7 @@
 
 ## JavaScript API
 
-Install the beta with `pnpm add -D tsrs@0.22.0-ts7.1.0-beta`. `require("tsrs")` exports `version`, `typescriptVersion` and
+Install the beta with `pnpm add -D tsrs@0.23.0-ts7.1.0-beta`. `require("tsrs")` exports `version`, `typescriptVersion` and
 `typescriptCommit`.
 
 The package also ships TypeScript 7's programmatic API, copied from microsoft/TypeScript

@@ -5,6 +5,25 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 0.23.0 candidate (unreleased)
+
+The intended package version is `0.23.0-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.
+The candidate covers the 14 commits after `v0.22.0` through main `b8b21271`, including the merged
+[#930](https://github.com/oxc-project/tsrs/pull/930).
+The [release notes](releases/0.23.0.md) lead with whole-program `--type-check` in both modes, inferred checking for
+loose and excluded files, and reporting each file's type errors once across overlapping programs. Selecting only
+a clean file can now fail on errors elsewhere in its tsconfig. The notes also cover transitive project-reference
+config discovery, Windows ARM64 packaging, lint rule fixes and refreshed baselines, and allocation regions for
+full compiler rebuilds.
+
+External Oxlint program tests at `oxc@582b5756`, including
+[oxc#28912](https://github.com/oxc-project/oxc/pull/28912), exercised main `28e42fc6b` with the
+[#930](https://github.com/oxc-project/tsrs/pull/930) engine changes. Exactly six snapshots changed, all additions
+from unlisted files in the same tsconfig. Default mode, `TSRS_FAST=1`, and a repeat run produced identical output.
+On the rebased commit `33db0ae496fa`, CI passed all 124 lint tests and an independent static review reported no
+findings. These checks do not validate packaged 0.23.0 artifacts. Native Windows ARM64 release validation
+remains pending. No release has been published from this candidate.
+
 ## 0.22.0
 
 The package version is `0.22.0-ts7.1.0-beta`, retaining TypeScript `7.1.0-beta` at `3e9236361fa9`.

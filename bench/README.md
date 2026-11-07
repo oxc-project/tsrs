@@ -166,3 +166,20 @@ RAYON_NUM_THREADS=1 TSRS_BENCH_PROJECT=Compiler-Unions \
 ```
 
 Outside CodSpeed's Linux instrumentation, the last command exercises capture, replay, and output verification without reporting performance measurements. Use `--profile dev` for local correctness builds. CI uses the release profile without PGO and keeps debug symbols for flame graphs.
+
+## Lint and type check
+
+`bench/lint-typecheck/` makes the lint and type check chart in the root README. It compares
+`oxlint --type-aware --type-check` with tsrs against separate lint and type check commands, Oxlint with tsgolint and
+tsgo, and ESLint with typescript-eslint and tsc. It expects Ubuntu 24.04 with an `ubuntu` user (uid 1000), and needs
+root and cgroup v2 so that CPU time and peak memory cover every process of a setup:
+
+```bash
+bash bench/lint-typecheck/setup.sh
+# rule set: outline, recommended or all
+sudo node bench/lint-typecheck/measure.mjs run outline
+node bench/lint-typecheck/measure.mjs collect
+node bench/lint-typecheck/render.mjs
+```
+
+Results and method: [lint-typecheck/RESULTS.md](lint-typecheck/RESULTS.md).

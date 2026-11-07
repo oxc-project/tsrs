@@ -1,0 +1,3476 @@
+{
+  "measured": "2026-11-07",
+  "machine": {
+    "short": "AWS m8g.4xlarge (16 vCPU)",
+    "long": "AWS m8g.4xlarge (16 Graviton4 vCPUs, 64 GiB), Ubuntu 24.04, Node 24"
+  },
+  "versions": {
+    "tsrs": "0.23.0-ts7.1.0-beta",
+    "oxlint": "1.92.0",
+    "oxlint-tsgolint": "7.0.2006",
+    "typescript": "7.0.2 and 6.0.3",
+    "eslint": "10.14.0",
+    "typescript-eslint": "8.72.1"
+  },
+  "projects": [
+    {
+      "name": "vscode",
+      "repo": "microsoft/vscode",
+      "ref": "1.145.2",
+      "tsconfig": "src/tsconfig.json",
+      "lintFiles": 11030
+    },
+    {
+      "name": "outline",
+      "repo": "outline/outline",
+      "ref": "v1.12.0",
+      "tsconfig": "tsconfig.json",
+      "lintDirs": [
+        "app/",
+        "server/",
+        "shared/",
+        "plugins/"
+      ],
+      "lintFiles": 2296
+    },
+    {
+      "name": "vue",
+      "repo": "vuejs/core",
+      "ref": "v3.5.45",
+      "tsconfig": "tsconfig.json",
+      "lintFiles": 441
+    }
+  ],
+  "rules": {
+    "outline": [
+      "await-thenable",
+      "no-duplicate-type-constituents",
+      "no-floating-promises",
+      "no-meaningless-void-operator",
+      "no-useless-default-assignment",
+      "require-array-sort-compare",
+      "restrict-template-expressions"
+    ],
+    "recommended": [
+      "await-thenable",
+      "no-array-delete",
+      "no-base-to-string",
+      "no-duplicate-type-constituents",
+      "no-floating-promises",
+      "no-for-in-array",
+      "no-implied-eval",
+      "no-misused-promises",
+      "no-redundant-type-constituents",
+      "no-unnecessary-type-assertion",
+      "no-unsafe-argument",
+      "no-unsafe-assignment",
+      "no-unsafe-call",
+      "no-unsafe-enum-comparison",
+      "no-unsafe-member-access",
+      "no-unsafe-return",
+      "no-unsafe-unary-minus",
+      "only-throw-error",
+      "prefer-promise-reject-errors",
+      "require-await",
+      "restrict-plus-operands",
+      "restrict-template-expressions",
+      "unbound-method"
+    ],
+    "all": [
+      "await-thenable",
+      "consistent-return",
+      "consistent-type-exports",
+      "dot-notation",
+      "no-array-delete",
+      "no-base-to-string",
+      "no-confusing-void-expression",
+      "no-deprecated",
+      "no-duplicate-type-constituents",
+      "no-floating-promises",
+      "no-for-in-array",
+      "no-implied-eval",
+      "no-meaningless-void-operator",
+      "no-misused-promises",
+      "no-misused-spread",
+      "no-mixed-enums",
+      "no-redundant-type-constituents",
+      "no-unnecessary-boolean-literal-compare",
+      "no-unnecessary-condition",
+      "no-unnecessary-qualifier",
+      "no-unnecessary-template-expression",
+      "no-unnecessary-type-conversion",
+      "no-unnecessary-type-arguments",
+      "no-unnecessary-type-assertion",
+      "no-unnecessary-type-parameters",
+      "no-useless-default-assignment",
+      "no-unsafe-argument",
+      "no-unsafe-assignment",
+      "no-unsafe-call",
+      "no-unsafe-enum-comparison",
+      "no-unsafe-member-access",
+      "no-unsafe-return",
+      "no-unsafe-type-assertion",
+      "no-unsafe-unary-minus",
+      "non-nullable-type-assertion-style",
+      "only-throw-error",
+      "prefer-find",
+      "prefer-includes",
+      "prefer-nullish-coalescing",
+      "prefer-optional-chain",
+      "prefer-promise-reject-errors",
+      "prefer-readonly",
+      "prefer-readonly-parameter-types",
+      "prefer-reduce-type-parameter",
+      "prefer-regexp-exec",
+      "prefer-return-this-type",
+      "prefer-string-starts-ends-with",
+      "promise-function-async",
+      "related-getter-setter-pairs",
+      "require-array-sort-compare",
+      "require-await",
+      "restrict-plus-operands",
+      "restrict-template-expressions",
+      "return-await",
+      "strict-boolean-expressions",
+      "strict-void-return",
+      "switch-exhaustiveness-check",
+      "unbound-method",
+      "use-unknown-in-catch-callback-variable"
+    ]
+  },
+  "samples": {
+    "outline": {
+      "vscode": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 3747,
+            "cpuMs": 25342,
+            "peakMiB": 4018,
+            "processWallMs": [
+              3746
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 3831,
+            "cpuMs": 26015,
+            "peakMiB": 4025,
+            "processWallMs": [
+              3831
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 3842,
+            "cpuMs": 26174,
+            "peakMiB": 4033,
+            "processWallMs": [
+              3842
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 3863,
+            "cpuMs": 25762,
+            "peakMiB": 4009,
+            "processWallMs": [
+              3863
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 3849,
+            "cpuMs": 25982,
+            "peakMiB": 4005,
+            "processWallMs": [
+              3849
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 3904,
+            "cpuMs": 37557,
+            "peakMiB": 5030,
+            "processWallMs": [
+              3904,
+              1946
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 3867,
+            "cpuMs": 36886,
+            "peakMiB": 4993,
+            "processWallMs": [
+              3867,
+              1892
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 3918,
+            "cpuMs": 37650,
+            "peakMiB": 4981,
+            "processWallMs": [
+              3918,
+              1913
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 3941,
+            "cpuMs": 37475,
+            "peakMiB": 4974,
+            "processWallMs": [
+              3941,
+              1913
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 3891,
+            "cpuMs": 37397,
+            "peakMiB": 4960,
+            "processWallMs": [
+              3891,
+              1883
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 2948,
+            "cpuMs": 16400,
+            "peakMiB": 3471,
+            "processWallMs": [
+              2948
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 2903,
+            "cpuMs": 16157,
+            "peakMiB": 3445,
+            "processWallMs": [
+              2903
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 2935,
+            "cpuMs": 16301,
+            "peakMiB": 3450,
+            "processWallMs": [
+              2935
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 2987,
+            "cpuMs": 16636,
+            "peakMiB": 3456,
+            "processWallMs": [
+              2987
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 2989,
+            "cpuMs": 16549,
+            "peakMiB": 3447,
+            "processWallMs": [
+              2989
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 1469,
+            "cpuMs": 20020,
+            "peakMiB": 2519,
+            "processWallMs": [
+              1469
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1439,
+            "cpuMs": 19642,
+            "peakMiB": 2527,
+            "processWallMs": [
+              1439
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1452,
+            "cpuMs": 19707,
+            "peakMiB": 2514,
+            "processWallMs": [
+              1452
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1470,
+            "cpuMs": 19934,
+            "peakMiB": 2509,
+            "processWallMs": [
+              1470
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1481,
+            "cpuMs": 20243,
+            "peakMiB": 2532,
+            "processWallMs": [
+              1481
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 25438,
+            "cpuMs": 122153,
+            "peakMiB": 13298,
+            "processWallMs": [
+              25438
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 25619,
+            "cpuMs": 121825,
+            "peakMiB": 13402,
+            "processWallMs": [
+              25619
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 25672,
+            "cpuMs": 121883,
+            "peakMiB": 13454,
+            "processWallMs": [
+              25672
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 25879,
+            "cpuMs": 123127,
+            "peakMiB": 13349,
+            "processWallMs": [
+              25879
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 25250,
+            "cpuMs": 121843,
+            "peakMiB": 12965,
+            "processWallMs": [
+              25250
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 18587,
+            "cpuMs": 149132,
+            "peakMiB": 16455,
+            "processWallMs": [
+              12614,
+              18587
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 18593,
+            "cpuMs": 141462,
+            "peakMiB": 16298,
+            "processWallMs": [
+              13016,
+              18593
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 19123,
+            "cpuMs": 155629,
+            "peakMiB": 16273,
+            "processWallMs": [
+              12946,
+              19123
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 19142,
+            "cpuMs": 151458,
+            "peakMiB": 16746,
+            "processWallMs": [
+              13629,
+              19142
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 19209,
+            "cpuMs": 147409,
+            "peakMiB": 16285,
+            "processWallMs": [
+              13042,
+              19209
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 311279,
+            "cpuMs": 699371,
+            "peakMiB": 29096,
+            "processWallMs": [
+              311279,
+              200429
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 306945,
+            "cpuMs": 662367,
+            "peakMiB": 31234,
+            "processWallMs": [
+              306945,
+              195059
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 305957,
+            "cpuMs": 728169,
+            "peakMiB": 28278,
+            "processWallMs": [
+              305957,
+              196408
+            ]
+          }
+        ]
+      },
+      "outline": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 1686,
+            "cpuMs": 9851,
+            "peakMiB": 1456,
+            "processWallMs": [
+              1686
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1676,
+            "cpuMs": 9870,
+            "peakMiB": 1466,
+            "processWallMs": [
+              1676
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1654,
+            "cpuMs": 9840,
+            "peakMiB": 1455,
+            "processWallMs": [
+              1654
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1698,
+            "cpuMs": 9973,
+            "peakMiB": 1468,
+            "processWallMs": [
+              1698
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1671,
+            "cpuMs": 9998,
+            "peakMiB": 1469,
+            "processWallMs": [
+              1671
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 1884,
+            "cpuMs": 15940,
+            "peakMiB": 2147,
+            "processWallMs": [
+              1884,
+              1304
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1888,
+            "cpuMs": 16036,
+            "peakMiB": 2171,
+            "processWallMs": [
+              1888,
+              1317
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1862,
+            "cpuMs": 15713,
+            "peakMiB": 2161,
+            "processWallMs": [
+              1862,
+              1081
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1842,
+            "cpuMs": 15617,
+            "peakMiB": 2201,
+            "processWallMs": [
+              1842,
+              1237
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1799,
+            "cpuMs": 15976,
+            "peakMiB": 2190,
+            "processWallMs": [
+              1799,
+              1346
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 1369,
+            "cpuMs": 5743,
+            "peakMiB": 1077,
+            "processWallMs": [
+              1369
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1407,
+            "cpuMs": 5881,
+            "peakMiB": 1078,
+            "processWallMs": [
+              1407
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1414,
+            "cpuMs": 5816,
+            "peakMiB": 1085,
+            "processWallMs": [
+              1414
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1363,
+            "cpuMs": 5711,
+            "peakMiB": 1077,
+            "processWallMs": [
+              1363
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1369,
+            "cpuMs": 5705,
+            "peakMiB": 1081,
+            "processWallMs": [
+              1369
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 1049,
+            "cpuMs": 9605,
+            "peakMiB": 1134,
+            "processWallMs": [
+              1049
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1063,
+            "cpuMs": 9960,
+            "peakMiB": 1138,
+            "processWallMs": [
+              1063
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1060,
+            "cpuMs": 9869,
+            "peakMiB": 1143,
+            "processWallMs": [
+              1060
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1029,
+            "cpuMs": 9429,
+            "peakMiB": 1147,
+            "processWallMs": [
+              1029
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1076,
+            "cpuMs": 9874,
+            "peakMiB": 1123,
+            "processWallMs": [
+              1076
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 9980,
+            "cpuMs": 39368,
+            "peakMiB": 3959,
+            "processWallMs": [
+              9980
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 9811,
+            "cpuMs": 37084,
+            "peakMiB": 3824,
+            "processWallMs": [
+              9811
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 10056,
+            "cpuMs": 38067,
+            "peakMiB": 3867,
+            "processWallMs": [
+              10056
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 10070,
+            "cpuMs": 39798,
+            "peakMiB": 3978,
+            "processWallMs": [
+              10070
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 10106,
+            "cpuMs": 38426,
+            "peakMiB": 3869,
+            "processWallMs": [
+              10106
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 8822,
+            "cpuMs": 49236,
+            "peakMiB": 4843,
+            "processWallMs": [
+              3968,
+              8822
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 8874,
+            "cpuMs": 50378,
+            "peakMiB": 5064,
+            "processWallMs": [
+              4029,
+              8874
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 8810,
+            "cpuMs": 50750,
+            "peakMiB": 5094,
+            "processWallMs": [
+              4029,
+              8810
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 8725,
+            "cpuMs": 50329,
+            "peakMiB": 5143,
+            "processWallMs": [
+              4008,
+              8725
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 8752,
+            "cpuMs": 50737,
+            "peakMiB": 5138,
+            "processWallMs": [
+              4022,
+              8752
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 55448,
+            "cpuMs": 129522,
+            "peakMiB": 8481,
+            "processWallMs": [
+              45916,
+              55448
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 55744,
+            "cpuMs": 129522,
+            "peakMiB": 8251,
+            "processWallMs": [
+              45903,
+              55744
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 55981,
+            "cpuMs": 130007,
+            "peakMiB": 8509,
+            "processWallMs": [
+              46018,
+              55981
+            ]
+          }
+        ]
+      },
+      "vue": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 373,
+            "cpuMs": 1683,
+            "peakMiB": 520,
+            "processWallMs": [
+              373
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 376,
+            "cpuMs": 1675,
+            "peakMiB": 521,
+            "processWallMs": [
+              375
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 365,
+            "cpuMs": 1662,
+            "peakMiB": 510,
+            "processWallMs": [
+              365
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 371,
+            "cpuMs": 1663,
+            "peakMiB": 516,
+            "processWallMs": [
+              371
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 371,
+            "cpuMs": 1675,
+            "peakMiB": 517,
+            "processWallMs": [
+              371
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 294,
+            "cpuMs": 2350,
+            "peakMiB": 630,
+            "processWallMs": [
+              294,
+              208
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 289,
+            "cpuMs": 2334,
+            "peakMiB": 628,
+            "processWallMs": [
+              289,
+              206
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 298,
+            "cpuMs": 2374,
+            "peakMiB": 642,
+            "processWallMs": [
+              298,
+              212
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 290,
+            "cpuMs": 2369,
+            "peakMiB": 632,
+            "processWallMs": [
+              290,
+              205
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 287,
+            "cpuMs": 2380,
+            "peakMiB": 678,
+            "processWallMs": [
+              287,
+              237
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 222,
+            "cpuMs": 871,
+            "peakMiB": 422,
+            "processWallMs": [
+              221
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 214,
+            "cpuMs": 862,
+            "peakMiB": 424,
+            "processWallMs": [
+              214
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 213,
+            "cpuMs": 852,
+            "peakMiB": 419,
+            "processWallMs": [
+              213
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 229,
+            "cpuMs": 871,
+            "peakMiB": 427,
+            "processWallMs": [
+              229
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 219,
+            "cpuMs": 874,
+            "peakMiB": 423,
+            "processWallMs": [
+              219
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 185,
+            "cpuMs": 1479,
+            "peakMiB": 275,
+            "processWallMs": [
+              185
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 181,
+            "cpuMs": 1440,
+            "peakMiB": 267,
+            "processWallMs": [
+              181
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 180,
+            "cpuMs": 1457,
+            "peakMiB": 274,
+            "processWallMs": [
+              180
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 186,
+            "cpuMs": 1452,
+            "peakMiB": 268,
+            "processWallMs": [
+              186
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 185,
+            "cpuMs": 1485,
+            "peakMiB": 271,
+            "processWallMs": [
+              185
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 1529,
+            "cpuMs": 6746,
+            "peakMiB": 1066,
+            "processWallMs": [
+              1529
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1463,
+            "cpuMs": 6573,
+            "peakMiB": 1055,
+            "processWallMs": [
+              1463
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1468,
+            "cpuMs": 6400,
+            "peakMiB": 1116,
+            "processWallMs": [
+              1468
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1509,
+            "cpuMs": 6539,
+            "peakMiB": 1134,
+            "processWallMs": [
+              1509
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1492,
+            "cpuMs": 6619,
+            "peakMiB": 1057,
+            "processWallMs": [
+              1492
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 1292,
+            "cpuMs": 8348,
+            "peakMiB": 1218,
+            "processWallMs": [
+              671,
+              1292
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1272,
+            "cpuMs": 8216,
+            "peakMiB": 1203,
+            "processWallMs": [
+              645,
+              1271
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1272,
+            "cpuMs": 8276,
+            "peakMiB": 1193,
+            "processWallMs": [
+              652,
+              1272
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1261,
+            "cpuMs": 8477,
+            "peakMiB": 1193,
+            "processWallMs": [
+              661,
+              1261
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1299,
+            "cpuMs": 8443,
+            "peakMiB": 1222,
+            "processWallMs": [
+              681,
+              1299
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 12902,
+            "cpuMs": 38451,
+            "peakMiB": 2820,
+            "processWallMs": [
+              11358,
+              12902
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 12719,
+            "cpuMs": 38250,
+            "peakMiB": 2755,
+            "processWallMs": [
+              11369,
+              12719
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 12866,
+            "cpuMs": 38718,
+            "peakMiB": 2763,
+            "processWallMs": [
+              11599,
+              12866
+            ]
+          }
+        ]
+      }
+    },
+    "recommended": {
+      "vscode": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 7382,
+            "cpuMs": 37681,
+            "peakMiB": 4531,
+            "processWallMs": [
+              7382
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 7333,
+            "cpuMs": 37691,
+            "peakMiB": 4550,
+            "processWallMs": [
+              7333
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 7417,
+            "cpuMs": 38116,
+            "peakMiB": 4554,
+            "processWallMs": [
+              7417
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 7420,
+            "cpuMs": 38375,
+            "peakMiB": 4550,
+            "processWallMs": [
+              7420
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 7343,
+            "cpuMs": 37989,
+            "peakMiB": 4526,
+            "processWallMs": [
+              7343
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 7882,
+            "cpuMs": 55008,
+            "peakMiB": 4940,
+            "processWallMs": [
+              7882,
+              1879
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 7833,
+            "cpuMs": 54404,
+            "peakMiB": 4910,
+            "processWallMs": [
+              7833,
+              1853
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 7926,
+            "cpuMs": 55125,
+            "peakMiB": 4968,
+            "processWallMs": [
+              7926,
+              1919
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 7998,
+            "cpuMs": 55864,
+            "peakMiB": 4891,
+            "processWallMs": [
+              7998,
+              1902
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 7874,
+            "cpuMs": 54555,
+            "peakMiB": 4860,
+            "processWallMs": [
+              7874,
+              1837
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 6972,
+            "cpuMs": 33706,
+            "peakMiB": 4436,
+            "processWallMs": [
+              6972
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 6979,
+            "cpuMs": 33989,
+            "peakMiB": 4424,
+            "processWallMs": [
+              6979
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 6977,
+            "cpuMs": 34171,
+            "peakMiB": 4440,
+            "processWallMs": [
+              6977
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 7023,
+            "cpuMs": 34206,
+            "peakMiB": 4438,
+            "processWallMs": [
+              7023
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 6944,
+            "cpuMs": 33915,
+            "peakMiB": 4434,
+            "processWallMs": [
+              6944
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 1491,
+            "cpuMs": 20017,
+            "peakMiB": 2530,
+            "processWallMs": [
+              1491
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1481,
+            "cpuMs": 20054,
+            "peakMiB": 2512,
+            "processWallMs": [
+              1481
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1482,
+            "cpuMs": 20030,
+            "peakMiB": 2518,
+            "processWallMs": [
+              1482
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1473,
+            "cpuMs": 19834,
+            "peakMiB": 2524,
+            "processWallMs": [
+              1473
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1470,
+            "cpuMs": 20058,
+            "peakMiB": 2512,
+            "processWallMs": [
+              1470
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 39634,
+            "cpuMs": 177153,
+            "peakMiB": 15976,
+            "processWallMs": [
+              39634
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 39915,
+            "cpuMs": 191325,
+            "peakMiB": 16214,
+            "processWallMs": [
+              39915
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 40561,
+            "cpuMs": 195738,
+            "peakMiB": 16138,
+            "processWallMs": [
+              40561
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 40000,
+            "cpuMs": 192196,
+            "peakMiB": 16227,
+            "processWallMs": [
+              40000
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 40020,
+            "cpuMs": 191937,
+            "peakMiB": 16225,
+            "processWallMs": [
+              40020
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 29211,
+            "cpuMs": 215331,
+            "peakMiB": 20035,
+            "processWallMs": [
+              29211,
+              18714
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 29104,
+            "cpuMs": 215005,
+            "peakMiB": 19985,
+            "processWallMs": [
+              29104,
+              18801
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 28756,
+            "cpuMs": 206833,
+            "peakMiB": 20495,
+            "processWallMs": [
+              28756,
+              19220
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 29483,
+            "cpuMs": 219223,
+            "peakMiB": 20025,
+            "processWallMs": [
+              29483,
+              19574
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 28663,
+            "cpuMs": 206846,
+            "peakMiB": 20368,
+            "processWallMs": [
+              28663,
+              19098
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 641883,
+            "cpuMs": 1140322,
+            "peakMiB": 25766,
+            "processWallMs": [
+              641883,
+              194843
+            ]
+          }
+        ]
+      },
+      "outline": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 2168,
+            "cpuMs": 11231,
+            "peakMiB": 1519,
+            "processWallMs": [
+              2168
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 2229,
+            "cpuMs": 11655,
+            "peakMiB": 1523,
+            "processWallMs": [
+              2228
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 2164,
+            "cpuMs": 11210,
+            "peakMiB": 1523,
+            "processWallMs": [
+              2164
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 2196,
+            "cpuMs": 11419,
+            "peakMiB": 1514,
+            "processWallMs": [
+              2196
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 2131,
+            "cpuMs": 11109,
+            "peakMiB": 1525,
+            "processWallMs": [
+              2131
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 2343,
+            "cpuMs": 20926,
+            "peakMiB": 2550,
+            "processWallMs": [
+              2343,
+              1472
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 2382,
+            "cpuMs": 20796,
+            "peakMiB": 2544,
+            "processWallMs": [
+              2381,
+              1425
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 2304,
+            "cpuMs": 20274,
+            "peakMiB": 2400,
+            "processWallMs": [
+              2304,
+              1172
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 2250,
+            "cpuMs": 20331,
+            "peakMiB": 2547,
+            "processWallMs": [
+              2250,
+              1456
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 2269,
+            "cpuMs": 20012,
+            "peakMiB": 2540,
+            "processWallMs": [
+              2269,
+              1435
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 1778,
+            "cpuMs": 10203,
+            "peakMiB": 1485,
+            "processWallMs": [
+              1778
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1760,
+            "cpuMs": 10007,
+            "peakMiB": 1482,
+            "processWallMs": [
+              1760
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1777,
+            "cpuMs": 10151,
+            "peakMiB": 1485,
+            "processWallMs": [
+              1777
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1723,
+            "cpuMs": 9886,
+            "peakMiB": 1482,
+            "processWallMs": [
+              1723
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1734,
+            "cpuMs": 9964,
+            "peakMiB": 1498,
+            "processWallMs": [
+              1734
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 1072,
+            "cpuMs": 9689,
+            "peakMiB": 1128,
+            "processWallMs": [
+              1072
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1051,
+            "cpuMs": 9674,
+            "peakMiB": 1124,
+            "processWallMs": [
+              1051
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1063,
+            "cpuMs": 9966,
+            "peakMiB": 1156,
+            "processWallMs": [
+              1063
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1042,
+            "cpuMs": 9557,
+            "peakMiB": 1134,
+            "processWallMs": [
+              1042
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1043,
+            "cpuMs": 9682,
+            "peakMiB": 1137,
+            "processWallMs": [
+              1043
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 12304,
+            "cpuMs": 49715,
+            "peakMiB": 4707,
+            "processWallMs": [
+              12304
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 12157,
+            "cpuMs": 47634,
+            "peakMiB": 4277,
+            "processWallMs": [
+              12157
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 12243,
+            "cpuMs": 48031,
+            "peakMiB": 4309,
+            "processWallMs": [
+              12243
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 12224,
+            "cpuMs": 48240,
+            "peakMiB": 4342,
+            "processWallMs": [
+              12224
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 11854,
+            "cpuMs": 47414,
+            "peakMiB": 4233,
+            "processWallMs": [
+              11854
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 9157,
+            "cpuMs": 65281,
+            "peakMiB": 7047,
+            "processWallMs": [
+              7565,
+              9157
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 9104,
+            "cpuMs": 65643,
+            "peakMiB": 6834,
+            "processWallMs": [
+              7429,
+              9104
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 9065,
+            "cpuMs": 65331,
+            "peakMiB": 6724,
+            "processWallMs": [
+              7506,
+              9065
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 8857,
+            "cpuMs": 63393,
+            "peakMiB": 7112,
+            "processWallMs": [
+              7309,
+              8857
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 8860,
+            "cpuMs": 63952,
+            "peakMiB": 7054,
+            "processWallMs": [
+              7411,
+              8860
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 93912,
+            "cpuMs": 182341,
+            "peakMiB": 8379,
+            "processWallMs": [
+              93912,
+              56072
+            ]
+          }
+        ]
+      },
+      "vue": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 557,
+            "cpuMs": 2140,
+            "peakMiB": 543,
+            "processWallMs": [
+              557
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 561,
+            "cpuMs": 2151,
+            "peakMiB": 541,
+            "processWallMs": [
+              561
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 564,
+            "cpuMs": 2163,
+            "peakMiB": 544,
+            "processWallMs": [
+              564
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 552,
+            "cpuMs": 2139,
+            "peakMiB": 541,
+            "processWallMs": [
+              552
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 553,
+            "cpuMs": 2167,
+            "peakMiB": 542,
+            "processWallMs": [
+              553
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 604,
+            "cpuMs": 3570,
+            "peakMiB": 654,
+            "processWallMs": [
+              604,
+              205
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 623,
+            "cpuMs": 3586,
+            "peakMiB": 616,
+            "processWallMs": [
+              623,
+              198
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 640,
+            "cpuMs": 3582,
+            "peakMiB": 628,
+            "processWallMs": [
+              639,
+              216
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 617,
+            "cpuMs": 3566,
+            "peakMiB": 614,
+            "processWallMs": [
+              617,
+              197
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 629,
+            "cpuMs": 3554,
+            "peakMiB": 637,
+            "processWallMs": [
+              629,
+              218
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 548,
+            "cpuMs": 2061,
+            "peakMiB": 538,
+            "processWallMs": [
+              548
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 552,
+            "cpuMs": 2075,
+            "peakMiB": 537,
+            "processWallMs": [
+              552
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 563,
+            "cpuMs": 2094,
+            "peakMiB": 539,
+            "processWallMs": [
+              563
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 562,
+            "cpuMs": 2086,
+            "peakMiB": 538,
+            "processWallMs": [
+              562
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 557,
+            "cpuMs": 2059,
+            "peakMiB": 539,
+            "processWallMs": [
+              557
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 186,
+            "cpuMs": 1480,
+            "peakMiB": 268,
+            "processWallMs": [
+              186
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 189,
+            "cpuMs": 1490,
+            "peakMiB": 273,
+            "processWallMs": [
+              188
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 196,
+            "cpuMs": 1487,
+            "peakMiB": 275,
+            "processWallMs": [
+              196
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 185,
+            "cpuMs": 1477,
+            "peakMiB": 271,
+            "processWallMs": [
+              185
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 189,
+            "cpuMs": 1463,
+            "peakMiB": 269,
+            "processWallMs": [
+              189
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 2422,
+            "cpuMs": 10458,
+            "peakMiB": 1358,
+            "processWallMs": [
+              2421
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 2395,
+            "cpuMs": 10106,
+            "peakMiB": 1302,
+            "processWallMs": [
+              2395
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 2438,
+            "cpuMs": 10689,
+            "peakMiB": 1295,
+            "processWallMs": [
+              2438
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 2415,
+            "cpuMs": 10465,
+            "peakMiB": 1385,
+            "processWallMs": [
+              2415
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 2467,
+            "cpuMs": 10815,
+            "peakMiB": 1285,
+            "processWallMs": [
+              2467
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 1664,
+            "cpuMs": 12397,
+            "peakMiB": 1762,
+            "processWallMs": [
+              1664,
+              1290
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1684,
+            "cpuMs": 12477,
+            "peakMiB": 1639,
+            "processWallMs": [
+              1684,
+              1316
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1669,
+            "cpuMs": 12647,
+            "peakMiB": 1671,
+            "processWallMs": [
+              1669,
+              1370
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1644,
+            "cpuMs": 12426,
+            "peakMiB": 1652,
+            "processWallMs": [
+              1644,
+              1326
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1688,
+            "cpuMs": 13014,
+            "peakMiB": 1761,
+            "processWallMs": [
+              1688,
+              1326
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 26215,
+            "cpuMs": 55572,
+            "peakMiB": 2383,
+            "processWallMs": [
+              26215,
+              12741
+            ]
+          }
+        ]
+      }
+    },
+    "all": {
+      "vscode": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 21516,
+            "cpuMs": 57400,
+            "peakMiB": 5044,
+            "processWallMs": [
+              21515
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 21550,
+            "cpuMs": 57797,
+            "peakMiB": 5017,
+            "processWallMs": [
+              21550
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 21484,
+            "cpuMs": 57306,
+            "peakMiB": 5044,
+            "processWallMs": [
+              21484
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 21543,
+            "cpuMs": 57846,
+            "peakMiB": 5033,
+            "processWallMs": [
+              21543
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 21620,
+            "cpuMs": 58560,
+            "peakMiB": 5025,
+            "processWallMs": [
+              21620
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 22122,
+            "cpuMs": 75083,
+            "peakMiB": 4892,
+            "processWallMs": [
+              22122,
+              1805
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 22129,
+            "cpuMs": 75460,
+            "peakMiB": 4913,
+            "processWallMs": [
+              22129,
+              1821
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 22006,
+            "cpuMs": 74574,
+            "peakMiB": 4911,
+            "processWallMs": [
+              22006,
+              1854
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 22087,
+            "cpuMs": 75550,
+            "peakMiB": 4926,
+            "processWallMs": [
+              22087,
+              1861
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 22069,
+            "cpuMs": 75020,
+            "peakMiB": 4918,
+            "processWallMs": [
+              22069,
+              1864
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 21248,
+            "cpuMs": 54692,
+            "peakMiB": 4946,
+            "processWallMs": [
+              21248
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 21182,
+            "cpuMs": 54378,
+            "peakMiB": 4938,
+            "processWallMs": [
+              21182
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 21226,
+            "cpuMs": 54420,
+            "peakMiB": 4926,
+            "processWallMs": [
+              21226
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 21304,
+            "cpuMs": 54312,
+            "peakMiB": 4927,
+            "processWallMs": [
+              21304
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 21220,
+            "cpuMs": 54429,
+            "peakMiB": 4947,
+            "processWallMs": [
+              21220
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 1510,
+            "cpuMs": 20558,
+            "peakMiB": 2521,
+            "processWallMs": [
+              1510
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1486,
+            "cpuMs": 20163,
+            "peakMiB": 2520,
+            "processWallMs": [
+              1486
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1505,
+            "cpuMs": 20256,
+            "peakMiB": 2527,
+            "processWallMs": [
+              1505
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1504,
+            "cpuMs": 20306,
+            "peakMiB": 2517,
+            "processWallMs": [
+              1504
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1459,
+            "cpuMs": 19614,
+            "peakMiB": 2512,
+            "processWallMs": [
+              1458
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 58962,
+            "cpuMs": 214230,
+            "peakMiB": 17986,
+            "processWallMs": [
+              58962
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 58243,
+            "cpuMs": 222801,
+            "peakMiB": 16360,
+            "processWallMs": [
+              58243
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 57959,
+            "cpuMs": 224725,
+            "peakMiB": 17133,
+            "processWallMs": [
+              57959
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 58136,
+            "cpuMs": 211022,
+            "peakMiB": 17648,
+            "processWallMs": [
+              58136
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 58792,
+            "cpuMs": 214242,
+            "peakMiB": 17714,
+            "processWallMs": [
+              58792
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 47302,
+            "cpuMs": 243215,
+            "peakMiB": 20459,
+            "processWallMs": [
+              47302,
+              18994
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 47913,
+            "cpuMs": 255972,
+            "peakMiB": 19918,
+            "processWallMs": [
+              47912,
+              19062
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 47099,
+            "cpuMs": 239593,
+            "peakMiB": 20233,
+            "processWallMs": [
+              47099,
+              18400
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 46849,
+            "cpuMs": 237759,
+            "peakMiB": 20456,
+            "processWallMs": [
+              46849,
+              18378
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 47863,
+            "cpuMs": 253689,
+            "peakMiB": 19694,
+            "processWallMs": [
+              47862,
+              19087
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 880911,
+            "cpuMs": 1473822,
+            "peakMiB": 23618,
+            "processWallMs": [
+              880911,
+              194946
+            ]
+          }
+        ]
+      },
+      "outline": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 2360,
+            "cpuMs": 11867,
+            "peakMiB": 1577,
+            "processWallMs": [
+              2360
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 2402,
+            "cpuMs": 12220,
+            "peakMiB": 1570,
+            "processWallMs": [
+              2402
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 2394,
+            "cpuMs": 12054,
+            "peakMiB": 1563,
+            "processWallMs": [
+              2394
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 2381,
+            "cpuMs": 11934,
+            "peakMiB": 1570,
+            "processWallMs": [
+              2381
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 2422,
+            "cpuMs": 12117,
+            "peakMiB": 1573,
+            "processWallMs": [
+              2422
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 2497,
+            "cpuMs": 21350,
+            "peakMiB": 2486,
+            "processWallMs": [
+              2497,
+              1234
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 2547,
+            "cpuMs": 21048,
+            "peakMiB": 2518,
+            "processWallMs": [
+              2547,
+              1296
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 2479,
+            "cpuMs": 21337,
+            "peakMiB": 2464,
+            "processWallMs": [
+              2479,
+              1227
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 2436,
+            "cpuMs": 21187,
+            "peakMiB": 2488,
+            "processWallMs": [
+              2436,
+              1277
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 2521,
+            "cpuMs": 21289,
+            "peakMiB": 2291,
+            "processWallMs": [
+              2521,
+              1106
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 1997,
+            "cpuMs": 11069,
+            "peakMiB": 1562,
+            "processWallMs": [
+              1997
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1965,
+            "cpuMs": 11042,
+            "peakMiB": 1554,
+            "processWallMs": [
+              1965
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1961,
+            "cpuMs": 10925,
+            "peakMiB": 1563,
+            "processWallMs": [
+              1961
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1979,
+            "cpuMs": 10968,
+            "peakMiB": 1550,
+            "processWallMs": [
+              1979
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1986,
+            "cpuMs": 11070,
+            "peakMiB": 1545,
+            "processWallMs": [
+              1986
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 1053,
+            "cpuMs": 9737,
+            "peakMiB": 1135,
+            "processWallMs": [
+              1052
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1069,
+            "cpuMs": 9670,
+            "peakMiB": 1133,
+            "processWallMs": [
+              1069
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1021,
+            "cpuMs": 9548,
+            "peakMiB": 1116,
+            "processWallMs": [
+              1021
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1057,
+            "cpuMs": 9711,
+            "peakMiB": 1125,
+            "processWallMs": [
+              1057
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1055,
+            "cpuMs": 9685,
+            "peakMiB": 1145,
+            "processWallMs": [
+              1055
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 12863,
+            "cpuMs": 51673,
+            "peakMiB": 4758,
+            "processWallMs": [
+              12863
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 13169,
+            "cpuMs": 52926,
+            "peakMiB": 4484,
+            "processWallMs": [
+              13169
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 12498,
+            "cpuMs": 48519,
+            "peakMiB": 4508,
+            "processWallMs": [
+              12498
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 13179,
+            "cpuMs": 51285,
+            "peakMiB": 4604,
+            "processWallMs": [
+              13179
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 12776,
+            "cpuMs": 50866,
+            "peakMiB": 4300,
+            "processWallMs": [
+              12776
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 9048,
+            "cpuMs": 70007,
+            "peakMiB": 7059,
+            "processWallMs": [
+              8210,
+              9048
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 8910,
+            "cpuMs": 69049,
+            "peakMiB": 6822,
+            "processWallMs": [
+              8363,
+              8910
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 8941,
+            "cpuMs": 67264,
+            "peakMiB": 7330,
+            "processWallMs": [
+              8201,
+              8941
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 8943,
+            "cpuMs": 67785,
+            "peakMiB": 7067,
+            "processWallMs": [
+              8130,
+              8943
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 8959,
+            "cpuMs": 68733,
+            "peakMiB": 7322,
+            "processWallMs": [
+              8012,
+              8959
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 116421,
+            "cpuMs": 214440,
+            "peakMiB": 8362,
+            "processWallMs": [
+              116421,
+              55676
+            ]
+          }
+        ]
+      },
+      "vue": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 693,
+            "cpuMs": 2466,
+            "peakMiB": 561,
+            "processWallMs": [
+              693
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 705,
+            "cpuMs": 2470,
+            "peakMiB": 560,
+            "processWallMs": [
+              705
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 706,
+            "cpuMs": 2496,
+            "peakMiB": 561,
+            "processWallMs": [
+              706
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 703,
+            "cpuMs": 2470,
+            "peakMiB": 562,
+            "processWallMs": [
+              703
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 709,
+            "cpuMs": 2486,
+            "peakMiB": 556,
+            "processWallMs": [
+              708
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 776,
+            "cpuMs": 3946,
+            "peakMiB": 629,
+            "processWallMs": [
+              776,
+              209
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 789,
+            "cpuMs": 3958,
+            "peakMiB": 616,
+            "processWallMs": [
+              789,
+              211
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 771,
+            "cpuMs": 3931,
+            "peakMiB": 628,
+            "processWallMs": [
+              771,
+              207
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 781,
+            "cpuMs": 3942,
+            "peakMiB": 621,
+            "processWallMs": [
+              781,
+              205
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 794,
+            "cpuMs": 3976,
+            "peakMiB": 628,
+            "processWallMs": [
+              794,
+              215
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 715,
+            "cpuMs": 2461,
+            "peakMiB": 557,
+            "processWallMs": [
+              715
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 716,
+            "cpuMs": 2459,
+            "peakMiB": 552,
+            "processWallMs": [
+              716
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 708,
+            "cpuMs": 2447,
+            "peakMiB": 560,
+            "processWallMs": [
+              708
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 705,
+            "cpuMs": 2426,
+            "peakMiB": 553,
+            "processWallMs": [
+              705
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 715,
+            "cpuMs": 2427,
+            "peakMiB": 553,
+            "processWallMs": [
+              715
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 185,
+            "cpuMs": 1472,
+            "peakMiB": 272,
+            "processWallMs": [
+              185
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 185,
+            "cpuMs": 1472,
+            "peakMiB": 269,
+            "processWallMs": [
+              185
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 193,
+            "cpuMs": 1474,
+            "peakMiB": 267,
+            "processWallMs": [
+              193
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 196,
+            "cpuMs": 1492,
+            "peakMiB": 274,
+            "processWallMs": [
+              196
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 188,
+            "cpuMs": 1472,
+            "peakMiB": 267,
+            "processWallMs": [
+              188
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 2696,
+            "cpuMs": 11104,
+            "peakMiB": 1426,
+            "processWallMs": [
+              2696
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 2624,
+            "cpuMs": 10929,
+            "peakMiB": 1391,
+            "processWallMs": [
+              2624
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 2677,
+            "cpuMs": 11010,
+            "peakMiB": 1396,
+            "processWallMs": [
+              2677
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 2668,
+            "cpuMs": 11246,
+            "peakMiB": 1326,
+            "processWallMs": [
+              2668
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 2630,
+            "cpuMs": 11028,
+            "peakMiB": 1318,
+            "processWallMs": [
+              2630
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 1940,
+            "cpuMs": 13361,
+            "peakMiB": 1621,
+            "processWallMs": [
+              1940,
+              1314
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1965,
+            "cpuMs": 13512,
+            "peakMiB": 1698,
+            "processWallMs": [
+              1965,
+              1346
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1936,
+            "cpuMs": 13138,
+            "peakMiB": 1745,
+            "processWallMs": [
+              1936,
+              1315
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1908,
+            "cpuMs": 13035,
+            "peakMiB": 1725,
+            "processWallMs": [
+              1907,
+              1282
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1920,
+            "cpuMs": 13585,
+            "peakMiB": 1744,
+            "processWallMs": [
+              1920,
+              1342
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 33251,
+            "cpuMs": 64421,
+            "peakMiB": 2285,
+            "processWallMs": [
+              33251,
+              13020
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "findings": {
+    "outline": {
+      "vscode": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 10237
+          },
+          {
+            "typeErrors": 7
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 10209,
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 10209,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 11
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 10209,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 10220,
+            "typeErrors": 11
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 10209,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 11
+          }
+        ]
+      },
+      "outline": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 1
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 1
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 1,
+            "typeErrors": 1
+          }
+        ],
+        "tsrs separate": [
+          {
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 1
+          }
+        ]
+      },
+      "vue": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 103
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 103,
+            "typeErrors": 1
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 102,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 1
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 5
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 102,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 107,
+            "typeErrors": 5
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 102,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 5
+          }
+        ]
+      }
+    },
+    "recommended": {
+      "vscode": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 49047
+          },
+          {
+            "typeErrors": 7
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 48802,
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 48762,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 11
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 48944,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 48955,
+            "typeErrors": 11
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 48944,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 11
+          }
+        ]
+      },
+      "outline": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 6471
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 6472,
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 6472,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 1
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 6470,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 6471,
+            "typeErrors": 1
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 6470,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 1
+          }
+        ]
+      },
+      "vue": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 6684
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 6647,
+            "typeErrors": 1
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 6646,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 1
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 5
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 6670,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 6676,
+            "typeErrors": 5
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 6670,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 5
+          }
+        ]
+      }
+    },
+    "all": {
+      "vscode": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 358130
+          },
+          {
+            "typeErrors": 7
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 355892,
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 355860,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 11
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 355933,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 355944,
+            "typeErrors": 11
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 355933,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 11
+          }
+        ]
+      },
+      "outline": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 25803
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 25856,
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 25856,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 1
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 25853,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 25854,
+            "typeErrors": 1
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 25853,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 1
+          }
+        ]
+      },
+      "vue": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 15116
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 14997,
+            "typeErrors": 1
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 14990,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 1
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 5
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 15012,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 15017,
+            "typeErrors": 5
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 15012,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 5
+          }
+        ]
+      }
+    }
+  }
+}

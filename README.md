@@ -54,6 +54,24 @@ caches and memory optimizations. It keeps `strict`, `skipLibCheck`, `noCheck` an
 See [performance options](https://github.com/oxc-project/tsrs/blob/main/docs/USAGE.md#performance-options)
 for configuration, behavior and incremental-cache details.
 
+## Lint and type check in one run
+
+`tsrs-lint` can replace tsgolint as the backend for [Oxlint](https://oxc.rs)'s type-aware rules. With `--type-check`,
+the same run also reports the type errors of each tsconfig program it lints, so it can replace a separate
+`tsrs --noEmit` run over the same tsconfigs. Available in **0.23.0** and later:
+
+```sh
+pnpm add -D oxlint tsrs
+TSRS_FAST=1 OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint pnpm exec oxlint --type-aware --type-check
+```
+
+Each program is then parsed and checked once instead of twice.
+See [type checking in the lint run](https://github.com/oxc-project/tsrs/blob/main/tools/tsgolint/README.md#type-checking-in-the-lint-run).
+
+<a href="https://github.com/oxc-project/tsrs/blob/main/bench/lint-typecheck/RESULTS.md">
+  <img alt="Type-aware lint plus type check: CPU time and peak memory of one Oxlint run with tsrs, Oxlint with tsrs plus a separate tsrs check, Oxlint with tsgolint plus tsgo, and ESLint with typescript-eslint plus tsc" src="https://raw.githubusercontent.com/oxc-project/tsrs/main/bench/lint-typecheck/chart.svg">
+</a>
+
 ## Extra features
 
 [`@tsrs/wasm`](https://github.com/oxc-project/tsrs/blob/main/npm/tsrs-wasm/README.md) provides WebAssembly support

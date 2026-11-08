@@ -707,6 +707,7 @@ impl Project {
             opts.create_checker_pool = Some(create_checker_pool);
             opts.create_module_resolver = Some(create_module_resolver);
             opts.regions = Some(Arc::default());
+            opts.reuse_synthetic_imports = true;
             new_program_result = new_program(opts);
         }
         let cleanup = cleanup_module_resolver.lock().unwrap().take();

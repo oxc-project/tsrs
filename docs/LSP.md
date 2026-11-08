@@ -325,6 +325,7 @@ Checked in the code on 2026-10-10; collected from the porting waves' notes.
 - Cross-project orchestration (`handle_cross_project`, references / rename across projects) searches projects
   sequentially; Go fans out to goroutines. Results are merged in the same order, so responses are identical; only
   latency differs on multi-project workspaces.
+- An edit that keeps a file's imports reuses the program even when the file has synthetic imports; Go rebuilds it.
 - The `this` parameter that a JSDoc `@this` tag adds has a name without a source position (Go position -1). Go's name
   table stores -1 for it, which reads as "appears more than once"; tsrs stores the same. Go to definition and source
   definition on `this` point at the tag name (`definition.rs`, `get_file_and_start_pos_from_declaration`) where Go

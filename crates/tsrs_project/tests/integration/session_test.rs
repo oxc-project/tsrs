@@ -1836,3 +1836,55 @@ fn close_does_not_block_on_idle_cache_clean_timer() {
         "Close waited for the idle cache clean timer"
     );
 }
+
+// tsrs-only: an edit that keeps a file's imports reuses the program also when the file has synthetic imports (here
+// the helpers module), and each replaced file's import has the program's version of the file as its parent.
+#[test]
+fn did_change_file_with_synthetic_imports_reuses_the_program() {
+    const A: &str = "/home/project/src/a.ts";
+    const B: &str = "/home/project/src/b.ts";
+    let files = [
+        (
+            "/home/project/tsconfig.json",
+            r#"{ "compilerOptions": { "target": "es2015", "module": "esnext", "moduleResolution": "bundler",
+                "importHelpers": true }, "include": ["src"] }"#,
+        ),
+        (A, "export async function a() {}\n"),
+        (B, "export async function b() {}\n"),
+        ("/home/project/node_modules/tslib/index.d.ts", "export {};"),
+    ];
+    let (session, _) = setup(&files);
+    let kind = |session: &tsrs_project::session::Session| {
+        session
+            .snapshot()
+            .get_default_project(&uri(&format!("file://{A}")))
+            .unwrap()
+            .program_update_kind
+    };
+    open(&session, &files, A);
+    open(&session, &files, B);
+    ls_program(&session, A);
+    // A new import builds the program again, which keeps the option.
+    session.did_change_file(
+        &ctx(),
+        uri(&format!("file://{A}")),
+        2,
+        vec![partial(0, 0, 0, "import \"./b\";\n")],
+    );
+    ls_program(&session, A);
+    assert_ne!(kind(&session), tsrs_project::ProgramUpdateKind::Cloned);
+    for (edited, version) in [(A, 3), (B, 2), (A, 4)] {
+        let edit = vec![partial(1, 0, 0, "// edit\n")];
+        session.did_change_file(&ctx(), uri(&format!("file://{edited}")), version, edit);
+        let program = ls_program(&session, A);
+        assert_eq!(kind(&session), tsrs_project::ProgramUpdateKind::Cloned);
+        for name in [A, B] {
+            let file = program.get_source_file(name).unwrap();
+            let import = program.get_import_helpers_import_specifier(file.path()).unwrap();
+            assert_eq!(import.parent().unwrap().parent(), Some(file.as_node()), "{name}");
+            let diagnostics = program.get_semantic_diagnostics(&request_ctx(), Some(file));
+            assert!(diagnostics.iter().any(|d| d.code() == 2343), "{name}"); // tslib has no __awaiter
+        }
+    }
+    session.close();
+}

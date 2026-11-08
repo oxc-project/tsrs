@@ -4,7 +4,8 @@
 //   sudo node measure.mjs run <rule set>     every setup of every project into ~/lint-typecheck; needs root for cgroups
 //   node measure.mjs collect [results.json]  folds ~/lint-typecheck/results-<set>.jsonl and the run logs into results.json
 // Env for run: ROUNDS (5), ESLINT_ROUNDS (ROUNDS), ONLY (substring of "<project> <setup>"), WARMUP=0 skips the warm-up
-// runs. LINT_TYPECHECK_WORK moves the work directory (~/lint-typecheck).
+// runs, CPUS=N pins every process to the first N cores (results and logs get a -<N>cpu suffix). LINT_TYPECHECK_WORK
+// moves the work directory (~/lint-typecheck).
 // Each setup's processes start together inside one fresh cgroup v2 group: memory.peak is their combined peak and
 // cpu.stat usage_usec their combined CPU time. The setup order rotates every round and reverses on odd rounds.
 import { execFileSync, spawn } from 'node:child_process';
@@ -257,7 +258,7 @@ ${rules.map((rule) => `      '@typescript-eslint/${rule}': 'error',`).join('\n')
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let groups = 0;
 
-async function runSetup(project, name, setup, files, logDir, tag) {
+async function runSetup(project, name, setup, files, logDir, tag, pin) {
   const cgroup = `${CGROUP}/lint-typecheck-${process.pid}-${groups++}`;
   mkdirSync(cgroup);
   const start = process.hrtime.bigint();
@@ -269,7 +270,7 @@ async function runSetup(project, name, setup, files, logDir, tag) {
         const out = openSync(log, 'w');
         const child = spawn(
           path.join(HERE, 'cgexec.sh'),
-          [cgroup, ...argv.flatMap((arg) => (arg === '@FILES' ? files : [arg]))],
+          [cgroup, ...pin, ...argv.flatMap((arg) => (arg === '@FILES' ? files : [arg]))],
           {
             cwd: project.dir,
             env: { PATH: '/usr/local/bin:/usr/bin:/bin', HOME, USER: 'ubuntu', LANG: 'C.UTF-8', ...setup.env },
@@ -317,7 +318,10 @@ async function runSetup(project, name, setup, files, logDir, tag) {
 }
 
 async function run(ruleSet) {
-  const outPath = `${WORK}/results-${ruleSet}.jsonl`;
+  const cpus = process.env.CPUS ? Number(process.env.CPUS) : null;
+  const name = cpus ? `${ruleSet}-${cpus}cpu` : ruleSet;
+  const pin = cpus ? ['taskset', '-c', `0-${cpus - 1}`] : [];
+  const outPath = `${WORK}/results-${name}.jsonl`;
   if (!RULE_SETS[ruleSet]) throw new Error(`unknown rule set ${ruleSet}; one of ${Object.keys(RULE_SETS).join(', ')}`);
   const rounds = Number(process.env.ROUNDS ?? 5);
   const only = process.env.ONLY;
@@ -333,13 +337,13 @@ async function run(ruleSet) {
     if (!jobs.length) continue;
     const files = lintFiles(project);
     console.log(`${project.name}: ${files.length} files`);
-    const logDir = `${WORK}/logs-${ruleSet}/${project.name}`;
+    const logDir = `${WORK}/logs-${name}/${project.name}`;
     mkdirSync(logDir, { recursive: true });
     if (process.env.WARMUP !== '0') {
-      for (const [name, setup] of jobs.filter(([, setup]) => setup.warmup !== false)) {
-        const sample = await runSetup(project, name, setup, files, logDir, 'warm');
+      for (const [setupName, setup] of jobs.filter(([, setup]) => setup.warmup !== false)) {
+        const sample = await runSetup(project, setupName, setup, files, logDir, 'warm', pin);
         console.log(
-          `WARM ${project.name} ${name} wall=${(sample.wallMs / 1000).toFixed(2)}s${sample.failed ? ` FAIL ${JSON.stringify(sample.cmds)}` : ''}`,
+          `WARM ${project.name} ${setupName} wall=${(sample.wallMs / 1000).toFixed(2)}s${sample.failed ? ` FAIL ${JSON.stringify(sample.cmds)}` : ''}`,
         );
       }
     }
@@ -347,15 +351,15 @@ async function run(ruleSet) {
       const shift = round % jobs.length;
       const order = [...jobs.slice(shift), ...jobs.slice(0, shift)];
       if (round % 2 === 1) order.reverse();
-      for (const [name, setup] of order) {
+      for (const [setupName, setup] of order) {
         if (setup.rounds !== undefined && round >= setup.rounds) continue;
-        const sample = await runSetup(project, name, setup, files, logDir, `r${round}`);
+        const sample = await runSetup(project, setupName, setup, files, logDir, `r${round}`, pin);
         appendFileSync(
           outPath,
-          JSON.stringify({ ...sample, round, files: files.length, at: new Date().toISOString() }) + '\n',
+          JSON.stringify({ ...sample, round, cpus, files: files.length, at: new Date().toISOString() }) + '\n',
         );
         console.log(
-          `${project.name} r${round} ${name} wall=${(sample.wallMs / 1000).toFixed(2)}s cpu=${(sample.cpuMs / 1000).toFixed(1)}s peak=${sample.peakMiB.toFixed(0)}MiB${sample.failed ? ` FAIL ${JSON.stringify(sample.cmds)}` : ''}`,
+          `${project.name} r${round} ${setupName} wall=${(sample.wallMs / 1000).toFixed(2)}s cpu=${(sample.cpuMs / 1000).toFixed(1)}s peak=${sample.peakMiB.toFixed(0)}MiB${sample.failed ? ` FAIL ${JSON.stringify(sample.cmds)}` : ''}`,
         );
       }
     }
@@ -398,16 +402,20 @@ function collect(outPath = path.join(HERE, 'results.json')) {
   const previous = existsSync(outPath) ? JSON.parse(readFileSync(outPath, 'utf8')) : {};
   for (const key of ['measured', 'machine', 'versions']) results[key] = previous[key] ?? null;
   const fileCounts = {};
-  for (const ruleSet of Object.keys(RULE_SETS)) {
-    const jsonl = `${dir}/results-${ruleSet}.jsonl`;
-    if (!existsSync(jsonl)) continue;
+  const runs = readdirSync(dir)
+    .map((file) => file.match(/^results-(\w+?)(-\d+cpu)?\.jsonl$/))
+    .filter((match) => match && RULE_SETS[match[1]])
+    .map((match) => ({ ruleSet: match[1], name: match[1] + (match[2] ?? '') }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  for (const { ruleSet, name } of runs) {
+    const jsonl = `${dir}/results-${name}.jsonl`;
     results.rules[ruleSet] = RULE_SETS[ruleSet];
-    results.samples[ruleSet] = {};
+    results.samples[name] = {};
     for (const line of readFileSync(jsonl, 'utf8').trim().split('\n')) {
       const row = JSON.parse(line);
       if (row.failed) throw new Error(`failed sample in ${jsonl}: ${line}`);
       fileCounts[row.project] = row.files;
-      ((results.samples[ruleSet][row.project] ??= {})[row.arm] ??= []).push({
+      ((results.samples[name][row.project] ??= {})[row.arm] ??= []).push({
         round: row.round,
         wallMs: Math.round(row.wallMs),
         cpuMs: Math.round(row.cpuMs),
@@ -415,10 +423,10 @@ function collect(outPath = path.join(HERE, 'results.json')) {
         processWallMs: row.cmds.map((c) => Math.round(c.wallMs)),
       });
     }
-    results.findings[ruleSet] = {};
+    results.findings[name] = {};
     for (const project of PROJECTS) {
-      const logDir = `${dir}/logs-${ruleSet}/${project.name}`;
-      if (existsSync(logDir)) results.findings[ruleSet][project.name] = findings(logDir);
+      const logDir = `${dir}/logs-${name}/${project.name}`;
+      if (existsSync(logDir)) results.findings[name][project.name] = findings(logDir);
     }
   }
   results.projects = PROJECTS.map(({ name, repo, ref, tsconfig, lintDirs }) => ({

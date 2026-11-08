@@ -12,7 +12,7 @@ const outDir = process.argv[3] ?? HERE;
 const data = JSON.parse(readFileSync(input, 'utf8'));
 
 // Prose and labels live here; results.json holds measurements, versions and the machine description.
-const CHART_RULE_SET = 'outline';
+const CHART_RULE_SET = 'outline-8cpu';
 const SETUPS = {
   'tsrs one pass': {
     legend: 'Oxlint + tsrs, one run',
@@ -48,30 +48,39 @@ const SETUPS = {
 };
 const LABELS = { vscode: 'VS Code', outline: 'Outline', vue: 'Vue core' };
 const RULE_SET_TEXT = {
-  outline: {
-    heading: "Outline's type-aware rules (7)",
+  'outline-8cpu': {
+    heading: "Outline's type-aware rules (7), 8 cores",
     chartLabel: "Outline's 7 type-aware rules",
+    machine: '8 cores of an AWS m8g.4xlarge',
     notes: [
-      'The type-aware rules Outline enables in its own `.oxlintrc.json`. The chart uses this set. ESLint ran 3 times per project.',
+      'The type-aware rules Outline enables in its own `.oxlintrc.json`, with every process pinned to 8 cores, matching the 8-vCPU runners of the tsrs CI benchmarks. The chart uses this run. ESLint ran twice per project.',
     ],
   },
+  'outline-4cpu': {
+    heading: "Outline's type-aware rules (7), 4 cores",
+    notes: [
+      'The same rules pinned to 4 cores, the vCPU count of a standard GitHub-hosted Linux runner for public repositories. Memory was not limited; those runners have 16 GB. ESLint ran twice per project.',
+    ],
+  },
+  outline: {
+    heading: "Outline's type-aware rules (7), 16 cores",
+    notes: ['The same rules on all 16 cores. ESLint ran 3 times per project.'],
+  },
   recommended: {
-    heading: 'typescript-eslint recommended-type-checked (23)',
-    chartLabel: 'recommended-type-checked',
+    heading: 'typescript-eslint recommended-type-checked (23), 16 cores',
     notes: [
       "The 23 rules of typescript-eslint's `recommended-type-checked` preset that need type information. ESLint ran once per project.",
     ],
   },
   all: {
-    heading: "tsgolint's benchmark rules (59)",
-    chartLabel: "tsgolint's benchmark rules",
+    heading: "tsgolint's benchmark rules (59), 16 cores",
     notes: [
       "The rule list of tsgolint's own benchmark (`benchmarks/eslint.config.mjs`). These projects don't follow most of these rules, so lint reports many more findings and takes most of the time. ESLint ran once per project.",
     ],
   },
 };
 const INTRO = [
-  "Type-aware lint and a type check usually run as separate commands, and each one parses, binds and checks the same TypeScript program. With tsrs as Oxlint's type-aware backend (0.23.0 and later), `oxlint --type-aware --type-check` lints and reports the type errors of each tsconfig program in one run, so each program is built and checked once. This compares that run with lint and `tsrs --noEmit` started together, with tsgolint plus tsgo, and with ESLint (typescript-eslint) plus tsc. In every rule set the one run's CPU time stayed near the larger of lint alone and the type check alone (0-30% above it), while the separate check pays for both.",
+  "Type-aware lint and a type check usually run as separate commands, and each one parses, binds and checks the same TypeScript program. With tsrs as Oxlint's type-aware backend (0.23.0 and later), `oxlint --type-aware --type-check` lints and reports the type errors of each tsconfig program in one run, so each program is built and checked once. This compares that run with lint and `tsrs --noEmit` started together, with tsgolint plus tsgo, and with ESLint (typescript-eslint) plus tsc. In every rule set the one run's CPU time stayed near the larger of lint alone and the type check alone (0-32% above it), while the separate check pays for both. With Outline's rules, wall time depends on the core count: on 16 cores the two commands run side by side and take between 22% less and 11% more time than the one run; on 8 or 4 cores they compete for cores and take up to 26% longer.",
 ];
 const METHOD = [
   '## Method',
@@ -79,7 +88,7 @@ const METHOD = [
   "- **Projects.** Pinned release tags, dependencies installed without install scripts. That skips VS Code's postinstall, which downloads `electron.d.ts`, so setup fetches it with `node build/npm/electronTypes.ts`. Vue's tsconfig sets `composite`, which rejects `--incremental false`, so `composite` was turned off, along with `isolatedDeclarations`, which needs it. Outline's own `.oxlintrc.json` files were removed so only the rule set under test runs.",
   "- **Files.** Every setup lints the same files: the project's source files in its tsconfig program, without declaration files. For Outline that is limited to the folders its `lint` script passes (`app`, `server`, `shared`, `plugins`). The type check covers the whole tsconfig program, except in the tsgolint one-run setup.",
   "- **Commands.** Type checks are `-p <tsconfig> --noEmit --incremental false --pretty false`. The tsrs setups set `TSRS_FAST=1`. Oxlint runs with `--format unix` and a config that turns off its default rules and turns on the rule set's type-aware rules. ESLint uses the same rules through typescript-eslint with `parserOptions.project`, and a 32 GiB Node heap.",
-  "- **Measurement.** Each setup's processes, including the type-aware helper Oxlint starts, run in a fresh cgroup. CPU time is the cgroup's `cpu.stat` usage and peak memory its `memory.peak`, so both cover every process of the setup. Wall time ends when the last process exits. One untimed run of each setup (except ESLint) warms the file cache, then 5 timed rounds run every setup, with the order rotated each round and reversed every other round. Values are medians.",
+  "- **Measurement.** Each setup's processes, including the type-aware helper Oxlint starts, run in a fresh cgroup. CPU time is the cgroup's `cpu.stat` usage and peak memory its `memory.peak`, so both cover every process of the setup. Wall time ends when the last process exits. One untimed run of each setup (except ESLint) warms the file cache, then 5 timed rounds run every setup, with the order rotated each round and reversed every other round. Values are medians. The 8- and 4-core runs pin every process to the first 8 or 4 cores with `taskset` on the same 16-vCPU box, so the multi-threaded tools (tsrs, tsgo, tsgolint, Oxlint) see only that many cores and size their threads to match.",
   "- **Findings.** The tsrs one run reports the lint findings of its separate-check setup plus the type errors of the type check, in every project and rule set but one: with the recommended-type-checked rules on Vue it reports one more `no-unsafe-argument` finding in `packages/compiler-sfc/src/style/pluginScoped.ts`, the file where TypeScript 7.1 reports circular instantiations (TS5115), likely because the full check reaches that code in a different order. tsgolint's one run reports up to 40 more lint findings than its lint-only run on VS Code. ESLint's lint findings are within 1% of Oxlint's, apart from Outline with its own rules (1 vs 0). tsrs reports the same type errors as `tsc` from TypeScript 7.1 beta (11 in VS Code, 1 in Outline, 5 in Vue). TypeScript 7.0.2 reports 0, 0 and 1, and TypeScript 6.0.3 reports 7, 0 and 0.",
   '- **Scripts.** `setup.sh` prepares a machine, `measure.mjs` runs a rule set and `render.mjs` writes this page and the chart from `results.json`.',
 ];
@@ -160,14 +169,22 @@ const times = (value, reference, more, less) => {
 
 function chart(ruleSet) {
   const projects = data.projects.filter((p) => CHART_SETUPS.every((setup) => cell(ruleSet, p.name, setup)));
+  const panelGap = 40;
+  const panelWidth = (WIDTH - 48 - 236 - 2 * panelGap) / 3;
   const panels = [
-    { key: 'cpu', title: 'CPU time, all processes', x: 236, right: 680, format: seconds },
-    { key: 'memory', title: 'Peak memory, all processes', x: 736, right: WIDTH - 48, format: gib },
-  ];
+    { key: 'wall', title: 'Wall time', format: seconds },
+    { key: 'cpu', title: 'CPU time, all processes', format: seconds },
+    { key: 'memory', title: 'Peak memory, all processes', format: gib },
+  ].map((panel, i) => {
+    const x = 236 + i * (panelWidth + panelGap);
+    return { ...panel, x, right: x + panelWidth };
+  });
+  // Ratios to the one run, so 1.25x reads as 25% more time or memory.
   const labels = (project, setup, panel) => {
     const value = cell(ruleSet, project.name, setup)[panel.key];
     const reference = cell(ruleSet, project.name, CHART_SETUPS[0])[panel.key];
-    return [panel.format(value), setup === CHART_SETUPS[0] ? null : times(value, reference, 'more', 'less')];
+    const ratio = value / reference;
+    return [panel.format(value), setup === CHART_SETUPS[0] ? null : `${ratio.toFixed(ratio >= 10 ? 0 : 2)}x`];
   };
   const labelWidth = (project, setup, panel) => {
     const [amount, change] = labels(project, setup, panel);
@@ -193,7 +210,7 @@ function chart(ruleSet) {
         const limit = room - labelWidth(project, setup, panel);
         layout.set(
           `${project.name}|${panel.key}|${setup}`,
-          full > limit ? { length: limit, broken: true } : { length: Math.max(2, full), broken: false },
+          full > limit + 0.5 ? { length: limit, broken: true } : { length: Math.max(2, full), broken: false },
         );
       }
     }
@@ -224,7 +241,7 @@ function chart(ruleSet) {
 
   const set = RULE_SET_TEXT[ruleSet];
   const title = 'Type-aware lint and type check: one run or two';
-  const subtitle = `${set.chartLabel} and a full type check; ${data.machine.short}; median of ${cell(ruleSet, projects[0].name, CHART_SETUPS[0]).n} runs (ESLint ${cell(ruleSet, projects[0].name, 'eslint separate').n})`;
+  const subtitle = `${set.chartLabel} and a full type check; ${set.machine}; median of ${cell(ruleSet, projects[0].name, CHART_SETUPS[0]).n} runs (ESLint ${cell(ruleSet, projects[0].name, 'eslint separate').n})`;
   const description = `${subtitle}. ${projects.map((project) => `${LABELS[project.name]}: ${panels.map((panel) => `${panel.title}: ${CHART_SETUPS.map((setup) => `${SETUPS[setup].legend} ${labels(project, setup, panel).filter(Boolean).join(', ')}`).join('; ')}`).join('. ')}.`).join(' ')} Shorter bars are better.`;
   const metadata = `Generated by bench/lint-typecheck/render.mjs; rules: ${ruleSet}; ${Object.entries(data.versions)
     .map(([k, v]) => `${k}@${v}`)
@@ -330,7 +347,7 @@ function chart(ruleSet) {
     drawing,
     48,
     height - 26,
-    `Separate checks start at the same time as the lint. Bars are scaled within each project. ESLint bars with a break mark are cut short; labels show the real values.`,
+    `Ratios compare with the one run. Separate checks start at the same time as the lint. Bars are scaled within each project; ESLint bars with a break mark are cut short.`,
     14,
     400,
     COLORS.muted,
@@ -347,7 +364,7 @@ function report() {
     '',
     ...INTRO,
     '',
-    '![CPU time and peak memory of lint plus type check by project](chart.svg)',
+    '![Wall time, CPU time and peak memory of lint plus type check by project, on 8 cores](chart.svg)',
     '',
     '## Setups',
     '',

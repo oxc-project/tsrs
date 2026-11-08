@@ -69,7 +69,7 @@ Each program is then parsed and checked once instead of twice.
 See [type checking in the lint run](https://github.com/oxc-project/tsrs/blob/main/tools/tsgolint/README.md#type-checking-in-the-lint-run).
 
 <a href="https://github.com/oxc-project/tsrs/blob/main/bench/lint-typecheck/RESULTS.md">
-  <img alt="Type-aware lint plus type check: CPU time and peak memory of one Oxlint run with tsrs, Oxlint with tsrs plus a separate tsrs check, Oxlint with tsgolint plus tsgo, and ESLint with typescript-eslint plus tsc" src="https://raw.githubusercontent.com/oxc-project/tsrs/main/bench/lint-typecheck/chart.svg">
+  <img alt="Type-aware lint plus type check on 8 cores: wall time, CPU time and peak memory of one Oxlint run with tsrs, Oxlint with tsrs plus a separate tsrs check, Oxlint with tsgolint plus tsgo, and ESLint with typescript-eslint plus tsc" src="https://raw.githubusercontent.com/oxc-project/tsrs/main/bench/lint-typecheck/chart.svg">
 </a>
 
 ## Extra features

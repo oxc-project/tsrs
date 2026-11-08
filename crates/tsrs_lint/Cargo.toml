@@ -16,6 +16,7 @@ tsrs_ast.workspace = true
 tsrs_checker.workspace = true
 tsrs_compiler.workspace = true
 tsrs_contentmapper.workspace = true
+tsrs_diagnostics.workspace = true
 tsrs_scanner.workspace = true
 tsrs_spanmap.workspace = true
 tsrs_tsoptions.workspace = true

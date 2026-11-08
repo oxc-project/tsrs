@@ -149,7 +149,7 @@ pub fn run(
         ..ConfigHost::new(Arc::clone(&fs), cwd.into())
     };
     let region = tsrs_core::arena::Region::new_scratch(1 << 20);
-    // Shared caches can receive loader allocations, so the loader regions outlive every request program.
+    // The inferred program's loader regions: each tsconfig program has its own.
     let regions = RequestRegions::default();
     let _scope = region.enter();
     run_in_region(payload, options, cwd, writer, fs, &host, &regions)
@@ -257,6 +257,8 @@ fn run_in_region(
     }
     drop(config_cache);
     for (config_path, files) in programs {
+        // Dropped after the program: nothing that outlives a program points into its loader regions.
+        let regions = RequestRegions::default();
         let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
             &config_path,
             host.existing_options.as_ref(),

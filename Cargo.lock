@@ -1301,6 +1301,7 @@ dependencies = [
  "rustc-hash",
  "tsrs_api_transport",
  "tsrs_ast",
+ "tsrs_binder",
  "tsrs_checker",
  "tsrs_compiler",
  "tsrs_contentmapper",

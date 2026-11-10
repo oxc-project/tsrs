@@ -43,6 +43,7 @@ struct RequestRegions {
 struct Shared {
     // By the name asked for, which is absolute: a command line keeps the spelling it was parsed from.
     references: tsrs_core::collections::SyncMap<String, Option<P<ParsedCommandLine>>>,
+    files: tsrs_core::collections::SyncMap<SourceFileParseOptions, Option<P<SourceFile>>>,
     regions: Mutex<Vec<tsrs_core::arena::Region>>,
 }
 
@@ -76,7 +77,20 @@ impl CompilerHost for Host {
         self.host.trace(msg, args);
     }
     fn get_source_file(&self, opts: SourceFileParseOptions) -> Option<P<SourceFile>> {
-        self.host.get_source_file(opts)
+        let name = &opts.file_name;
+        if !tspath::is_declaration_file_name(name) {
+            return self.host.get_source_file(opts);
+        }
+        if let Some(file) = self.shared.files.load(&opts) {
+            return file;
+        }
+        // Text, tree and binder data take about 8 times the text (fileregions.rs).
+        let size = self.fs().stat(name).map_or(0, |info| usize::try_from(info.size()).unwrap_or(0));
+        let file = self.shared.keep(size.saturating_mul(10).min(64 << 20), || {
+            // Bound here, in its region: a program that bound it later would bind it in a region of its own.
+            self.host.get_source_file(opts.clone()).inspect(|&f| tsrs_binder::bind_source_file(f))
+        });
+        self.shared.files.load_or_store(opts, file).0
     }
     fn get_content_mapped_source_files(
         &self,

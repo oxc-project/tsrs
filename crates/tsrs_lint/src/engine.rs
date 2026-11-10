@@ -375,7 +375,7 @@ fn run_in_region(
             }
             continue;
         }
-        run_program(
+        let global_diagnostics = run_program(
             program_ref,
             &files,
             payload.report_semantic.then_some(&mut type_checked),
@@ -385,10 +385,8 @@ fn run_in_region(
             &file_configs,
             &mut timings,
         )?;
-        if payload.report_semantic {
-            for diagnostic in program_ref.get_global_diagnostics(&Context::default()) {
-                report_global_error(diagnostic, &config_path, writer)?;
-            }
+        for diagnostic in global_diagnostics {
+            report_global_error(diagnostic, &config_path, writer)?;
         }
     }
     if !unmatched.is_empty() {
@@ -500,7 +498,8 @@ fn checker_count() -> Option<i64> {
 // it (by import-graph locality under the fast preset), so a checker resolves the types of its own corner of the
 // program instead of nearly all of it. Output keeps the order of `files`.
 // `whole` (with semantic reporting): the files that already have a program to report their type errors. Also
-// report the compiler diagnostics of the program's files outside that set, after `files`, and add them to it.
+// report the compiler diagnostics of the program's files outside that set, after `files`, add them to it, and return
+// the program's global diagnostics.
 fn run_program(
     program: &'static Program,
     files: &[String],
@@ -510,8 +509,9 @@ fn run_program(
     writer: &mut dyn Write,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
-) -> Result<(), String> {
+) -> Result<Vec<P<TsDiagnostic>>, String> {
     program.bind_source_files();
+    let report_global = whole.is_some();
     let mut work = Vec::with_capacity(files.len());
     for name in files {
         let file = program
@@ -531,35 +531,44 @@ fn run_program(
         }
     }
     if work.is_empty() {
-        return Ok(());
+        return Ok(Vec::new());
     }
     let lint_files: Vec<P<SourceFile>> = work.iter().map(|&(file, _)| file).collect();
     let outputs: Vec<Mutex<Vec<u8>>> = work.iter().map(|_| Mutex::new(Vec::new())).collect();
     let errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
     let pool_timings: Mutex<BTreeMap<String, (u64, u64)>> = Mutex::new(BTreeMap::new());
-    let pooled = program.for_each_checker_group(&lint_files, |checker, index, file| {
-        let mut output = Vec::new();
-        let mut file_timings = BTreeMap::new();
-        let result = lint_one(
-            program,
-            file,
-            work[index].1,
-            payload,
-            options,
-            checker,
-            &mut output,
-            &mut file_timings,
-        );
-        if let Err(error) = result {
-            errors.lock().unwrap().push(error);
+    let mut global_diagnostics = Vec::new();
+    // Every file is type-checked before any rule runs: a rule's type query could otherwise hit an error before the
+    // checking `tsrs --noEmit` does, and record it without a location (a global diagnostic) instead.
+    for rules in [false, true] {
+        let pooled = program.for_each_checker_group(&lint_files, |checker, index, file| {
+            let mut output = Vec::new();
+            let mut file_timings = BTreeMap::new();
+            let result = lint_one(
+                program,
+                file,
+                if rules { work[index].1 } else { &[] },
+                !rules,
+                payload,
+                options,
+                checker,
+                &mut output,
+                &mut file_timings,
+            );
+            if let Err(error) = result {
+                errors.lock().unwrap().push(error);
+            }
+            outputs[index].lock().unwrap().extend(output);
+            if options.debug_timings {
+                merge_timings(&mut pool_timings.lock().unwrap(), file_timings);
+            }
+        });
+        if !pooled {
+            return Err("the program has no checker pool".into());
         }
-        *outputs[index].lock().unwrap() = output;
-        if options.debug_timings {
-            merge_timings(&mut pool_timings.lock().unwrap(), file_timings);
+        if !rules && report_global {
+            global_diagnostics = program.get_global_diagnostics(&Context::default());
         }
-    });
-    if !pooled {
-        return Err("the program has no checker pool".into());
     }
     if let Some(error) = errors.into_inner().unwrap().into_iter().next() {
         return Err(error);
@@ -568,13 +577,14 @@ fn run_program(
         writer.write_all(&output.into_inner().unwrap()).map_err(|error| error.to_string())?;
     }
     merge_timings(timings, pool_timings.into_inner().unwrap());
-    Ok(())
+    Ok(global_diagnostics)
 }
 
 fn lint_one(
     program: &'static Program,
     file: P<SourceFile>,
     configured: &[ConfiguredRule],
+    check: bool,
     payload: &Payload,
     options: Options,
     checker: &mut tsrs_checker::Checker,
@@ -582,12 +592,12 @@ fn lint_one(
     timings: &mut BTreeMap<String, (u64, u64)>,
 ) -> Result<(), String> {
     let context = Context::default();
-    if payload.report_syntactic {
+    if check && payload.report_syntactic {
         for diagnostic in program.get_syntactic_diagnostics(&context, Some(file)) {
             report_type_error(diagnostic, file, output)?;
         }
     }
-    if payload.report_semantic {
+    if check && payload.report_semantic {
         let diagnostics = program.get_semantic_diagnostics_with_checker(&context, checker, file);
         for diagnostic in tsrs_compiler::sort_and_deduplicate_diagnostics(&diagnostics) {
             report_type_error(diagnostic, file, output)?;

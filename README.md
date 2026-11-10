@@ -58,11 +58,12 @@ for configuration, behavior and incremental-cache details.
 
 `tsrs-lint` can replace tsgolint as the backend for [Oxlint](https://oxc.rs)'s type-aware rules. With `--type-check`,
 the same run also reports the type errors of each tsconfig program it lints, so it can replace a separate
-`tsrs --noEmit` run over the same tsconfigs. Available in **0.23.0** and later:
+`tsrs --noEmit` run over the same tsconfigs. Available in tsrs **0.23.0** and later. Oxlint **1.92.0** and later
+finds `tsrs-lint` when `tsrs` is installed and uses it in place of oxlint-tsgolint:
 
 ```sh
 pnpm add -D oxlint tsrs
-TSRS_FAST=1 OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint pnpm exec oxlint --type-aware --type-check
+TSRS_FAST=1 pnpm exec oxlint --type-aware --type-check
 ```
 
 Each program is then parsed and checked once instead of twice.

@@ -721,12 +721,21 @@ fn lint_file(
     Ok(diagnostics)
 }
 
+// Oxlint shows every type-check diagnostic as an error, so suggestions (which compiler plugins such as Effect's
+// language service add, and which do not fail their `tsc`) stay out. Messages stay in: the checker reports TS1450 as
+// one.
+fn is_suggestion(diagnostic: P<TsDiagnostic>) -> bool {
+    diagnostic.category() == tsrs_diagnostics::Category::Suggestion
+}
+
 fn report_type_error(
     diagnostic: P<TsDiagnostic>,
     file: P<SourceFile>,
     writer: &mut dyn Write,
 ) -> Result<(), String> {
-    if diagnostic.file().is_none_or(|f| f.file_name() != file.file_name()) {
+    if diagnostic.file().is_none_or(|f| f.file_name() != file.file_name())
+        || is_suggestion(diagnostic)
+    {
         return Ok(());
     }
     emit(

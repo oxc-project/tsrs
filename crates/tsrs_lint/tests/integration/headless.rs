@@ -1274,6 +1274,38 @@ fn a_type_error_is_reported_with_its_message_chain() {
 }
 
 #[test]
+fn a_type_error_with_the_message_category_is_reported() {
+    // Suggestions stay out of the type check, but the checker reports some grammar errors, such as TS1450, with the
+    // message category, and `tsc` fails on them.
+    let base = std::env::current_dir().unwrap().join("target/lint-message-category");
+    let file = base.join("a.ts").to_string_lossy().into_owned();
+    let config = base.join("tsconfig.json").to_string_lossy().into_owned();
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        ("configs", Value::Array(vec![protocol::object([
+            ("file_paths", Value::Array(vec![Value::String(file.clone())])),
+            ("rules", Value::Array(Vec::new())),
+        ])])),
+        ("source_overrides", Value::Object([
+            (file, Value::String("export const p = import();\n".into())),
+            (config, Value::String(r#"{"compilerOptions":{"module":"esnext","strict":true,"noEmit":true,"types":[]},"files":["a.ts"]}"#.into())),
+        ].into_iter().collect())),
+        ("report_semantic", Value::Bool(true)),
+    ]);
+    let (status, frames) = run(&payload, &[]);
+    assert_eq!(status, 0, "{frames:?}");
+    let ids: Vec<_> = frames
+        .iter()
+        .map(|(_, value)| {
+            let Value::Object(diagnostic) = value else { panic!("{value:?}") };
+            let Value::Object(message) = &diagnostic["message"] else { panic!("{value:?}") };
+            message["id"].clone()
+        })
+        .collect();
+    assert_eq!(ids, [Value::String("TS1450".into())]);
+}
+
+#[test]
 fn excluded_files_use_inferred_programs_and_node_modules_stops_config_search() {
     for (relative, config, code, expected_count) in [
         ("a.ts", r#"{"files":["b.ts"]}"#, "const x: string = 1;", 1),

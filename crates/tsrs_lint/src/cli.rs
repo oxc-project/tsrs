@@ -30,10 +30,13 @@ pub fn main(args: Vec<String>) -> i32 {
     }
 }
 
-/// Parses `headless [--fix] [--fix-suggestions] [--runExternalCode] [--debug timings]`.
+/// Parses `headless [--fix] [--fix-suggestions] [--runExternalCode] [--debug timings] [--serve]`.
 ///
 /// Reads the payload from `input`, lints it from the current directory and writes the frames to `output`. Returns
 /// the exit status.
+///
+/// With `--serve`, `input` is framed: the payload frame, then request frames that are answered on the linted
+/// programs until `input` ends.
 pub fn run(
     args: impl IntoIterator<Item = String>,
     input: &mut dyn Read,
@@ -50,10 +53,12 @@ pub fn run(
         ..Default::default()
     };
     let mut headless = false;
+    let mut serve = false;
     let mut args = args.into_iter();
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "headless" | "--headless" => headless = true,
+            "-serve" | "--serve" => serve = true,
             "-fix" | "--fix" => options.fix = true,
             "-fix-suggestions" | "--fix-suggestions" => options.fix_suggestions = true,
             "-runExternalCode" | "--runExternalCode" => options.run_external_code = true,
@@ -67,7 +72,7 @@ pub fn run(
             }
             "--help" | "-h" => {
                 eprintln!(
-                    "Usage: tsrs-lint headless [--fix] [--fix-suggestions] [--runExternalCode] [--debug timings]"
+                    "Usage: tsrs-lint headless [--fix] [--fix-suggestions] [--runExternalCode] [--debug timings] [--serve]"
                 );
                 return 0;
             }
@@ -82,13 +87,33 @@ pub fn run(
         return 1;
     }
     let result = (|| {
-        let mut text = String::new();
-        input.read_to_string(&mut text).map_err(|e| format!("error reading from stdin: {e}"))?;
+        let text = if serve {
+            match protocol::read_frame(input) {
+                Ok(Some((kind, bytes))) if kind == protocol::InputType::Payload as u8 => {
+                    String::from_utf8(bytes)
+                        .map_err(|e| format!("error reading from stdin: {e}"))?
+                }
+                Ok(Some((kind, _))) => {
+                    return Err(format!(
+                        "error reading from stdin: expected a payload frame, got {kind}"
+                    ));
+                }
+                Ok(None) => String::new(),
+                Err(e) => return Err(format!("error reading from stdin: {e}")),
+            }
+        } else {
+            let mut text = String::new();
+            input
+                .read_to_string(&mut text)
+                .map_err(|e| format!("error reading from stdin: {e}"))?;
+            text
+        };
         let payload = payload::deserialize_payload(&text)
             .map_err(|e| format!("error parsing config: {e}"))?;
         let cwd =
             std::env::current_dir().map_err(|e| format!("error getting current directory: {e}"))?;
-        engine::run(&payload, options, &cwd.to_string_lossy(), output)
+        let requests: Option<&mut dyn Read> = if serve { Some(&mut *input) } else { None };
+        engine::run_with_requests(&payload, options, &cwd.to_string_lossy(), output, requests)
             .map_err(|e| format!("error running linter: {e}"))
     })();
     let code = match result {

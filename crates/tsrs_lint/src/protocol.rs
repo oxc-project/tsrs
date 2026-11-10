@@ -1,6 +1,6 @@
 //! Framed headless output, ported from tsgolint's `cmd/tsgolint/headless.go`.
 
-use std::io::{self, Write};
+use std::io::{self, Read, Write};
 
 use tsrs_core::json::{self, JsonMap, Value};
 
@@ -10,6 +10,18 @@ pub enum MessageType {
     Error = 0,
     Diagnostic = 1,
     Timing = 2,
+    /// The answer to a [`InputType::Request`] under `--serve`: `{ "id", "result" }` or `{ "id", "error" }`.
+    Response = 3,
+}
+
+/// Frames oxlint writes to stdin under `--serve`, with the output's framing.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum InputType {
+    /// The lint payload, once, first.
+    Payload = 0,
+    /// A query on the programs the payload built: `{ "id", "method", ... }`.
+    Request = 1,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -157,4 +169,23 @@ pub fn write_message(
 
 pub fn write_error(writer: &mut dyn Write, error: &str) -> io::Result<()> {
     write_message(writer, MessageType::Error, &object([("error", Value::String(error.into()))]))
+}
+
+/// Reads one frame written as [`write_message`] writes it. `None` at end of input between frames.
+pub fn read_frame(reader: &mut dyn Read) -> io::Result<Option<(u8, Vec<u8>)>> {
+    let mut header = [0u8; 5];
+    let mut filled = 0;
+    while filled < header.len() {
+        match reader.read(&mut header[filled..]) {
+            Ok(0) if filled == 0 => return Ok(None),
+            Ok(0) => return Err(io::ErrorKind::UnexpectedEof.into()),
+            Ok(n) => filled += n,
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
+            Err(error) => return Err(error),
+        }
+    }
+    let length = u32::from_le_bytes([header[0], header[1], header[2], header[3]]) as usize;
+    let mut payload = vec![0u8; length];
+    reader.read_exact(&mut payload)?;
+    Ok(Some((header[4], payload)))
 }

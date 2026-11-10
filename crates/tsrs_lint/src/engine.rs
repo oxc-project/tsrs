@@ -7,8 +7,8 @@ use std::time::Instant;
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use tsrs_ast::{Diagnostic as TsDiagnostic, SourceFile};
-use tsrs_compiler::{Context, Program, ProgramOptions};
+use tsrs_ast::{Diagnostic as TsDiagnostic, SourceFile, SourceFileParseOptions};
+use tsrs_compiler::{CompilerHost, Context, Program, ProgramOptions};
 use tsrs_contentmapper as contentmapper;
 use tsrs_core::json::Value;
 use tsrs_core::tspath;
@@ -35,6 +35,71 @@ pub struct Options {
 #[derive(Default)]
 struct RequestRegions {
     loaders: Arc<tsrs_compiler::ProgramRegions>,
+}
+
+/// What the programs of one request share, as the projects of a `tsc -b` do. Each value is made once, in a registered
+/// region of its own kept until the request ends, so what it fills lazily goes there too (`arena::enter_owner`).
+#[derive(Default)]
+struct Shared {
+    // By the name asked for, which is absolute: a command line keeps the spelling it was parsed from.
+    references: tsrs_core::collections::SyncMap<String, Option<P<ParsedCommandLine>>>,
+    regions: Mutex<Vec<tsrs_core::arena::Region>>,
+}
+
+impl Shared {
+    fn keep<T>(&self, first_chunk: usize, make: impl FnOnce() -> T) -> T {
+        let region = tsrs_core::arena::Region::new(first_chunk);
+        let _scope = region.enter();
+        let value = make();
+        region.trim();
+        self.regions.lock().unwrap().push(region);
+        value
+    }
+}
+
+struct Host {
+    host: Arc<dyn CompilerHost>,
+    shared: Arc<Shared>,
+}
+
+impl CompilerHost for Host {
+    fn fs(&self) -> &dyn FS {
+        self.host.fs()
+    }
+    fn default_library_path(&self) -> &str {
+        self.host.default_library_path()
+    }
+    fn get_current_directory(&self) -> &str {
+        self.host.get_current_directory()
+    }
+    fn trace(&self, msg: &'static tsrs_diagnostics::Message, args: &[&dyn std::fmt::Display]) {
+        self.host.trace(msg, args);
+    }
+    fn get_source_file(&self, opts: SourceFileParseOptions) -> Option<P<SourceFile>> {
+        self.host.get_source_file(opts)
+    }
+    fn get_content_mapped_source_files(
+        &self,
+        parse_options: SourceFileParseOptions,
+        mapper: &contentmapper::Mapper,
+    ) -> Result<contentmapper::SourceFiles, contentmapper::Error> {
+        self.host.get_content_mapped_source_files(parse_options, mapper)
+    }
+    fn content_mapper_project(&self) -> Option<Arc<dyn contentmapper::Project>> {
+        self.host.content_mapper_project()
+    }
+    fn get_resolved_project_reference(
+        &self,
+        file_name: &str,
+        path: tspath::Path,
+    ) -> Option<P<ParsedCommandLine>> {
+        if let Some(config) = self.shared.references.load(file_name) {
+            return config;
+        }
+        let config =
+            self.shared.keep(0, || self.host.get_resolved_project_reference(file_name, path));
+        self.shared.references.load_or_store(file_name.into(), config).0
+    }
 }
 
 pub struct ConfigHost {
@@ -256,6 +321,7 @@ fn run_in_region(
         }
     }
     drop(config_cache);
+    let shared = Arc::default();
     for (config_path, files) in programs {
         // Dropped after the program: nothing that outlives a program points into its loader regions.
         let regions = RequestRegions::default();
@@ -285,6 +351,7 @@ fn run_in_region(
             &tspath::get_directory_path(&config_path),
             true,
             Arc::clone(&regions.loaders),
+            &shared,
         );
         let program_ref = program.program;
         let diagnostics = program_ref.get_program_diagnostics();
@@ -334,7 +401,7 @@ fn run_in_region(
                 use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
             },
         );
-        let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders));
+        let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders), &shared);
         run_program(
             program.program,
             &unmatched,
@@ -381,6 +448,7 @@ fn create_program(
     cwd: &str,
     references: bool,
     loader_regions: Arc<tsrs_compiler::ProgramRegions>,
+    shared: &Arc<Shared>,
 ) -> ProgramOwner {
     if let Some(checkers) = checker_count() {
         config.parsed_config.compiler_options = Some(P::new(CompilerOptions {
@@ -399,6 +467,7 @@ fn create_program(
         None,
         content_mappers.as_ref().and_then(|mappers| mappers.project.clone()),
     );
+    let host = Arc::new(Host { host, shared: Arc::clone(shared) });
     let mut options = ProgramOptions::new(config, host);
     options.use_source_of_project_reference = references;
     options.regions = Some(loader_regions);

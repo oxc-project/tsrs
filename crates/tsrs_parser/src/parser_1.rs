@@ -12,7 +12,9 @@ use tsrs_core::{
     tspath,
 };
 use tsrs_diagnostics::{self as diagnostics, Message};
-use tsrs_scanner::{self as scanner, Scanner, ScannerState};
+use tsrs_scanner as scanner;
+
+use crate::tokens::{Tokens, TokensState};
 
 use crate::parser_3::{attach_file_to_diagnostics, get_comment_pragmas};
 use crate::references::collect_external_module_references;
@@ -102,7 +104,7 @@ bitflags! {
 }
 
 pub struct Parser {
-    pub(crate) scanner: Scanner,
+    pub(crate) scanner: Tokens,
     pub(crate) factory: NodeFactory,
 
     opts: SourceFileParseOptions,
@@ -164,7 +166,7 @@ pub fn new_parser() -> Parser {
 
 fn new_parser_with(factory: NodeFactory) -> Parser {
     Parser {
-        scanner: Scanner::new(),
+        scanner: Tokens::new(),
         factory,
         opts: SourceFileParseOptions::default(),
         source_text: "",
@@ -568,7 +570,6 @@ impl Parser {
             _ => NodeFlags::None,
         };
         self.scanner.set_text(self.source_text);
-        self.scanner.set_on_error(true);
         self.scanner.set_language_variant(self.language_variant);
     }
 
@@ -645,7 +646,7 @@ impl Parser {
 
 #[derive(Clone, Copy)]
 pub struct ParserState {
-    scanner_state: ScannerState,
+    scanner_state: TokensState,
     context_flags: NodeFlags,
     diagnostics_len: usize,
     js_diagnostics_len: usize,
@@ -3751,6 +3752,7 @@ fn reparse_lazy_list(
     let mut p = new_parser();
     p.initialize_state_static(file.parse_options().clone(), file.text(), file.script_kind());
     p.source_text_index = file.text_index.get();
+    p.scanner.set_oxc_window(record.pos, record.end);
     p.scanner.reset_token_state(record.pos);
     p.next_token();
     p.context_flags = record.context_flags;

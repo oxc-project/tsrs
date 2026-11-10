@@ -66,6 +66,8 @@ windows-sys = { version = "0.61.2", features = [
     "Win32_System_Threading",
 ] }
 xxhash-rust = { version = "0.8", features = ["xxh3", "const_xxh3"] }
+# The parser lexes source text with oxc_lexer from a sibling oxc-project/oxc checkout.
+oxc_lexer = { path = "../oxc/crates/oxc_lexer" }
 tsrs_core = { path = "crates/tsrs_core" }
 tsrs_diagnostics = { path = "crates/tsrs_diagnostics" }
 tsrs_spanmap = { path = "crates/tsrs_spanmap" }

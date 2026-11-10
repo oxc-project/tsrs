@@ -845,7 +845,7 @@ impl Parser {
     }
 
     pub(crate) fn re_scan_slash_token(&mut self) -> Kind {
-        self.token = self.scanner.re_scan_slash_token(false);
+        self.token = self.scanner.re_scan_slash_token();
         self.report_scan_errors();
         self.token
     }

@@ -179,7 +179,6 @@ impl Parser {
         let save_token = self.token;
         let save_context_flags = self.context_flags;
         let save_parsing_contexts = self.parsing_contexts;
-        let save_scanner_state = self.scanner.take_state();
         let save_diagnostics_length = self.diagnostics.len();
         let save_has_parse_error = self.has_parse_error;
         let save_has_await_identifier = self.statement_has_await_identifier;
@@ -189,9 +188,8 @@ impl Parser {
         let initial_indent = start + 4 - line_start;
         // -2 for trailing `*/`
         self.source_text = &self.source_text[..(end - 2) as usize];
-        self.scanner.set_text(self.source_text);
         // +3 for leading `/**`
-        self.scanner.reset_pos(start + 3);
+        let save_scanner_state = self.scanner.enter_jsdoc(self.source_text, start + 3);
         self.set_context_flags(NodeFlags::JSDoc, true);
         self.parsing_contexts |= 1 << ParsingContext::JSDocComment as u32;
 
@@ -204,10 +202,9 @@ impl Parser {
         }
 
         self.source_text = save_source_text;
-        self.scanner.set_text(self.source_text);
+        self.scanner.exit_jsdoc(save_scanner_state);
         self.parsing_contexts = save_parsing_contexts;
         self.context_flags = save_context_flags;
-        self.scanner.restore_state(save_scanner_state);
         self.token = save_token;
         self.has_parse_error = save_has_parse_error;
         self.statement_has_await_identifier = save_has_await_identifier;

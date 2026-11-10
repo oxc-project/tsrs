@@ -1,9 +1,11 @@
 mod jsdoc;
+mod lexer;
 mod parser_1;
 mod parser_2;
 mod parser_3;
 mod references;
 mod reparser;
+mod tokens;
 mod types;
 mod utilities;
 

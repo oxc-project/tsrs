@@ -1,4 +1,4 @@
-mod number;
+pub mod number;
 mod regexp;
 pub mod scanner;
 mod unicodeproperties;

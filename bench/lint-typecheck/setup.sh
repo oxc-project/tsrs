@@ -4,9 +4,9 @@
 set -euxo pipefail
 mkdir -p ~/tools/tsrs ~/tools/tsgolint ~/tools/eslint ~/proj ~/lint-typecheck
 install() { (cd ~/tools/$1 && { [ -f package.json ] || npm init -y > /dev/null; } && shift && npm i -E "$@"); }
-install tsrs tsrs@0.23.0-ts7.1.0-beta oxlint@1.92.0
-install tsgolint oxlint@1.92.0 oxlint-tsgolint@7.0.2006 typescript@7.0.2
-install eslint eslint@10.14.0 typescript-eslint@8.72.1 typescript@6.0.3
+install tsrs tsrs@0.24.0-ts7.1.0-beta oxlint@1.93.0
+install tsgolint oxlint@1.93.0 oxlint-tsgolint@7.0.2006 typescript@7.0.2
+install eslint eslint@10.14.0 typescript-eslint@8.72.2 typescript@6.0.3
 
 cd ~/proj
 [ -d vscode ] || git clone -q --depth 1 --branch 1.145.2 https://github.com/microsoft/vscode

@@ -1,16 +1,16 @@
 {
-  "measured": "2026-11-07 (16 cores) and 2026-11-08 (8 and 4 cores)",
+  "measured": "2026-11-10",
   "machine": {
     "short": "AWS m8g.4xlarge (16 vCPU)",
     "long": "AWS m8g.4xlarge (16 Graviton4 vCPUs, 64 GiB), Ubuntu 24.04, Node 24"
   },
   "versions": {
-    "tsrs": "0.23.0-ts7.1.0-beta",
-    "oxlint": "1.92.0",
+    "tsrs": "0.24.0-ts7.1.0-beta",
+    "oxlint": "1.93.0",
     "oxlint-tsgolint": "7.0.2006",
     "typescript": "7.0.2 and 6.0.3",
     "eslint": "10.14.0",
-    "typescript-eslint": "8.72.1"
+    "typescript-eslint": "8.72.2"
   },
   "projects": [
     {
@@ -42,40 +42,6 @@
     }
   ],
   "rules": {
-    "outline": [
-      "await-thenable",
-      "no-duplicate-type-constituents",
-      "no-floating-promises",
-      "no-meaningless-void-operator",
-      "no-useless-default-assignment",
-      "require-array-sort-compare",
-      "restrict-template-expressions"
-    ],
-    "recommended": [
-      "await-thenable",
-      "no-array-delete",
-      "no-base-to-string",
-      "no-duplicate-type-constituents",
-      "no-floating-promises",
-      "no-for-in-array",
-      "no-implied-eval",
-      "no-misused-promises",
-      "no-redundant-type-constituents",
-      "no-unnecessary-type-assertion",
-      "no-unsafe-argument",
-      "no-unsafe-assignment",
-      "no-unsafe-call",
-      "no-unsafe-enum-comparison",
-      "no-unsafe-member-access",
-      "no-unsafe-return",
-      "no-unsafe-unary-minus",
-      "only-throw-error",
-      "prefer-promise-reject-errors",
-      "require-await",
-      "restrict-plus-operands",
-      "restrict-template-expressions",
-      "unbound-method"
-    ],
     "all": [
       "await-thenable",
       "consistent-return",
@@ -136,322 +102,346 @@
       "switch-exhaustiveness-check",
       "unbound-method",
       "use-unknown-in-catch-callback-variable"
+    ],
+    "outline": [
+      "await-thenable",
+      "no-duplicate-type-constituents",
+      "no-floating-promises",
+      "no-meaningless-void-operator",
+      "no-useless-default-assignment",
+      "require-array-sort-compare",
+      "restrict-template-expressions"
+    ],
+    "recommended": [
+      "await-thenable",
+      "no-array-delete",
+      "no-base-to-string",
+      "no-duplicate-type-constituents",
+      "no-floating-promises",
+      "no-for-in-array",
+      "no-implied-eval",
+      "no-misused-promises",
+      "no-redundant-type-constituents",
+      "no-unnecessary-type-assertion",
+      "no-unsafe-argument",
+      "no-unsafe-assignment",
+      "no-unsafe-call",
+      "no-unsafe-enum-comparison",
+      "no-unsafe-member-access",
+      "no-unsafe-return",
+      "no-unsafe-unary-minus",
+      "only-throw-error",
+      "prefer-promise-reject-errors",
+      "require-await",
+      "restrict-plus-operands",
+      "restrict-template-expressions",
+      "unbound-method"
     ]
   },
   "samples": {
-    "outline-8cpu": {
+    "all": {
       "vscode": {
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 4926,
-            "cpuMs": 24380,
-            "peakMiB": 3717,
+            "wallMs": 20889,
+            "cpuMs": 56010,
+            "peakMiB": 5030,
             "processWallMs": [
-              4926
+              20889
             ]
           },
           {
             "round": 1,
-            "wallMs": 4890,
-            "cpuMs": 24279,
-            "peakMiB": 3726,
+            "wallMs": 21159,
+            "cpuMs": 58925,
+            "peakMiB": 5038,
             "processWallMs": [
-              4890
+              21159
             ]
           },
           {
             "round": 2,
-            "wallMs": 4946,
-            "cpuMs": 24655,
-            "peakMiB": 3695,
+            "wallMs": 21038,
+            "cpuMs": 57995,
+            "peakMiB": 5040,
             "processWallMs": [
-              4946
+              21038
             ]
           },
           {
             "round": 3,
-            "wallMs": 4981,
-            "cpuMs": 24721,
-            "peakMiB": 3721,
+            "wallMs": 21169,
+            "cpuMs": 59213,
+            "peakMiB": 5013,
             "processWallMs": [
-              4981
+              21169
             ]
           },
           {
             "round": 4,
-            "wallMs": 4980,
-            "cpuMs": 24620,
-            "peakMiB": 3702,
+            "wallMs": 20795,
+            "cpuMs": 55132,
+            "peakMiB": 5032,
             "processWallMs": [
-              4980
+              20795
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 6045,
-            "cpuMs": 36210,
-            "peakMiB": 4956,
+            "wallMs": 21714,
+            "cpuMs": 74807,
+            "peakMiB": 4909,
             "processWallMs": [
-              6045,
-              4032
+              21714,
+              1851
             ]
           },
           {
             "round": 1,
-            "wallMs": 6083,
-            "cpuMs": 36465,
-            "peakMiB": 5108,
+            "wallMs": 21578,
+            "cpuMs": 73929,
+            "peakMiB": 4896,
             "processWallMs": [
-              6083,
-              4267
+              21578,
+              1878
             ]
           },
           {
             "round": 2,
-            "wallMs": 6097,
-            "cpuMs": 36420,
-            "peakMiB": 4995,
+            "wallMs": 21702,
+            "cpuMs": 75612,
+            "peakMiB": 4926,
             "processWallMs": [
-              6097,
-              4125
+              21702,
+              1950
             ]
           },
           {
             "round": 3,
-            "wallMs": 6028,
-            "cpuMs": 36502,
-            "peakMiB": 4995,
+            "wallMs": 21470,
+            "cpuMs": 71522,
+            "peakMiB": 4863,
             "processWallMs": [
-              6028,
-              4138
+              21470,
+              1827
             ]
           },
           {
             "round": 4,
-            "wallMs": 6143,
-            "cpuMs": 36961,
-            "peakMiB": 5132,
+            "wallMs": 21727,
+            "cpuMs": 73907,
+            "peakMiB": 4901,
             "processWallMs": [
-              6143,
-              4353
+              21726,
+              1783
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 3667,
-            "cpuMs": 15572,
-            "peakMiB": 3190,
+            "wallMs": 20598,
+            "cpuMs": 53000,
+            "peakMiB": 4908,
             "processWallMs": [
-              3667
+              20598
             ]
           },
           {
             "round": 1,
-            "wallMs": 3609,
-            "cpuMs": 15518,
-            "peakMiB": 3166,
+            "wallMs": 20740,
+            "cpuMs": 54227,
+            "peakMiB": 4901,
             "processWallMs": [
-              3609
+              20740
             ]
           },
           {
             "round": 2,
-            "wallMs": 3694,
-            "cpuMs": 15766,
-            "peakMiB": 3167,
+            "wallMs": 20643,
+            "cpuMs": 53781,
+            "peakMiB": 4890,
             "processWallMs": [
-              3694
+              20643
             ]
           },
           {
             "round": 3,
-            "wallMs": 3688,
-            "cpuMs": 15756,
-            "peakMiB": 3213,
+            "wallMs": 20437,
+            "cpuMs": 51799,
+            "peakMiB": 4913,
             "processWallMs": [
-              3688
+              20437
             ]
           },
           {
             "round": 4,
-            "wallMs": 3714,
-            "cpuMs": 15813,
-            "peakMiB": 3164,
+            "wallMs": 20739,
+            "cpuMs": 53995,
+            "peakMiB": 4906,
             "processWallMs": [
-              3714
+              20739
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 2547,
-            "cpuMs": 18759,
-            "peakMiB": 2350,
+            "wallMs": 1492,
+            "cpuMs": 20222,
+            "peakMiB": 2533,
             "processWallMs": [
-              2547
+              1492
             ]
           },
           {
             "round": 1,
-            "wallMs": 2506,
-            "cpuMs": 18686,
-            "peakMiB": 2337,
+            "wallMs": 1481,
+            "cpuMs": 20040,
+            "peakMiB": 2529,
             "processWallMs": [
-              2506
+              1481
             ]
           },
           {
             "round": 2,
-            "wallMs": 2522,
-            "cpuMs": 18679,
-            "peakMiB": 2339,
+            "wallMs": 1524,
+            "cpuMs": 20760,
+            "peakMiB": 2518,
             "processWallMs": [
-              2522
+              1524
             ]
           },
           {
             "round": 3,
-            "wallMs": 2536,
-            "cpuMs": 18832,
-            "peakMiB": 2338,
+            "wallMs": 1445,
+            "cpuMs": 19569,
+            "peakMiB": 2516,
             "processWallMs": [
-              2536
+              1445
             ]
           },
           {
             "round": 4,
-            "wallMs": 2558,
-            "cpuMs": 18949,
-            "peakMiB": 2335,
+            "wallMs": 1432,
+            "cpuMs": 19292,
+            "peakMiB": 2522,
             "processWallMs": [
-              2558
+              1432
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 26516,
-            "cpuMs": 121850,
-            "peakMiB": 13008,
+            "wallMs": 56799,
+            "cpuMs": 205475,
+            "peakMiB": 17772,
             "processWallMs": [
-              26516
+              56799
             ]
           },
           {
             "round": 1,
-            "wallMs": 26608,
-            "cpuMs": 119000,
-            "peakMiB": 13720,
+            "wallMs": 55016,
+            "cpuMs": 207769,
+            "peakMiB": 16470,
             "processWallMs": [
-              26607
+              55016
             ]
           },
           {
             "round": 2,
-            "wallMs": 26504,
-            "cpuMs": 119423,
-            "peakMiB": 13736,
+            "wallMs": 56331,
+            "cpuMs": 203741,
+            "peakMiB": 17703,
             "processWallMs": [
-              26504
+              56331
             ]
           },
           {
             "round": 3,
-            "wallMs": 26536,
-            "cpuMs": 122414,
-            "peakMiB": 12944,
+            "wallMs": 58371,
+            "cpuMs": 218007,
+            "peakMiB": 18208,
             "processWallMs": [
-              26536
+              58371
             ]
           },
           {
             "round": 4,
-            "wallMs": 26483,
-            "cpuMs": 118109,
-            "peakMiB": 13625,
+            "wallMs": 56692,
+            "cpuMs": 203312,
+            "peakMiB": 17683,
             "processWallMs": [
-              26483
+              56692
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 21953,
-            "cpuMs": 142355,
-            "peakMiB": 16330,
+            "wallMs": 45738,
+            "cpuMs": 237236,
+            "peakMiB": 19936,
             "processWallMs": [
-              16422,
-              21953
+              45738,
+              18521
             ]
           },
           {
             "round": 1,
-            "wallMs": 22242,
-            "cpuMs": 145057,
-            "peakMiB": 16839,
+            "wallMs": 45460,
+            "cpuMs": 231080,
+            "peakMiB": 19627,
             "processWallMs": [
-              17153,
-              22242
+              45460,
+              17234
             ]
           },
           {
             "round": 2,
-            "wallMs": 22212,
-            "cpuMs": 154891,
-            "peakMiB": 16418,
+            "wallMs": 47819,
+            "cpuMs": 255942,
+            "peakMiB": 19644,
             "processWallMs": [
-              16404,
-              22212
+              47819,
+              19476
             ]
           },
           {
             "round": 3,
-            "wallMs": 22582,
-            "cpuMs": 147358,
-            "peakMiB": 16369,
+            "wallMs": 45227,
+            "cpuMs": 240415,
+            "peakMiB": 19695,
             "processWallMs": [
-              17318,
-              22581
+              45227,
+              17850
             ]
           },
           {
             "round": 4,
-            "wallMs": 22143,
-            "cpuMs": 145584,
-            "peakMiB": 17279,
+            "wallMs": 45937,
+            "cpuMs": 241200,
+            "peakMiB": 19896,
             "processWallMs": [
-              17323,
-              22142
+              45937,
+              17737
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 287054,
-            "cpuMs": 622869,
-            "peakMiB": 29137,
+            "wallMs": 833592,
+            "cpuMs": 1370825,
+            "peakMiB": 23620,
             "processWallMs": [
-              287054,
-              189458
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 291221,
-            "cpuMs": 632691,
-            "peakMiB": 30136,
-            "processWallMs": [
-              291221,
-              189266
+              833592,
+              184708
             ]
           }
         ]
@@ -460,314 +450,304 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 2342,
-            "cpuMs": 8895,
-            "peakMiB": 1195,
+            "wallMs": 2393,
+            "cpuMs": 12314,
+            "peakMiB": 1574,
             "processWallMs": [
-              2342
+              2393
             ]
           },
           {
             "round": 1,
-            "wallMs": 2380,
-            "cpuMs": 9028,
-            "peakMiB": 1180,
+            "wallMs": 2251,
+            "cpuMs": 11607,
+            "peakMiB": 1575,
             "processWallMs": [
-              2380
+              2251
             ]
           },
           {
             "round": 2,
-            "wallMs": 2326,
-            "cpuMs": 8911,
-            "peakMiB": 1198,
+            "wallMs": 2375,
+            "cpuMs": 12236,
+            "peakMiB": 1574,
             "processWallMs": [
-              2326
+              2375
             ]
           },
           {
             "round": 3,
-            "wallMs": 2355,
-            "cpuMs": 8950,
-            "peakMiB": 1188,
+            "wallMs": 2151,
+            "cpuMs": 11182,
+            "peakMiB": 1574,
             "processWallMs": [
-              2355
+              2150
             ]
           },
           {
             "round": 4,
-            "wallMs": 2332,
-            "cpuMs": 8870,
-            "peakMiB": 1188,
+            "wallMs": 2321,
+            "cpuMs": 11924,
+            "peakMiB": 1572,
             "processWallMs": [
-              2332
+              2321
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 2463,
-            "cpuMs": 13818,
-            "peakMiB": 1756,
+            "wallMs": 2599,
+            "cpuMs": 22287,
+            "peakMiB": 2553,
             "processWallMs": [
-              2463,
-              1813
+              2599,
+              1394
             ]
           },
           {
             "round": 1,
-            "wallMs": 2408,
-            "cpuMs": 13715,
-            "peakMiB": 1802,
+            "wallMs": 2270,
+            "cpuMs": 19619,
+            "peakMiB": 2328,
             "processWallMs": [
-              2408,
-              1955
+              2270,
+              1069
             ]
           },
           {
             "round": 2,
-            "wallMs": 2521,
-            "cpuMs": 14120,
-            "peakMiB": 1799,
+            "wallMs": 2426,
+            "cpuMs": 21049,
+            "peakMiB": 2495,
             "processWallMs": [
-              2521,
-              2215
+              2426,
+              1262
             ]
           },
           {
             "round": 3,
-            "wallMs": 2512,
-            "cpuMs": 13853,
-            "peakMiB": 1793,
+            "wallMs": 2420,
+            "cpuMs": 20983,
+            "peakMiB": 2336,
             "processWallMs": [
-              2512,
-              1967
+              2420,
+              1148
             ]
           },
           {
             "round": 4,
-            "wallMs": 2374,
-            "cpuMs": 13824,
-            "peakMiB": 1785,
+            "wallMs": 2430,
+            "cpuMs": 21159,
+            "peakMiB": 2585,
             "processWallMs": [
-              2374,
-              1827
+              2430,
+              1334
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 1611,
-            "cpuMs": 5092,
-            "peakMiB": 881,
+            "wallMs": 1970,
+            "cpuMs": 11292,
+            "peakMiB": 1561,
             "processWallMs": [
-              1611
+              1970
             ]
           },
           {
             "round": 1,
-            "wallMs": 1594,
-            "cpuMs": 5066,
-            "peakMiB": 877,
+            "wallMs": 1701,
+            "cpuMs": 9893,
+            "peakMiB": 1555,
             "processWallMs": [
-              1594
+              1701
             ]
           },
           {
             "round": 2,
-            "wallMs": 1602,
-            "cpuMs": 5058,
-            "peakMiB": 882,
+            "wallMs": 1829,
+            "cpuMs": 10163,
+            "peakMiB": 1560,
             "processWallMs": [
-              1602
+              1829
             ]
           },
           {
             "round": 3,
-            "wallMs": 1593,
-            "cpuMs": 5092,
-            "peakMiB": 877,
+            "wallMs": 1955,
+            "cpuMs": 11181,
+            "peakMiB": 1568,
             "processWallMs": [
-              1593
+              1955
             ]
           },
           {
             "round": 4,
-            "wallMs": 1593,
-            "cpuMs": 5067,
-            "peakMiB": 875,
+            "wallMs": 1910,
+            "cpuMs": 10846,
+            "peakMiB": 1555,
             "processWallMs": [
-              1593
+              1910
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 1515,
-            "cpuMs": 8322,
-            "peakMiB": 909,
+            "wallMs": 1075,
+            "cpuMs": 9856,
+            "peakMiB": 1127,
             "processWallMs": [
-              1515
+              1075
             ]
           },
           {
             "round": 1,
-            "wallMs": 1492,
-            "cpuMs": 8245,
-            "peakMiB": 919,
+            "wallMs": 959,
+            "cpuMs": 9066,
+            "peakMiB": 1135,
             "processWallMs": [
-              1492
+              959
             ]
           },
           {
             "round": 2,
-            "wallMs": 1507,
-            "cpuMs": 8282,
-            "peakMiB": 924,
+            "wallMs": 1017,
+            "cpuMs": 9390,
+            "peakMiB": 1129,
             "processWallMs": [
-              1507
+              1017
             ]
           },
           {
             "round": 3,
-            "wallMs": 1498,
-            "cpuMs": 8327,
-            "peakMiB": 919,
+            "wallMs": 1067,
+            "cpuMs": 9592,
+            "peakMiB": 1126,
             "processWallMs": [
-              1498
+              1067
             ]
           },
           {
             "round": 4,
-            "wallMs": 1497,
-            "cpuMs": 8289,
-            "peakMiB": 912,
+            "wallMs": 911,
+            "cpuMs": 8997,
+            "peakMiB": 1139,
             "processWallMs": [
-              1497
+              911
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 9865,
-            "cpuMs": 37004,
-            "peakMiB": 3750,
+            "wallMs": 12855,
+            "cpuMs": 50185,
+            "peakMiB": 4440,
             "processWallMs": [
-              9865
+              12855
             ]
           },
           {
             "round": 1,
-            "wallMs": 10230,
-            "cpuMs": 38427,
-            "peakMiB": 3790,
+            "wallMs": 11881,
+            "cpuMs": 47212,
+            "peakMiB": 4467,
             "processWallMs": [
-              10230
+              11881
             ]
           },
           {
             "round": 2,
-            "wallMs": 10287,
-            "cpuMs": 38671,
-            "peakMiB": 3749,
+            "wallMs": 12442,
+            "cpuMs": 48140,
+            "peakMiB": 4531,
             "processWallMs": [
-              10287
+              12442
             ]
           },
           {
             "round": 3,
-            "wallMs": 10232,
-            "cpuMs": 38202,
-            "peakMiB": 3723,
+            "wallMs": 12042,
+            "cpuMs": 48187,
+            "peakMiB": 4662,
             "processWallMs": [
-              10232
+              12042
             ]
           },
           {
             "round": 4,
-            "wallMs": 10160,
-            "cpuMs": 38084,
-            "peakMiB": 3778,
+            "wallMs": 12773,
+            "cpuMs": 49559,
+            "peakMiB": 4578,
             "processWallMs": [
-              10160
+              12773
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 9728,
-            "cpuMs": 50275,
-            "peakMiB": 4816,
+            "wallMs": 8882,
+            "cpuMs": 67187,
+            "peakMiB": 7013,
             "processWallMs": [
-              4807,
-              9728
+              8129,
+              8882
             ]
           },
           {
             "round": 1,
-            "wallMs": 9658,
-            "cpuMs": 49703,
-            "peakMiB": 4716,
+            "wallMs": 8371,
+            "cpuMs": 64179,
+            "peakMiB": 7167,
             "processWallMs": [
-              4620,
-              9658
+              7639,
+              8371
             ]
           },
           {
             "round": 2,
-            "wallMs": 9897,
-            "cpuMs": 50848,
-            "peakMiB": 4956,
+            "wallMs": 9253,
+            "cpuMs": 68811,
+            "peakMiB": 7257,
             "processWallMs": [
-              4815,
-              9897
+              8297,
+              9253
             ]
           },
           {
             "round": 3,
-            "wallMs": 9655,
-            "cpuMs": 51009,
-            "peakMiB": 5031,
+            "wallMs": 8282,
+            "cpuMs": 63560,
+            "peakMiB": 6773,
             "processWallMs": [
-              4992,
-              9655
+              7619,
+              8282
             ]
           },
           {
             "round": 4,
-            "wallMs": 9424,
-            "cpuMs": 49450,
-            "peakMiB": 5046,
+            "wallMs": 8875,
+            "cpuMs": 67880,
+            "peakMiB": 7274,
             "processWallMs": [
-              4788,
-              9424
+              8060,
+              8875
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 54384,
-            "cpuMs": 126182,
-            "peakMiB": 8397,
+            "wallMs": 113502,
+            "cpuMs": 204771,
+            "peakMiB": 8099,
             "processWallMs": [
-              44273,
-              54384
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 54309,
-            "cpuMs": 128677,
-            "peakMiB": 8459,
-            "processWallMs": [
-              44855,
-              54309
+              113502,
+              53469
             ]
           }
         ]
@@ -776,314 +756,1284 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 377,
-            "cpuMs": 1528,
-            "peakMiB": 409,
+            "wallMs": 648,
+            "cpuMs": 2308,
+            "peakMiB": 559,
             "processWallMs": [
-              377
+              648
             ]
           },
           {
             "round": 1,
-            "wallMs": 370,
-            "cpuMs": 1527,
-            "peakMiB": 404,
+            "wallMs": 650,
+            "cpuMs": 2327,
+            "peakMiB": 557,
             "processWallMs": [
-              370
+              650
             ]
           },
           {
             "round": 2,
-            "wallMs": 376,
-            "cpuMs": 1536,
-            "peakMiB": 407,
+            "wallMs": 670,
+            "cpuMs": 2421,
+            "peakMiB": 563,
             "processWallMs": [
-              376
+              670
             ]
           },
           {
             "round": 3,
-            "wallMs": 369,
-            "cpuMs": 1520,
-            "peakMiB": 405,
+            "wallMs": 679,
+            "cpuMs": 2443,
+            "peakMiB": 561,
             "processWallMs": [
-              369
+              678
             ]
           },
           {
             "round": 4,
-            "wallMs": 375,
-            "cpuMs": 1528,
-            "peakMiB": 401,
+            "wallMs": 676,
+            "cpuMs": 2438,
+            "peakMiB": 558,
             "processWallMs": [
-              375
+              676
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 364,
-            "cpuMs": 2142,
-            "peakMiB": 493,
+            "wallMs": 710,
+            "cpuMs": 3660,
+            "peakMiB": 627,
             "processWallMs": [
-              364,
-              273
+              710,
+              189
             ]
           },
           {
             "round": 1,
-            "wallMs": 365,
-            "cpuMs": 2142,
-            "peakMiB": 508,
+            "wallMs": 732,
+            "cpuMs": 3727,
+            "peakMiB": 625,
             "processWallMs": [
-              365,
-              284
+              731,
+              198
             ]
           },
           {
             "round": 2,
-            "wallMs": 362,
-            "cpuMs": 2142,
-            "peakMiB": 486,
+            "wallMs": 741,
+            "cpuMs": 3872,
+            "peakMiB": 644,
             "processWallMs": [
-              362,
-              267
+              741,
+              212
             ]
           },
           {
             "round": 3,
-            "wallMs": 361,
-            "cpuMs": 2153,
-            "peakMiB": 510,
+            "wallMs": 754,
+            "cpuMs": 3915,
+            "peakMiB": 614,
             "processWallMs": [
-              361,
-              300
+              754,
+              205
             ]
           },
           {
             "round": 4,
-            "wallMs": 366,
-            "cpuMs": 2167,
-            "peakMiB": 515,
+            "wallMs": 745,
+            "cpuMs": 3862,
+            "peakMiB": 616,
             "processWallMs": [
-              366,
-              293
+              745,
+              200
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 233,
-            "cpuMs": 781,
-            "peakMiB": 323,
+            "wallMs": 647,
+            "cpuMs": 2244,
+            "peakMiB": 555,
             "processWallMs": [
-              233
+              647
             ]
           },
           {
             "round": 1,
-            "wallMs": 230,
-            "cpuMs": 781,
-            "peakMiB": 321,
+            "wallMs": 675,
+            "cpuMs": 2366,
+            "peakMiB": 562,
             "processWallMs": [
-              230
+              675
             ]
           },
           {
             "round": 2,
-            "wallMs": 229,
-            "cpuMs": 779,
-            "peakMiB": 319,
+            "wallMs": 665,
+            "cpuMs": 2304,
+            "peakMiB": 556,
             "processWallMs": [
-              229
+              665
             ]
           },
           {
             "round": 3,
-            "wallMs": 232,
-            "cpuMs": 781,
-            "peakMiB": 324,
+            "wallMs": 684,
+            "cpuMs": 2412,
+            "peakMiB": 561,
             "processWallMs": [
-              232
+              684
             ]
           },
           {
             "round": 4,
-            "wallMs": 227,
-            "cpuMs": 783,
-            "peakMiB": 321,
+            "wallMs": 667,
+            "cpuMs": 2323,
+            "peakMiB": 559,
             "processWallMs": [
-              227
+              667
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 219,
-            "cpuMs": 1326,
-            "peakMiB": 234,
+            "wallMs": 177,
+            "cpuMs": 1361,
+            "peakMiB": 274,
             "processWallMs": [
-              219
+              176
             ]
           },
           {
             "round": 1,
-            "wallMs": 220,
-            "cpuMs": 1323,
-            "peakMiB": 233,
+            "wallMs": 185,
+            "cpuMs": 1404,
+            "peakMiB": 268,
             "processWallMs": [
-              220
+              185
             ]
           },
           {
             "round": 2,
-            "wallMs": 220,
-            "cpuMs": 1316,
-            "peakMiB": 232,
+            "wallMs": 185,
+            "cpuMs": 1406,
+            "peakMiB": 273,
             "processWallMs": [
-              220
+              185
             ]
           },
           {
             "round": 3,
-            "wallMs": 222,
-            "cpuMs": 1323,
-            "peakMiB": 229,
+            "wallMs": 194,
+            "cpuMs": 1492,
+            "peakMiB": 271,
             "processWallMs": [
-              222
+              194
             ]
           },
           {
             "round": 4,
-            "wallMs": 225,
-            "cpuMs": 1321,
-            "peakMiB": 232,
+            "wallMs": 173,
+            "cpuMs": 1389,
+            "peakMiB": 267,
             "processWallMs": [
-              225
+              173
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 1534,
-            "cpuMs": 6535,
-            "peakMiB": 983,
+            "wallMs": 2498,
+            "cpuMs": 10728,
+            "peakMiB": 1349,
             "processWallMs": [
-              1534
+              2498
             ]
           },
           {
             "round": 1,
-            "wallMs": 1479,
-            "cpuMs": 6306,
-            "peakMiB": 975,
+            "wallMs": 2525,
+            "cpuMs": 10327,
+            "peakMiB": 1410,
             "processWallMs": [
-              1479
+              2525
             ]
           },
           {
             "round": 2,
-            "wallMs": 1538,
-            "cpuMs": 6376,
-            "peakMiB": 1012,
+            "wallMs": 2407,
+            "cpuMs": 9988,
+            "peakMiB": 1299,
             "processWallMs": [
-              1538
+              2407
             ]
           },
           {
             "round": 3,
-            "wallMs": 1600,
-            "cpuMs": 6806,
-            "peakMiB": 1047,
+            "wallMs": 2654,
+            "cpuMs": 10994,
+            "peakMiB": 1405,
             "processWallMs": [
-              1600
+              2654
             ]
           },
           {
             "round": 4,
-            "wallMs": 1564,
-            "cpuMs": 6551,
-            "peakMiB": 999,
+            "wallMs": 2559,
+            "cpuMs": 10526,
+            "peakMiB": 1312,
             "processWallMs": [
-              1564
+              2559
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 1453,
-            "cpuMs": 8121,
-            "peakMiB": 1070,
+            "wallMs": 1772,
+            "cpuMs": 12243,
+            "peakMiB": 1739,
             "processWallMs": [
-              811,
-              1453
+              1772,
+              1204
             ]
           },
           {
             "round": 1,
-            "wallMs": 1379,
-            "cpuMs": 8150,
-            "peakMiB": 1190,
+            "wallMs": 1845,
+            "cpuMs": 12981,
+            "peakMiB": 1693,
             "processWallMs": [
-              809,
-              1379
+              1845,
+              1259
             ]
           },
           {
             "round": 2,
-            "wallMs": 1421,
-            "cpuMs": 8193,
-            "peakMiB": 1104,
+            "wallMs": 1958,
+            "cpuMs": 13437,
+            "peakMiB": 1691,
             "processWallMs": [
-              811,
-              1421
+              1958,
+              1298
             ]
           },
           {
             "round": 3,
-            "wallMs": 1390,
-            "cpuMs": 8162,
-            "peakMiB": 1174,
+            "wallMs": 1897,
+            "cpuMs": 13212,
+            "peakMiB": 1745,
             "processWallMs": [
-              852,
-              1390
+              1897,
+              1303
             ]
           },
           {
             "round": 4,
-            "wallMs": 1410,
-            "cpuMs": 8040,
-            "peakMiB": 1130,
+            "wallMs": 1893,
+            "cpuMs": 13222,
+            "peakMiB": 1655,
             "processWallMs": [
-              817,
-              1410
+              1893,
+              1326
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 12478,
-            "cpuMs": 37816,
-            "peakMiB": 2783,
+            "wallMs": 31680,
+            "cpuMs": 61619,
+            "peakMiB": 2308,
             "processWallMs": [
-              11259,
-              12478
+              31680,
+              12410
+            ]
+          }
+        ]
+      }
+    },
+    "outline": {
+      "vscode": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 3842,
+            "cpuMs": 26690,
+            "peakMiB": 3942,
+            "processWallMs": [
+              3842
             ]
           },
           {
             "round": 1,
-            "wallMs": 12306,
-            "cpuMs": 37493,
-            "peakMiB": 2771,
+            "wallMs": 3545,
+            "cpuMs": 24818,
+            "peakMiB": 3931,
             "processWallMs": [
-              11193,
-              12306
+              3545
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 3691,
+            "cpuMs": 26084,
+            "peakMiB": 3923,
+            "processWallMs": [
+              3691
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 3751,
+            "cpuMs": 26075,
+            "peakMiB": 3932,
+            "processWallMs": [
+              3751
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 3529,
+            "cpuMs": 24225,
+            "peakMiB": 3941,
+            "processWallMs": [
+              3529
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 3948,
+            "cpuMs": 38092,
+            "peakMiB": 5049,
+            "processWallMs": [
+              3948,
+              2037
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 3649,
+            "cpuMs": 34626,
+            "peakMiB": 4850,
+            "processWallMs": [
+              3649,
+              1720
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 3985,
+            "cpuMs": 38792,
+            "peakMiB": 5118,
+            "processWallMs": [
+              3985,
+              2087
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 3976,
+            "cpuMs": 38612,
+            "peakMiB": 4964,
+            "processWallMs": [
+              3976,
+              1978
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 3752,
+            "cpuMs": 35780,
+            "peakMiB": 4965,
+            "processWallMs": [
+              3752,
+              1843
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 2748,
+            "cpuMs": 15597,
+            "peakMiB": 3361,
+            "processWallMs": [
+              2748
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 2732,
+            "cpuMs": 15695,
+            "peakMiB": 3360,
+            "processWallMs": [
+              2732
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 2704,
+            "cpuMs": 15298,
+            "peakMiB": 3345,
+            "processWallMs": [
+              2704
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 2881,
+            "cpuMs": 16759,
+            "peakMiB": 3364,
+            "processWallMs": [
+              2881
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 2722,
+            "cpuMs": 15430,
+            "peakMiB": 3360,
+            "processWallMs": [
+              2722
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 1372,
+            "cpuMs": 18596,
+            "peakMiB": 2509,
+            "processWallMs": [
+              1372
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1388,
+            "cpuMs": 18656,
+            "peakMiB": 2528,
+            "processWallMs": [
+              1388
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1386,
+            "cpuMs": 18892,
+            "peakMiB": 2515,
+            "processWallMs": [
+              1386
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1518,
+            "cpuMs": 20504,
+            "peakMiB": 2523,
+            "processWallMs": [
+              1518
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1419,
+            "cpuMs": 19255,
+            "peakMiB": 2524,
+            "processWallMs": [
+              1419
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 23041,
+            "cpuMs": 114583,
+            "peakMiB": 12727,
+            "processWallMs": [
+              23041
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 23002,
+            "cpuMs": 114762,
+            "peakMiB": 12761,
+            "processWallMs": [
+              23002
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 25070,
+            "cpuMs": 123682,
+            "peakMiB": 12794,
+            "processWallMs": [
+              25070
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 24156,
+            "cpuMs": 120564,
+            "peakMiB": 12911,
+            "processWallMs": [
+              24156
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 25316,
+            "cpuMs": 127750,
+            "peakMiB": 12901,
+            "processWallMs": [
+              25316
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 17459,
+            "cpuMs": 137830,
+            "peakMiB": 16216,
+            "processWallMs": [
+              11722,
+              17459
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 18406,
+            "cpuMs": 147632,
+            "peakMiB": 16242,
+            "processWallMs": [
+              12800,
+              18406
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 17831,
+            "cpuMs": 142846,
+            "peakMiB": 16356,
+            "processWallMs": [
+              12566,
+              17831
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 17977,
+            "cpuMs": 144526,
+            "peakMiB": 16346,
+            "processWallMs": [
+              12432,
+              17977
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 16834,
+            "cpuMs": 135653,
+            "peakMiB": 16501,
+            "processWallMs": [
+              11790,
+              16834
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 287582,
+            "cpuMs": 638530,
+            "peakMiB": 29572,
+            "processWallMs": [
+              287582,
+              189437
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 288238,
+            "cpuMs": 635066,
+            "peakMiB": 29206,
+            "processWallMs": [
+              288238,
+              186599
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 280997,
+            "cpuMs": 615562,
+            "peakMiB": 29481,
+            "processWallMs": [
+              280996,
+              186568
+            ]
+          }
+        ]
+      },
+      "outline": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 1679,
+            "cpuMs": 9987,
+            "peakMiB": 1477,
+            "processWallMs": [
+              1679
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1430,
+            "cpuMs": 8895,
+            "peakMiB": 1469,
+            "processWallMs": [
+              1430
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1667,
+            "cpuMs": 9899,
+            "peakMiB": 1461,
+            "processWallMs": [
+              1667
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1705,
+            "cpuMs": 10190,
+            "peakMiB": 1463,
+            "processWallMs": [
+              1705
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1543,
+            "cpuMs": 9286,
+            "peakMiB": 1474,
+            "processWallMs": [
+              1543
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 1896,
+            "cpuMs": 16423,
+            "peakMiB": 2186,
+            "processWallMs": [
+              1896,
+              1162
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1704,
+            "cpuMs": 15169,
+            "peakMiB": 2242,
+            "processWallMs": [
+              1704,
+              1322
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1882,
+            "cpuMs": 15650,
+            "peakMiB": 2141,
+            "processWallMs": [
+              1882,
+              1074
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1845,
+            "cpuMs": 16025,
+            "peakMiB": 2179,
+            "processWallMs": [
+              1845,
+              1182
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1821,
+            "cpuMs": 15202,
+            "peakMiB": 2170,
+            "processWallMs": [
+              1821,
+              1164
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 1406,
+            "cpuMs": 5898,
+            "peakMiB": 1084,
+            "processWallMs": [
+              1406
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1253,
+            "cpuMs": 5308,
+            "peakMiB": 1100,
+            "processWallMs": [
+              1253
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1183,
+            "cpuMs": 5145,
+            "peakMiB": 1085,
+            "processWallMs": [
+              1183
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1385,
+            "cpuMs": 5770,
+            "peakMiB": 1077,
+            "processWallMs": [
+              1385
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1373,
+            "cpuMs": 5802,
+            "peakMiB": 1090,
+            "processWallMs": [
+              1373
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 1051,
+            "cpuMs": 9768,
+            "peakMiB": 1120,
+            "processWallMs": [
+              1051
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 924,
+            "cpuMs": 8835,
+            "peakMiB": 1143,
+            "processWallMs": [
+              924
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 932,
+            "cpuMs": 8988,
+            "peakMiB": 1155,
+            "processWallMs": [
+              932
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1033,
+            "cpuMs": 9687,
+            "peakMiB": 1151,
+            "processWallMs": [
+              1033
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1040,
+            "cpuMs": 9525,
+            "peakMiB": 1137,
+            "processWallMs": [
+              1039
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 9501,
+            "cpuMs": 35772,
+            "peakMiB": 3807,
+            "processWallMs": [
+              9501
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 9402,
+            "cpuMs": 35307,
+            "peakMiB": 3844,
+            "processWallMs": [
+              9401
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 9157,
+            "cpuMs": 34571,
+            "peakMiB": 3715,
+            "processWallMs": [
+              9157
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 9368,
+            "cpuMs": 36812,
+            "peakMiB": 3852,
+            "processWallMs": [
+              9368
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 9861,
+            "cpuMs": 39195,
+            "peakMiB": 3942,
+            "processWallMs": [
+              9861
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 8307,
+            "cpuMs": 46258,
+            "peakMiB": 4939,
+            "processWallMs": [
+              3739,
+              8307
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 8904,
+            "cpuMs": 49168,
+            "peakMiB": 4926,
+            "processWallMs": [
+              3892,
+              8904
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 8677,
+            "cpuMs": 50381,
+            "peakMiB": 5117,
+            "processWallMs": [
+              4000,
+              8677
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 8475,
+            "cpuMs": 48326,
+            "peakMiB": 5018,
+            "processWallMs": [
+              3880,
+              8475
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 8569,
+            "cpuMs": 49295,
+            "peakMiB": 5076,
+            "processWallMs": [
+              3859,
+              8569
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 53045,
+            "cpuMs": 126001,
+            "peakMiB": 8461,
+            "processWallMs": [
+              44019,
+              53045
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 53789,
+            "cpuMs": 125699,
+            "peakMiB": 8369,
+            "processWallMs": [
+              44864,
+              53788
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 54146,
+            "cpuMs": 127871,
+            "peakMiB": 8310,
+            "processWallMs": [
+              44125,
+              54146
+            ]
+          }
+        ]
+      },
+      "vue": {
+        "tsrs one pass": [
+          {
+            "round": 0,
+            "wallMs": 369,
+            "cpuMs": 1669,
+            "peakMiB": 512,
+            "processWallMs": [
+              369
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 335,
+            "cpuMs": 1551,
+            "peakMiB": 511,
+            "processWallMs": [
+              335
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 336,
+            "cpuMs": 1573,
+            "peakMiB": 510,
+            "processWallMs": [
+              336
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 343,
+            "cpuMs": 1566,
+            "peakMiB": 511,
+            "processWallMs": [
+              343
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 329,
+            "cpuMs": 1545,
+            "peakMiB": 515,
+            "processWallMs": [
+              329
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 288,
+            "cpuMs": 2416,
+            "peakMiB": 641,
+            "processWallMs": [
+              288,
+              221
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 273,
+            "cpuMs": 2351,
+            "peakMiB": 634,
+            "processWallMs": [
+              273,
+              200
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 267,
+            "cpuMs": 2296,
+            "peakMiB": 662,
+            "processWallMs": [
+              267,
+              210
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 266,
+            "cpuMs": 2219,
+            "peakMiB": 635,
+            "processWallMs": [
+              266,
+              195
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 262,
+            "cpuMs": 2189,
+            "peakMiB": 632,
+            "processWallMs": [
+              262,
+              191
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 217,
+            "cpuMs": 878,
+            "peakMiB": 421,
+            "processWallMs": [
+              217
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 210,
+            "cpuMs": 867,
+            "peakMiB": 415,
+            "processWallMs": [
+              210
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 217,
+            "cpuMs": 872,
+            "peakMiB": 421,
+            "processWallMs": [
+              217
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 203,
+            "cpuMs": 834,
+            "peakMiB": 421,
+            "processWallMs": [
+              203
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 190,
+            "cpuMs": 804,
+            "peakMiB": 428,
+            "processWallMs": [
+              190
+            ]
+          }
+        ],
+        "tsrs check only": [
+          {
+            "round": 0,
+            "wallMs": 187,
+            "cpuMs": 1479,
+            "peakMiB": 270,
+            "processWallMs": [
+              187
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 192,
+            "cpuMs": 1490,
+            "peakMiB": 270,
+            "processWallMs": [
+              192
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 185,
+            "cpuMs": 1468,
+            "peakMiB": 268,
+            "processWallMs": [
+              185
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 174,
+            "cpuMs": 1365,
+            "peakMiB": 273,
+            "processWallMs": [
+              174
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 168,
+            "cpuMs": 1372,
+            "peakMiB": 276,
+            "processWallMs": [
+              168
+            ]
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "round": 0,
+            "wallMs": 1535,
+            "cpuMs": 6540,
+            "peakMiB": 1120,
+            "processWallMs": [
+              1535
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1494,
+            "cpuMs": 6492,
+            "peakMiB": 1090,
+            "processWallMs": [
+              1494
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1488,
+            "cpuMs": 6440,
+            "peakMiB": 1081,
+            "processWallMs": [
+              1487
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1372,
+            "cpuMs": 6124,
+            "peakMiB": 1070,
+            "processWallMs": [
+              1372
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1355,
+            "cpuMs": 6106,
+            "peakMiB": 1063,
+            "processWallMs": [
+              1354
+            ]
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "round": 0,
+            "wallMs": 1230,
+            "cpuMs": 8158,
+            "peakMiB": 1194,
+            "processWallMs": [
+              651,
+              1230
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1277,
+            "cpuMs": 8274,
+            "peakMiB": 1180,
+            "processWallMs": [
+              634,
+              1277
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1276,
+            "cpuMs": 8176,
+            "peakMiB": 1188,
+            "processWallMs": [
+              672,
+              1275
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1197,
+            "cpuMs": 7779,
+            "peakMiB": 1182,
+            "processWallMs": [
+              609,
+              1196
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1178,
+            "cpuMs": 7675,
+            "peakMiB": 1196,
+            "processWallMs": [
+              608,
+              1178
+            ]
+          }
+        ],
+        "eslint separate": [
+          {
+            "round": 0,
+            "wallMs": 11344,
+            "cpuMs": 35399,
+            "peakMiB": 2770,
+            "processWallMs": [
+              10418,
+              11344
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 12215,
+            "cpuMs": 37156,
+            "peakMiB": 2775,
+            "processWallMs": [
+              11036,
+              12214
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 12290,
+            "cpuMs": 37537,
+            "peakMiB": 2794,
+            "processWallMs": [
+              11215,
+              12290
             ]
           }
         ]
@@ -1094,314 +2044,314 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 8249,
-            "cpuMs": 24044,
-            "peakMiB": 3441,
+            "wallMs": 8000,
+            "cpuMs": 23757,
+            "peakMiB": 3444,
             "processWallMs": [
-              8248
+              8000
             ]
           },
           {
             "round": 1,
-            "wallMs": 8115,
-            "cpuMs": 23802,
-            "peakMiB": 3442,
+            "wallMs": 8061,
+            "cpuMs": 23893,
+            "peakMiB": 3430,
             "processWallMs": [
-              8115
+              8061
             ]
           },
           {
             "round": 2,
-            "wallMs": 8105,
-            "cpuMs": 23765,
-            "peakMiB": 3422,
+            "wallMs": 7972,
+            "cpuMs": 23578,
+            "peakMiB": 3433,
             "processWallMs": [
-              8105
+              7972
             ]
           },
           {
             "round": 3,
-            "wallMs": 8155,
-            "cpuMs": 23798,
-            "peakMiB": 3437,
+            "wallMs": 8000,
+            "cpuMs": 23715,
+            "peakMiB": 3448,
             "processWallMs": [
-              8155
+              8000
             ]
           },
           {
             "round": 4,
-            "wallMs": 8213,
-            "cpuMs": 23857,
-            "peakMiB": 3440,
+            "wallMs": 8045,
+            "cpuMs": 23788,
+            "peakMiB": 3410,
             "processWallMs": [
-              8213
+              8045
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 10061,
-            "cpuMs": 35230,
-            "peakMiB": 4638,
+            "wallMs": 9957,
+            "cpuMs": 34945,
+            "peakMiB": 4798,
             "processWallMs": [
-              10061,
-              7889
+              9957,
+              8159
             ]
           },
           {
             "round": 1,
-            "wallMs": 10286,
-            "cpuMs": 35904,
-            "peakMiB": 4866,
+            "wallMs": 10418,
+            "cpuMs": 35114,
+            "peakMiB": 4749,
             "processWallMs": [
-              10286,
-              8697
+              10418,
+              8141
             ]
           },
           {
             "round": 2,
-            "wallMs": 10416,
-            "cpuMs": 35910,
-            "peakMiB": 4829,
+            "wallMs": 9975,
+            "cpuMs": 35176,
+            "peakMiB": 4845,
             "processWallMs": [
-              10416,
-              8615
+              9975,
+              8500
             ]
           },
           {
             "round": 3,
-            "wallMs": 10427,
-            "cpuMs": 35656,
-            "peakMiB": 4892,
+            "wallMs": 10226,
+            "cpuMs": 35143,
+            "peakMiB": 4801,
             "processWallMs": [
-              10427,
-              8522
+              10226,
+              8283
             ]
           },
           {
             "round": 4,
-            "wallMs": 10176,
-            "cpuMs": 34410,
-            "peakMiB": 4501,
+            "wallMs": 10410,
+            "cpuMs": 35188,
+            "peakMiB": 4788,
             "processWallMs": [
-              10176,
-              7272
+              10410,
+              8211
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 5575,
-            "cpuMs": 15177,
-            "peakMiB": 2984,
+            "wallMs": 5492,
+            "cpuMs": 15245,
+            "peakMiB": 2935,
             "processWallMs": [
-              5575
+              5492
             ]
           },
           {
             "round": 1,
-            "wallMs": 5569,
-            "cpuMs": 15176,
-            "peakMiB": 2965,
+            "wallMs": 5439,
+            "cpuMs": 14989,
+            "peakMiB": 2903,
             "processWallMs": [
-              5568
+              5439
             ]
           },
           {
             "round": 2,
-            "wallMs": 5563,
-            "cpuMs": 15131,
-            "peakMiB": 2949,
+            "wallMs": 5514,
+            "cpuMs": 15260,
+            "peakMiB": 2900,
             "processWallMs": [
-              5563
+              5514
             ]
           },
           {
             "round": 3,
-            "wallMs": 5583,
-            "cpuMs": 15194,
-            "peakMiB": 2969,
+            "wallMs": 5510,
+            "cpuMs": 15260,
+            "peakMiB": 2936,
             "processWallMs": [
-              5583
+              5510
             ]
           },
           {
             "round": 4,
-            "wallMs": 5579,
-            "cpuMs": 15131,
-            "peakMiB": 2939,
+            "wallMs": 5505,
+            "cpuMs": 15249,
+            "peakMiB": 2909,
             "processWallMs": [
-              5579
+              5505
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 4666,
-            "cpuMs": 18068,
-            "peakMiB": 2182,
+            "wallMs": 4621,
+            "cpuMs": 17877,
+            "peakMiB": 2185,
             "processWallMs": [
-              4666
+              4621
             ]
           },
           {
             "round": 1,
-            "wallMs": 4675,
-            "cpuMs": 18104,
-            "peakMiB": 2174,
+            "wallMs": 4624,
+            "cpuMs": 17871,
+            "peakMiB": 2179,
             "processWallMs": [
-              4675
+              4624
             ]
           },
           {
             "round": 2,
-            "wallMs": 4658,
-            "cpuMs": 18015,
-            "peakMiB": 2185,
+            "wallMs": 4561,
+            "cpuMs": 17619,
+            "peakMiB": 2179,
             "processWallMs": [
-              4658
+              4561
             ]
           },
           {
             "round": 3,
-            "wallMs": 4682,
-            "cpuMs": 18090,
-            "peakMiB": 2190,
+            "wallMs": 4641,
+            "cpuMs": 17971,
+            "peakMiB": 2180,
             "processWallMs": [
-              4682
+              4641
             ]
           },
           {
             "round": 4,
-            "wallMs": 4644,
-            "cpuMs": 17984,
-            "peakMiB": 2171,
+            "wallMs": 4687,
+            "cpuMs": 18077,
+            "peakMiB": 2185,
             "processWallMs": [
-              4644
+              4687
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 32910,
-            "cpuMs": 122043,
-            "peakMiB": 14291,
+            "wallMs": 36030,
+            "cpuMs": 136553,
+            "peakMiB": 14545,
             "processWallMs": [
-              32910
+              36030
             ]
           },
           {
             "round": 1,
-            "wallMs": 32665,
-            "cpuMs": 123677,
-            "peakMiB": 13322,
+            "wallMs": 35652,
+            "cpuMs": 133711,
+            "peakMiB": 14445,
             "processWallMs": [
-              32665
+              35652
             ]
           },
           {
             "round": 2,
-            "wallMs": 36275,
-            "cpuMs": 137435,
-            "peakMiB": 14268,
+            "wallMs": 32465,
+            "cpuMs": 118981,
+            "peakMiB": 13749,
             "processWallMs": [
-              36275
+              32465
             ]
           },
           {
             "round": 3,
-            "wallMs": 35757,
-            "cpuMs": 136355,
-            "peakMiB": 14022,
+            "wallMs": 33122,
+            "cpuMs": 125808,
+            "peakMiB": 13323,
             "processWallMs": [
-              35757
+              33122
             ]
           },
           {
             "round": 4,
-            "wallMs": 32742,
-            "cpuMs": 121709,
-            "peakMiB": 14246,
+            "wallMs": 32613,
+            "cpuMs": 122089,
+            "peakMiB": 14325,
             "processWallMs": [
-              32742
+              32613
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 46488,
-            "cpuMs": 168771,
-            "peakMiB": 17845,
+            "wallMs": 39346,
+            "cpuMs": 152641,
+            "peakMiB": 16610,
             "processWallMs": [
-              36116,
-              46488
+              32218,
+              39346
             ]
           },
           {
             "round": 1,
-            "wallMs": 43915,
-            "cpuMs": 169384,
-            "peakMiB": 18073,
+            "wallMs": 40353,
+            "cpuMs": 158492,
+            "peakMiB": 17213,
             "processWallMs": [
-              36886,
-              43915
+              31143,
+              40353
             ]
           },
           {
             "round": 2,
-            "wallMs": 41647,
-            "cpuMs": 159650,
-            "peakMiB": 17217,
+            "wallMs": 43177,
+            "cpuMs": 170025,
+            "peakMiB": 18239,
             "processWallMs": [
-              33354,
-              41646
+              36621,
+              43177
             ]
           },
           {
             "round": 3,
-            "wallMs": 40858,
-            "cpuMs": 160697,
-            "peakMiB": 16975,
+            "wallMs": 43408,
+            "cpuMs": 154848,
+            "peakMiB": 17168,
             "processWallMs": [
-              32699,
-              40858
+              31224,
+              43408
             ]
           },
           {
             "round": 4,
-            "wallMs": 40216,
-            "cpuMs": 158091,
-            "peakMiB": 17315,
+            "wallMs": 43358,
+            "cpuMs": 170723,
+            "peakMiB": 18254,
             "processWallMs": [
-              31896,
-              40215
+              36818,
+              43358
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 307816,
-            "cpuMs": 652473,
-            "peakMiB": 29889,
+            "wallMs": 303509,
+            "cpuMs": 641679,
+            "peakMiB": 29009,
             "processWallMs": [
-              307816,
-              198968
+              303509,
+              195069
             ]
           },
           {
             "round": 1,
-            "wallMs": 301787,
-            "cpuMs": 641632,
-            "peakMiB": 28074,
+            "wallMs": 306456,
+            "cpuMs": 661238,
+            "peakMiB": 30533,
             "processWallMs": [
-              301786,
-              199076
+              306456,
+              195172
             ]
           }
         ]
@@ -1410,314 +2360,314 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 3661,
-            "cpuMs": 7635,
-            "peakMiB": 978,
-            "processWallMs": [
-              3661
-            ]
-          },
-          {
-            "round": 1,
             "wallMs": 3757,
-            "cpuMs": 7789,
-            "peakMiB": 974,
+            "cpuMs": 7760,
+            "peakMiB": 980,
             "processWallMs": [
               3757
             ]
           },
           {
-            "round": 2,
-            "wallMs": 3771,
-            "cpuMs": 7757,
+            "round": 1,
+            "wallMs": 3653,
+            "cpuMs": 7603,
             "peakMiB": 990,
             "processWallMs": [
-              3771
+              3653
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 3672,
+            "cpuMs": 7615,
+            "peakMiB": 990,
+            "processWallMs": [
+              3672
             ]
           },
           {
             "round": 3,
-            "wallMs": 3698,
-            "cpuMs": 7702,
-            "peakMiB": 982,
+            "wallMs": 3703,
+            "cpuMs": 7725,
+            "peakMiB": 987,
             "processWallMs": [
-              3698
+              3703
             ]
           },
           {
             "round": 4,
-            "wallMs": 3756,
-            "cpuMs": 7782,
-            "peakMiB": 978,
+            "wallMs": 3737,
+            "cpuMs": 7764,
+            "peakMiB": 983,
             "processWallMs": [
-              3756
+              3737
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 4015,
-            "cpuMs": 12321,
-            "peakMiB": 1466,
+            "wallMs": 3947,
+            "cpuMs": 12379,
+            "peakMiB": 1488,
             "processWallMs": [
-              4015,
-              3074
+              3947,
+              2915
             ]
           },
           {
             "round": 1,
-            "wallMs": 3978,
-            "cpuMs": 12579,
-            "peakMiB": 1478,
+            "wallMs": 4021,
+            "cpuMs": 12812,
+            "peakMiB": 1498,
             "processWallMs": [
-              3978,
-              3233
+              4021,
+              3289
             ]
           },
           {
             "round": 2,
-            "wallMs": 4161,
-            "cpuMs": 12217,
+            "wallMs": 4036,
+            "cpuMs": 12063,
             "peakMiB": 1442,
             "processWallMs": [
-              4161,
-              2719
+              4036,
+              2743
             ]
           },
           {
             "round": 3,
-            "wallMs": 4152,
-            "cpuMs": 12263,
-            "peakMiB": 1418,
+            "wallMs": 4067,
+            "cpuMs": 12463,
+            "peakMiB": 1487,
             "processWallMs": [
-              4152,
-              2794
+              4067,
+              3014
             ]
           },
           {
             "round": 4,
-            "wallMs": 4095,
-            "cpuMs": 12307,
-            "peakMiB": 1445,
+            "wallMs": 3482,
+            "cpuMs": 12196,
+            "peakMiB": 1481,
             "processWallMs": [
-              4095,
-              2884
+              3482,
+              3037
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 2458,
-            "cpuMs": 4374,
-            "peakMiB": 730,
+            "wallMs": 2478,
+            "cpuMs": 4416,
+            "peakMiB": 738,
             "processWallMs": [
-              2458
+              2478
             ]
           },
           {
             "round": 1,
             "wallMs": 2470,
-            "cpuMs": 4421,
-            "peakMiB": 732,
+            "cpuMs": 4405,
+            "peakMiB": 741,
             "processWallMs": [
               2470
             ]
           },
           {
             "round": 2,
-            "wallMs": 2461,
-            "cpuMs": 4389,
-            "peakMiB": 727,
+            "wallMs": 2543,
+            "cpuMs": 4549,
+            "peakMiB": 743,
             "processWallMs": [
-              2461
+              2543
             ]
           },
           {
             "round": 3,
-            "wallMs": 2480,
-            "cpuMs": 4415,
-            "peakMiB": 745,
+            "wallMs": 2411,
+            "cpuMs": 4323,
+            "peakMiB": 756,
             "processWallMs": [
-              2480
+              2411
             ]
           },
           {
             "round": 4,
-            "wallMs": 2461,
-            "cpuMs": 4395,
-            "peakMiB": 735,
+            "wallMs": 2378,
+            "cpuMs": 4313,
+            "peakMiB": 744,
             "processWallMs": [
-              2461
+              2378
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 1984,
-            "cpuMs": 7278,
-            "peakMiB": 756,
+            "wallMs": 1922,
+            "cpuMs": 7092,
+            "peakMiB": 754,
             "processWallMs": [
-              1984
+              1922
             ]
           },
           {
             "round": 1,
-            "wallMs": 1968,
-            "cpuMs": 7332,
-            "peakMiB": 748,
+            "wallMs": 1934,
+            "cpuMs": 7116,
+            "peakMiB": 755,
             "processWallMs": [
-              1968
+              1934
             ]
           },
           {
             "round": 2,
-            "wallMs": 1969,
-            "cpuMs": 7326,
-            "peakMiB": 759,
+            "wallMs": 1920,
+            "cpuMs": 7095,
+            "peakMiB": 752,
             "processWallMs": [
-              1969
+              1920
             ]
           },
           {
             "round": 3,
-            "wallMs": 1955,
-            "cpuMs": 7260,
-            "peakMiB": 747,
+            "wallMs": 1957,
+            "cpuMs": 7282,
+            "peakMiB": 759,
             "processWallMs": [
-              1955
+              1956
             ]
           },
           {
             "round": 4,
-            "wallMs": 1968,
-            "cpuMs": 7310,
+            "wallMs": 1940,
+            "cpuMs": 7167,
             "peakMiB": 759,
             "processWallMs": [
-              1968
+              1940
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 11389,
-            "cpuMs": 37778,
-            "peakMiB": 3850,
+            "wallMs": 11252,
+            "cpuMs": 37290,
+            "peakMiB": 3861,
             "processWallMs": [
-              11389
+              11252
             ]
           },
           {
             "round": 1,
-            "wallMs": 11545,
-            "cpuMs": 38430,
-            "peakMiB": 3882,
+            "wallMs": 11406,
+            "cpuMs": 37013,
+            "peakMiB": 4151,
             "processWallMs": [
-              11545
+              11406
             ]
           },
           {
             "round": 2,
-            "wallMs": 11498,
-            "cpuMs": 38826,
-            "peakMiB": 3884,
+            "wallMs": 11519,
+            "cpuMs": 37179,
+            "peakMiB": 4209,
             "processWallMs": [
-              11498
+              11519
             ]
           },
           {
             "round": 3,
-            "wallMs": 11411,
-            "cpuMs": 37657,
-            "peakMiB": 3865,
+            "wallMs": 11680,
+            "cpuMs": 38107,
+            "peakMiB": 3848,
             "processWallMs": [
-              11411
+              11680
             ]
           },
           {
             "round": 4,
-            "wallMs": 11058,
-            "cpuMs": 37112,
-            "peakMiB": 3929,
+            "wallMs": 11649,
+            "cpuMs": 37761,
+            "peakMiB": 3799,
             "processWallMs": [
-              11058
+              11649
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 15195,
-            "cpuMs": 54136,
-            "peakMiB": 5265,
+            "wallMs": 15466,
+            "cpuMs": 54271,
+            "peakMiB": 5218,
             "processWallMs": [
-              10404,
-              15195
+              10113,
+              15466
             ]
           },
           {
             "round": 1,
-            "wallMs": 15230,
-            "cpuMs": 53685,
-            "peakMiB": 4992,
+            "wallMs": 14779,
+            "cpuMs": 50934,
+            "peakMiB": 5433,
             "processWallMs": [
-              9953,
-              15230
+              9598,
+              14779
             ]
           },
           {
             "round": 2,
-            "wallMs": 15448,
-            "cpuMs": 53355,
-            "peakMiB": 5207,
+            "wallMs": 15047,
+            "cpuMs": 52917,
+            "peakMiB": 4988,
             "processWallMs": [
-              10004,
-              15448
+              9124,
+              15047
             ]
           },
           {
             "round": 3,
-            "wallMs": 15064,
-            "cpuMs": 51795,
-            "peakMiB": 5294,
+            "wallMs": 15341,
+            "cpuMs": 53291,
+            "peakMiB": 5375,
             "processWallMs": [
-              9939,
-              15064
+              10161,
+              15340
             ]
           },
           {
             "round": 4,
-            "wallMs": 14802,
-            "cpuMs": 51106,
-            "peakMiB": 5248,
+            "wallMs": 15425,
+            "cpuMs": 52550,
+            "peakMiB": 5121,
             "processWallMs": [
-              9542,
-              14802
+              9944,
+              15425
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 55744,
-            "cpuMs": 128047,
-            "peakMiB": 8239,
+            "wallMs": 54961,
+            "cpuMs": 124667,
+            "peakMiB": 8435,
             "processWallMs": [
-              46495,
-              55744
+              46102,
+              54961
             ]
           },
           {
             "round": 1,
-            "wallMs": 55097,
-            "cpuMs": 128705,
-            "peakMiB": 8837,
+            "wallMs": 54858,
+            "cpuMs": 125505,
+            "peakMiB": 7801,
             "processWallMs": [
-              48066,
-              55097
+              46536,
+              54858
             ]
           }
         ]
@@ -1726,99 +2676,99 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 484,
-            "cpuMs": 1354,
-            "peakMiB": 316,
+            "wallMs": 482,
+            "cpuMs": 1360,
+            "peakMiB": 319,
             "processWallMs": [
-              484
+              482
             ]
           },
           {
             "round": 1,
             "wallMs": 490,
-            "cpuMs": 1368,
-            "peakMiB": 315,
+            "cpuMs": 1379,
+            "peakMiB": 319,
             "processWallMs": [
               490
             ]
           },
           {
             "round": 2,
-            "wallMs": 487,
-            "cpuMs": 1352,
-            "peakMiB": 317,
+            "wallMs": 480,
+            "cpuMs": 1331,
+            "peakMiB": 320,
             "processWallMs": [
-              487
+              480
             ]
           },
           {
             "round": 3,
-            "wallMs": 489,
-            "cpuMs": 1359,
-            "peakMiB": 316,
+            "wallMs": 473,
+            "cpuMs": 1331,
+            "peakMiB": 314,
             "processWallMs": [
-              489
+              473
             ]
           },
           {
             "round": 4,
-            "wallMs": 483,
-            "cpuMs": 1352,
-            "peakMiB": 317,
+            "wallMs": 493,
+            "cpuMs": 1362,
+            "peakMiB": 314,
             "processWallMs": [
-              483
+              493
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 560,
-            "cpuMs": 1942,
-            "peakMiB": 426,
+            "wallMs": 554,
+            "cpuMs": 1958,
+            "peakMiB": 428,
             "processWallMs": [
-              560,
-              520
+              554,
+              519
             ]
           },
           {
             "round": 1,
-            "wallMs": 561,
-            "cpuMs": 1953,
-            "peakMiB": 426,
+            "wallMs": 553,
+            "cpuMs": 1965,
+            "peakMiB": 423,
             "processWallMs": [
-              561,
-              516
+              553,
+              490
             ]
           },
           {
             "round": 2,
-            "wallMs": 556,
-            "cpuMs": 1933,
-            "peakMiB": 419,
+            "wallMs": 535,
+            "cpuMs": 1890,
+            "peakMiB": 422,
             "processWallMs": [
-              556,
-              489
+              535,
+              488
             ]
           },
           {
             "round": 3,
-            "wallMs": 558,
-            "cpuMs": 1941,
-            "peakMiB": 432,
+            "wallMs": 548,
+            "cpuMs": 1951,
+            "peakMiB": 418,
             "processWallMs": [
-              558,
-              518
+              548,
+              491
             ]
           },
           {
             "round": 4,
-            "wallMs": 553,
-            "cpuMs": 1950,
-            "peakMiB": 434,
+            "wallMs": 524,
+            "cpuMs": 1921,
+            "peakMiB": 435,
             "processWallMs": [
-              553,
-              512
+              522,
+              524
             ]
           }
         ],
@@ -1826,542 +2776,532 @@
           {
             "round": 0,
             "wallMs": 270,
-            "cpuMs": 689,
-            "peakMiB": 250,
+            "cpuMs": 700,
+            "peakMiB": 249,
             "processWallMs": [
               270
             ]
           },
           {
             "round": 1,
-            "wallMs": 268,
-            "cpuMs": 690,
-            "peakMiB": 250,
+            "wallMs": 258,
+            "cpuMs": 693,
+            "peakMiB": 251,
             "processWallMs": [
-              268
+              258
             ]
           },
           {
             "round": 2,
-            "wallMs": 269,
-            "cpuMs": 684,
-            "peakMiB": 251,
-            "processWallMs": [
-              269
-            ]
-          },
-          {
-            "round": 3,
             "wallMs": 274,
-            "cpuMs": 691,
-            "peakMiB": 251,
+            "cpuMs": 701,
+            "peakMiB": 248,
             "processWallMs": [
               274
             ]
           },
           {
-            "round": 4,
-            "wallMs": 272,
+            "round": 3,
+            "wallMs": 258,
             "cpuMs": 684,
-            "peakMiB": 256,
+            "peakMiB": 248,
             "processWallMs": [
-              272
+              258
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 257,
+            "cpuMs": 685,
+            "peakMiB": 255,
+            "processWallMs": [
+              257
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 346,
-            "cpuMs": 1172,
-            "peakMiB": 191,
+            "wallMs": 349,
+            "cpuMs": 1192,
+            "peakMiB": 188,
             "processWallMs": [
-              346
+              349
             ]
           },
           {
             "round": 1,
-            "wallMs": 351,
-            "cpuMs": 1180,
-            "peakMiB": 191,
+            "wallMs": 354,
+            "cpuMs": 1181,
+            "peakMiB": 190,
             "processWallMs": [
-              351
+              354
             ]
           },
           {
             "round": 2,
-            "wallMs": 345,
-            "cpuMs": 1175,
-            "peakMiB": 193,
-            "processWallMs": [
-              345
-            ]
-          },
-          {
-            "round": 3,
             "wallMs": 347,
-            "cpuMs": 1180,
+            "cpuMs": 1181,
             "peakMiB": 189,
             "processWallMs": [
               347
             ]
           },
           {
+            "round": 3,
+            "wallMs": 356,
+            "cpuMs": 1203,
+            "peakMiB": 194,
+            "processWallMs": [
+              356
+            ]
+          },
+          {
             "round": 4,
-            "wallMs": 342,
-            "cpuMs": 1169,
+            "wallMs": 336,
+            "cpuMs": 1158,
             "peakMiB": 191,
             "processWallMs": [
-              342
+              336
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 1767,
-            "cpuMs": 6259,
-            "peakMiB": 1042,
+            "wallMs": 1871,
+            "cpuMs": 6505,
+            "peakMiB": 1101,
             "processWallMs": [
-              1767
+              1871
             ]
           },
           {
             "round": 1,
-            "wallMs": 1787,
-            "cpuMs": 6368,
-            "peakMiB": 1041,
+            "wallMs": 1792,
+            "cpuMs": 6380,
+            "peakMiB": 1029,
             "processWallMs": [
-              1787
+              1792
             ]
           },
           {
             "round": 2,
-            "wallMs": 1807,
-            "cpuMs": 6485,
-            "peakMiB": 1077,
+            "wallMs": 1819,
+            "cpuMs": 6398,
+            "peakMiB": 1068,
             "processWallMs": [
-              1807
+              1819
             ]
           },
           {
             "round": 3,
-            "wallMs": 1796,
-            "cpuMs": 6376,
-            "peakMiB": 1053,
+            "wallMs": 1830,
+            "cpuMs": 6478,
+            "peakMiB": 1028,
             "processWallMs": [
-              1796
+              1830
             ]
           },
           {
             "round": 4,
-            "wallMs": 1838,
-            "cpuMs": 6488,
-            "peakMiB": 1044,
+            "wallMs": 1775,
+            "cpuMs": 6188,
+            "peakMiB": 1045,
             "processWallMs": [
-              1838
+              1775
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 2307,
-            "cpuMs": 8402,
-            "peakMiB": 1281,
+            "wallMs": 2356,
+            "cpuMs": 8901,
+            "peakMiB": 1147,
             "processWallMs": [
-              1765,
-              2307
+              1677,
+              2356
             ]
           },
           {
             "round": 1,
-            "wallMs": 2248,
-            "cpuMs": 8649,
-            "peakMiB": 1169,
+            "wallMs": 2263,
+            "cpuMs": 8637,
+            "peakMiB": 1124,
             "processWallMs": [
-              1565,
-              2248
+              1503,
+              2263
             ]
           },
           {
             "round": 2,
-            "wallMs": 2361,
-            "cpuMs": 8914,
-            "peakMiB": 1173,
+            "wallMs": 2265,
+            "cpuMs": 8589,
+            "peakMiB": 1133,
             "processWallMs": [
-              1767,
-              2361
+              1506,
+              2265
             ]
           },
           {
             "round": 3,
-            "wallMs": 2354,
-            "cpuMs": 8882,
-            "peakMiB": 1136,
+            "wallMs": 2242,
+            "cpuMs": 8214,
+            "peakMiB": 1172,
             "processWallMs": [
-              1693,
-              2354
+              1554,
+              2242
             ]
           },
           {
             "round": 4,
-            "wallMs": 2322,
-            "cpuMs": 8853,
-            "peakMiB": 1150,
+            "wallMs": 2278,
+            "cpuMs": 8661,
+            "peakMiB": 1080,
             "processWallMs": [
-              1736,
-              2322
+              1479,
+              2278
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 13280,
-            "cpuMs": 37712,
-            "peakMiB": 2800,
+            "wallMs": 13207,
+            "cpuMs": 37433,
+            "peakMiB": 2764,
             "processWallMs": [
-              12064,
-              13280
+              12123,
+              13207
             ]
           },
           {
             "round": 1,
-            "wallMs": 13352,
-            "cpuMs": 37834,
-            "peakMiB": 2778,
+            "wallMs": 13134,
+            "cpuMs": 37344,
+            "peakMiB": 2777,
             "processWallMs": [
-              12159,
-              13352
+              11988,
+              13134
             ]
           }
         ]
       }
     },
-    "outline": {
+    "outline-8cpu": {
       "vscode": {
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 3747,
-            "cpuMs": 25342,
-            "peakMiB": 4018,
+            "wallMs": 4819,
+            "cpuMs": 24370,
+            "peakMiB": 3685,
             "processWallMs": [
-              3746
+              4819
             ]
           },
           {
             "round": 1,
-            "wallMs": 3831,
-            "cpuMs": 26015,
-            "peakMiB": 4025,
+            "wallMs": 4795,
+            "cpuMs": 24483,
+            "peakMiB": 3629,
             "processWallMs": [
-              3831
+              4795
             ]
           },
           {
             "round": 2,
-            "wallMs": 3842,
-            "cpuMs": 26174,
-            "peakMiB": 4033,
+            "wallMs": 4736,
+            "cpuMs": 24189,
+            "peakMiB": 3673,
             "processWallMs": [
-              3842
+              4736
             ]
           },
           {
             "round": 3,
-            "wallMs": 3863,
-            "cpuMs": 25762,
-            "peakMiB": 4009,
+            "wallMs": 4815,
+            "cpuMs": 24209,
+            "peakMiB": 3657,
             "processWallMs": [
-              3863
+              4815
             ]
           },
           {
             "round": 4,
-            "wallMs": 3849,
-            "cpuMs": 25982,
-            "peakMiB": 4005,
+            "wallMs": 4792,
+            "cpuMs": 24517,
+            "peakMiB": 3637,
             "processWallMs": [
-              3849
+              4792
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 3904,
-            "cpuMs": 37557,
-            "peakMiB": 5030,
+            "wallMs": 5776,
+            "cpuMs": 34989,
+            "peakMiB": 4765,
             "processWallMs": [
-              3904,
-              1946
+              5776,
+              3648
             ]
           },
           {
             "round": 1,
-            "wallMs": 3867,
-            "cpuMs": 36886,
-            "peakMiB": 4993,
+            "wallMs": 5797,
+            "cpuMs": 36091,
+            "peakMiB": 5047,
             "processWallMs": [
-              3867,
-              1892
+              5797,
+              4080
             ]
           },
           {
             "round": 2,
-            "wallMs": 3918,
-            "cpuMs": 37650,
-            "peakMiB": 4981,
+            "wallMs": 5807,
+            "cpuMs": 35134,
+            "peakMiB": 4969,
             "processWallMs": [
-              3918,
-              1913
+              5807,
+              3886
             ]
           },
           {
             "round": 3,
-            "wallMs": 3941,
-            "cpuMs": 37475,
-            "peakMiB": 4974,
+            "wallMs": 5780,
+            "cpuMs": 35704,
+            "peakMiB": 5004,
             "processWallMs": [
-              3941,
-              1913
+              5780,
+              4053
             ]
           },
           {
             "round": 4,
-            "wallMs": 3891,
-            "cpuMs": 37397,
-            "peakMiB": 4960,
+            "wallMs": 5749,
+            "cpuMs": 35846,
+            "peakMiB": 4921,
             "processWallMs": [
-              3891,
-              1883
+              5749,
+              4014
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 2948,
-            "cpuMs": 16400,
-            "peakMiB": 3471,
+            "wallMs": 3565,
+            "cpuMs": 15616,
+            "peakMiB": 3042,
             "processWallMs": [
-              2948
+              3565
             ]
           },
           {
             "round": 1,
-            "wallMs": 2903,
-            "cpuMs": 16157,
-            "peakMiB": 3445,
+            "wallMs": 3551,
+            "cpuMs": 15702,
+            "peakMiB": 3081,
             "processWallMs": [
-              2903
+              3551
             ]
           },
           {
             "round": 2,
-            "wallMs": 2935,
-            "cpuMs": 16301,
-            "peakMiB": 3450,
+            "wallMs": 3533,
+            "cpuMs": 15484,
+            "peakMiB": 3086,
             "processWallMs": [
-              2935
+              3533
             ]
           },
           {
             "round": 3,
-            "wallMs": 2987,
-            "cpuMs": 16636,
-            "peakMiB": 3456,
+            "wallMs": 3572,
+            "cpuMs": 15626,
+            "peakMiB": 3103,
             "processWallMs": [
-              2987
+              3572
             ]
           },
           {
             "round": 4,
-            "wallMs": 2989,
-            "cpuMs": 16549,
-            "peakMiB": 3447,
+            "wallMs": 3580,
+            "cpuMs": 15642,
+            "peakMiB": 3055,
             "processWallMs": [
-              2989
+              3580
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 1469,
-            "cpuMs": 20020,
-            "peakMiB": 2519,
+            "wallMs": 2512,
+            "cpuMs": 18635,
+            "peakMiB": 2335,
             "processWallMs": [
-              1469
+              2512
             ]
           },
           {
             "round": 1,
-            "wallMs": 1439,
-            "cpuMs": 19642,
-            "peakMiB": 2527,
+            "wallMs": 2499,
+            "cpuMs": 18662,
+            "peakMiB": 2342,
             "processWallMs": [
-              1439
+              2499
             ]
           },
           {
             "round": 2,
-            "wallMs": 1452,
-            "cpuMs": 19707,
-            "peakMiB": 2514,
+            "wallMs": 2513,
+            "cpuMs": 18668,
+            "peakMiB": 2329,
             "processWallMs": [
-              1452
+              2513
             ]
           },
           {
             "round": 3,
-            "wallMs": 1470,
-            "cpuMs": 19934,
-            "peakMiB": 2509,
+            "wallMs": 2499,
+            "cpuMs": 18575,
+            "peakMiB": 2339,
             "processWallMs": [
-              1470
+              2499
             ]
           },
           {
             "round": 4,
-            "wallMs": 1481,
-            "cpuMs": 20243,
-            "peakMiB": 2532,
+            "wallMs": 2564,
+            "cpuMs": 19015,
+            "peakMiB": 2334,
             "processWallMs": [
-              1481
+              2564
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 25438,
-            "cpuMs": 122153,
-            "peakMiB": 13298,
+            "wallMs": 25929,
+            "cpuMs": 122922,
+            "peakMiB": 13842,
             "processWallMs": [
-              25438
+              25929
             ]
           },
           {
             "round": 1,
-            "wallMs": 25619,
-            "cpuMs": 121825,
-            "peakMiB": 13402,
+            "wallMs": 26577,
+            "cpuMs": 125965,
+            "peakMiB": 12966,
             "processWallMs": [
-              25619
+              26577
             ]
           },
           {
             "round": 2,
-            "wallMs": 25672,
-            "cpuMs": 121883,
-            "peakMiB": 13454,
+            "wallMs": 26016,
+            "cpuMs": 116716,
+            "peakMiB": 13663,
             "processWallMs": [
-              25672
+              26016
             ]
           },
           {
             "round": 3,
-            "wallMs": 25879,
-            "cpuMs": 123127,
-            "peakMiB": 13349,
+            "wallMs": 26307,
+            "cpuMs": 117180,
+            "peakMiB": 13658,
             "processWallMs": [
-              25879
+              26307
             ]
           },
           {
             "round": 4,
-            "wallMs": 25250,
-            "cpuMs": 121843,
-            "peakMiB": 12965,
+            "wallMs": 26055,
+            "cpuMs": 117317,
+            "peakMiB": 13722,
             "processWallMs": [
-              25250
+              26055
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 18587,
-            "cpuMs": 149132,
-            "peakMiB": 16455,
+            "wallMs": 21760,
+            "cpuMs": 140273,
+            "peakMiB": 17277,
             "processWallMs": [
-              12614,
-              18587
+              16471,
+              21760
             ]
           },
           {
             "round": 1,
-            "wallMs": 18593,
-            "cpuMs": 141462,
-            "peakMiB": 16298,
+            "wallMs": 21295,
+            "cpuMs": 138845,
+            "peakMiB": 16722,
             "processWallMs": [
-              13016,
-              18593
+              16091,
+              21295
             ]
           },
           {
             "round": 2,
-            "wallMs": 19123,
-            "cpuMs": 155629,
-            "peakMiB": 16273,
+            "wallMs": 21226,
+            "cpuMs": 136523,
+            "peakMiB": 16139,
             "processWallMs": [
-              12946,
-              19123
+              15449,
+              21226
             ]
           },
           {
             "round": 3,
-            "wallMs": 19142,
-            "cpuMs": 151458,
-            "peakMiB": 16746,
+            "wallMs": 21778,
+            "cpuMs": 145756,
+            "peakMiB": 16757,
             "processWallMs": [
-              13629,
-              19142
+              15795,
+              21778
             ]
           },
           {
             "round": 4,
-            "wallMs": 19209,
-            "cpuMs": 147409,
-            "peakMiB": 16285,
+            "wallMs": 20845,
+            "cpuMs": 135893,
+            "peakMiB": 16722,
             "processWallMs": [
-              13042,
-              19209
+              15362,
+              20845
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 311279,
-            "cpuMs": 699371,
-            "peakMiB": 29096,
+            "wallMs": 290641,
+            "cpuMs": 637099,
+            "peakMiB": 29394,
             "processWallMs": [
-              311279,
-              200429
+              290641,
+              188151
             ]
           },
           {
             "round": 1,
-            "wallMs": 306945,
-            "cpuMs": 662367,
-            "peakMiB": 31234,
+            "wallMs": 295915,
+            "cpuMs": 675328,
+            "peakMiB": 29432,
             "processWallMs": [
-              306945,
-              195059
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 305957,
-            "cpuMs": 728169,
-            "peakMiB": 28278,
-            "processWallMs": [
-              305957,
-              196408
+              295915,
+              186689
             ]
           }
         ]
@@ -2370,324 +3310,314 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 1686,
-            "cpuMs": 9851,
-            "peakMiB": 1456,
+            "wallMs": 2331,
+            "cpuMs": 8787,
+            "peakMiB": 1206,
             "processWallMs": [
-              1686
+              2331
             ]
           },
           {
             "round": 1,
-            "wallMs": 1676,
-            "cpuMs": 9870,
-            "peakMiB": 1466,
+            "wallMs": 2334,
+            "cpuMs": 8922,
+            "peakMiB": 1218,
             "processWallMs": [
-              1676
+              2334
             ]
           },
           {
             "round": 2,
-            "wallMs": 1654,
-            "cpuMs": 9840,
-            "peakMiB": 1455,
+            "wallMs": 2264,
+            "cpuMs": 8644,
+            "peakMiB": 1206,
             "processWallMs": [
-              1654
+              2264
             ]
           },
           {
             "round": 3,
-            "wallMs": 1698,
-            "cpuMs": 9973,
-            "peakMiB": 1468,
+            "wallMs": 2306,
+            "cpuMs": 8767,
+            "peakMiB": 1208,
             "processWallMs": [
-              1698
+              2306
             ]
           },
           {
             "round": 4,
-            "wallMs": 1671,
-            "cpuMs": 9998,
-            "peakMiB": 1469,
+            "wallMs": 2293,
+            "cpuMs": 8752,
+            "peakMiB": 1206,
             "processWallMs": [
-              1671
+              2293
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 1884,
-            "cpuMs": 15940,
-            "peakMiB": 2147,
+            "wallMs": 2269,
+            "cpuMs": 13866,
+            "peakMiB": 1765,
             "processWallMs": [
-              1884,
-              1304
+              2269,
+              1776
             ]
           },
           {
             "round": 1,
-            "wallMs": 1888,
-            "cpuMs": 16036,
-            "peakMiB": 2171,
+            "wallMs": 2376,
+            "cpuMs": 13566,
+            "peakMiB": 1801,
             "processWallMs": [
-              1888,
-              1317
+              2376,
+              1812
             ]
           },
           {
             "round": 2,
-            "wallMs": 1862,
-            "cpuMs": 15713,
-            "peakMiB": 2161,
+            "wallMs": 2310,
+            "cpuMs": 13341,
+            "peakMiB": 1799,
             "processWallMs": [
-              1862,
-              1081
+              2310,
+              1854
             ]
           },
           {
             "round": 3,
-            "wallMs": 1842,
-            "cpuMs": 15617,
-            "peakMiB": 2201,
+            "wallMs": 2441,
+            "cpuMs": 13775,
+            "peakMiB": 1740,
             "processWallMs": [
-              1842,
-              1237
+              2441,
+              1651
             ]
           },
           {
             "round": 4,
-            "wallMs": 1799,
-            "cpuMs": 15976,
-            "peakMiB": 2190,
+            "wallMs": 2269,
+            "cpuMs": 13466,
+            "peakMiB": 1780,
             "processWallMs": [
-              1799,
-              1346
+              2269,
+              1706
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 1369,
-            "cpuMs": 5743,
-            "peakMiB": 1077,
+            "wallMs": 1598,
+            "cpuMs": 5107,
+            "peakMiB": 893,
             "processWallMs": [
-              1369
+              1598
             ]
           },
           {
             "round": 1,
-            "wallMs": 1407,
-            "cpuMs": 5881,
-            "peakMiB": 1078,
+            "wallMs": 1540,
+            "cpuMs": 4946,
+            "peakMiB": 897,
             "processWallMs": [
-              1407
+              1540
             ]
           },
           {
             "round": 2,
-            "wallMs": 1414,
-            "cpuMs": 5816,
-            "peakMiB": 1085,
+            "wallMs": 1543,
+            "cpuMs": 4987,
+            "peakMiB": 899,
             "processWallMs": [
-              1414
+              1543
             ]
           },
           {
             "round": 3,
-            "wallMs": 1363,
-            "cpuMs": 5711,
-            "peakMiB": 1077,
+            "wallMs": 1553,
+            "cpuMs": 5001,
+            "peakMiB": 897,
             "processWallMs": [
-              1363
+              1553
             ]
           },
           {
             "round": 4,
-            "wallMs": 1369,
-            "cpuMs": 5705,
-            "peakMiB": 1081,
+            "wallMs": 1588,
+            "cpuMs": 5088,
+            "peakMiB": 896,
             "processWallMs": [
-              1369
+              1588
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 1049,
-            "cpuMs": 9605,
-            "peakMiB": 1134,
+            "wallMs": 1482,
+            "cpuMs": 8146,
+            "peakMiB": 921,
             "processWallMs": [
-              1049
+              1481
             ]
           },
           {
             "round": 1,
-            "wallMs": 1063,
-            "cpuMs": 9960,
-            "peakMiB": 1138,
+            "wallMs": 1460,
+            "cpuMs": 7992,
+            "peakMiB": 917,
             "processWallMs": [
-              1063
+              1460
             ]
           },
           {
             "round": 2,
-            "wallMs": 1060,
-            "cpuMs": 9869,
-            "peakMiB": 1143,
+            "wallMs": 1483,
+            "cpuMs": 8173,
+            "peakMiB": 926,
             "processWallMs": [
-              1060
+              1483
             ]
           },
           {
             "round": 3,
-            "wallMs": 1029,
-            "cpuMs": 9429,
-            "peakMiB": 1147,
+            "wallMs": 1507,
+            "cpuMs": 8246,
+            "peakMiB": 916,
             "processWallMs": [
-              1029
+              1507
             ]
           },
           {
             "round": 4,
-            "wallMs": 1076,
-            "cpuMs": 9874,
-            "peakMiB": 1123,
+            "wallMs": 1499,
+            "cpuMs": 8262,
+            "peakMiB": 930,
             "processWallMs": [
-              1076
+              1499
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 9980,
-            "cpuMs": 39368,
-            "peakMiB": 3959,
+            "wallMs": 10117,
+            "cpuMs": 37594,
+            "peakMiB": 3772,
             "processWallMs": [
-              9980
+              10117
             ]
           },
           {
             "round": 1,
-            "wallMs": 9811,
-            "cpuMs": 37084,
-            "peakMiB": 3824,
+            "wallMs": 10090,
+            "cpuMs": 37200,
+            "peakMiB": 3708,
             "processWallMs": [
-              9811
+              10090
             ]
           },
           {
             "round": 2,
-            "wallMs": 10056,
-            "cpuMs": 38067,
-            "peakMiB": 3867,
+            "wallMs": 9988,
+            "cpuMs": 37267,
+            "peakMiB": 3665,
             "processWallMs": [
-              10056
+              9988
             ]
           },
           {
             "round": 3,
-            "wallMs": 10070,
-            "cpuMs": 39798,
-            "peakMiB": 3978,
+            "wallMs": 10030,
+            "cpuMs": 36411,
+            "peakMiB": 3721,
             "processWallMs": [
-              10070
+              10030
             ]
           },
           {
             "round": 4,
-            "wallMs": 10106,
-            "cpuMs": 38426,
-            "peakMiB": 3869,
+            "wallMs": 9689,
+            "cpuMs": 36229,
+            "peakMiB": 3758,
             "processWallMs": [
-              10106
+              9689
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 8822,
-            "cpuMs": 49236,
-            "peakMiB": 4843,
+            "wallMs": 9439,
+            "cpuMs": 48841,
+            "peakMiB": 5099,
             "processWallMs": [
-              3968,
-              8822
+              4603,
+              9439
             ]
           },
           {
             "round": 1,
-            "wallMs": 8874,
-            "cpuMs": 50378,
-            "peakMiB": 5064,
+            "wallMs": 9667,
+            "cpuMs": 49890,
+            "peakMiB": 4873,
             "processWallMs": [
-              4029,
-              8874
+              4633,
+              9667
             ]
           },
           {
             "round": 2,
-            "wallMs": 8810,
-            "cpuMs": 50750,
-            "peakMiB": 5094,
+            "wallMs": 9478,
+            "cpuMs": 48677,
+            "peakMiB": 5156,
             "processWallMs": [
-              4029,
-              8810
+              4896,
+              9478
             ]
           },
           {
             "round": 3,
-            "wallMs": 8725,
-            "cpuMs": 50329,
-            "peakMiB": 5143,
+            "wallMs": 9416,
+            "cpuMs": 48270,
+            "peakMiB": 4947,
             "processWallMs": [
-              4008,
-              8725
+              4520,
+              9416
             ]
           },
           {
             "round": 4,
-            "wallMs": 8752,
-            "cpuMs": 50737,
-            "peakMiB": 5138,
+            "wallMs": 9421,
+            "cpuMs": 48656,
+            "peakMiB": 5048,
             "processWallMs": [
-              4022,
-              8752
+              4651,
+              9421
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 55448,
-            "cpuMs": 129522,
-            "peakMiB": 8481,
+            "wallMs": 53747,
+            "cpuMs": 126611,
+            "peakMiB": 8472,
             "processWallMs": [
-              45916,
-              55448
+              44120,
+              53747
             ]
           },
           {
             "round": 1,
-            "wallMs": 55744,
-            "cpuMs": 129522,
-            "peakMiB": 8251,
+            "wallMs": 53419,
+            "cpuMs": 126337,
+            "peakMiB": 8480,
             "processWallMs": [
-              45903,
-              55744
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 55981,
-            "cpuMs": 130007,
-            "peakMiB": 8509,
-            "processWallMs": [
-              46018,
-              55981
+              43803,
+              53419
             ]
           }
         ]
@@ -2696,324 +3626,314 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 373,
-            "cpuMs": 1683,
-            "peakMiB": 520,
+            "wallMs": 360,
+            "cpuMs": 1486,
+            "peakMiB": 406,
             "processWallMs": [
-              373
+              360
             ]
           },
           {
             "round": 1,
-            "wallMs": 376,
-            "cpuMs": 1675,
-            "peakMiB": 521,
+            "wallMs": 359,
+            "cpuMs": 1516,
+            "peakMiB": 408,
             "processWallMs": [
-              375
+              359
             ]
           },
           {
             "round": 2,
-            "wallMs": 365,
-            "cpuMs": 1662,
-            "peakMiB": 510,
+            "wallMs": 362,
+            "cpuMs": 1526,
+            "peakMiB": 399,
             "processWallMs": [
-              365
+              362
             ]
           },
           {
             "round": 3,
-            "wallMs": 371,
-            "cpuMs": 1663,
-            "peakMiB": 516,
+            "wallMs": 360,
+            "cpuMs": 1502,
+            "peakMiB": 404,
             "processWallMs": [
-              371
+              360
             ]
           },
           {
             "round": 4,
-            "wallMs": 371,
-            "cpuMs": 1675,
-            "peakMiB": 517,
+            "wallMs": 365,
+            "cpuMs": 1506,
+            "peakMiB": 406,
             "processWallMs": [
-              371
+              365
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 294,
-            "cpuMs": 2350,
-            "peakMiB": 630,
+            "wallMs": 370,
+            "cpuMs": 2170,
+            "peakMiB": 521,
             "processWallMs": [
-              294,
-              208
+              370,
+              303
             ]
           },
           {
             "round": 1,
-            "wallMs": 289,
-            "cpuMs": 2334,
-            "peakMiB": 628,
+            "wallMs": 379,
+            "cpuMs": 2156,
+            "peakMiB": 486,
             "processWallMs": [
-              289,
-              206
+              379,
+              280
             ]
           },
           {
             "round": 2,
-            "wallMs": 298,
-            "cpuMs": 2374,
-            "peakMiB": 642,
+            "wallMs": 357,
+            "cpuMs": 2084,
+            "peakMiB": 482,
             "processWallMs": [
-              298,
-              212
+              357,
+              267
             ]
           },
           {
             "round": 3,
-            "wallMs": 290,
-            "cpuMs": 2369,
-            "peakMiB": 632,
+            "wallMs": 376,
+            "cpuMs": 2151,
+            "peakMiB": 508,
             "processWallMs": [
-              290,
-              205
+              376,
+              286
             ]
           },
           {
             "round": 4,
-            "wallMs": 287,
-            "cpuMs": 2380,
-            "peakMiB": 678,
+            "wallMs": 370,
+            "cpuMs": 2133,
+            "peakMiB": 481,
             "processWallMs": [
-              287,
-              237
+              370,
+              270
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 222,
-            "cpuMs": 871,
-            "peakMiB": 422,
+            "wallMs": 219,
+            "cpuMs": 768,
+            "peakMiB": 318,
             "processWallMs": [
-              221
+              219
             ]
           },
           {
             "round": 1,
-            "wallMs": 214,
-            "cpuMs": 862,
-            "peakMiB": 424,
+            "wallMs": 230,
+            "cpuMs": 793,
+            "peakMiB": 325,
             "processWallMs": [
-              214
+              230
             ]
           },
           {
             "round": 2,
-            "wallMs": 213,
-            "cpuMs": 852,
-            "peakMiB": 419,
+            "wallMs": 219,
+            "cpuMs": 787,
+            "peakMiB": 319,
             "processWallMs": [
-              213
+              219
             ]
           },
           {
             "round": 3,
-            "wallMs": 229,
-            "cpuMs": 871,
-            "peakMiB": 427,
+            "wallMs": 224,
+            "cpuMs": 773,
+            "peakMiB": 318,
             "processWallMs": [
-              229
+              224
             ]
           },
           {
             "round": 4,
-            "wallMs": 219,
-            "cpuMs": 874,
-            "peakMiB": 423,
+            "wallMs": 231,
+            "cpuMs": 767,
+            "peakMiB": 324,
             "processWallMs": [
-              219
+              231
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 185,
-            "cpuMs": 1479,
-            "peakMiB": 275,
+            "wallMs": 221,
+            "cpuMs": 1313,
+            "peakMiB": 231,
             "processWallMs": [
-              185
+              221
             ]
           },
           {
             "round": 1,
-            "wallMs": 181,
-            "cpuMs": 1440,
-            "peakMiB": 267,
+            "wallMs": 227,
+            "cpuMs": 1348,
+            "peakMiB": 231,
             "processWallMs": [
-              181
+              227
             ]
           },
           {
             "round": 2,
-            "wallMs": 180,
-            "cpuMs": 1457,
-            "peakMiB": 274,
+            "wallMs": 228,
+            "cpuMs": 1332,
+            "peakMiB": 228,
             "processWallMs": [
-              180
+              228
             ]
           },
           {
             "round": 3,
-            "wallMs": 186,
-            "cpuMs": 1452,
-            "peakMiB": 268,
+            "wallMs": 229,
+            "cpuMs": 1297,
+            "peakMiB": 232,
             "processWallMs": [
-              186
+              229
             ]
           },
           {
             "round": 4,
-            "wallMs": 185,
-            "cpuMs": 1485,
-            "peakMiB": 271,
+            "wallMs": 228,
+            "cpuMs": 1319,
+            "peakMiB": 234,
             "processWallMs": [
-              185
+              227
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 1529,
-            "cpuMs": 6746,
-            "peakMiB": 1066,
+            "wallMs": 1553,
+            "cpuMs": 6427,
+            "peakMiB": 1020,
             "processWallMs": [
-              1529
+              1553
             ]
           },
           {
             "round": 1,
-            "wallMs": 1463,
-            "cpuMs": 6573,
-            "peakMiB": 1055,
+            "wallMs": 1505,
+            "cpuMs": 6361,
+            "peakMiB": 997,
             "processWallMs": [
-              1463
+              1505
             ]
           },
           {
             "round": 2,
-            "wallMs": 1468,
-            "cpuMs": 6400,
-            "peakMiB": 1116,
+            "wallMs": 1513,
+            "cpuMs": 6361,
+            "peakMiB": 1011,
             "processWallMs": [
-              1468
+              1513
             ]
           },
           {
             "round": 3,
-            "wallMs": 1509,
-            "cpuMs": 6539,
-            "peakMiB": 1134,
+            "wallMs": 1530,
+            "cpuMs": 6393,
+            "peakMiB": 1030,
             "processWallMs": [
-              1509
+              1530
             ]
           },
           {
             "round": 4,
-            "wallMs": 1492,
-            "cpuMs": 6619,
-            "peakMiB": 1057,
+            "wallMs": 1523,
+            "cpuMs": 6558,
+            "peakMiB": 1022,
             "processWallMs": [
-              1492
+              1523
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 1292,
-            "cpuMs": 8348,
-            "peakMiB": 1218,
+            "wallMs": 1361,
+            "cpuMs": 7687,
+            "peakMiB": 1106,
             "processWallMs": [
-              671,
-              1292
+              744,
+              1361
             ]
           },
           {
             "round": 1,
-            "wallMs": 1272,
-            "cpuMs": 8216,
-            "peakMiB": 1203,
+            "wallMs": 1431,
+            "cpuMs": 8298,
+            "peakMiB": 1120,
             "processWallMs": [
-              645,
-              1271
+              798,
+              1431
             ]
           },
           {
             "round": 2,
-            "wallMs": 1272,
-            "cpuMs": 8276,
-            "peakMiB": 1193,
+            "wallMs": 1434,
+            "cpuMs": 8298,
+            "peakMiB": 1120,
             "processWallMs": [
-              652,
-              1272
+              792,
+              1434
             ]
           },
           {
             "round": 3,
-            "wallMs": 1261,
-            "cpuMs": 8477,
-            "peakMiB": 1193,
+            "wallMs": 1407,
+            "cpuMs": 8262,
+            "peakMiB": 1123,
             "processWallMs": [
-              661,
-              1261
+              815,
+              1407
             ]
           },
           {
             "round": 4,
-            "wallMs": 1299,
-            "cpuMs": 8443,
-            "peakMiB": 1222,
+            "wallMs": 1430,
+            "cpuMs": 8422,
+            "peakMiB": 1138,
             "processWallMs": [
-              681,
-              1299
+              834,
+              1430
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 12902,
-            "cpuMs": 38451,
-            "peakMiB": 2820,
+            "wallMs": 12148,
+            "cpuMs": 36929,
+            "peakMiB": 2764,
             "processWallMs": [
-              11358,
-              12902
+              10973,
+              12148
             ]
           },
           {
             "round": 1,
-            "wallMs": 12719,
-            "cpuMs": 38250,
-            "peakMiB": 2755,
+            "wallMs": 12100,
+            "cpuMs": 36894,
+            "peakMiB": 2828,
             "processWallMs": [
-              11369,
-              12719
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 12866,
-            "cpuMs": 38718,
-            "peakMiB": 2763,
-            "processWallMs": [
-              11599,
-              12866
+              10966,
+              12100
             ]
           }
         ]
@@ -3024,1224 +3944,304 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 7382,
-            "cpuMs": 37681,
-            "peakMiB": 4531,
+            "wallMs": 6826,
+            "cpuMs": 35256,
+            "peakMiB": 4454,
             "processWallMs": [
-              7382
+              6826
             ]
           },
           {
             "round": 1,
-            "wallMs": 7333,
-            "cpuMs": 37691,
-            "peakMiB": 4550,
+            "wallMs": 6932,
+            "cpuMs": 36441,
+            "peakMiB": 4459,
             "processWallMs": [
-              7333
+              6932
             ]
           },
           {
             "round": 2,
-            "wallMs": 7417,
-            "cpuMs": 38116,
-            "peakMiB": 4554,
+            "wallMs": 7201,
+            "cpuMs": 38726,
+            "peakMiB": 4430,
             "processWallMs": [
-              7417
+              7201
             ]
           },
           {
             "round": 3,
-            "wallMs": 7420,
-            "cpuMs": 38375,
-            "peakMiB": 4550,
-            "processWallMs": [
-              7420
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 7343,
-            "cpuMs": 37989,
-            "peakMiB": 4526,
-            "processWallMs": [
-              7343
-            ]
-          }
-        ],
-        "tsrs separate": [
-          {
-            "round": 0,
-            "wallMs": 7882,
-            "cpuMs": 55008,
-            "peakMiB": 4940,
-            "processWallMs": [
-              7882,
-              1879
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 7833,
-            "cpuMs": 54404,
-            "peakMiB": 4910,
-            "processWallMs": [
-              7833,
-              1853
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 7926,
-            "cpuMs": 55125,
-            "peakMiB": 4968,
-            "processWallMs": [
-              7926,
-              1919
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 7998,
-            "cpuMs": 55864,
-            "peakMiB": 4891,
-            "processWallMs": [
-              7998,
-              1902
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 7874,
-            "cpuMs": 54555,
-            "peakMiB": 4860,
-            "processWallMs": [
-              7874,
-              1837
-            ]
-          }
-        ],
-        "tsrs lint only": [
-          {
-            "round": 0,
-            "wallMs": 6972,
-            "cpuMs": 33706,
-            "peakMiB": 4436,
-            "processWallMs": [
-              6972
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 6979,
-            "cpuMs": 33989,
-            "peakMiB": 4424,
-            "processWallMs": [
-              6979
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 6977,
-            "cpuMs": 34171,
-            "peakMiB": 4440,
-            "processWallMs": [
-              6977
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 7023,
-            "cpuMs": 34206,
+            "wallMs": 6975,
+            "cpuMs": 36540,
             "peakMiB": 4438,
             "processWallMs": [
-              7023
+              6975
             ]
           },
           {
             "round": 4,
-            "wallMs": 6944,
-            "cpuMs": 33915,
-            "peakMiB": 4434,
+            "wallMs": 6841,
+            "cpuMs": 35626,
+            "peakMiB": 4471,
             "processWallMs": [
-              6944
-            ]
-          }
-        ],
-        "tsrs check only": [
-          {
-            "round": 0,
-            "wallMs": 1491,
-            "cpuMs": 20017,
-            "peakMiB": 2530,
-            "processWallMs": [
-              1491
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 1481,
-            "cpuMs": 20054,
-            "peakMiB": 2512,
-            "processWallMs": [
-              1481
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 1482,
-            "cpuMs": 20030,
-            "peakMiB": 2518,
-            "processWallMs": [
-              1482
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 1473,
-            "cpuMs": 19834,
-            "peakMiB": 2524,
-            "processWallMs": [
-              1473
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 1470,
-            "cpuMs": 20058,
-            "peakMiB": 2512,
-            "processWallMs": [
-              1470
-            ]
-          }
-        ],
-        "tsgolint one pass": [
-          {
-            "round": 0,
-            "wallMs": 39634,
-            "cpuMs": 177153,
-            "peakMiB": 15976,
-            "processWallMs": [
-              39634
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 39915,
-            "cpuMs": 191325,
-            "peakMiB": 16214,
-            "processWallMs": [
-              39915
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 40561,
-            "cpuMs": 195738,
-            "peakMiB": 16138,
-            "processWallMs": [
-              40561
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 40000,
-            "cpuMs": 192196,
-            "peakMiB": 16227,
-            "processWallMs": [
-              40000
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 40020,
-            "cpuMs": 191937,
-            "peakMiB": 16225,
-            "processWallMs": [
-              40020
-            ]
-          }
-        ],
-        "tsgolint separate": [
-          {
-            "round": 0,
-            "wallMs": 29211,
-            "cpuMs": 215331,
-            "peakMiB": 20035,
-            "processWallMs": [
-              29211,
-              18714
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 29104,
-            "cpuMs": 215005,
-            "peakMiB": 19985,
-            "processWallMs": [
-              29104,
-              18801
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 28756,
-            "cpuMs": 206833,
-            "peakMiB": 20495,
-            "processWallMs": [
-              28756,
-              19220
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 29483,
-            "cpuMs": 219223,
-            "peakMiB": 20025,
-            "processWallMs": [
-              29483,
-              19574
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 28663,
-            "cpuMs": 206846,
-            "peakMiB": 20368,
-            "processWallMs": [
-              28663,
-              19098
-            ]
-          }
-        ],
-        "eslint separate": [
-          {
-            "round": 0,
-            "wallMs": 641883,
-            "cpuMs": 1140322,
-            "peakMiB": 25766,
-            "processWallMs": [
-              641883,
-              194843
-            ]
-          }
-        ]
-      },
-      "outline": {
-        "tsrs one pass": [
-          {
-            "round": 0,
-            "wallMs": 2168,
-            "cpuMs": 11231,
-            "peakMiB": 1519,
-            "processWallMs": [
-              2168
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 2229,
-            "cpuMs": 11655,
-            "peakMiB": 1523,
-            "processWallMs": [
-              2228
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 2164,
-            "cpuMs": 11210,
-            "peakMiB": 1523,
-            "processWallMs": [
-              2164
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 2196,
-            "cpuMs": 11419,
-            "peakMiB": 1514,
-            "processWallMs": [
-              2196
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 2131,
-            "cpuMs": 11109,
-            "peakMiB": 1525,
-            "processWallMs": [
-              2131
+              6841
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 2343,
-            "cpuMs": 20926,
-            "peakMiB": 2550,
+            "wallMs": 7492,
+            "cpuMs": 51392,
+            "peakMiB": 4829,
             "processWallMs": [
-              2343,
-              1472
+              7492,
+              1772
             ]
           },
           {
             "round": 1,
-            "wallMs": 2382,
-            "cpuMs": 20796,
-            "peakMiB": 2544,
+            "wallMs": 7471,
+            "cpuMs": 51002,
+            "peakMiB": 4836,
             "processWallMs": [
-              2381,
-              1425
+              7471,
+              1727
             ]
           },
           {
             "round": 2,
-            "wallMs": 2304,
-            "cpuMs": 20274,
-            "peakMiB": 2400,
-            "processWallMs": [
-              2304,
-              1172
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 2250,
-            "cpuMs": 20331,
-            "peakMiB": 2547,
-            "processWallMs": [
-              2250,
-              1456
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 2269,
-            "cpuMs": 20012,
-            "peakMiB": 2540,
-            "processWallMs": [
-              2269,
-              1435
-            ]
-          }
-        ],
-        "tsrs lint only": [
-          {
-            "round": 0,
-            "wallMs": 1778,
-            "cpuMs": 10203,
-            "peakMiB": 1485,
-            "processWallMs": [
-              1778
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 1760,
-            "cpuMs": 10007,
-            "peakMiB": 1482,
-            "processWallMs": [
-              1760
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 1777,
-            "cpuMs": 10151,
-            "peakMiB": 1485,
-            "processWallMs": [
-              1777
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 1723,
-            "cpuMs": 9886,
-            "peakMiB": 1482,
-            "processWallMs": [
-              1723
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 1734,
-            "cpuMs": 9964,
-            "peakMiB": 1498,
-            "processWallMs": [
-              1734
-            ]
-          }
-        ],
-        "tsrs check only": [
-          {
-            "round": 0,
-            "wallMs": 1072,
-            "cpuMs": 9689,
-            "peakMiB": 1128,
-            "processWallMs": [
-              1072
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 1051,
-            "cpuMs": 9674,
-            "peakMiB": 1124,
-            "processWallMs": [
-              1051
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 1063,
-            "cpuMs": 9966,
-            "peakMiB": 1156,
-            "processWallMs": [
-              1063
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 1042,
-            "cpuMs": 9557,
-            "peakMiB": 1134,
-            "processWallMs": [
-              1042
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 1043,
-            "cpuMs": 9682,
-            "peakMiB": 1137,
-            "processWallMs": [
-              1043
-            ]
-          }
-        ],
-        "tsgolint one pass": [
-          {
-            "round": 0,
-            "wallMs": 12304,
-            "cpuMs": 49715,
-            "peakMiB": 4707,
-            "processWallMs": [
-              12304
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 12157,
-            "cpuMs": 47634,
-            "peakMiB": 4277,
-            "processWallMs": [
-              12157
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 12243,
-            "cpuMs": 48031,
-            "peakMiB": 4309,
-            "processWallMs": [
-              12243
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 12224,
-            "cpuMs": 48240,
-            "peakMiB": 4342,
-            "processWallMs": [
-              12224
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 11854,
-            "cpuMs": 47414,
-            "peakMiB": 4233,
-            "processWallMs": [
-              11854
-            ]
-          }
-        ],
-        "tsgolint separate": [
-          {
-            "round": 0,
-            "wallMs": 9157,
-            "cpuMs": 65281,
-            "peakMiB": 7047,
-            "processWallMs": [
-              7565,
-              9157
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 9104,
-            "cpuMs": 65643,
-            "peakMiB": 6834,
-            "processWallMs": [
-              7429,
-              9104
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 9065,
-            "cpuMs": 65331,
-            "peakMiB": 6724,
-            "processWallMs": [
-              7506,
-              9065
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 8857,
-            "cpuMs": 63393,
-            "peakMiB": 7112,
-            "processWallMs": [
-              7309,
-              8857
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 8860,
-            "cpuMs": 63952,
-            "peakMiB": 7054,
-            "processWallMs": [
-              7411,
-              8860
-            ]
-          }
-        ],
-        "eslint separate": [
-          {
-            "round": 0,
-            "wallMs": 93912,
-            "cpuMs": 182341,
-            "peakMiB": 8379,
-            "processWallMs": [
-              93912,
-              56072
-            ]
-          }
-        ]
-      },
-      "vue": {
-        "tsrs one pass": [
-          {
-            "round": 0,
-            "wallMs": 557,
-            "cpuMs": 2140,
-            "peakMiB": 543,
-            "processWallMs": [
-              557
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 561,
-            "cpuMs": 2151,
-            "peakMiB": 541,
-            "processWallMs": [
-              561
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 564,
-            "cpuMs": 2163,
-            "peakMiB": 544,
-            "processWallMs": [
-              564
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 552,
-            "cpuMs": 2139,
-            "peakMiB": 541,
-            "processWallMs": [
-              552
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 553,
-            "cpuMs": 2167,
-            "peakMiB": 542,
-            "processWallMs": [
-              553
-            ]
-          }
-        ],
-        "tsrs separate": [
-          {
-            "round": 0,
-            "wallMs": 604,
-            "cpuMs": 3570,
-            "peakMiB": 654,
-            "processWallMs": [
-              604,
-              205
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 623,
-            "cpuMs": 3586,
-            "peakMiB": 616,
-            "processWallMs": [
-              623,
-              198
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 640,
-            "cpuMs": 3582,
-            "peakMiB": 628,
-            "processWallMs": [
-              639,
-              216
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 617,
-            "cpuMs": 3566,
-            "peakMiB": 614,
-            "processWallMs": [
-              617,
-              197
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 629,
-            "cpuMs": 3554,
-            "peakMiB": 637,
-            "processWallMs": [
-              629,
-              218
-            ]
-          }
-        ],
-        "tsrs lint only": [
-          {
-            "round": 0,
-            "wallMs": 548,
-            "cpuMs": 2061,
-            "peakMiB": 538,
-            "processWallMs": [
-              548
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 552,
-            "cpuMs": 2075,
-            "peakMiB": 537,
-            "processWallMs": [
-              552
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 563,
-            "cpuMs": 2094,
-            "peakMiB": 539,
-            "processWallMs": [
-              563
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 562,
-            "cpuMs": 2086,
-            "peakMiB": 538,
-            "processWallMs": [
-              562
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 557,
-            "cpuMs": 2059,
-            "peakMiB": 539,
-            "processWallMs": [
-              557
-            ]
-          }
-        ],
-        "tsrs check only": [
-          {
-            "round": 0,
-            "wallMs": 186,
-            "cpuMs": 1480,
-            "peakMiB": 268,
-            "processWallMs": [
-              186
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 189,
-            "cpuMs": 1490,
-            "peakMiB": 273,
-            "processWallMs": [
-              188
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 196,
-            "cpuMs": 1487,
-            "peakMiB": 275,
-            "processWallMs": [
-              196
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 185,
-            "cpuMs": 1477,
-            "peakMiB": 271,
-            "processWallMs": [
-              185
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 189,
-            "cpuMs": 1463,
-            "peakMiB": 269,
-            "processWallMs": [
-              189
-            ]
-          }
-        ],
-        "tsgolint one pass": [
-          {
-            "round": 0,
-            "wallMs": 2422,
-            "cpuMs": 10458,
-            "peakMiB": 1358,
-            "processWallMs": [
-              2421
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 2395,
-            "cpuMs": 10106,
-            "peakMiB": 1302,
-            "processWallMs": [
-              2395
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 2438,
-            "cpuMs": 10689,
-            "peakMiB": 1295,
-            "processWallMs": [
-              2438
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 2415,
-            "cpuMs": 10465,
-            "peakMiB": 1385,
-            "processWallMs": [
-              2415
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 2467,
-            "cpuMs": 10815,
-            "peakMiB": 1285,
-            "processWallMs": [
-              2467
-            ]
-          }
-        ],
-        "tsgolint separate": [
-          {
-            "round": 0,
-            "wallMs": 1664,
-            "cpuMs": 12397,
-            "peakMiB": 1762,
-            "processWallMs": [
-              1664,
-              1290
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 1684,
-            "cpuMs": 12477,
-            "peakMiB": 1639,
-            "processWallMs": [
-              1684,
-              1316
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 1669,
-            "cpuMs": 12647,
-            "peakMiB": 1671,
-            "processWallMs": [
-              1669,
-              1370
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 1644,
-            "cpuMs": 12426,
-            "peakMiB": 1652,
-            "processWallMs": [
-              1644,
-              1326
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 1688,
-            "cpuMs": 13014,
-            "peakMiB": 1761,
-            "processWallMs": [
-              1688,
-              1326
-            ]
-          }
-        ],
-        "eslint separate": [
-          {
-            "round": 0,
-            "wallMs": 26215,
-            "cpuMs": 55572,
-            "peakMiB": 2383,
-            "processWallMs": [
-              26215,
-              12741
-            ]
-          }
-        ]
-      }
-    },
-    "all": {
-      "vscode": {
-        "tsrs one pass": [
-          {
-            "round": 0,
-            "wallMs": 21516,
-            "cpuMs": 57400,
-            "peakMiB": 5044,
-            "processWallMs": [
-              21515
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 21550,
-            "cpuMs": 57797,
-            "peakMiB": 5017,
-            "processWallMs": [
-              21550
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 21484,
-            "cpuMs": 57306,
-            "peakMiB": 5044,
-            "processWallMs": [
-              21484
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 21543,
-            "cpuMs": 57846,
-            "peakMiB": 5033,
-            "processWallMs": [
-              21543
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 21620,
-            "cpuMs": 58560,
-            "peakMiB": 5025,
-            "processWallMs": [
-              21620
-            ]
-          }
-        ],
-        "tsrs separate": [
-          {
-            "round": 0,
-            "wallMs": 22122,
-            "cpuMs": 75083,
+            "wallMs": 7589,
+            "cpuMs": 52391,
             "peakMiB": 4892,
             "processWallMs": [
-              22122,
-              1805
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 22129,
-            "cpuMs": 75460,
-            "peakMiB": 4913,
-            "processWallMs": [
-              22129,
-              1821
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 22006,
-            "cpuMs": 74574,
-            "peakMiB": 4911,
-            "processWallMs": [
-              22006,
-              1854
+              7589,
+              1804
             ]
           },
           {
             "round": 3,
-            "wallMs": 22087,
-            "cpuMs": 75550,
-            "peakMiB": 4926,
+            "wallMs": 7537,
+            "cpuMs": 52177,
+            "peakMiB": 4915,
             "processWallMs": [
-              22087,
-              1861
+              7537,
+              1836
             ]
           },
           {
             "round": 4,
-            "wallMs": 22069,
-            "cpuMs": 75020,
-            "peakMiB": 4918,
+            "wallMs": 7580,
+            "cpuMs": 51940,
+            "peakMiB": 4881,
             "processWallMs": [
-              22069,
-              1864
+              7579,
+              1779
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 21248,
-            "cpuMs": 54692,
-            "peakMiB": 4946,
+            "wallMs": 6632,
+            "cpuMs": 32434,
+            "peakMiB": 4334,
             "processWallMs": [
-              21248
+              6632
             ]
           },
           {
             "round": 1,
-            "wallMs": 21182,
-            "cpuMs": 54378,
-            "peakMiB": 4938,
+            "wallMs": 6459,
+            "cpuMs": 31517,
+            "peakMiB": 4308,
             "processWallMs": [
-              21182
+              6459
             ]
           },
           {
             "round": 2,
-            "wallMs": 21226,
-            "cpuMs": 54420,
-            "peakMiB": 4926,
+            "wallMs": 6607,
+            "cpuMs": 32570,
+            "peakMiB": 4320,
             "processWallMs": [
-              21226
+              6607
             ]
           },
           {
             "round": 3,
-            "wallMs": 21304,
-            "cpuMs": 54312,
-            "peakMiB": 4927,
+            "wallMs": 6548,
+            "cpuMs": 32103,
+            "peakMiB": 4325,
             "processWallMs": [
-              21304
+              6547
             ]
           },
           {
             "round": 4,
-            "wallMs": 21220,
-            "cpuMs": 54429,
-            "peakMiB": 4947,
+            "wallMs": 6564,
+            "cpuMs": 32321,
+            "peakMiB": 4312,
             "processWallMs": [
-              21220
+              6564
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 1510,
-            "cpuMs": 20558,
+            "wallMs": 1445,
+            "cpuMs": 19700,
             "peakMiB": 2521,
             "processWallMs": [
-              1510
+              1445
             ]
           },
           {
             "round": 1,
-            "wallMs": 1486,
-            "cpuMs": 20163,
+            "wallMs": 1408,
+            "cpuMs": 19359,
             "peakMiB": 2520,
             "processWallMs": [
-              1486
+              1408
             ]
           },
           {
             "round": 2,
-            "wallMs": 1505,
-            "cpuMs": 20256,
-            "peakMiB": 2527,
+            "wallMs": 1460,
+            "cpuMs": 19887,
+            "peakMiB": 2517,
             "processWallMs": [
-              1505
+              1460
             ]
           },
           {
             "round": 3,
-            "wallMs": 1504,
-            "cpuMs": 20306,
-            "peakMiB": 2517,
+            "wallMs": 1374,
+            "cpuMs": 18872,
+            "peakMiB": 2531,
             "processWallMs": [
-              1504
+              1374
             ]
           },
           {
             "round": 4,
-            "wallMs": 1459,
-            "cpuMs": 19614,
-            "peakMiB": 2512,
+            "wallMs": 1543,
+            "cpuMs": 20972,
+            "peakMiB": 2508,
             "processWallMs": [
-              1458
+              1543
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 58962,
-            "cpuMs": 214230,
-            "peakMiB": 17986,
+            "wallMs": 39051,
+            "cpuMs": 175265,
+            "peakMiB": 16205,
             "processWallMs": [
-              58962
+              39051
             ]
           },
           {
             "round": 1,
-            "wallMs": 58243,
-            "cpuMs": 222801,
-            "peakMiB": 16360,
+            "wallMs": 36946,
+            "cpuMs": 161213,
+            "peakMiB": 16624,
             "processWallMs": [
-              58243
+              36946
             ]
           },
           {
             "round": 2,
-            "wallMs": 57959,
-            "cpuMs": 224725,
-            "peakMiB": 17133,
+            "wallMs": 38816,
+            "cpuMs": 174876,
+            "peakMiB": 15841,
             "processWallMs": [
-              57959
+              38816
             ]
           },
           {
             "round": 3,
-            "wallMs": 58136,
-            "cpuMs": 211022,
-            "peakMiB": 17648,
+            "wallMs": 38784,
+            "cpuMs": 174908,
+            "peakMiB": 15918,
             "processWallMs": [
-              58136
+              38784
             ]
           },
           {
             "round": 4,
-            "wallMs": 58792,
-            "cpuMs": 214242,
-            "peakMiB": 17714,
+            "wallMs": 39449,
+            "cpuMs": 183498,
+            "peakMiB": 16966,
             "processWallMs": [
-              58792
+              39449
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 47302,
-            "cpuMs": 243215,
-            "peakMiB": 20459,
+            "wallMs": 25880,
+            "cpuMs": 184490,
+            "peakMiB": 20313,
             "processWallMs": [
-              47302,
-              18994
+              25880,
+              17140
             ]
           },
           {
             "round": 1,
-            "wallMs": 47913,
-            "cpuMs": 255972,
-            "peakMiB": 19918,
+            "wallMs": 28038,
+            "cpuMs": 211046,
+            "peakMiB": 20048,
             "processWallMs": [
-              47912,
-              19062
+              28038,
+              18170
             ]
           },
           {
             "round": 2,
-            "wallMs": 47099,
-            "cpuMs": 239593,
-            "peakMiB": 20233,
+            "wallMs": 28299,
+            "cpuMs": 203758,
+            "peakMiB": 20741,
             "processWallMs": [
-              47099,
-              18400
+              28299,
+              18351
             ]
           },
           {
             "round": 3,
-            "wallMs": 46849,
-            "cpuMs": 237759,
-            "peakMiB": 20456,
+            "wallMs": 27165,
+            "cpuMs": 193165,
+            "peakMiB": 20553,
             "processWallMs": [
-              46849,
-              18378
+              27165,
+              17852
             ]
           },
           {
             "round": 4,
-            "wallMs": 47863,
-            "cpuMs": 253689,
-            "peakMiB": 19694,
+            "wallMs": 26921,
+            "cpuMs": 200950,
+            "peakMiB": 20365,
             "processWallMs": [
-              47862,
-              19087
+              26921,
+              17854
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 880911,
-            "cpuMs": 1473822,
-            "peakMiB": 23618,
+            "wallMs": 604225,
+            "cpuMs": 1124126,
+            "peakMiB": 25766,
             "processWallMs": [
-              880911,
-              194946
+              604225,
+              183959
             ]
           }
         ]
@@ -4250,304 +4250,304 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 2360,
-            "cpuMs": 11867,
-            "peakMiB": 1577,
+            "wallMs": 2006,
+            "cpuMs": 10698,
+            "peakMiB": 1525,
             "processWallMs": [
-              2360
+              2006
             ]
           },
           {
             "round": 1,
-            "wallMs": 2402,
-            "cpuMs": 12220,
-            "peakMiB": 1570,
+            "wallMs": 1937,
+            "cpuMs": 10430,
+            "peakMiB": 1523,
             "processWallMs": [
-              2402
+              1937
             ]
           },
           {
             "round": 2,
-            "wallMs": 2394,
-            "cpuMs": 12054,
-            "peakMiB": 1563,
+            "wallMs": 1942,
+            "cpuMs": 10457,
+            "peakMiB": 1520,
             "processWallMs": [
-              2394
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 2381,
-            "cpuMs": 11934,
-            "peakMiB": 1570,
-            "processWallMs": [
-              2381
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 2422,
-            "cpuMs": 12117,
-            "peakMiB": 1573,
-            "processWallMs": [
-              2422
-            ]
-          }
-        ],
-        "tsrs separate": [
-          {
-            "round": 0,
-            "wallMs": 2497,
-            "cpuMs": 21350,
-            "peakMiB": 2486,
-            "processWallMs": [
-              2497,
-              1234
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 2547,
-            "cpuMs": 21048,
-            "peakMiB": 2518,
-            "processWallMs": [
-              2547,
-              1296
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 2479,
-            "cpuMs": 21337,
-            "peakMiB": 2464,
-            "processWallMs": [
-              2479,
-              1227
-            ]
-          },
-          {
-            "round": 3,
-            "wallMs": 2436,
-            "cpuMs": 21187,
-            "peakMiB": 2488,
-            "processWallMs": [
-              2436,
-              1277
-            ]
-          },
-          {
-            "round": 4,
-            "wallMs": 2521,
-            "cpuMs": 21289,
-            "peakMiB": 2291,
-            "processWallMs": [
-              2521,
-              1106
-            ]
-          }
-        ],
-        "tsrs lint only": [
-          {
-            "round": 0,
-            "wallMs": 1997,
-            "cpuMs": 11069,
-            "peakMiB": 1562,
-            "processWallMs": [
-              1997
-            ]
-          },
-          {
-            "round": 1,
-            "wallMs": 1965,
-            "cpuMs": 11042,
-            "peakMiB": 1554,
-            "processWallMs": [
-              1965
-            ]
-          },
-          {
-            "round": 2,
-            "wallMs": 1961,
-            "cpuMs": 10925,
-            "peakMiB": 1563,
-            "processWallMs": [
-              1961
+              1942
             ]
           },
           {
             "round": 3,
             "wallMs": 1979,
-            "cpuMs": 10968,
-            "peakMiB": 1550,
+            "cpuMs": 10610,
+            "peakMiB": 1520,
             "processWallMs": [
               1979
             ]
           },
           {
             "round": 4,
-            "wallMs": 1986,
-            "cpuMs": 11070,
-            "peakMiB": 1545,
+            "wallMs": 2192,
+            "cpuMs": 11585,
+            "peakMiB": 1524,
             "processWallMs": [
-              1986
+              2192
+            ]
+          }
+        ],
+        "tsrs separate": [
+          {
+            "round": 0,
+            "wallMs": 2208,
+            "cpuMs": 19062,
+            "peakMiB": 2448,
+            "processWallMs": [
+              2208,
+              1126
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 2354,
+            "cpuMs": 21427,
+            "peakMiB": 2549,
+            "processWallMs": [
+              2354,
+              1386
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 2088,
+            "cpuMs": 18918,
+            "peakMiB": 2479,
+            "processWallMs": [
+              2088,
+              1138
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 2146,
+            "cpuMs": 19023,
+            "peakMiB": 2554,
+            "processWallMs": [
+              2146,
+              1242
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 2322,
+            "cpuMs": 21055,
+            "peakMiB": 2538,
+            "processWallMs": [
+              2322,
+              1397
+            ]
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "round": 0,
+            "wallMs": 1615,
+            "cpuMs": 9363,
+            "peakMiB": 1481,
+            "processWallMs": [
+              1615
+            ]
+          },
+          {
+            "round": 1,
+            "wallMs": 1724,
+            "cpuMs": 10087,
+            "peakMiB": 1495,
+            "processWallMs": [
+              1724
+            ]
+          },
+          {
+            "round": 2,
+            "wallMs": 1711,
+            "cpuMs": 10004,
+            "peakMiB": 1493,
+            "processWallMs": [
+              1711
+            ]
+          },
+          {
+            "round": 3,
+            "wallMs": 1553,
+            "cpuMs": 9157,
+            "peakMiB": 1490,
+            "processWallMs": [
+              1553
+            ]
+          },
+          {
+            "round": 4,
+            "wallMs": 1756,
+            "cpuMs": 10271,
+            "peakMiB": 1471,
+            "processWallMs": [
+              1756
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 1053,
-            "cpuMs": 9737,
-            "peakMiB": 1135,
+            "wallMs": 957,
+            "cpuMs": 9354,
+            "peakMiB": 1155,
             "processWallMs": [
-              1052
+              957
             ]
           },
           {
             "round": 1,
-            "wallMs": 1069,
-            "cpuMs": 9670,
-            "peakMiB": 1133,
+            "wallMs": 947,
+            "cpuMs": 8984,
+            "peakMiB": 1131,
             "processWallMs": [
-              1069
+              946
             ]
           },
           {
             "round": 2,
-            "wallMs": 1021,
-            "cpuMs": 9548,
-            "peakMiB": 1116,
+            "wallMs": 1006,
+            "cpuMs": 9654,
+            "peakMiB": 1155,
             "processWallMs": [
-              1021
+              1006
             ]
           },
           {
             "round": 3,
-            "wallMs": 1057,
-            "cpuMs": 9711,
-            "peakMiB": 1125,
+            "wallMs": 890,
+            "cpuMs": 8802,
+            "peakMiB": 1116,
             "processWallMs": [
-              1057
+              890
             ]
           },
           {
             "round": 4,
-            "wallMs": 1055,
-            "cpuMs": 9685,
-            "peakMiB": 1145,
+            "wallMs": 1067,
+            "cpuMs": 10001,
+            "peakMiB": 1144,
             "processWallMs": [
-              1055
+              1067
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 12863,
-            "cpuMs": 51673,
-            "peakMiB": 4758,
+            "wallMs": 11700,
+            "cpuMs": 46924,
+            "peakMiB": 4407,
             "processWallMs": [
-              12863
+              11700
             ]
           },
           {
             "round": 1,
-            "wallMs": 13169,
-            "cpuMs": 52926,
-            "peakMiB": 4484,
+            "wallMs": 11587,
+            "cpuMs": 45545,
+            "peakMiB": 4277,
             "processWallMs": [
-              13169
+              11587
             ]
           },
           {
             "round": 2,
-            "wallMs": 12498,
-            "cpuMs": 48519,
-            "peakMiB": 4508,
+            "wallMs": 12010,
+            "cpuMs": 45662,
+            "peakMiB": 4659,
             "processWallMs": [
-              12498
+              12009
             ]
           },
           {
             "round": 3,
-            "wallMs": 13179,
-            "cpuMs": 51285,
-            "peakMiB": 4604,
+            "wallMs": 11129,
+            "cpuMs": 43723,
+            "peakMiB": 4326,
             "processWallMs": [
-              13179
+              11129
             ]
           },
           {
             "round": 4,
-            "wallMs": 12776,
-            "cpuMs": 50866,
-            "peakMiB": 4300,
+            "wallMs": 11018,
+            "cpuMs": 43222,
+            "peakMiB": 4236,
             "processWallMs": [
-              12776
+              11018
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 9048,
-            "cpuMs": 70007,
-            "peakMiB": 7059,
+            "wallMs": 9056,
+            "cpuMs": 65235,
+            "peakMiB": 6752,
             "processWallMs": [
-              8210,
-              9048
+              7354,
+              9056
             ]
           },
           {
             "round": 1,
-            "wallMs": 8910,
-            "cpuMs": 69049,
-            "peakMiB": 6822,
+            "wallMs": 8300,
+            "cpuMs": 61021,
+            "peakMiB": 6572,
             "processWallMs": [
-              8363,
-              8910
+              6936,
+              8300
             ]
           },
           {
             "round": 2,
-            "wallMs": 8941,
-            "cpuMs": 67264,
-            "peakMiB": 7330,
+            "wallMs": 8614,
+            "cpuMs": 62235,
+            "peakMiB": 6805,
             "processWallMs": [
-              8201,
-              8941
+              7000,
+              8614
             ]
           },
           {
             "round": 3,
-            "wallMs": 8943,
-            "cpuMs": 67785,
-            "peakMiB": 7067,
+            "wallMs": 8417,
+            "cpuMs": 60222,
+            "peakMiB": 7247,
             "processWallMs": [
-              8130,
-              8943
+              7043,
+              8417
             ]
           },
           {
             "round": 4,
-            "wallMs": 8959,
-            "cpuMs": 68733,
-            "peakMiB": 7322,
+            "wallMs": 8566,
+            "cpuMs": 62581,
+            "peakMiB": 7170,
             "processWallMs": [
-              8012,
-              8959
+              6919,
+              8566
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 116421,
-            "cpuMs": 214440,
-            "peakMiB": 8362,
+            "wallMs": 88999,
+            "cpuMs": 173597,
+            "peakMiB": 7565,
             "processWallMs": [
-              116421,
-              55676
+              88999,
+              52314
             ]
           }
         ]
@@ -4556,304 +4556,304 @@
         "tsrs one pass": [
           {
             "round": 0,
-            "wallMs": 693,
-            "cpuMs": 2466,
-            "peakMiB": 561,
+            "wallMs": 539,
+            "cpuMs": 2149,
+            "peakMiB": 539,
             "processWallMs": [
-              693
+              539
             ]
           },
           {
             "round": 1,
-            "wallMs": 705,
-            "cpuMs": 2470,
-            "peakMiB": 560,
+            "wallMs": 513,
+            "cpuMs": 2008,
+            "peakMiB": 543,
             "processWallMs": [
-              705
+              513
             ]
           },
           {
             "round": 2,
-            "wallMs": 706,
-            "cpuMs": 2496,
-            "peakMiB": 561,
+            "wallMs": 548,
+            "cpuMs": 2201,
+            "peakMiB": 533,
             "processWallMs": [
-              706
+              548
             ]
           },
           {
             "round": 3,
-            "wallMs": 703,
-            "cpuMs": 2470,
-            "peakMiB": 562,
+            "wallMs": 541,
+            "cpuMs": 2164,
+            "peakMiB": 535,
             "processWallMs": [
-              703
+              541
             ]
           },
           {
             "round": 4,
-            "wallMs": 709,
-            "cpuMs": 2486,
-            "peakMiB": 556,
+            "wallMs": 529,
+            "cpuMs": 2120,
+            "peakMiB": 535,
             "processWallMs": [
-              708
+              529
             ]
           }
         ],
         "tsrs separate": [
           {
             "round": 0,
-            "wallMs": 776,
-            "cpuMs": 3946,
-            "peakMiB": 629,
+            "wallMs": 586,
+            "cpuMs": 3539,
+            "peakMiB": 661,
             "processWallMs": [
-              776,
-              209
+              586,
+              216
             ]
           },
           {
             "round": 1,
-            "wallMs": 789,
-            "cpuMs": 3958,
-            "peakMiB": 616,
+            "wallMs": 588,
+            "cpuMs": 3454,
+            "peakMiB": 604,
             "processWallMs": [
-              789,
-              211
+              588,
+              181
             ]
           },
           {
             "round": 2,
-            "wallMs": 771,
-            "cpuMs": 3931,
-            "peakMiB": 628,
+            "wallMs": 623,
+            "cpuMs": 3697,
+            "peakMiB": 647,
             "processWallMs": [
-              771,
-              207
+              623,
+              225
             ]
           },
           {
             "round": 3,
-            "wallMs": 781,
-            "cpuMs": 3942,
-            "peakMiB": 621,
+            "wallMs": 622,
+            "cpuMs": 3621,
+            "peakMiB": 619,
             "processWallMs": [
-              781,
-              205
+              622,
+              203
             ]
           },
           {
             "round": 4,
-            "wallMs": 794,
-            "cpuMs": 3976,
-            "peakMiB": 628,
+            "wallMs": 598,
+            "cpuMs": 3480,
+            "peakMiB": 631,
             "processWallMs": [
-              794,
-              215
+              598,
+              200
             ]
           }
         ],
         "tsrs lint only": [
           {
             "round": 0,
-            "wallMs": 715,
-            "cpuMs": 2461,
-            "peakMiB": 557,
+            "wallMs": 533,
+            "cpuMs": 2036,
+            "peakMiB": 532,
             "processWallMs": [
-              715
+              533
             ]
           },
           {
             "round": 1,
-            "wallMs": 716,
-            "cpuMs": 2459,
-            "peakMiB": 552,
+            "wallMs": 529,
+            "cpuMs": 2021,
+            "peakMiB": 533,
             "processWallMs": [
-              716
+              529
             ]
           },
           {
             "round": 2,
-            "wallMs": 708,
-            "cpuMs": 2447,
-            "peakMiB": 560,
+            "wallMs": 525,
+            "cpuMs": 2002,
+            "peakMiB": 531,
             "processWallMs": [
-              708
+              525
             ]
           },
           {
             "round": 3,
-            "wallMs": 705,
-            "cpuMs": 2426,
-            "peakMiB": 553,
+            "wallMs": 542,
+            "cpuMs": 2052,
+            "peakMiB": 537,
             "processWallMs": [
-              705
+              541
             ]
           },
           {
             "round": 4,
-            "wallMs": 715,
-            "cpuMs": 2427,
-            "peakMiB": 553,
+            "wallMs": 521,
+            "cpuMs": 1971,
+            "peakMiB": 531,
             "processWallMs": [
-              715
+              521
             ]
           }
         ],
         "tsrs check only": [
           {
             "round": 0,
-            "wallMs": 185,
-            "cpuMs": 1472,
-            "peakMiB": 272,
+            "wallMs": 179,
+            "cpuMs": 1447,
+            "peakMiB": 275,
             "processWallMs": [
-              185
+              179
             ]
           },
           {
             "round": 1,
-            "wallMs": 185,
-            "cpuMs": 1472,
-            "peakMiB": 269,
+            "wallMs": 189,
+            "cpuMs": 1476,
+            "peakMiB": 274,
             "processWallMs": [
-              185
+              189
             ]
           },
           {
             "round": 2,
+            "wallMs": 187,
+            "cpuMs": 1434,
+            "peakMiB": 275,
+            "processWallMs": [
+              187
+            ]
+          },
+          {
+            "round": 3,
             "wallMs": 193,
-            "cpuMs": 1474,
-            "peakMiB": 267,
+            "cpuMs": 1510,
+            "peakMiB": 271,
             "processWallMs": [
               193
             ]
           },
           {
-            "round": 3,
-            "wallMs": 196,
-            "cpuMs": 1492,
-            "peakMiB": 274,
-            "processWallMs": [
-              196
-            ]
-          },
-          {
             "round": 4,
-            "wallMs": 188,
-            "cpuMs": 1472,
-            "peakMiB": 267,
+            "wallMs": 180,
+            "cpuMs": 1383,
+            "peakMiB": 263,
             "processWallMs": [
-              188
+              179
             ]
           }
         ],
         "tsgolint one pass": [
           {
             "round": 0,
-            "wallMs": 2696,
-            "cpuMs": 11104,
-            "peakMiB": 1426,
+            "wallMs": 2264,
+            "cpuMs": 9547,
+            "peakMiB": 1317,
             "processWallMs": [
-              2696
+              2264
             ]
           },
           {
             "round": 1,
-            "wallMs": 2624,
-            "cpuMs": 10929,
-            "peakMiB": 1391,
+            "wallMs": 2379,
+            "cpuMs": 10492,
+            "peakMiB": 1310,
             "processWallMs": [
-              2624
+              2379
             ]
           },
           {
             "round": 2,
-            "wallMs": 2677,
-            "cpuMs": 11010,
-            "peakMiB": 1396,
+            "wallMs": 2342,
+            "cpuMs": 10266,
+            "peakMiB": 1290,
             "processWallMs": [
-              2677
+              2342
             ]
           },
           {
             "round": 3,
-            "wallMs": 2668,
-            "cpuMs": 11246,
-            "peakMiB": 1326,
+            "wallMs": 2366,
+            "cpuMs": 10396,
+            "peakMiB": 1294,
             "processWallMs": [
-              2668
+              2366
             ]
           },
           {
             "round": 4,
-            "wallMs": 2630,
-            "cpuMs": 11028,
-            "peakMiB": 1318,
+            "wallMs": 2340,
+            "cpuMs": 10043,
+            "peakMiB": 1304,
             "processWallMs": [
-              2630
+              2339
             ]
           }
         ],
         "tsgolint separate": [
           {
             "round": 0,
-            "wallMs": 1940,
-            "cpuMs": 13361,
-            "peakMiB": 1621,
+            "wallMs": 1572,
+            "cpuMs": 12102,
+            "peakMiB": 1762,
             "processWallMs": [
-              1940,
-              1314
+              1572,
+              1251
             ]
           },
           {
             "round": 1,
-            "wallMs": 1965,
-            "cpuMs": 13512,
-            "peakMiB": 1698,
+            "wallMs": 1635,
+            "cpuMs": 12492,
+            "peakMiB": 1703,
             "processWallMs": [
-              1965,
-              1346
+              1635,
+              1289
             ]
           },
           {
             "round": 2,
-            "wallMs": 1936,
-            "cpuMs": 13138,
-            "peakMiB": 1745,
+            "wallMs": 1660,
+            "cpuMs": 12708,
+            "peakMiB": 1700,
             "processWallMs": [
-              1936,
-              1315
+              1660,
+              1336
             ]
           },
           {
             "round": 3,
-            "wallMs": 1908,
-            "cpuMs": 13035,
-            "peakMiB": 1725,
+            "wallMs": 1672,
+            "cpuMs": 12841,
+            "peakMiB": 1681,
             "processWallMs": [
-              1907,
-              1282
+              1672,
+              1294
             ]
           },
           {
             "round": 4,
-            "wallMs": 1920,
-            "cpuMs": 13585,
-            "peakMiB": 1744,
+            "wallMs": 1643,
+            "cpuMs": 12358,
+            "peakMiB": 1743,
             "processWallMs": [
-              1920,
-              1342
+              1643,
+              1286
             ]
           }
         ],
         "eslint separate": [
           {
             "round": 0,
-            "wallMs": 33251,
-            "cpuMs": 64421,
-            "peakMiB": 2285,
+            "wallMs": 22381,
+            "cpuMs": 49531,
+            "peakMiB": 2400,
             "processWallMs": [
-              33251,
-              13020
+              22380,
+              11436
             ]
           }
         ]
@@ -4861,7 +4861,180 @@
     }
   },
   "findings": {
-    "outline-8cpu": {
+    "all": {
+      "vscode": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 358111
+          },
+          {
+            "typeErrors": 7
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 355883,
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 355860,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 11
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 355933,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 355944,
+            "typeErrors": 11
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 355933,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 11
+          }
+        ]
+      },
+      "outline": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 25803
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 25857,
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 25857,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 1
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 25853,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 25854,
+            "typeErrors": 1
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 25853,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 1
+          }
+        ]
+      },
+      "vue": {
+        "eslint separate": [
+          {
+            "tool": "eslint",
+            "findings": 15114
+          },
+          {
+            "typeErrors": 0
+          }
+        ],
+        "tsgolint one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 14993,
+            "typeErrors": 1
+          }
+        ],
+        "tsgolint separate": [
+          {
+            "tool": "oxlint",
+            "findings": 14990,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 1
+          }
+        ],
+        "tsrs check only": [
+          {
+            "typeErrors": 5
+          }
+        ],
+        "tsrs lint only": [
+          {
+            "tool": "oxlint",
+            "findings": 15012,
+            "typeErrors": 0
+          }
+        ],
+        "tsrs one pass": [
+          {
+            "tool": "oxlint",
+            "findings": 15017,
+            "typeErrors": 5
+          }
+        ],
+        "tsrs separate": [
+          {
+            "tool": "oxlint",
+            "findings": 15012,
+            "typeErrors": 0
+          },
+          {
+            "typeErrors": 5
+          }
+        ]
+      }
+    },
+    "outline": {
       "vscode": {
         "eslint separate": [
           {
@@ -5191,7 +5364,7 @@
         ]
       }
     },
-    "outline": {
+    "outline-8cpu": {
       "vscode": {
         "eslint separate": [
           {
@@ -5361,7 +5534,7 @@
         "eslint separate": [
           {
             "tool": "eslint",
-            "findings": 49047
+            "findings": 49030
           },
           {
             "typeErrors": 7
@@ -5370,7 +5543,7 @@
         "tsgolint one pass": [
           {
             "tool": "oxlint",
-            "findings": 48802,
+            "findings": 48823,
             "typeErrors": 0
           }
         ],
@@ -5475,7 +5648,7 @@
         "eslint separate": [
           {
             "tool": "eslint",
-            "findings": 6684
+            "findings": 6683
           },
           {
             "typeErrors": 0
@@ -5484,7 +5657,7 @@
         "tsgolint one pass": [
           {
             "tool": "oxlint",
-            "findings": 6647,
+            "findings": 6648,
             "typeErrors": 1
           }
         ],
@@ -5521,179 +5694,6 @@
           {
             "tool": "oxlint",
             "findings": 6670,
-            "typeErrors": 0
-          },
-          {
-            "typeErrors": 5
-          }
-        ]
-      }
-    },
-    "all": {
-      "vscode": {
-        "eslint separate": [
-          {
-            "tool": "eslint",
-            "findings": 358130
-          },
-          {
-            "typeErrors": 7
-          }
-        ],
-        "tsgolint one pass": [
-          {
-            "tool": "oxlint",
-            "findings": 355892,
-            "typeErrors": 0
-          }
-        ],
-        "tsgolint separate": [
-          {
-            "tool": "oxlint",
-            "findings": 355860,
-            "typeErrors": 0
-          },
-          {
-            "typeErrors": 0
-          }
-        ],
-        "tsrs check only": [
-          {
-            "typeErrors": 11
-          }
-        ],
-        "tsrs lint only": [
-          {
-            "tool": "oxlint",
-            "findings": 355933,
-            "typeErrors": 0
-          }
-        ],
-        "tsrs one pass": [
-          {
-            "tool": "oxlint",
-            "findings": 355944,
-            "typeErrors": 11
-          }
-        ],
-        "tsrs separate": [
-          {
-            "tool": "oxlint",
-            "findings": 355933,
-            "typeErrors": 0
-          },
-          {
-            "typeErrors": 11
-          }
-        ]
-      },
-      "outline": {
-        "eslint separate": [
-          {
-            "tool": "eslint",
-            "findings": 25803
-          },
-          {
-            "typeErrors": 0
-          }
-        ],
-        "tsgolint one pass": [
-          {
-            "tool": "oxlint",
-            "findings": 25856,
-            "typeErrors": 0
-          }
-        ],
-        "tsgolint separate": [
-          {
-            "tool": "oxlint",
-            "findings": 25856,
-            "typeErrors": 0
-          },
-          {
-            "typeErrors": 0
-          }
-        ],
-        "tsrs check only": [
-          {
-            "typeErrors": 1
-          }
-        ],
-        "tsrs lint only": [
-          {
-            "tool": "oxlint",
-            "findings": 25853,
-            "typeErrors": 0
-          }
-        ],
-        "tsrs one pass": [
-          {
-            "tool": "oxlint",
-            "findings": 25854,
-            "typeErrors": 1
-          }
-        ],
-        "tsrs separate": [
-          {
-            "tool": "oxlint",
-            "findings": 25853,
-            "typeErrors": 0
-          },
-          {
-            "typeErrors": 1
-          }
-        ]
-      },
-      "vue": {
-        "eslint separate": [
-          {
-            "tool": "eslint",
-            "findings": 15116
-          },
-          {
-            "typeErrors": 0
-          }
-        ],
-        "tsgolint one pass": [
-          {
-            "tool": "oxlint",
-            "findings": 14997,
-            "typeErrors": 1
-          }
-        ],
-        "tsgolint separate": [
-          {
-            "tool": "oxlint",
-            "findings": 14990,
-            "typeErrors": 0
-          },
-          {
-            "typeErrors": 1
-          }
-        ],
-        "tsrs check only": [
-          {
-            "typeErrors": 5
-          }
-        ],
-        "tsrs lint only": [
-          {
-            "tool": "oxlint",
-            "findings": 15012,
-            "typeErrors": 0
-          }
-        ],
-        "tsrs one pass": [
-          {
-            "tool": "oxlint",
-            "findings": 15017,
-            "typeErrors": 5
-          }
-        ],
-        "tsrs separate": [
-          {
-            "tool": "oxlint",
-            "findings": 15012,
             "typeErrors": 0
           },
           {

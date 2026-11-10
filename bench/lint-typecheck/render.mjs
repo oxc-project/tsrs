@@ -12,7 +12,11 @@ const outDir = process.argv[3] ?? HERE;
 const data = JSON.parse(readFileSync(input, 'utf8'));
 
 // Prose and labels live here; results.json holds measurements, versions and the machine description.
-const CHART_RULE_SET = 'outline-8cpu';
+// chart.svg is the README chart and tops RESULTS.md; any other chart goes under its rule set's heading.
+const CHARTS = {
+  'outline-8cpu': { file: 'chart.svg', cores: 8 },
+  'outline-4cpu': { file: 'chart-4cpu.svg', cores: 4 },
+};
 const SETUPS = {
   'tsrs one pass': {
     legend: 'Oxlint + tsrs, one run',
@@ -53,11 +57,13 @@ const RULE_SET_TEXT = {
     chartLabel: "Outline's 7 type-aware rules",
     machine: '8 cores of an AWS m8g.4xlarge',
     notes: [
-      'The type-aware rules Outline enables in its own `.oxlintrc.json`, with every process pinned to 8 cores, matching the 8-vCPU runners of the tsrs CI benchmarks. The chart uses this run. ESLint ran twice per project.',
+      'The type-aware rules Outline enables in its own `.oxlintrc.json`, with every process pinned to 8 cores, matching the 8-vCPU runners of the tsrs CI benchmarks. The chart at the top shows this run. ESLint ran twice per project.',
     ],
   },
   'outline-4cpu': {
     heading: "Outline's type-aware rules (7), 4 cores",
+    chartLabel: "Outline's 7 type-aware rules",
+    machine: '4 cores of an AWS m8g.4xlarge',
     notes: [
       'The same rules pinned to 4 cores, the vCPU count of a standard GitHub-hosted Linux runner for public repositories. Memory was not limited; those runners have 16 GB. ESLint ran twice per project.',
     ],
@@ -80,7 +86,7 @@ const RULE_SET_TEXT = {
   },
 };
 const INTRO = [
-  "Type-aware lint and a type check usually run as separate commands, and each one parses, binds and checks the same TypeScript program. With tsrs as Oxlint's type-aware backend (0.23.0 and later), `oxlint --type-aware --type-check` lints and reports the type errors of each tsconfig program in one run, so each program is built and checked once. This compares that run with lint and `tsrs --noEmit` started together, with tsgolint plus tsgo, and with ESLint (typescript-eslint) plus tsc. In every rule set the one run's CPU time stayed near the larger of lint alone and the type check alone (0-32% above it), while the separate check pays for both. With Outline's rules, wall time depends on the core count: on 16 cores the two commands run side by side and take between 22% less and 11% more time than the one run; on 8 or 4 cores they compete for cores and take up to 26% longer.",
+  "Type-aware lint and a type check usually run as separate commands, and each one parses, binds and checks the same TypeScript program. With tsrs as Oxlint's type-aware backend (0.23.0 and later), `oxlint --type-aware --type-check` lints and reports the type errors of each tsconfig program in one run, so each program is built and checked once. This compares that run with lint and `tsrs --noEmit` started together, with tsgolint plus tsgo, and with ESLint (typescript-eslint) plus tsc. In every rule set the one run's CPU time stayed near the larger of lint alone and the type check alone (4-38% above it), while the separate check pays for both. With Outline's rules, wall time depends on the core count: on 16 cores the two commands run side by side and take between 21% less and 11% more time than the one run; on 8 or 4 cores they compete for cores and take up to 28% longer.",
 ];
 const METHOD = [
   '## Method',
@@ -89,8 +95,8 @@ const METHOD = [
   "- **Files.** Every setup lints the same files: the project's source files in its tsconfig program, without declaration files. For Outline that is limited to the folders its `lint` script passes (`app`, `server`, `shared`, `plugins`). The type check covers the whole tsconfig program, except in the tsgolint one-run setup.",
   "- **Commands.** Type checks are `-p <tsconfig> --noEmit --incremental false --pretty false`. The tsrs setups set `TSRS_FAST=1`. Oxlint runs with `--format unix` and a config that turns off its default rules and turns on the rule set's type-aware rules. ESLint uses the same rules through typescript-eslint with `parserOptions.project`, and a 32 GiB Node heap.",
   "- **Measurement.** Each setup's processes, including the type-aware helper Oxlint starts, run in a fresh cgroup. CPU time is the cgroup's `cpu.stat` usage and peak memory its `memory.peak`, so both cover every process of the setup. Wall time ends when the last process exits. One untimed run of each setup (except ESLint) warms the file cache, then 5 timed rounds run every setup, with the order rotated each round and reversed every other round. Values are medians. The 8- and 4-core runs pin every process to the first 8 or 4 cores with `taskset` on the same 16-vCPU box, so the multi-threaded tools (tsrs, tsgo, tsgolint, Oxlint) see only that many cores and size their threads to match.",
-  "- **Findings.** The tsrs one run reports the lint findings of its separate-check setup plus the type errors of the type check, in every project and rule set but one: with the recommended-type-checked rules on Vue it reports one more `no-unsafe-argument` finding in `packages/compiler-sfc/src/style/pluginScoped.ts`, the file where TypeScript 7.1 reports circular instantiations (TS5115), likely because the full check reaches that code in a different order. tsgolint's one run reports up to 40 more lint findings than its lint-only run on VS Code. ESLint's lint findings are within 1% of Oxlint's, apart from Outline with its own rules (1 vs 0). tsrs reports the same type errors as `tsc` from TypeScript 7.1 beta (11 in VS Code, 1 in Outline, 5 in Vue). TypeScript 7.0.2 reports 0, 0 and 1, and TypeScript 6.0.3 reports 7, 0 and 0.",
-  '- **Scripts.** `setup.sh` prepares a machine, `measure.mjs` runs a rule set and `render.mjs` writes this page and the chart from `results.json`.',
+  "- **Findings.** The tsrs one run reports the lint findings of its separate-check setup plus the type errors of the type check, in every project and rule set but one: with the recommended-type-checked rules on Vue it reports one more `no-unsafe-argument` finding in `packages/compiler-sfc/src/style/pluginScoped.ts`, the file where TypeScript 7.1 reports circular instantiations (TS5115), likely because the full check reaches that code in a different order. tsgolint's one run reports up to 61 more lint findings than its lint-only run on VS Code. ESLint's lint findings are within 1% of Oxlint's, apart from Outline with its own rules (1 vs 0). tsrs reports the same type errors as `tsc` from TypeScript 7.1 beta (11 in VS Code, 1 in Outline, 5 in Vue). TypeScript 7.0.2 reports 0, 0 and 1, and TypeScript 6.0.3 reports 7, 0 and 0.",
+  '- **Scripts.** `setup.sh` prepares a machine, `measure.mjs` runs a rule set and `render.mjs` writes this page and the charts from `results.json`.',
 ];
 
 // Setups drawn in the chart, in legend order. The others appear in the tables only.
@@ -380,6 +386,12 @@ function report() {
   for (const [ruleSet, set] of Object.entries(RULE_SET_TEXT)) {
     if (!data.samples[ruleSet]) continue;
     lines.push(`## ${set.heading}`, '', ...set.notes, '');
+    const own = CHARTS[ruleSet];
+    if (own && own.file !== 'chart.svg')
+      lines.push(
+        `![Wall time, CPU time and peak memory of lint plus type check by project, on ${own.cores} cores](${own.file})`,
+        '',
+      );
     for (const [title, key, format] of [
       ['CPU time', 'cpu', seconds],
       ['Peak memory, all processes', 'memory', gib],
@@ -415,7 +427,11 @@ function report() {
   return lines.join('\n');
 }
 
-const headline = CHART_RULE_SET;
-writeFileSync(path.join(outDir, 'chart.svg'), chart(headline));
+const written = Object.entries(CHARTS)
+  .filter(([ruleSet]) => data.samples[ruleSet])
+  .map(([ruleSet, { file }]) => {
+    writeFileSync(path.join(outDir, file), chart(ruleSet));
+    return file;
+  });
 writeFileSync(path.join(outDir, 'RESULTS.md'), report());
-console.log(`wrote ${path.join(outDir, 'chart.svg')} and RESULTS.md`);
+console.log(`wrote ${written.join(', ')} and RESULTS.md in ${outDir}`);

@@ -1,8 +1,10 @@
 //! Program construction and headless lint execution.
 
+use std::cell::Cell;
 use std::collections::{BTreeMap, VecDeque};
 use std::io::Write;
-use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Condvar, Mutex};
 use std::time::Instant;
 
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -336,58 +338,57 @@ fn run_in_region(
     }
     drop(config_cache);
     let shared = Arc::default();
-    for (config_path, files) in programs {
-        // Dropped after the program: nothing that outlives a program points into its loader regions.
-        let regions = RequestRegions::default();
-        let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
-            &config_path,
-            host.existing_options.as_ref(),
-            None,
-            host,
-            None,
-        );
-        if !diagnostics.is_empty() {
-            for diagnostic in diagnostics {
-                report_config_error(diagnostic, &config_path, false, writer)?;
-            }
-            continue;
+    let programs: Vec<(String, Vec<String>)> = programs.into_iter().collect();
+    let claims = Claims { state: Mutex::new((0, type_checked)), passed: Condvar::new() };
+    let next = AtomicUsize::new(0);
+    let linted: Vec<Mutex<Option<Linted>>> = programs.iter().map(|_| Mutex::new(None)).collect();
+    // Each worker's tsconfigs are parsed into a scratch region of its own, kept until the request ends as the
+    // calling thread's is.
+    let scratch = Mutex::new(Vec::new());
+    std::thread::scope(|scope| {
+        for i in 0..program_threads(programs.len()) {
+            std::thread::Builder::new()
+                .name(format!("lint-program-{i}"))
+                .stack_size(512 << 20)
+                .spawn_scoped(scope, || {
+                    let region = tsrs_core::arena::Region::new_scratch(1 << 20);
+                    let entered = region.enter();
+                    loop {
+                        let index = next.fetch_add(1, Ordering::Relaxed);
+                        let Some((config_path, files)) = programs.get(index) else {
+                            break;
+                        };
+                        let turn = Turn { claims: &claims, index, taken: Cell::new(false) };
+                        let mut output = Vec::new();
+                        let mut program_timings = BTreeMap::new();
+                        let result = lint_program(
+                            config_path,
+                            files,
+                            payload.report_semantic.then_some(&turn),
+                            payload,
+                            options,
+                            &mut output,
+                            &fs,
+                            host,
+                            &shared,
+                            &file_configs,
+                            &mut program_timings,
+                        );
+                        drop(turn);
+                        *linted[index].lock().unwrap() = Some((result, output, program_timings));
+                    }
+                    drop(entered);
+                    scratch.lock().unwrap().push(region);
+                })
+                .expect("failed to spawn a lint thread");
         }
-        let config = config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
-        if !config.errors.is_empty() && !options.suppress_program_diagnostics {
-            for diagnostic in &config.errors {
-                report_config_error(*diagnostic, &config_path, false, writer)?;
-            }
-            continue;
-        }
-        let program = create_program(
-            config,
-            Arc::clone(&fs),
-            &tspath::get_directory_path(&config_path),
-            true,
-            Arc::clone(&regions.loaders),
-            &shared,
-        );
-        let program_ref = program.program;
-        let diagnostics = program_ref.get_program_diagnostics();
-        if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
-            for diagnostic in diagnostics {
-                report_config_error(diagnostic, &config_path, true, writer)?;
-            }
-            continue;
-        }
-        let global_diagnostics = run_program(
-            program_ref,
-            &files,
-            payload.report_semantic.then_some(&mut type_checked),
-            payload,
-            options,
-            writer,
-            &file_configs,
-            &mut timings,
-        )?;
-        for diagnostic in global_diagnostics {
-            report_global_error(diagnostic, &config_path, writer)?;
-        }
+    });
+    // Output in program order, as when the programs ran one after another.
+    for slot in linted {
+        let (result, output, program_timings) = slot.into_inner().unwrap().unwrap();
+        writer.write_all(&output).map_err(|error| error.to_string())?;
+        merge_timings(&mut timings, program_timings);
+        result?;
     }
     if !unmatched.is_empty() {
         let config = tsrs_tsoptions::new_parsed_command_line(
@@ -454,6 +455,125 @@ fn run_in_region(
     Ok(())
 }
 
+/// A program's result, output and rule timings.
+type Linted = (Result<(), String>, Vec<u8>, BTreeMap<String, (u64, u64)>);
+
+/// Files with type errors to report, claimed by the tsconfig programs in their order (`run_in_region`): the next
+/// program's index and the files claimed so far.
+struct Claims {
+    state: Mutex<(usize, FxHashSet<tspath::Path>)>,
+    passed: Condvar,
+}
+
+/// A program's turn to claim files. Programs run at once but claim one after another in their order, so each file
+/// still goes to the first program that has it; a program that ends before claiming passes its turn on drop.
+struct Turn<'a> {
+    claims: &'a Claims,
+    index: usize,
+    taken: Cell<bool>,
+}
+
+impl Turn<'_> {
+    fn claim(&self, f: impl FnOnce(&mut FxHashSet<tspath::Path>)) {
+        let mut state = self.wait();
+        f(&mut state.1);
+        self.pass(&mut state);
+    }
+
+    fn wait(&self) -> std::sync::MutexGuard<'_, (usize, FxHashSet<tspath::Path>)> {
+        let state = self.claims.state.lock().unwrap();
+        self.claims.passed.wait_while(state, |state| state.0 != self.index).unwrap()
+    }
+
+    fn pass(&self, state: &mut (usize, FxHashSet<tspath::Path>)) {
+        state.0 += 1;
+        self.taken.set(true);
+        self.claims.passed.notify_all();
+    }
+}
+
+impl Drop for Turn<'_> {
+    fn drop(&mut self) {
+        if !self.taken.get() {
+            let mut state = self.wait();
+            self.pass(&mut state);
+        }
+    }
+}
+
+/// Programs linted at once. Each checks on its own checker pool, so a few at a time fill the machine without holding
+/// every program in memory: a quarter of the cores (t3code's ~40 tsconfigs on 8 cores: two at a time cut wall 29% for
+/// 29% more peak memory, four cut 35% for 44% more). A set `RAYON_NUM_THREADS` gives each program that many checkers
+/// (`checker_count`), so programs then run one at a time.
+fn program_threads(programs: usize) -> usize {
+    if checker_count().is_some() {
+        return 1;
+    }
+    let cores = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
+    (cores / 4).clamp(1, programs.max(1))
+}
+
+/// Lints one tsconfig program into `writer`: its config errors, or its files and global diagnostics.
+#[expect(clippy::too_many_arguments, reason = "the request state each program reads")]
+fn lint_program(
+    config_path: &str,
+    files: &[String],
+    turn: Option<&Turn<'_>>,
+    payload: &Payload,
+    options: Options,
+    writer: &mut dyn Write,
+    fs: &Arc<dyn FS>,
+    host: &ConfigHost,
+    shared: &Arc<Shared>,
+    file_configs: &BTreeMap<String, &[ConfiguredRule]>,
+    timings: &mut BTreeMap<String, (u64, u64)>,
+) -> Result<(), String> {
+    // Dropped after the program: nothing that outlives a program points into its loader regions.
+    let regions = RequestRegions::default();
+    let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
+        config_path,
+        host.existing_options.as_ref(),
+        None,
+        host,
+        None,
+    );
+    if !diagnostics.is_empty() {
+        for diagnostic in diagnostics {
+            report_config_error(diagnostic, config_path, false, writer)?;
+        }
+        return Ok(());
+    }
+    let config = config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
+    if !config.errors.is_empty() && !options.suppress_program_diagnostics {
+        for diagnostic in &config.errors {
+            report_config_error(*diagnostic, config_path, false, writer)?;
+        }
+        return Ok(());
+    }
+    let program = create_program(
+        config,
+        Arc::clone(fs),
+        &tspath::get_directory_path(config_path),
+        true,
+        Arc::clone(&regions.loaders),
+        shared,
+    );
+    let program_ref = program.program;
+    let diagnostics = program_ref.get_program_diagnostics();
+    if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
+        for diagnostic in diagnostics {
+            report_config_error(diagnostic, config_path, true, writer)?;
+        }
+        return Ok(());
+    }
+    let global_diagnostics =
+        run_program(program_ref, files, turn, payload, options, writer, file_configs, timings)?;
+    for diagnostic in global_diagnostics {
+        report_global_error(diagnostic, config_path, writer)?;
+    }
+    Ok(())
+}
+
 fn create_program(
     mut config: ParsedCommandLine,
     fs: Arc<dyn FS>,
@@ -503,7 +623,7 @@ fn checker_count() -> Option<i64> {
 fn run_program(
     program: &'static Program,
     files: &[String],
-    whole: Option<&mut FxHashSet<tspath::Path>>,
+    whole: Option<&Turn<'_>>,
     payload: &Payload,
     options: Options,
     writer: &mut dyn Write,
@@ -522,13 +642,16 @@ fn run_program(
             work.push((file, configured));
         }
     }
-    if let Some(type_checked) = whole {
-        for &file in program.get_source_files() {
-            if !program.skip_type_checking(file, false) && type_checked.insert(file.path().clone())
-            {
-                work.push((file, &[]));
+    if let Some(turn) = whole {
+        turn.claim(|type_checked| {
+            for &file in program.get_source_files() {
+                if !program.skip_type_checking(file, false)
+                    && type_checked.insert(file.path().clone())
+                {
+                    work.push((file, &[]));
+                }
             }
-        }
+        });
     }
     if work.is_empty() {
         return Ok(Vec::new());

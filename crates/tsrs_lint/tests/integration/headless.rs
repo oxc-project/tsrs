@@ -14,6 +14,14 @@ fn run_raw(input: &str, flags: &[&str]) -> (i32, Vec<(u8, Value)>) {
 }
 
 fn run_raw_with_env(input: &str, flags: &[&str], env: &[(&str, &str)]) -> (i32, Vec<(u8, Value)>) {
+    run_bytes_with_env(input.as_bytes(), flags, env)
+}
+
+fn run_bytes_with_env(
+    input: &[u8],
+    flags: &[&str],
+    env: &[(&str, &str)],
+) -> (i32, Vec<(u8, Value)>) {
     let mut child = Command::new(env!("CARGO_BIN_EXE_tsrs-lint"))
         .envs(env.iter().copied())
         .arg("headless")
@@ -23,7 +31,7 @@ fn run_raw_with_env(input: &str, flags: &[&str], env: &[(&str, &str)]) -> (i32, 
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    child.stdin.take().unwrap().write_all(input.as_bytes()).unwrap();
+    child.stdin.take().unwrap().write_all(input).unwrap();
     let output = child.wait_with_output().unwrap();
     let mut frames = Vec::new();
     let mut bytes = output.stdout.as_slice();
@@ -7071,4 +7079,93 @@ fn run_external_code_lints_content_mapped_projects() {
             .collect::<Vec<_>>();
         assert_eq!(actual, expected, "{flags:?} {env:?}");
     }
+}
+
+#[test]
+fn serve_answers_type_queries_after_linting() {
+    let cwd = std::env::current_dir().unwrap();
+    let path = cwd.join("target/lint-serve/virtual.ts").to_string_lossy().into_owned();
+    let source =
+        "const h\u{e9}llo = [1, 2].map((n) => `${n}`);\nh\u{e9}llo;\nPromise.resolve(1);\n";
+    let utf16 = |text: &str, nth: usize| {
+        let byte = source.match_indices(text).nth(nth).unwrap().0;
+        let start = source[..byte].encode_utf16().count();
+        (start, start + text.encode_utf16().count())
+    };
+    let request = |id: i64, method: &str, file: &str, (start, end): (usize, usize)| {
+        protocol::object([
+            ("id", Value::Integer(id)),
+            ("method", Value::String(method.into())),
+            ("file", Value::String(file.into())),
+            ("start", Value::Integer(start as i64)),
+            ("end", Value::Integer(end as i64)),
+        ])
+    };
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                ("file_paths", Value::Array(vec![Value::String(path.clone())])),
+                (
+                    "rules",
+                    Value::Array(vec![protocol::object([(
+                        "name",
+                        Value::String("no-floating-promises".into()),
+                    )])]),
+                ),
+            ])]),
+        ),
+        (
+            "source_overrides",
+            Value::Object(std::iter::once((path.clone(), Value::String(source.into()))).collect()),
+        ),
+    ]);
+    let requests = [
+        request(1, "typeAtLocation", &path, utf16("h\u{e9}llo", 0)),
+        request(2, "typeAtLocation", &path, utf16("h\u{e9}llo", 1)),
+        request(3, "typeAtLocation", &path, utf16("[1, 2]", 0)),
+        request(4, "typeAtLocation", &path, utf16("const h", 0)),
+        request(5, "typeAtLocation", "/not-linted.ts", (0, 1)),
+        request(6, "unknownMethod", &path, (0, 1)),
+    ];
+    let mut input = Vec::new();
+    for (kind, value) in std::iter::once((protocol::InputType::Payload, &payload))
+        .chain(requests.iter().map(|request| (protocol::InputType::Request, request)))
+    {
+        let body = json::marshal(value).unwrap();
+        input.extend_from_slice(&u32::try_from(body.len()).unwrap().to_le_bytes());
+        input.push(kind as u8);
+        input.extend_from_slice(body.as_bytes());
+    }
+
+    let (status, frames) = run_bytes_with_env(&input, &["--serve"], &[]);
+    assert_eq!(status, 0, "{frames:?}");
+    let (diagnostics, responses) = frames.split_at(1);
+    assert_eq!(diagnostics[0].0, protocol::MessageType::Diagnostic as u8, "{frames:?}");
+    assert!(responses.iter().all(|(kind, _)| *kind == protocol::MessageType::Response as u8));
+    let type_info = |kind: &str, flags: f64, text: &str| {
+        protocol::object([
+            ("nodeKind", Value::String(kind.into())),
+            ("flags", Value::Number(flags)),
+            ("text", Value::String(text.into())),
+        ])
+    };
+    let result =
+        |id: f64, result: Value| protocol::object([("id", Value::Number(id)), ("result", result)]);
+    let error = |id: f64, error: &str| {
+        protocol::object([("id", Value::Number(id)), ("error", Value::String(error.into()))])
+    };
+    let object_flags = f64::from(1u32 << 20);
+    assert_eq!(
+        responses.iter().map(|(_, value)| value.clone()).collect::<Vec<_>>(),
+        vec![
+            result(1.0, type_info("Identifier", object_flags, "string[]")),
+            result(2.0, type_info("Identifier", object_flags, "string[]")),
+            result(3.0, type_info("ArrayLiteralExpression", object_flags, "number[]")),
+            result(4.0, Value::Null),
+            error(5.0, "'/not-linted.ts' is not in a linted program"),
+            error(6.0, "unknown method `unknownMethod`"),
+        ]
+    );
 }

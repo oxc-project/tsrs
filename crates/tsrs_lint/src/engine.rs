@@ -1,16 +1,17 @@
 //! Program construction and headless lint execution.
 
 use std::collections::{BTreeMap, VecDeque};
-use std::io::Write;
+use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use tsrs_ast::{Diagnostic as TsDiagnostic, SourceFile, SourceFileParseOptions};
+use tsrs_api_transport::strictjson;
+use tsrs_ast::{Diagnostic as TsDiagnostic, Node, SourceFile, SourceFileParseOptions};
 use tsrs_compiler::{CompilerHost, Context, Program, ProgramOptions};
 use tsrs_contentmapper as contentmapper;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 use tsrs_core::tspath;
 use tsrs_core::{
     CompilerOptions, JsxEmit, Locale, ModuleKind, ModuleResolutionKind, P, ScriptTarget, Tristate,
@@ -144,6 +145,17 @@ pub fn run(
     cwd: &str,
     writer: &mut dyn Write,
 ) -> Result<(), String> {
+    run_with_requests(payload, options, cwd, writer, None)
+}
+
+/// [`run`], then, with `requests`, answers its request frames on the linted programs until it ends (`--serve`).
+pub fn run_with_requests(
+    payload: &Payload,
+    options: Options,
+    cwd: &str,
+    writer: &mut dyn Write,
+    requests: Option<&mut dyn Read>,
+) -> Result<(), String> {
     let overrides = Arc::new(payload.source_overrides.clone());
     let read_overrides = Arc::clone(&overrides);
     let directory_overrides = Arc::clone(&overrides);
@@ -231,7 +243,7 @@ pub fn run(
     // The inferred program's loader regions: each tsconfig program has its own.
     let regions = RequestRegions::default();
     let _scope = region.enter();
-    run_in_region(payload, options, cwd, writer, fs, &host, &regions)
+    run_in_region(payload, options, cwd, writer, fs, &host, &regions, requests)
 }
 
 struct ProgramOwner {
@@ -297,6 +309,7 @@ fn run_in_region(
     fs: Arc<dyn FS>,
     host: &ConfigHost,
     regions: &RequestRegions,
+    requests: Option<&mut dyn Read>,
 ) -> Result<(), String> {
     let mut programs: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut unmatched = Vec::new();
@@ -336,6 +349,10 @@ fn run_in_region(
     }
     drop(config_cache);
     let shared = Arc::default();
+    // Under `--serve`, the programs stay alive for the requests, each after its own loader regions.
+    let serving = requests.is_some();
+    let mut served = Vec::new();
+    let mut served_files = FxHashMap::default();
     for (config_path, files) in programs {
         // Dropped after the program: nothing that outlives a program points into its loader regions.
         let regions = RequestRegions::default();
@@ -388,6 +405,12 @@ fn run_in_region(
         for diagnostic in global_diagnostics {
             report_global_error(diagnostic, &config_path, writer)?;
         }
+        if serving {
+            for file in &files {
+                served_files.insert(file.clone(), served.len());
+            }
+            served.push(ServedProgram { owner: program, _regions: Some(regions) });
+        }
     }
     if !unmatched.is_empty() {
         let config = tsrs_tsoptions::new_parsed_command_line(
@@ -424,6 +447,12 @@ fn run_in_region(
             &file_configs,
             &mut timings,
         )?;
+        if serving {
+            for file in &unmatched {
+                served_files.insert(file.clone(), served.len());
+            }
+            served.push(ServedProgram { owner: program, _regions: None });
+        }
     }
     if options.debug_timings {
         let mut records = timings.into_iter().collect::<Vec<_>>();
@@ -451,7 +480,128 @@ fn run_in_region(
         )
         .map_err(|e| e.to_string())?;
     }
+    if let Some(requests) = requests {
+        writer.flush().map_err(|e| e.to_string())?;
+        serve(&served, &served_files, requests, writer)?;
+    }
     Ok(())
+}
+
+struct ServedProgram {
+    owner: ProgramOwner,
+    // Dropped after `owner`, as the loop drops a program before its regions.
+    _regions: Option<RequestRegions>,
+}
+
+// Answers request frames until `requests` ends. A request that fails is answered with its error; only I/O and
+// framing errors end the run.
+fn serve(
+    programs: &[ServedProgram],
+    files: &FxHashMap<String, usize>,
+    requests: &mut dyn Read,
+    writer: &mut dyn Write,
+) -> Result<(), String> {
+    while let Some((kind, bytes)) =
+        protocol::read_frame(requests).map_err(|e| format!("error reading request: {e}"))?
+    {
+        if kind != protocol::InputType::Request as u8 {
+            return Err(format!("error reading request: unexpected frame type {kind}"));
+        }
+        let request = strictjson::decode(&bytes)
+            .map_err(
+                |(strictjson::DecodeError::Invalid(e) | strictjson::DecodeError::OutOfRange(e))| {
+                    format!("error parsing request: {e}")
+                },
+            )?
+            .value;
+        let request = crate::payload::object(&request)?;
+        let id = request.get("id").cloned().unwrap_or_default();
+        let response = match answer(programs, files, request) {
+            Ok(result) => protocol::object([("id", id), ("result", result)]),
+            Err(error) => protocol::object([("id", id), ("error", Value::String(error))]),
+        };
+        protocol::write_message(writer, MessageType::Response, &response)
+            .and_then(|()| writer.flush())
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+fn answer(
+    programs: &[ServedProgram],
+    files: &FxHashMap<String, usize>,
+    request: &JsonMap,
+) -> Result<Value, String> {
+    let string = |name: &str| match request.get(name) {
+        Some(Value::String(value)) => Ok(value.as_str()),
+        _ => Err(format!("expected string `{name}`")),
+    };
+    let offset = |name: &str| match request.get(name) {
+        Some(Value::Number(n)) if n.fract() == 0.0 && *n >= 0.0 && *n <= f64::from(u32::MAX) => {
+            Ok(*n as u32)
+        }
+        _ => Err(format!("expected offset `{name}`")),
+    };
+    let file_name = tspath::normalize_slashes(string("file")?);
+    let program = files
+        .get(file_name.as_str())
+        .map(|&index| programs[index].owner.program)
+        .ok_or_else(|| format!("'{file_name}' is not in a linted program"))?;
+    let file = program
+        .get_source_file(&file_name)
+        .ok_or_else(|| format!("Expected file '{file_name}' to be in program"))?;
+    match string("method")? {
+        // `start` and `end` are UTF-16 offsets, as in the TypeScript API and ESTree node ranges.
+        "typeAtLocation" => {
+            let positions = file.get_position_map();
+            let start = positions.utf16_to_utf8(offset("start")?);
+            let end = positions.utf16_to_utf8(offset("end")?);
+            let Some(node) = node_at_range(file, start, end) else {
+                return Ok(Value::Null);
+            };
+            let mut checker =
+                program.get_type_checker_for_file_exclusive(&Context::default(), file);
+            let t = checker.get_type_at_location(node);
+            let text = checker.type_to_string_exported(t);
+            Ok(protocol::object([
+                ("nodeKind", Value::String(format!("{:?}", node.kind()))),
+                ("flags", Value::Integer(i64::from(t.flags().bits()))),
+                ("text", Value::String(text)),
+            ]))
+        }
+        method => Err(format!("unknown method `{method}`")),
+    }
+}
+
+// The innermost node whose range without leading trivia is `start..end` (UTF-8 offsets): an ESTree node and the
+// TypeScript node it corresponds to cover the same source text.
+fn node_at_range(file: P<SourceFile>, start: u32, end: u32) -> Option<P<Node>> {
+    let mut found = None;
+    let mut current = file.as_node();
+    loop {
+        let mut next = None;
+        current.for_each_child(&mut |child| {
+            let (Some(pos), Some(child_end)) =
+                (child.pos().source_offset(), child.end().source_offset())
+            else {
+                return false;
+            };
+            if pos <= start && end <= child_end && start < child_end {
+                next = Some(child);
+                return true;
+            }
+            false
+        });
+        let Some(child) = next else {
+            return found;
+        };
+        if child.end().source_offset() == Some(end)
+            && tsrs_scanner::get_token_pos_of_node(child, file, false) == start
+        {
+            found = Some(child);
+        }
+        current = child;
+    }
 }
 
 fn create_program(

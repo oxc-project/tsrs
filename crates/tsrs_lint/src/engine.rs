@@ -685,12 +685,23 @@ fn lint_file(
     Ok(diagnostics)
 }
 
+// Oxlint shows every type-check diagnostic as an error, so suggestions and messages (which compiler plugins such as
+// Effect's language service add, and which do not fail their `tsc`) stay out.
+fn fails_check(diagnostic: P<TsDiagnostic>) -> bool {
+    matches!(
+        diagnostic.category(),
+        tsrs_diagnostics::Category::Error | tsrs_diagnostics::Category::Warning
+    )
+}
+
 fn report_type_error(
     diagnostic: P<TsDiagnostic>,
     file: P<SourceFile>,
     writer: &mut dyn Write,
 ) -> Result<(), String> {
-    if diagnostic.file().is_none_or(|f| f.file_name() != file.file_name()) {
+    if diagnostic.file().is_none_or(|f| f.file_name() != file.file_name())
+        || !fails_check(diagnostic)
+    {
         return Ok(());
     }
     emit(
@@ -715,6 +726,9 @@ fn report_global_error(
     config_path: &str,
     writer: &mut dyn Write,
 ) -> Result<(), String> {
+    if !fails_check(diagnostic) {
+        return Ok(());
+    }
     emit(
         &Diagnostic {
             range: diagnostic_range(diagnostic),

@@ -5,6 +5,22 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 0.24.0
+
+Package version `0.24.0-ts7.1.0-beta`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`).
+The [release notes](releases/0.24.0.md) cover language-server program reuse after edits in projects with synthetic
+imports, per-program loader cleanup, request-scoped caching of referenced tsconfigs and bound declaration files
+in the linter, the Unicode JSDoc indentation panic fix, and Rust dependency updates (#940, #944, #948, #949, #950,
+#951). Shared declaration files can increase peak memory on some workloads; the original series' measurements
+are linked from the notes. Windows ARM64 remains deferred.
+
+Preparation checks on `37cd452c` with the version changes passed the dev CLI/runner build, all-target Clippy,
+source checks, release-version consistency, local documentation links, and CLI compilation smoke checks in default
+and fast modes. `Cargo.lock` changes only the 43 workspace package versions. These checks predate the inclusion
+of #948. Compiler conformance
+was not rerun because this worktree has no `ts-ref` checkout. Packaging is unchanged; no release dry run was
+performed for this version bump.
+
 ## 0.23.0
 
 Package version `0.23.0-ts7.1.0-beta`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`).

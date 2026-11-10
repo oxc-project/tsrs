@@ -6785,6 +6785,10 @@ fn reported_ids(input: &str, env: &[(&str, &str)], fixture: &str) -> Vec<String>
 }
 
 fn type_check_payload(files: Vec<Value>) -> String {
+    type_check_payload_with_rule(files, "no-floating-promises")
+}
+
+fn type_check_payload_with_rule(files: Vec<Value>, rule: &str) -> String {
     json::marshal(&protocol::object([
         ("version", Value::Integer(2)),
         (
@@ -6793,10 +6797,7 @@ fn type_check_payload(files: Vec<Value>) -> String {
                 ("file_paths", Value::Array(files)),
                 (
                     "rules",
-                    Value::Array(vec![protocol::object([(
-                        "name",
-                        Value::String("no-floating-promises".into()),
-                    )])]),
+                    Value::Array(vec![protocol::object([("name", Value::String(rule.into()))])]),
                 ),
             ])]),
         ),
@@ -6945,6 +6946,45 @@ fn type_check_reports_global_diagnostics_on_the_tsconfig() {
         assert_eq!(
             reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program-global"),
             global
+        );
+    }
+}
+
+// Every file is type-checked before rules run on its checker. Comparing `a.ts`'s assignment, the rule resolves the
+// union's `take` signatures, whose too-complex parameter union `tsrs --noEmit` reports at `b.ts`'s call. Were the
+// rule's query first, the error would have no location (reported on the tsconfig) and `b.ts` would miss it.
+#[test]
+fn type_check_reports_errors_before_rule_queries() {
+    let root = std::env::current_dir().unwrap().join("target/lint-check-before-rules");
+    std::fs::create_dir_all(&root).unwrap();
+    std::fs::write(
+        root.join("tsconfig.json"),
+        r#"{"compilerOptions":{"strict":true,"noEmit":true},"include":["*.ts"]}"#,
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("a.ts"),
+        "interface Box<T> {\n  take(value: { a: T } | { b: T }): void;\n}\nexport type AnyBox =\n  | Box<1> | Box<2> \
+         | Box<3> | Box<4> | Box<5> | Box<6> | Box<7> | Box<8> | Box<9>\n  | Box<10> | Box<11> | Box<12> | Box<13> \
+         | Box<14> | Box<15> | Box<16> | Box<17>;\nexport declare const box: AnyBox;\nexport const wide: Box<unknown> = \
+         box;\n",
+    )
+    .unwrap();
+    std::fs::write(root.join("b.ts"), "import { box } from './a';\nbox.take({ a: 1 } as never);\n")
+        .unwrap();
+    let input = type_check_payload_with_rule(
+        vec![Value::String(root.join("a.ts").to_string_lossy().into_owned())],
+        "no-unsafe-enum-assignment",
+    );
+    for fast in ["0", "1"] {
+        assert_eq!(
+            reported_ids(
+                &input,
+                &[("TSRS_FAST", fast), ("RAYON_NUM_THREADS", "1")],
+                "lint-check-before-rules"
+            ),
+            vec!["b.ts TS2590"],
+            "fast={fast}",
         );
     }
 }

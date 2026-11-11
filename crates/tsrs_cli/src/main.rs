@@ -75,7 +75,11 @@ fn mimalloc_collect(force: bool) {
 fn main() -> std::process::ExitCode {
     #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
     tsrs_core::allocator::init_mimalloc();
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    // Go's `os.Args` preserves raw bytes, so a non-UTF-8 argument reaches the parser and produces a missing-file
+    // diagnostic. Rust's `std::env::args()` unwraps each `OsStr` into a `String` and panics on invalid UTF-8; use
+    // `args_os()` and convert lossily to match the reference behavior.
+    let args: Vec<String> =
+        std::env::args_os().skip(1).map(|arg| arg.to_string_lossy().into_owned()).collect();
     // `--lint` is the type-aware linter that oxlint runs (`tsrs-lint`, tools/tsgolint/README.md). It returns before
     // any compiler command-line setup, so it runs exactly as the `tsrs-lint` binary does.
     if args.first().map(String::as_str) == Some("--lint") {

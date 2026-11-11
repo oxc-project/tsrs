@@ -16,6 +16,7 @@ mod free_leaf_files;
 mod generate_trace;
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 mod isolated;
+mod invalid_utf8_argument;
 mod lazy_dts_build;
 mod lint_mode;
 mod lsp_edit_resolutions;

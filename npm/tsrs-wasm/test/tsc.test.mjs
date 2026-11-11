@@ -115,7 +115,8 @@ test("--watch is refused in every spelling; --watch false runs", async () => {
     try {
         for (const args of [["a.ts", "--watch"], ["a.ts", "-w"], ["a.ts", "--WATCH"], ["@args.txt"]]) {
             const r = await tsc([...args, "--noEmit"], { cwd: dir });
-            assert.equal(r.stdout, "error: watch mode (--watch) on this platform is not supported by tsrs.\n", args.join(" "));
+            assert.equal(r.stderr, "error: watch mode (--watch) on this platform is not supported by tsrs.\n", args.join(" "));
+            assert.equal(r.stdout, "", args.join(" "));
             assert.equal(r.exitCode, 5); // ExitStatus::NotImplemented
         }
         const ok = await tsc(["a.ts", "--watch", "false", "--noEmit"], { cwd: dir });

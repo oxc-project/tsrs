@@ -29,11 +29,13 @@ dependencies to have been published already.
 
 ## Publish
 
-Create the GitHub `crates` environment. [crates.io requires an API token for initial
-publication](https://crates.io/docs/trusted-publishing); store one with permission to publish the crate names as the
-environment secret `CARGO_REGISTRY_TOKEN`. After the initial release, configure trusted publishing for each crate:
-owner `oxc-project`, repository `tsrs`, workflow `release_crates.yml`, environment `crates`. Remove the token secret
-to switch to the same crates.io OIDC authentication action as oxc.
+The GitHub `crates` environment allows deployments only from `main`. The workflow uses the same crates.io OIDC
+authentication action as oxc and needs no long-lived publishing secret. Each crate must trust owner `oxc-project`,
+repository `tsrs`, workflow `release_crates.yml`, environment `crates`.
+
+[crates.io requires an API token for initial publication](https://crates.io/docs/trusted-publishing). When adding a
+new crate, publish it locally with a suitable token, then configure its trusted publisher with the values above.
+Keep bootstrap credentials local.
 
 Run **Release Crates** from `main` with `dry_run` enabled to validate the archives. Disable `dry_run` to publish after
 the packaging checks pass. Publishing is manual, uses a separate job with the `crates` environment, and never cancels

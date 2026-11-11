@@ -43,9 +43,15 @@ repository `tsrs`, workflow `release_crates.yml`, environment `crates`.
 new crate, publish it locally with a suitable token, then configure its trusted publisher with the values above.
 Keep bootstrap credentials local.
 
-Run **Release Crates** from `main` with `dry_run` enabled to validate the archives. Disable `dry_run` to publish after
-the packaging checks pass. Publishing is manual, uses a separate job with the `crates` environment, and never cancels
-a release in progress. A rerun skips crate versions already on crates.io, allowing a partial release to resume.
+Push coordinated version bumps in both the root `Cargo.toml` (`[workspace.package] version`) and `package.json` to
+`main` to trigger the npm and crate release workflows. Set `package.json` to `node npm/build.mjs --print-version` and
+update the versioned workspace dependencies in the same push. Both workflows compare against the commit before the
+whole push and reject a bump to only one version. Other manifest edits leave publication skipped. The crate workflow
+packages and builds every archive before publishing.
+
+To validate manually, run **Release Crates** from `main` with `dry_run` enabled. Disable `dry_run` for a manual publish
+or retry. Publishing uses the `crates` environment and never cancels a release in progress. A rerun skips crate
+versions already on crates.io, allowing a partial release to resume.
 This workflow does not create another npm release or GitHub release.
 
 With suitable crates.io credentials, the equivalent command from a clean checkout is:

@@ -16,6 +16,12 @@ main(() => {
     const version = read(path.join(ROOT, "Cargo.toml")).match(/\[workspace\.package\][^[]*?^version\s*=\s*"([^"]+)"/m)?.[1];
     const packages = metadata.packages.filter((pkg) => metadata.workspace_members.includes(pkg.id) && pkg.publish === null);
     requireValue(packages.length && version, "No publishable workspace crates or shared version found");
+    const npmVersion = JSON.parse(read(path.join(ROOT, "package.json"))).version;
+    const expectedNpmVersion = run([process.execPath, "npm/build.mjs", "--print-version"], { cwd: ROOT }).stdout.trim();
+    requireValue(
+        npmVersion === expectedNpmVersion,
+        `package.json version ${npmVersion} must match ${expectedNpmVersion} from Cargo.toml`,
+    );
     const names = new Set(packages.map((pkg) => pkg.name));
     for (const pkg of packages) {
         requireValue(pkg.version === version, `${pkg.name}: version must match workspace version ${version}`);

@@ -15,7 +15,7 @@ The [release dry run](https://github.com/oxc-project/tsrs/actions/runs/429371739
 targets and WASM, assembled ten packages and skipped publication. Windows ARM64 trained on all 15,448 conformance
 variants with no failures, crashes or timeouts, merged its profile and passed the installed-package CLI/SDK smoke
 ([notes](../notes/perf-pgo.md#2026-11-11-windows-arm64-release-dry-run-passes)). The GNU Linux conformance and
-Fourslash gates passed on the BOLT-optimized binaries, and the Node API smoke passed 25 of 25 steps on both.
+Fourslash gates passed on the BOLT-optimized binaries, and the Node API smoke passed 25 of 25 steps on both GNU targets.
 
 ## 0.24.0
 

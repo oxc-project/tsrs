@@ -194,7 +194,7 @@ To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refres
 2. builds PGO release binaries (`release` profile, trained by `.github/scripts/pgo-train.sh`) for macOS arm64 (`macos-latest`),
    macOS x64 (`macos-26-intel`, with native PGO training and installed-package smoke tests), and Linux x64 and arm64 GNU
    (`ubuntu-22.04`), and Windows x64 (`windows-latest`) and ARM64 (`windows-11-arm`, linked with `rust-lld`) PGO
-   binaries trained on the conformance suite and a CLI project;
+   binaries trained on the conformance suite, a CLI project and the lint fixtures;
    on GNU, BOLT-optimizes them and runs the conformance and fourslash gates on the
    BOLT-optimized binaries (`.github/scripts/bolt.sh`); smoke-runs the native ones (`--version`, exit code 2 on a type
    error) and the installed package (`npm/sdk/smoke-consumer.mjs`);

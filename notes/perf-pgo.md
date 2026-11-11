@@ -274,6 +274,6 @@ re-enabled the `windows-11-arm` build with the `rust-lld` linker step unchanged 
 succeeded (32,299 functions), and the final build passed the binary and installed-package smoke tests. The job
 took 15 minutes.
 
-The malformed `suite-%m` profile from `4c48d3fa` did not recur, but one passing run does not show it cannot.
+The malformed `suite-%m` profile from `4c48d3fa` did not recur in this single run.
 If it returns, per-process `suite-%p` profiles are the fallback: the 2026-11-06 probe merged them cleanly in both
 of its training runs.

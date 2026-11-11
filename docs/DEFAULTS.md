@@ -61,7 +61,7 @@ by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this tabl
 | Case sensitivity detection | At startup | On first use (same test) |
 | Realpath on Linux | `O_PATH` and `/proc/self/fd`, falling back to walking symlinks | Rust's `std::fs::canonicalize` |
 | Memory management | Go garbage collection; honors Go runtime environment settings | Arenas and mimalloc. On Linux, huge pages are enabled for eligible arena allocations, not mimalloc's heap by default. Go runtime variables have no effect |
-| Arguments that aren't UTF-8 (Unix) | Accepted as byte strings | Panic while collecting arguments, before the compilation thread starts (normally exit status 101) |
+| Arguments that aren't UTF-8 (Unix) | Kept as bytes for file lookups; diagnostics print each run of invalid bytes as U+FFFD | Each run of invalid bytes becomes U+FFFD before parsing, so diagnostics match but lookups use the replaced name: a file whose name isn't UTF-8 (possible on Linux) is not found |
 | tsrs-only flags with `-b` | — | The tsrs-only flags (`--checkerAssignment`, `--checkerCostCache`, `--maxMemory`, `--lazyMembers`, `--noLazyMembers`) are rejected with TS5072 |
 
 The preset is supported by ordinary compilation, watch and build mode. `--fast` works in response files and is

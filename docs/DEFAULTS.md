@@ -41,8 +41,8 @@ by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this tabl
 | Incremental startup | Reads tsbuildinfo, then builds the program | Both at once on two threads, unless `--singleThreaded` |
 | tsbuildinfo contents | tsgo's fields | The same by default. Opt-in modes add `tsrsPerformance`; canonical history also adds `tsrsCanonicalCheckSignature` and `tsrsInterfaceFiles`. Changing history or lazy members invalidates incompatible cached diagnostics |
 | `--version` | `Version <TypeScript version>` | Appends `(tsrs <release>, microsoft/TypeScript@<commit>)`. Unstamped source builds use `7.1.0-beta`; npm builds use the pinned package version on both sides |
-| `--init` | Writes a tsconfig.json | `error: --init is not supported by tsrs.`, exit status 5, no file written |
-| `--showConfig` | Prints the resolved config as JSON | Not supported, exit status 5 |
+| `--init` | Writes a tsconfig.json | `error: --init is not supported by tsrs.` on stderr, exit status 5, no file written |
+| `--showConfig` | Prints the resolved config as JSON | `error: --showConfig is not supported by tsrs.` on stderr, exit status 5 |
 | `--help`, `--all`, `-b --help` | Full option help | A version line and short usage, exit status 0 |
 | No tsconfig.json and no files | Version and full help, exit status 1 | Version and one usage line, exit status 1 |
 | `--locale` | Translates messages | Accepted; messages stay in English |
@@ -51,6 +51,7 @@ by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this tabl
 | `--pprofDir` | Writes CPU and memory profiles | Parsed and ignored. `--lsp -pprofDir` prints the "will be written" line but writes nothing |
 | `Memory used` in `--diagnostics` | Live heap after two garbage collections | Process resident set size |
 | `Memory allocs` in `--diagnostics` | Number of allocations | Always 0 |
+| `Bind time` in `--diagnostics` | The bind pass | Near 0: the parallel loader binds each file right after parsing it, so `Parse time` includes binding. `--singleThreaded` binds in a separate pass and reports it |
 | `--diagnostics`, `--extendedDiagnostics` output | Compiler statistics | Adds subphase timings, program-load counts and lazy-member counters. Filesystem-call and lazy-list counters have been removed |
 | Uncaught panic during CLI compilation | Exit status 2 with a Go stack trace | The compilation thread's panic maps to exit status 5; unflushed output can be lost. Panics before that thread starts, in LSP or in API mode have different handling |
 | Stdout | Unbuffered | Buffered, flushed at exit and on watch status lines, so stdout and stderr can interleave differently |

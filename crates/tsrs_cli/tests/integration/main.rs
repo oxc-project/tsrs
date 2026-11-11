@@ -28,4 +28,5 @@ mod split_check;
 mod symbol_name_literal_clone;
 mod trace_resolution_order;
 mod union_too_complex_cross_product;
+mod unsupported_commands;
 mod watch_macos;

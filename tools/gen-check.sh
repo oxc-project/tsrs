@@ -14,6 +14,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 generators=(
+  "node tools/gen-release-version.mjs"
   "node tools/gen-ast/gen-ast.ts"
   "node tools/gen-ast/gen-flags.ts"
   "node crates/tsrs_api_codec/gen/gen-codec.ts"

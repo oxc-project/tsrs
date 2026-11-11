@@ -8,8 +8,13 @@ edition = "2024"
 rust-version = "1.99"
 license = "Apache-2.0"
 publish = false
+categories = ["compilers", "development-tools"]
+homepage = "https://github.com/oxc-project/tsrs"
+keywords = ["typescript", "javascript", "compiler", "type-checker"]
+repository = "https://github.com/oxc-project/tsrs"
+readme = "README.md"
 
-# The microsoft/TypeScript commit this port follows. Read by crates/tsrs_execute/build.rs (`tsrs --version`), by
+# The microsoft/TypeScript commit this port follows. Read by tools/gen-release-version.mjs (`tsrs --version`), by
 # npm/build.mjs (npm version = "<workspace version>-ts<version>") and by CI (conformance testdata checkout).
 # `nightly` is the npm `typescript` package matching `commit` (a nightly or prerelease; its package.json `gitHead`
 # is exactly `commit`). Published-version and release builds stamp it
@@ -66,40 +71,40 @@ windows-sys = { version = "0.61.2", features = [
     "Win32_System_Threading",
 ] }
 xxhash-rust = { version = "0.8", features = ["xxh3", "const_xxh3"] }
-tsrs_core = { path = "crates/tsrs_core" }
-tsrs_diagnostics = { path = "crates/tsrs_diagnostics" }
-tsrs_spanmap = { path = "crates/tsrs_spanmap" }
-tsrs_ast = { path = "crates/tsrs_ast" }
-tsrs_scanner = { path = "crates/tsrs_scanner" }
-tsrs_parser = { path = "crates/tsrs_parser" }
-tsrs_binder = { path = "crates/tsrs_binder" }
-tsrs_vfs = { path = "crates/tsrs_vfs" }
-tsrs_module = { path = "crates/tsrs_module" }
-tsrs_tsoptions = { path = "crates/tsrs_tsoptions" }
-tsrs_checker = { path = "crates/tsrs_checker" }
-tsrs_pseudochecker = { path = "crates/tsrs_pseudochecker" }
-tsrs_modulespecifiers = { path = "crates/tsrs_modulespecifiers" }
-tsrs_compiler = { path = "crates/tsrs_compiler" }
-tsrs_printer = { path = "crates/tsrs_printer" }
-tsrs_transformers = { path = "crates/tsrs_transformers" }
-tsrs_sourcemap = { path = "crates/tsrs_sourcemap" }
-tsrs_declarations = { path = "crates/tsrs_declarations" }
-tsrs_astnav = { path = "crates/tsrs_astnav" }
-tsrs_lsproto = { path = "crates/tsrs_lsproto" }
-tsrs_ls = { path = "crates/tsrs_ls" }
-tsrs_project = { path = "crates/tsrs_project" }
-tsrs_projectutil = { path = "crates/tsrs_projectutil" }
-tsrs_lsp = { path = "crates/tsrs_lsp" }
-tsrs_incremental = { path = "crates/tsrs_incremental" }
-tsrs_api = { path = "crates/tsrs_api" }
-tsrs_api_transport = { path = "crates/tsrs_api_transport" }
-tsrs_api_codec = { path = "crates/tsrs_api_codec" }
-tsrs_ipc = { path = "crates/tsrs_ipc" }
-tsrs_contentmapper = { path = "crates/tsrs_contentmapper" }
+tsrs_core = { version = "0.24.0", path = "crates/tsrs_core" }
+tsrs_diagnostics = { version = "0.24.0", path = "crates/tsrs_diagnostics" }
+tsrs_spanmap = { version = "0.24.0", path = "crates/tsrs_spanmap" }
+tsrs_ast = { version = "0.24.0", path = "crates/tsrs_ast" }
+tsrs_scanner = { version = "0.24.0", path = "crates/tsrs_scanner" }
+tsrs_parser = { version = "0.24.0", path = "crates/tsrs_parser" }
+tsrs_binder = { version = "0.24.0", path = "crates/tsrs_binder" }
+tsrs_vfs = { version = "0.24.0", path = "crates/tsrs_vfs" }
+tsrs_module = { version = "0.24.0", path = "crates/tsrs_module" }
+tsrs_tsoptions = { version = "0.24.0", path = "crates/tsrs_tsoptions" }
+tsrs_checker = { version = "0.24.0", path = "crates/tsrs_checker" }
+tsrs_pseudochecker = { version = "0.24.0", path = "crates/tsrs_pseudochecker" }
+tsrs_modulespecifiers = { version = "0.24.0", path = "crates/tsrs_modulespecifiers" }
+tsrs_compiler = { version = "0.24.0", path = "crates/tsrs_compiler" }
+tsrs_printer = { version = "0.24.0", path = "crates/tsrs_printer" }
+tsrs_transformers = { version = "0.24.0", path = "crates/tsrs_transformers" }
+tsrs_sourcemap = { version = "0.24.0", path = "crates/tsrs_sourcemap" }
+tsrs_declarations = { version = "0.24.0", path = "crates/tsrs_declarations" }
+tsrs_astnav = { version = "0.24.0", path = "crates/tsrs_astnav" }
+tsrs_lsproto = { version = "0.24.0", path = "crates/tsrs_lsproto" }
+tsrs_ls = { version = "0.24.0", path = "crates/tsrs_ls" }
+tsrs_project = { version = "0.24.0", path = "crates/tsrs_project" }
+tsrs_projectutil = { version = "0.24.0", path = "crates/tsrs_projectutil" }
+tsrs_lsp = { version = "0.24.0", path = "crates/tsrs_lsp" }
+tsrs_incremental = { version = "0.24.0", path = "crates/tsrs_incremental" }
+tsrs_api = { version = "0.24.0", path = "crates/tsrs_api" }
+tsrs_api_transport = { version = "0.24.0", path = "crates/tsrs_api_transport" }
+tsrs_api_codec = { version = "0.24.0", path = "crates/tsrs_api_codec" }
+tsrs_ipc = { version = "0.24.0", path = "crates/tsrs_ipc" }
+tsrs_contentmapper = { version = "0.24.0", path = "crates/tsrs_contentmapper" }
 tsrs_contentmappertest = { path = "crates/tsrs_contentmappertest" }
-tsrs_execute = { path = "crates/tsrs_execute" }
-tsrs_lint = { path = "crates/tsrs_lint" }
-tsrs_fswatch = { path = "crates/tsrs_fswatch" }
+tsrs_execute = { version = "0.24.0", path = "crates/tsrs_execute" }
+tsrs_lint = { version = "0.24.0", path = "crates/tsrs_lint" }
+tsrs_fswatch = { version = "0.24.0", path = "crates/tsrs_fswatch" }
 
 [profile.dev]
 debug = false
@@ -158,7 +163,7 @@ significant_drop_tightening = "allow"
 branches_sharing_code = "allow"
 useless_let_if_seq = "allow"
 
-# Tsrs-specific exceptions to Oxc's policy. This workspace is an unpublished, mechanical Go port: visibility,
+# Tsrs-specific exceptions to Oxc's policy. This workspace is a mechanical Go port: visibility,
 # signatures, numeric conversions, declaration placement and control-flow decomposition follow the Go source.
 missing_panics_doc = "allow"
 missing_errors_doc = "allow"

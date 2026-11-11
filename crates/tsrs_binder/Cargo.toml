@@ -4,7 +4,14 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-publish.workspace = true
+publish = true
+categories.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+repository.workspace = true
+readme.workspace = true
+include = ["/src", "/build.rs", "/LICENSE", "/NOTICE"]
+description = "TypeScript symbol binding for tsrs"
 
 [lints]
 workspace = true

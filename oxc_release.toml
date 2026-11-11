@@ -1,0 +1,7 @@
+# Configuration for https://github.com/oxc-project/cargo-release-oxc.
+# Versions remain shared with the npm release in [workspace.package].
+# Use `publish`; cargo-release-oxc's `update` requires explicit package versions.
+[[releases]]
+name = "crates"
+root_crate = "tsrs_cli"
+versioned_files = ["Cargo.toml"]

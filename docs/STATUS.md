@@ -5,6 +5,18 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 0.25.0
+
+Package version `0.25.0-ts7.1.0-beta`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`).
+The [release notes](releases/0.25.0.md) cover Windows ARM64 packages (`@tsrs/win32-arm64`). The compiler is
+unchanged from 0.24.0.
+
+The [release dry run](https://github.com/oxc-project/tsrs/actions/runs/42937173948) at `181538bf` built eight native
+targets and WASM, assembled ten packages and skipped publication. Windows ARM64 trained on all 15,448 conformance
+variants with no failures, crashes or timeouts, merged its profile and passed the installed-package CLI/SDK smoke
+([notes](../notes/perf-pgo.md#2026-11-11-windows-arm64-release-dry-run-passes)). The GNU Linux conformance and
+Fourslash gates passed on the BOLT-optimized binaries, and the Node API smoke passed 25 of 25 steps on both.
+
 ## 0.24.0
 
 Package version `0.24.0-ts7.1.0-beta`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`).

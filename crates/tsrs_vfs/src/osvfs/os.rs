@@ -464,7 +464,25 @@ impl OsFS {
     }
 
     fn ensure_directory_exists(directory_path: &str) -> io::Result<()> {
-        fs::create_dir_all(directory_path)
+        match fs::create_dir_all(directory_path) {
+            Ok(()) => Ok(()),
+            Err(err) => {
+                // Go's os.MkdirAll reports "mkdir <path>: not a directory" when the
+                // target directory path already exists as a file. std::fs::create_dir_all
+                // instead returns an AlreadyExists io::Error whose display is
+                // "File exists (os error 17)", so rewrite it.
+                if err.kind() == io::ErrorKind::AlreadyExists
+                    && let Ok(metadata) = fs::symlink_metadata(directory_path)
+                    && !metadata.is_dir()
+                {
+                    return Err(io::Error::new(
+                        io::ErrorKind::NotADirectory,
+                        format!("mkdir {directory_path}: not a directory"),
+                    ));
+                }
+                Err(err)
+            }
+        }
     }
 
     fn write_file_ensuring_dir(path: &str, content: &str, append: bool) -> Result<(), String> {

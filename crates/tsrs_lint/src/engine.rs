@@ -354,6 +354,8 @@ fn run_in_region(
                     let region = tsrs_core::arena::Region::new_scratch(1 << 20);
                     let entered = region.enter();
                     loop {
+                        // Only hands out distinct indices. Results reach the caller through the `linted` mutexes
+                        // and the scope's join.
                         let index = next.fetch_add(1, Ordering::Relaxed);
                         let Some((config_path, files)) = programs.get(index) else {
                             break;

@@ -8,8 +8,8 @@ see the [compatibility table](COMPATIBILITY.md); detailed investigations are ind
 ## 0.25.0
 
 Package version `0.25.0-ts7.1.0-beta`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`).
-The [release notes](releases/0.25.0.md) cover Windows ARM64 packages (`@tsrs/win32-arm64`). The compiler is
-unchanged from 0.24.0.
+The [release notes](releases/0.25.0.md) cover Windows ARM64 packages (`@tsrs/win32-arm64`), concurrent tsconfig
+programs in headless lint, and two command-line fixes. The type checker is unchanged from 0.24.0.
 
 The [release dry run](https://github.com/oxc-project/tsrs/actions/runs/42937173948) at `181538bf` built eight native
 targets and WASM, assembled ten packages and skipped publication. Windows ARM64 trained on all 15,448 conformance

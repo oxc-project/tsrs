@@ -430,6 +430,12 @@ fn perform_compilation(
         Some(get_trace_from_sys(sys, testing)),
         content_mapper_project,
     );
+    // tsrs-only: a resident check server (daemon/server.rs) hands out the files it parsed for earlier requests.
+    let resident = crate::daemon::resident().filter(|_| testing.is_none());
+    let host = match resident {
+        Some(resident) => resident.host(host),
+        None => host,
+    };
 
     // tsrs-only (notes/mem-free-leaf-files.md): a `--noEmit` check frees the tree of each file that nothing else
     // refers to once it is checked. Not when anything reads the trees after the check pass: declaration
@@ -437,6 +443,7 @@ fn perform_compilation(
     // or Go's check history (`--checkerAssignment go`, a per-name cache that keeps another file's declarations).
     let options = config.compiler_options().unwrap();
     let leaf_freeing_allowed = testing.is_none()
+        && resident.is_none()
         && options.no_emit.is_true()
         && !options.get_emit_declarations()
         && !options.explain_files.is_true()
@@ -460,6 +467,9 @@ fn perform_compilation(
     let mut program_options = ProgramOptions::new(config, host);
     program_options.leaf_files = leaf_settings.mode;
     program_options.checker_recycling = leaf_freeing_allowed;
+    if let Some(resident) = resident {
+        resident.program_options(&mut program_options);
+    }
 
     start_tracing_if_needed(sys, &config);
     let parse_start =
@@ -483,6 +493,9 @@ fn perform_compilation(
         testing,
         testing_m_times_cache: None,
     });
+    if let Some(resident) = resident {
+        resident.checked(program, config);
+    }
     if let Some(line) = tsrs_compiler::leaf_stats_report() {
         eprint!("{line}");
     }

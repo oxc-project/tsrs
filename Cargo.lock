@@ -1214,9 +1214,11 @@ name = "tsrs_execute"
 version = "0.24.0"
 dependencies = [
  "libc",
+ "rayon",
  "rustc-hash",
  "similar",
  "tsrs_ast",
+ "tsrs_binder",
  "tsrs_compiler",
  "tsrs_contentmapper",
  "tsrs_contentmappertest",
@@ -1227,6 +1229,7 @@ dependencies = [
  "tsrs_ipc",
  "tsrs_tsoptions",
  "tsrs_vfs",
+ "xxhash-rust",
 ]
 
 [[package]]

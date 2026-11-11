@@ -91,6 +91,19 @@ impl SymbolIdGenerator {
     }
 }
 
+/// The largest id any of the four counters has handed out.
+///
+/// Ids only grow and are limited to 31 bits (`assign_node_id`), so a process that checks program after program
+/// (`tsrs_execute` daemon/server.rs) stops on it.
+pub fn ids_handed_out() -> u64 {
+    // Relaxed: a reading for a limit; nothing is published through the counters.
+    [&NEXT_NODE_ID, &NEXT_SYMBOL_ID, &NEXT_NODE_BLOCK_ID, &NEXT_SYMBOL_BLOCK_ID]
+        .iter()
+        .map(|counter| counter.load(Ordering::Relaxed))
+        .max()
+        .unwrap_or(0)
+}
+
 /// Ids a thread in id-block mode (`use_id_blocks`) takes from a counter at a time.
 const ID_BLOCK: u64 = 1024;
 

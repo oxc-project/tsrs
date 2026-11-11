@@ -222,6 +222,19 @@ impl Arena {
     fn new_chunk(&self, size: usize) {
         if self.up {
             let size = size.next_multiple_of(CHUNK_ALIGN);
+            // A region chunk of a huge page or more is whole huge-page blocks, as a thread arena's are: a checker's
+            // region (watch mode, `-b`, the resident check server) grows to hundreds of MiB, and in 4 KiB pages it
+            // took about four times the page faults of the thread arenas a cold run's checkers use
+            // (notes/perf-fast-daemon.md). Not the CLI's file regions in large slabs, which are retired as checked.
+            if !self.large_slabs
+                && let Some(huge) = HUGE_THREAD_CHUNK.filter(|&h| size >= h)
+            {
+                let size = size.next_multiple_of(huge);
+                let (base, slab) = own_slab(size, true);
+                self.slabs.borrow_mut().push(slab);
+                self.new_chunk_at(base, size);
+                return;
+            }
             let (base, slab) = slab_carve(size, self.large_slabs);
             self.slabs.borrow_mut().push(slab);
             self.new_chunk_at(base, size);
@@ -547,7 +560,8 @@ static SLAB_CACHE: Mutex<Vec<usize>> = Mutex::new(Vec::new());
 #[cfg(compressed_ptrs)]
 const SLAB_CACHE_MAX: usize = 64;
 
-fn new_slab(size: usize, live: usize) -> *const Slab {
+/// `huge`: `size` is a multiple of `HUGE_THREAD_CHUNK`, backed by transparent huge pages (`os_chunk`).
+fn new_slab(size: usize, live: usize, huge: bool) -> *const Slab {
     let size = size.div_ceil(PAGE) * PAGE;
     #[cfg(compressed_ptrs)]
     if size == SLAB_SIZE {
@@ -563,7 +577,7 @@ fn new_slab(size: usize, live: usize) -> *const Slab {
         }
     }
     let base =
-        os_chunk(Layout::from_size_align(size, CHUNK_ALIGN).expect("arena slab layout"), false);
+        os_chunk(Layout::from_size_align(size, CHUNK_ALIGN).expect("arena slab layout"), huge);
     Box::into_raw(Box::new(Slab {
         base,
         size,
@@ -576,18 +590,18 @@ fn slab_carve(size: usize, large: bool) -> (*mut u8, *const Slab) {
     let (current, slab_size) =
         if large { (&LARGE_SLAB, LARGE_SLAB_SIZE) } else { (&SLAB, SLAB_SIZE) };
     if size > slab_size / 4 {
-        return own_slab(size);
+        return own_slab(size, false);
     }
     // A thread-local destructor that allocates in a region after the thread's slab was released gets a slab of its own.
     let Ok((mut cur, mut bump)) = current.try_with(CurrentSlab::get) else {
-        return own_slab(size);
+        return own_slab(size, false);
     };
     // SAFETY: the current slab is kept alive by the thread's reference.
     if cur.is_null() || bump + size > unsafe { (*cur).base.addr() + (*cur).size } {
         if !cur.is_null() {
             slab_release(cur);
         }
-        cur = new_slab(slab_size, 1);
+        cur = new_slab(slab_size, 1, false);
         // SAFETY: just made.
         bump = unsafe { (*cur).base.addr() };
     }
@@ -598,9 +612,9 @@ fn slab_carve(size: usize, large: bool) -> (*mut u8, *const Slab) {
     (slab.base.with_addr(bump), cur)
 }
 
-/// A slab for one chunk.
-fn own_slab(size: usize) -> (*mut u8, *const Slab) {
-    let slab = new_slab(size, 1);
+/// A slab for one chunk (`huge`: see `new_slab`).
+fn own_slab(size: usize, huge: bool) -> (*mut u8, *const Slab) {
+    let slab = new_slab(size, 1, huge);
     // SAFETY: just made.
     (unsafe { (*slab).base }, slab)
 }

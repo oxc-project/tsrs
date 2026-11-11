@@ -38,11 +38,10 @@ impl ParseConfigHost for SysParseConfigHost {
     }
 }
 
+// tsrs-only, so on stderr: tsgo has no such message, and `tsrs --showConfig > tsconfig.out.json` writes no error into
+// the file.
 fn not_supported(sys: &dyn System, what: &str) -> CommandLineResult {
-    sys.write(&format!(
-        "error: {what} is not supported by tsrs.
-"
-    ));
+    sys.write_error(&format!("error: {what} is not supported by tsrs.\n"));
     CommandLineResult { watcher: None, status: ExitStatus::NotImplemented }
 }
 

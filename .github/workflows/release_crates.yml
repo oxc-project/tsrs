@@ -61,4 +61,7 @@ jobs:
       - name: Publish crates in dependency order
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
-        run: cargo release-oxc publish --release crates
+        run: |
+          # cargo-release-oxc writes target/CRATES_VERSION even with a custom CARGO_TARGET_DIR.
+          node -e 'require("node:fs").mkdirSync("target", { recursive: true })'
+          cargo release-oxc publish --release crates

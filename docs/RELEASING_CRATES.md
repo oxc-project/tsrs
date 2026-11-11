@@ -5,6 +5,12 @@ The [Release Crates workflow](../.github/workflows/release_crates.yml) uses
 [`oxc_release.toml`](../oxc_release.toml). It publishes the 34 compiler, language-service and CLI crates in dependency
 order. Benchmarks, test helpers, task crates and the WebAssembly package remain unpublished.
 
+The initial [0.24.0 release](https://crates.io/crates/tsrs_cli/0.24.0) was published locally on 2026-11-11.
+All 34 registry versions and their trusted publishers were read back and verified after publication.
+
+The crates require Rust 1.99 or newer; repository builds use the version pinned in
+[`rust-toolchain.toml`](../rust-toolchain.toml).
+
 Crates share `[workspace.package] version` with the existing npm release. When changing it, update every published
 crate's version requirement in `[workspace.dependencies]` to match. Keep the existing npm release preparation and
 notes workflow. `cargo-release-oxc update` is not used: it requires explicit package versions instead of inherited
@@ -46,5 +52,9 @@ With suitable crates.io credentials, the equivalent command from a clean checkou
 
 ```sh
 cargo binstall cargo-release-oxc --version 0.0.44 --locked
+node -e 'require("node:fs").mkdirSync("target", { recursive: true })'
 cargo release-oxc publish --release crates
 ```
+
+The tool writes `target/CRATES_VERSION` even when `CARGO_TARGET_DIR` points elsewhere, so create `target` before
+publishing from a fresh checkout.

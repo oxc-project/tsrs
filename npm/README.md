@@ -19,7 +19,8 @@ tsrs ships on npm the way TypeScript 7 ships its native compiler (`typescript@7`
 | `@tsrs/wasm` | the WebAssembly module (`npm/tsrs-wasm`, notes/wasm-build.md): a `tsrs-wasm` command and a `tsc()` API for Node 22+ and browsers, single-threaded; no platform packages |
 
 Native platforms: `darwin-arm64`, `darwin-x64`, `linux-x64-gnu`, `linux-arm64-gnu`, `linux-x64-musl`,
-`linux-arm64-musl` and `win32-x64`. Intel macOS and Windows x64 joined the current platform set in 0.20.0.
+`linux-arm64-musl`, `win32-x64` and `win32-arm64`. Intel macOS and Windows x64 joined the current platform set in
+0.20.0, Windows ARM64 in 0.25.0.
 See the [compatibility table](../docs/COMPATIBILITY.md#what-it-does-and-doesnt-do) for platform limitations.
 
 The main package name is set in `npm/tsrs/package.json`; platform packages are `@tsrs/<os>-<cpu>` with `-gnu` or
@@ -192,7 +193,8 @@ To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refres
 1. checks the root package version against `Cargo.toml`, requires release notes, and runs `cargo check`;
 2. builds PGO release binaries (`release` profile, trained by `.github/scripts/pgo-train.sh`) for macOS arm64 (`macos-latest`),
    macOS x64 (`macos-26-intel`, with native PGO training and installed-package smoke tests), and Linux x64 and arm64 GNU
-   (`ubuntu-22.04`), and a Windows x64 PGO binary trained on the conformance suite and a CLI project;
+   (`ubuntu-22.04`), and Windows x64 (`windows-latest`) and ARM64 (`windows-11-arm`, linked with `rust-lld`) PGO
+   binaries trained on the conformance suite and a CLI project;
    on GNU, BOLT-optimizes them and runs the conformance and fourslash gates on the
    BOLT-optimized binaries (`.github/scripts/bolt.sh`); smoke-runs the native ones (`--version`, exit code 2 on a type
    error) and the installed package (`npm/sdk/smoke-consumer.mjs`);

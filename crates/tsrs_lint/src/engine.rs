@@ -401,9 +401,7 @@ fn run_in_region(
     // largest (`Options::exit_after`); its output still comes last.
     let inferred = usize::from(!unmatched.is_empty());
     let jobs = inferred + programs.len();
-    let next = AtomicUsize::new(0);
-    // No program starts after one that sees this: every job has been handed out.
-    let last = || next.load(Ordering::Relaxed) >= jobs;
+    let schedule = Schedule { next: AtomicUsize::new(0), jobs, running: AtomicUsize::new(0) };
     let linted: Vec<Mutex<Option<Linted>>> = programs.iter().map(|_| Mutex::new(None)).collect();
     let inferred_linted: Mutex<Option<Linted>> = Mutex::new(None);
     // Each worker's tsconfigs are parsed into a scratch region of its own, kept until the request ends as the
@@ -420,7 +418,11 @@ fn run_in_region(
                     loop {
                         // Only hands out distinct indices. Results reach the caller through the `linted` mutexes
                         // and the scope's join.
-                        let job = next.fetch_add(1, Ordering::Relaxed);
+                        let job = schedule.next.fetch_add(1, Ordering::Relaxed);
+                        if job >= jobs {
+                            break;
+                        }
+                        let _running = schedule.start();
                         if job < inferred {
                             let mut output = Vec::new();
                             let mut program_timings = BTreeMap::new();
@@ -434,7 +436,7 @@ fn run_in_region(
                                 &shared,
                                 &file_configs,
                                 &mut program_timings,
-                                &last,
+                                &schedule,
                             );
                             *inferred_linted.lock().unwrap() =
                                 Some((result, output, program_timings));
@@ -459,7 +461,7 @@ fn run_in_region(
                             &shared,
                             &file_configs,
                             &mut program_timings,
-                            &last,
+                            &schedule,
                         );
                         drop(turn);
                         *linted[index].lock().unwrap() = Some((result, output, program_timings));
@@ -515,6 +517,45 @@ fn run_in_region(
         .map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+/// The programs of a request, built by `program_threads` threads in job order.
+struct Schedule {
+    // The next job to hand out.
+    next: AtomicUsize,
+    jobs: usize,
+    // Jobs started and not yet done.
+    running: AtomicUsize,
+}
+
+impl Schedule {
+    /// No program starts after one that sees this: every job has been handed out.
+    fn last(&self) -> bool {
+        // Only distinct indices are handed out through `next`; a stale read only frees a program it could leave.
+        self.next.load(Ordering::Relaxed) >= self.jobs
+    }
+
+    /// No other program is being built or checked now.
+    fn alone(&self) -> bool {
+        // See `Schedule::start`.
+        self.running.load(Ordering::Relaxed) == 1
+    }
+
+    fn start(&self) -> Running<'_> {
+        // A count read only to decide whether to steal; it publishes nothing.
+        self.running.fetch_add(1, Ordering::Relaxed);
+        Running(self)
+    }
+}
+
+/// A job of `Schedule` from its start to its end.
+struct Running<'a>(&'a Schedule);
+
+impl Drop for Running<'_> {
+    fn drop(&mut self) {
+        // See `Schedule::start`.
+        self.0.running.fetch_sub(1, Ordering::Relaxed);
+    }
 }
 
 /// `Shared::join_frees` on drop.
@@ -597,7 +638,7 @@ fn lint_inferred_program(
     shared: &Arc<Shared>,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
-    last: &dyn Fn() -> bool,
+    schedule: &Schedule,
 ) -> Result<(), String> {
     let config = tsrs_tsoptions::new_parsed_command_line(
         P::new(CompilerOptions {
@@ -624,7 +665,7 @@ fn lint_inferred_program(
     );
     // Dropped after the program: nothing that outlives a program points into its loader regions.
     let regions = RequestRegions::default();
-    let leave = options.exit_after && last();
+    let leave = options.exit_after && schedule.last();
     let program = create_program(
         config,
         Arc::clone(fs),
@@ -634,8 +675,17 @@ fn lint_inferred_program(
         shared,
         !leave,
     );
-    let result =
-        run_program(program.program, files, None, payload, options, writer, file_configs, timings);
+    let result = run_program(
+        program.program,
+        files,
+        None,
+        payload,
+        options,
+        writer,
+        file_configs,
+        timings,
+        schedule,
+    );
     release(program, regions, leave, shared);
     result.map(drop)
 }
@@ -668,7 +718,7 @@ fn lint_program(
     shared: &Arc<Shared>,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
-    last: &dyn Fn() -> bool,
+    schedule: &Schedule,
 ) -> Result<(), String> {
     // Dropped after the program: nothing that outlives a program points into its loader regions.
     let regions = RequestRegions::default();
@@ -696,7 +746,7 @@ fn lint_program(
     }
     // With `exit_after`, a program after which the request builds no other one is left to the exit; any other is freed
     // while the request goes on.
-    let leave = options.exit_after && last();
+    let leave = options.exit_after && schedule.last();
     let program_span = crate::trace::span("create-program", || config_path.to_owned());
     let program = create_program(
         config,
@@ -716,8 +766,17 @@ fn lint_program(
         }
         return Ok(());
     }
-    let global_diagnostics =
-        run_program(program_ref, files, turn, payload, options, writer, file_configs, timings);
+    let global_diagnostics = run_program(
+        program_ref,
+        files,
+        turn,
+        payload,
+        options,
+        writer,
+        file_configs,
+        timings,
+        schedule,
+    );
     release(program, regions, leave, shared);
     for diagnostic in global_diagnostics? {
         report_global_error(diagnostic, config_path, writer)?;
@@ -783,6 +842,7 @@ fn run_program(
     writer: &mut dyn Write,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
+    schedule: &Schedule,
 ) -> Result<Vec<P<TsDiagnostic>>, String> {
     crate::trace::span("bind", String::new).finish_with(|| program.bind_source_files());
     let report_global = whole.is_some();
@@ -857,6 +917,9 @@ fn run_program(
     let pooled = program.for_each_checker_check_then_visit(
         &lint_files,
         &needs,
+        // While other programs run, a checker out of work leaves its core to them instead of redoing the work of
+        // another checker's files (stealing).
+        || schedule.alone(),
         |checker, index, file| run_file(checker, index, file, false),
         |checker_index, checker| {
             if report_global {

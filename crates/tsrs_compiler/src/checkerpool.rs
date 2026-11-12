@@ -1284,13 +1284,15 @@ impl CheckerPoolImpl {
     /// pass's work. With stealing (`stealing_enabled`) checks move between checkers as in the type-check pass
     /// (heavy files first, thieves from the back), and a checker visits the files it checked, hot, before it takes
     /// visits from the back of other checkers' queues; a checker takes visits only once no check is left that it may
-    /// take. Without stealing each checker checks and visits the files of the static assignment in the order of
-    /// `files`, as two passes over them would.
+    /// take. A checker steals only while `may_steal` says so (the caller's other work does not need its core).
+    /// Without stealing each checker checks and visits the files of the static assignment in the order of `files`,
+    /// as two passes over them would.
     pub(crate) fn for_each_checker_check_then_visit(
         &self,
         files: &[P<SourceFile>],
         needs: &[CheckAndVisit],
         single_threaded: bool,
+        may_steal: &(dyn Fn() -> bool + Sync),
         check: &(dyn Fn(&mut Checker, usize, P<SourceFile>) + Sync),
         between: &(dyn Fn(usize, &mut Checker) + Sync),
         visit: &(dyn Fn(&mut Checker, usize, P<SourceFile>) + Sync),
@@ -1348,7 +1350,7 @@ impl CheckerPoolImpl {
             while let Some((i, from_other)) = queues_next(
                 &checks,
                 me,
-                steal,
+                steal && may_steal(),
                 max_thieves,
                 &mut slot,
                 sticky.then_some(&mut last_victim),
@@ -1362,13 +1364,16 @@ impl CheckerPoolImpl {
                     visits[me].push(i as u32, weight(i as u32));
                 }
             }
+            if slot != usize::MAX {
+                checks[slot].release(me);
+            }
             between(me, &mut guard);
             loop {
                 if let Some(i) = visits[me].take(true, weight) {
                     visit(&mut guard, i as usize, files[i as usize]);
                     continue;
                 }
-                if !steal_visits {
+                if !steal_visits || !may_steal() {
                     break;
                 }
                 // The queue with the most work left; its owner may still be adding the files it checks.

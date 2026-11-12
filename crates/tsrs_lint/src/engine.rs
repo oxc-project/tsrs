@@ -50,9 +50,27 @@ struct Shared {
     references: tsrs_core::collections::SyncMap<String, Option<P<ParsedCommandLine>>>,
     files: tsrs_core::collections::SyncMap<SourceFileParseOptions, Option<P<SourceFile>>>,
     regions: Mutex<Vec<tsrs_core::arena::Region>>,
+    // Programs being freed on threads of their own (`free_later`), joined before what they share is.
+    frees: Mutex<Vec<std::thread::JoinHandle<()>>>,
 }
 
 impl Shared {
+    // Frees a program on a thread of its own while the request goes on.
+    fn free_later(&self, free: impl FnOnce() + Send + 'static) {
+        let thread = std::thread::Builder::new()
+            .name("lint-free".into())
+            .stack_size(512 << 20)
+            .spawn(free)
+            .expect("failed to spawn a lint thread");
+        self.frees.lock().unwrap().push(thread);
+    }
+
+    fn join_frees(&self) {
+        for thread in std::mem::take(&mut *self.frees.lock().unwrap()) {
+            thread.join().expect("freeing a program panicked");
+        }
+    }
+
     fn keep<T>(&self, first_chunk: usize, make: impl FnOnce() -> T) -> T {
         let region = tsrs_core::arena::Region::new(first_chunk);
         let _scope = region.enter();
@@ -83,7 +101,7 @@ impl CompilerHost for Host {
     }
     fn get_source_file(&self, opts: SourceFileParseOptions) -> Option<P<SourceFile>> {
         let name = &opts.file_name;
-        if !tspath::is_declaration_file_name(name) {
+        if !tspath::is_declaration_file_name(name) || !knob("TSRS_LINT_SHARE_DTS") {
             return self.host.get_source_file(opts);
         }
         if let Some(file) = self.shared.files.load(&opts) {
@@ -368,7 +386,9 @@ fn run_in_region(
     }
     drop(config_cache);
     drop(find_span);
-    let shared = Arc::default();
+    let shared: Arc<Shared> = Arc::default();
+    // Waits for the programs freed on threads of their own before `shared` goes, on every path out.
+    let frees = JoinFrees(&shared);
     let programs: Vec<(String, Vec<String>)> = programs.into_iter().collect();
     let claims = Claims { state: Mutex::new((0, type_checked)), passed: Condvar::new() };
     let next = AtomicUsize::new(0);
@@ -466,6 +486,8 @@ fn run_in_region(
         result?;
     }
     if options.exit_after {
+        // The exit ends the frees still running, and gives back what the request shares.
+        std::mem::forget(frees);
         std::mem::forget(shared);
     }
     if options.debug_timings {
@@ -495,6 +517,15 @@ fn run_in_region(
         .map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+/// `Shared::join_frees` on drop.
+struct JoinFrees<'a>(&'a Shared);
+
+impl Drop for JoinFrees<'_> {
+    fn drop(&mut self) {
+        self.0.join_frees();
+    }
 }
 
 /// A program's result, output and rule timings.
@@ -615,11 +646,16 @@ fn lint_program(
     }
     let global_diagnostics =
         run_program(program_ref, files, turn, payload, options, writer, file_configs, timings);
-    // With `exit_after`, a program after which the request builds no other one is left to the exit.
-    let leave = options.exit_after && last();
-    program.release(leave);
-    if leave {
+    // With `exit_after`, a program after which the request builds no other one is left to the exit; any other is freed
+    // while the request goes on.
+    if options.exit_after && last() {
+        program.release(true);
         std::mem::forget(regions);
+    } else {
+        shared.free_later(move || {
+            program.release(false);
+            drop(regions);
+        });
     }
     for diagnostic in global_diagnostics? {
         report_global_error(diagnostic, config_path, writer)?;
@@ -657,7 +693,7 @@ fn create_program(
     options.use_source_of_project_reference = references;
     options.regions = Some(loader_regions);
     // The checkers' memory goes back with the program (`free_unshared_program`), before the next program's is built.
-    options.checker_regions = true;
+    options.checker_regions = knob("TSRS_LINT_CHECKER_REGIONS");
     ProgramOwner { program: tsrs_compiler::new_program(options), _content_mappers: content_mappers }
 }
 
@@ -806,6 +842,11 @@ fn run_program(
     }
     merge_timings(timings, pool_timings.into_inner().unwrap());
     Ok(global_diagnostics)
+}
+
+// Experiment switches, on unless set to 0.
+fn knob(name: &str) -> bool {
+    std::env::var(name).map_or(true, |v| v != "0")
 }
 
 // `TSRS_LINT_TWO_PASSES=1`: the check pass and then the lint pass, each over every file, as before the one pass.

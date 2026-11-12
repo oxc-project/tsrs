@@ -41,8 +41,8 @@ inside oxlint (1.93.0).
   4-5% off the helper's wall on vscode and the private monorepo, mostly system time (page faults).
 - **Oxlint's own work.** 0.25 s before the helper starts, then 0.89 s after it exits, reporting vscode's 10,209
   findings; that is the same in lint only and in the one run. Oxlint 1.93 starts the helper before its own pass and
-  runs them side by side. The oxlint the private monorepo's lint script runs does its own non-type-aware rules first
-  and starts the helper only after them, and that takes more than twice the helper's wall time there.
+  runs them side by side. An older oxlint does its own non-type-aware rules first and starts the helper only after
+  them; the private monorepo was also measured through one, where that takes more than twice the helper's wall time.
 - **What the rules cost is small.** In a perf profile of the one run the type check is 78% of the helper's CPU on
   vscode and 73% on the private monorepo, the rule visits 7% on both (on vscode no-floating-promises the largest), creating
   rules and walking the tree too little to show.
@@ -106,7 +106,7 @@ TypeScript file) without oxlint.
 | vscode, helper | 4.14 -> 3.50 s, −15.4% [−15.7, −14.9] | | |
 | t3code-server, helper | 9.11 -> 8.26 s, −9.3% [−9.7, −8.6] | 10.17 -> 9.31 s, −8.4% [−10.0, −7.0] | |
 | mikro-orm, helper | 3.32 -> 2.92 s, −11.9% [−12.6, −10.3] | 3.45 -> 3.40 s, −1.4% [−2.4, −0.9] | |
-| private monorepo, its oxlint | −5.5% [−5.6, −4.6] | −5.6% [−5.9, −5.3] | +0.1% [−0.1, +0.4] |
+| private monorepo, older oxlint | −5.5% [−5.6, −4.6] | −5.6% [−5.9, −5.3] | +0.1% [−0.1, +0.4] |
 | private monorepo, helper | −17.7% [−18.9, −17.1] | −19.7% [−20.2, −19.3] | |
 
 | 4 cores | one run | lint only | check only |
@@ -116,7 +116,7 @@ TypeScript file) without oxlint.
 | vscode, helper | 7.77 -> 6.33 s, −18.4% [−18.8, −18.2] | | |
 | t3code-server, helper | 15.02 -> 13.61 s, −9.2% [−10.0, −8.7] | 13.95 -> 12.34 s, −11.4% [−12.5, −11.1] | |
 | mikro-orm, helper | 6.53 -> 5.28 s, −19.1% [−19.8, −18.7] | 5.72 -> 4.68 s, −18.4% [−19.0, −18.2] | |
-| private monorepo, its oxlint | −2.9% [−3.6, −2.3] | −3.5% [−3.8, −2.6] | +0.1% [+0.0, +0.4] |
+| private monorepo, older oxlint | −2.9% [−3.6, −2.3] | −3.5% [−3.8, −2.6] | +0.1% [+0.0, +0.4] |
 | private monorepo, helper | −11.9% [−12.3, −11.7] | −13.3% [−13.4, −12.4] | |
 
 CPU time, instructions and peak memory (largest process), branch against main, 8 / 4 cores:
@@ -133,7 +133,7 @@ CPU time, instructions and peak memory (largest process), branch against main, 8
 | mikro-orm lint only, helper | +0.2% / +3.1% | +0.0% / +2.9% | +1.3% / +0.6% (noise) |
 | private monorepo one run, helper | −1.6% / −3.5% | +1.6% / +0.3% | +0.7% / −1.3% |
 | private monorepo lint only, helper | −1.7% / −3.4% | +1.8% / +0.4% | −0.2% / −1.8% |
-| private monorepo, through its oxlint | −0.4% / −0.5% (noise) | +0.6% / +0.1% | 0.0% (noise) |
+| private monorepo, through the older oxlint | −0.4% / −0.5% (noise) | +0.6% / +0.1% | 0.0% (noise) |
 
 The check-only rows run the same code in both arms and stay within noise, as they should.
 
@@ -142,8 +142,8 @@ times lint alone (main 1.37: both got faster); on Outline 1.07 times the check a
 vscode, 3.23 s against the CLI check's 2.85 s, is the check's cost plus 0.25 s of rule visits: inside oxlint the rest of
 the one run is oxlint's 0.25 s before the helper, 0.89 s after it, and about 0.4 s of the helper sharing cores with
 oxlint's own pass. On the private monorepo the helper's one run now takes 1.10 times the check alone at 8
-cores and at 4 (main 1.34 and 1.26); through its oxlint, the one run takes 1.05 times lint alone in both arms, since
-lint alone is mostly oxlint's own rules there.
+cores and at 4 (main 1.34 and 1.26); through the older oxlint, the one run takes 1.05 times lint alone in both arms,
+since lint alone is mostly oxlint's own rules there.
 
 **A measurement trap.** The first full A/B ran each arm's binary where cargo had linked it. The branch's ran the
 unchanged CLI check 3.1% slower with the same instructions and 16 times the iTLB misses; a `cp` of the same binary ran
@@ -181,8 +181,9 @@ the page cache, and so the instruction-side TLB, maps its text. Copy both arms t
   vscode one run would be within about 0.6 s of the check alone. That fix belongs in oxlint.
 - **Sharing the cores with oxlint.** Oxlint 1.93 runs its own pass while the helper builds its program; now that the
   helper's pass keeps every core busy, the helper takes about 0.3 s longer inside oxlint than alone on vscode.
-- **The private monorepo's oxlint** runs its own rules before it starts the helper, so its lint and one run gain
-  much less than its helper does. An oxlint that starts the helper first (1.93 does) would overlap the two.
+- **An older oxlint** runs its own rules before it starts the helper, so the private monorepo's lint and one run,
+  measured through one, gain much less than its helper does. An oxlint that starts the helper first (1.93 does) would
+  overlap the two.
 - **The floor of the one run** is the check plus the rules on cached types: on vscode the helper's pass is the
   check's time plus 0.24 s of rule visits, and its program build matches the CLI's parse.
 - **Memory.** Where checks are stolen, a thief builds the types around the files it takes again: outline's one run

@@ -16,12 +16,12 @@ pub const HUGE_BYTES: usize = 2 << 20;
 #[derive(Clone, Copy, Default)]
 pub struct HugeAlloc;
 
+// Without compressed handles there is no arena reservation (Windows, wasm, `plain-ptrs`): everything is `Global`'s.
+#[cfg(compressed_ptrs)]
 impl HugeAlloc {
     #[inline]
     fn is_huge(layout: Layout) -> bool {
-        cfg!(all(compressed_ptrs, target_os = "linux"))
-            && layout.size() >= HUGE_BYTES
-            && layout.align() <= HUGE_BYTES
+        cfg!(target_os = "linux") && layout.size() >= HUGE_BYTES && layout.align() <= HUGE_BYTES
     }
 }
 

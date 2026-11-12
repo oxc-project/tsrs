@@ -101,7 +101,7 @@ impl CompilerHost for Host {
     }
     fn get_source_file(&self, opts: SourceFileParseOptions) -> Option<P<SourceFile>> {
         let name = &opts.file_name;
-        if !tspath::is_declaration_file_name(name) || !knob("TSRS_LINT_SHARE_DTS") {
+        if !tspath::is_declaration_file_name(name) {
             return self.host.get_source_file(opts);
         }
         if let Some(file) = self.shared.files.load(&opts) {
@@ -251,19 +251,16 @@ pub fn run(
         ..ConfigHost::new(Arc::clone(&fs), cwd.into())
     };
     let region = tsrs_core::arena::Region::new_scratch(1 << 20);
-    // The inferred program's loader regions: each tsconfig program has its own.
-    let regions = RequestRegions::default();
     let scope = region.enter();
     crate::trace::start();
     let result = {
         let _span = crate::trace::span("request", String::new);
-        run_in_region(payload, options, cwd, writer, fs, &host, &regions)
+        run_in_region(payload, options, cwd, writer, fs, &host)
     };
     crate::trace::finish();
     drop(scope);
     if options.exit_after {
-        // The exit gives it all back without visiting it.
-        std::mem::forget(regions);
+        // The exit gives it back without visiting it.
         std::mem::forget(region);
     }
     result
@@ -345,7 +342,6 @@ fn run_in_region(
     writer: &mut dyn Write,
     fs: Arc<dyn FS>,
     host: &ConfigHost,
-    regions: &RequestRegions,
 ) -> Result<(), String> {
     let mut programs: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut unmatched = Vec::new();
@@ -391,13 +387,21 @@ fn run_in_region(
     let frees = JoinFrees(&shared);
     let programs: Vec<(String, Vec<String>)> = programs.into_iter().collect();
     let claims = Claims { state: Mutex::new((0, type_checked)), passed: Condvar::new() };
+    // The programs to build: the inferred program of the files outside every tsconfig first, when there are any, then
+    // the tsconfig programs. The inferred one goes first so that the last one built is a tsconfig program, usually the
+    // largest (`Options::exit_after`); its output still comes last.
+    let inferred = usize::from(!unmatched.is_empty());
+    let jobs = inferred + programs.len();
     let next = AtomicUsize::new(0);
+    // No program starts after one that sees this: every job has been handed out.
+    let last = || next.load(Ordering::Relaxed) >= jobs;
     let linted: Vec<Mutex<Option<Linted>>> = programs.iter().map(|_| Mutex::new(None)).collect();
+    let inferred_linted: Mutex<Option<Linted>> = Mutex::new(None);
     // Each worker's tsconfigs are parsed into a scratch region of its own, kept until the request ends as the
     // calling thread's is.
     let scratch = Mutex::new(Vec::new());
     std::thread::scope(|scope| {
-        for i in 0..program_threads(programs.len()) {
+        for i in 0..program_threads(jobs) {
             std::thread::Builder::new()
                 .name(format!("lint-program-{i}"))
                 .stack_size(512 << 20)
@@ -407,7 +411,26 @@ fn run_in_region(
                     loop {
                         // Only hands out distinct indices. Results reach the caller through the `linted` mutexes
                         // and the scope's join.
-                        let index = next.fetch_add(1, Ordering::Relaxed);
+                        let job = next.fetch_add(1, Ordering::Relaxed);
+                        if job < inferred {
+                            let mut output = Vec::new();
+                            let mut program_timings = BTreeMap::new();
+                            let result = lint_inferred_program(
+                                &unmatched,
+                                payload,
+                                options,
+                                &mut output,
+                                &fs,
+                                cwd,
+                                &shared,
+                                &file_configs,
+                                &mut program_timings,
+                                &last,
+                            );
+                            *inferred_linted.lock().unwrap() = Some((result, output, program_timings));
+                            continue;
+                        }
+                        let index = job - inferred;
                         let Some((config_path, files)) = programs.get(index) else {
                             break;
                         };
@@ -426,9 +449,7 @@ fn run_in_region(
                             &shared,
                             &file_configs,
                             &mut program_timings,
-                            // No other program starts after it: every index has been handed out and no inferred
-                            // program follows.
-                            &|| next.load(Ordering::Relaxed) >= programs.len() && unmatched.is_empty(),
+                            &last,
                         );
                         drop(turn);
                         *linted[index].lock().unwrap() = Some((result, output, program_timings));
@@ -446,43 +467,10 @@ fn run_in_region(
         merge_timings(&mut timings, program_timings);
         result?;
     }
-    if !unmatched.is_empty() {
-        let config = tsrs_tsoptions::new_parsed_command_line(
-            P::new(CompilerOptions {
-                allow_js: Tristate::True,
-                module: ModuleKind::ES_NEXT,
-                module_resolution: ModuleResolutionKind::BUNDLER,
-                target: ScriptTarget::ES2022,
-                jsx: JsxEmit::REACT_JSX,
-                allow_importing_ts_extensions: Tristate::True,
-                strict_null_checks: Tristate::True,
-                strict_function_types: Tristate::True,
-                source_map: Tristate::True,
-                es_module_interop: Tristate::True,
-                allow_non_ts_extensions: Tristate::True,
-                resolve_json_module: Tristate::True,
-                ..Default::default()
-            }),
-            unmatched.clone(),
-            Vec::new(),
-            tspath::ComparePathsOptions {
-                current_directory: cwd.into(),
-                use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
-            },
-        );
-        let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders), &shared);
-        let result = run_program(
-            program.program,
-            &unmatched,
-            None,
-            payload,
-            options,
-            writer,
-            &file_configs,
-            &mut timings,
-        );
-        // The request's last program.
-        program.release(options.exit_after);
+    // The inferred program's output follows the tsconfig programs'.
+    if let Some((result, output, program_timings)) = inferred_linted.into_inner().unwrap() {
+        writer.write_all(&output).map_err(|error| error.to_string())?;
+        merge_timings(&mut timings, program_timings);
         result?;
     }
     if options.exit_after {
@@ -586,6 +574,76 @@ fn program_threads(programs: usize) -> usize {
     (cores / 4).clamp(1, programs.max(1))
 }
 
+/// Lints and type-checks the listed files outside every tsconfig into `writer`, in a program of their own with the
+/// linter's default compiler options.
+#[expect(clippy::too_many_arguments, reason = "the request state each program reads")]
+fn lint_inferred_program(
+    files: &[String],
+    payload: &Payload,
+    options: Options,
+    writer: &mut dyn Write,
+    fs: &Arc<dyn FS>,
+    cwd: &str,
+    shared: &Arc<Shared>,
+    file_configs: &BTreeMap<String, &[ConfiguredRule]>,
+    timings: &mut BTreeMap<String, (u64, u64)>,
+    last: &dyn Fn() -> bool,
+) -> Result<(), String> {
+    let config = tsrs_tsoptions::new_parsed_command_line(
+        P::new(CompilerOptions {
+            allow_js: Tristate::True,
+            module: ModuleKind::ES_NEXT,
+            module_resolution: ModuleResolutionKind::BUNDLER,
+            target: ScriptTarget::ES2022,
+            jsx: JsxEmit::REACT_JSX,
+            allow_importing_ts_extensions: Tristate::True,
+            strict_null_checks: Tristate::True,
+            strict_function_types: Tristate::True,
+            source_map: Tristate::True,
+            es_module_interop: Tristate::True,
+            allow_non_ts_extensions: Tristate::True,
+            resolve_json_module: Tristate::True,
+            ..Default::default()
+        }),
+        files.to_vec(),
+        Vec::new(),
+        tspath::ComparePathsOptions {
+            current_directory: cwd.into(),
+            use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
+        },
+    );
+    // Dropped after the program: nothing that outlives a program points into its loader regions.
+    let regions = RequestRegions::default();
+    let leave = options.exit_after && last();
+    let program = create_program(
+        config,
+        Arc::clone(fs),
+        cwd,
+        false,
+        Arc::clone(&regions.loaders),
+        shared,
+        !leave,
+    );
+    let result =
+        run_program(program.program, files, None, payload, options, writer, file_configs, timings);
+    release(program, regions, leave, shared);
+    result.map(drop)
+}
+
+// A program the request is done with: left to the process exit with `leave` (`Options::exit_after` and no program
+// starts after it), else freed on a thread of its own while the request goes on.
+fn release(program: ProgramOwner, regions: RequestRegions, leave: bool, shared: &Shared) {
+    if leave {
+        program.release(true);
+        std::mem::forget(regions);
+    } else {
+        shared.free_later(move || {
+            program.release(false);
+            drop(regions);
+        });
+    }
+}
+
 /// Lints one tsconfig program into `writer`: its config errors, or its files and global diagnostics.
 #[expect(clippy::too_many_arguments, reason = "the request state each program reads")]
 fn lint_program(
@@ -626,6 +684,9 @@ fn lint_program(
         }
         return Ok(());
     }
+    // With `exit_after`, a program after which the request builds no other one is left to the exit; any other is freed
+    // while the request goes on.
+    let leave = options.exit_after && last();
     let program_span = crate::trace::span("create-program", || config_path.to_owned());
     let program = create_program(
         config,
@@ -634,6 +695,7 @@ fn lint_program(
         true,
         Arc::clone(&regions.loaders),
         shared,
+        !leave,
     );
     drop(program_span);
     let program_ref = program.program;
@@ -646,17 +708,7 @@ fn lint_program(
     }
     let global_diagnostics =
         run_program(program_ref, files, turn, payload, options, writer, file_configs, timings);
-    // With `exit_after`, a program after which the request builds no other one is left to the exit; any other is freed
-    // while the request goes on.
-    if options.exit_after && last() {
-        program.release(true);
-        std::mem::forget(regions);
-    } else {
-        shared.free_later(move || {
-            program.release(false);
-            drop(regions);
-        });
-    }
+    release(program, regions, leave, shared);
     for diagnostic in global_diagnostics? {
         report_global_error(diagnostic, config_path, writer)?;
     }
@@ -670,6 +722,7 @@ fn create_program(
     references: bool,
     loader_regions: Arc<tsrs_compiler::ProgramRegions>,
     shared: &Arc<Shared>,
+    checker_regions: bool,
 ) -> ProgramOwner {
     if let Some(checkers) = checker_count() {
         config.parsed_config.compiler_options = Some(P::new(CompilerOptions {
@@ -693,7 +746,9 @@ fn create_program(
     options.use_source_of_project_reference = references;
     options.regions = Some(loader_regions);
     // The checkers' memory goes back with the program (`free_unshared_program`), before the next program's is built.
-    options.checker_regions = knob("TSRS_LINT_CHECKER_REGIONS");
+    // A program left to the process exit allocates its checkers in the thread arenas instead, whose large chunks are
+    // huge pages on Linux: 4-5% less wall time on vscode and a large private monorepo, with less system time.
+    options.checker_regions = checker_regions;
     ProgramOwner { program: tsrs_compiler::new_program(options), _content_mappers: content_mappers }
 }
 
@@ -842,11 +897,6 @@ fn run_program(
     }
     merge_timings(timings, pool_timings.into_inner().unwrap());
     Ok(global_diagnostics)
-}
-
-// Experiment switches, on unless set to 0.
-fn knob(name: &str) -> bool {
-    std::env::var(name).map_or(true, |v| v != "0")
 }
 
 // `TSRS_LINT_TWO_PASSES=1`: the check pass and then the lint pass, each over every file, as before the one pass.

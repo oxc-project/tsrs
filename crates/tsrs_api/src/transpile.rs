@@ -237,6 +237,7 @@ fn transpile_in_current_region(
             emit_only,
             force_emit: declaration,
             write_file: Some(&write),
+            steal: false,
         },
     );
     all.extend(result.diagnostics);

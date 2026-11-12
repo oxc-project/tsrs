@@ -41,7 +41,7 @@ preserves this upstream behavior; see the [known cases](../notes/open-history-de
 | Setting | Default | Fast preset |
 | --- | --- | --- |
 | Checker count | 4, capped by file count | Adapts to CPU and project size, up to 32; `--build` keeps 4 per project |
-| Scheduling | Go's file assignment and visit order | Directory locality, work stealing and file splitting in the type-check pass (incremental builds included), and module affinity when eligible |
+| Scheduling | Go's file assignment and visit order | Directory locality, work stealing and file splitting in the type-check pass (incremental builds included), work stealing in incremental declaration signatures, and module affinity when eligible |
 | Checker history | Go's behavior | Canonical handling of selected history-dependent cases |
 | Additional checker caches | Union-front, indexed-access and inference-walk caches off | Those three caches on |
 | Type members | Eager | Lazy resolution and instantiation, including tuples, conditional/inference mappers and property-cache optimizations |

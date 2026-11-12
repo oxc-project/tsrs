@@ -25,6 +25,7 @@ mod merged_interface_check_site;
 mod npm_lib_path;
 mod recycle_checkers;
 mod server_signals;
+mod signature_emit_stealing;
 mod split_check;
 mod symbol_name_literal_clone;
 mod trace_resolution_order;

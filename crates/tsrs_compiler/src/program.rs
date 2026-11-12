@@ -1561,7 +1561,6 @@ impl Program {
         if before.windows(2).any(|w| !same_globals(&w[0], &w[1])) {
             return self.collect_checker_diagnostics_from_files(ctx, source_files, &collect);
         }
-        let owners = pool.owners();
         // Set when a file's check finds a global diagnostic: the other checkers stop before their next file.
         let found_global = AtomicBool::new(false);
         let stolen = self.collect_checker_diagnostics_from_files_ex(
@@ -1593,7 +1592,7 @@ impl Program {
         if self.options().diagnostics_enabled() {
             tsrs_core::phases::count(true, "Checkers: incremental pass rechecked statically", 1);
         }
-        pool.restart_static(&owners);
+        pool.restart_static();
         let known = before.into_iter().next().unwrap_or_default();
         self.collect_checker_diagnostics_from_files(
             ctx,
@@ -1609,6 +1608,34 @@ impl Program {
                 diagnostics
             },
         )
+    }
+
+    /// tsrs-only (notes/perf-signature-emit-stealing.md): whether an emit with `EmitOptions::steal` may move files
+    /// between checkers.
+    pub fn signature_emits_steal(&self) -> bool {
+        self.compiler_checker_pool()
+            .is_some_and(|pool| pool.signature_emits_steal(self.single_threaded()))
+    }
+
+    /// tsrs-only: whether no checker of the built-in pool holds a global diagnostic (one without a file). Creates the
+    /// checkers if they do not exist yet.
+    pub fn checkers_have_no_global_diagnostics(&self) -> bool {
+        self.compiler_checker_pool()
+            .is_some_and(|pool| pool.checker_global_diagnostics().iter().all(Vec::is_empty))
+    }
+
+    /// tsrs-only: gives every file of the built-in pool back its checker in the static assignment.
+    pub fn reset_checker_owners_static(&self) {
+        if let Some(pool) = self.compiler_checker_pool() {
+            pool.reset_owners_static();
+        }
+    }
+
+    /// tsrs-only: replaces the built-in pool's checkers by fresh ones on the static assignment (`restart_static`).
+    pub fn restart_checkers_static(&self) {
+        if let Some(pool) = self.compiler_checker_pool() {
+            pool.restart_static();
+        }
     }
 
     // program.go:823

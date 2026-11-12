@@ -404,6 +404,7 @@ impl<'a> EmitFilesHandler<'a> {
                 emit_only: options.emit_only,
                 force_emit: options.force_emit,
                 write_file: options.write_file,
+                steal: options.steal,
             };
         }
         EmitOptions {
@@ -411,6 +412,7 @@ impl<'a> EmitFilesHandler<'a> {
             emit_only: options.emit_only,
             force_emit: options.force_emit,
             write_file,
+            steal: options.steal,
         }
     }
 

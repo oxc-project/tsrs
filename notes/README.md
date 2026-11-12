@@ -185,6 +185,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [perf-hub-edit-shortcut](perf-hub-edit-shortcut.md)
 - [perf-incremental-parallel](perf-incremental-parallel.md)
 - [perf-incremental-pass-stealing](perf-incremental-pass-stealing.md)
+- [perf-signature-emit-stealing](perf-signature-emit-stealing.md)
 - [perf-tsgolint-check-program](perf-tsgolint-check-program.md)
 - [wasm-build](wasm-build.md)
 - [watch-macos](watch-macos.md)

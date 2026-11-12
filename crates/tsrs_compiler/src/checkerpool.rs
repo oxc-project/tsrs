@@ -1272,8 +1272,7 @@ impl VisitQueue {
 // measurement).
 fn steal_visits() -> bool {
     static VALUE: OnceLock<bool> = OnceLock::new();
-    *VALUE
-        .get_or_init(|| !std::env::var("TSRS_STEAL_VISITS").is_ok_and(|v| v == "0" || v == "off"))
+    *VALUE.get_or_init(|| !std::env::var("TSRS_STEAL_VISITS").is_ok_and(|v| v == "0" || v == "off"))
 }
 
 impl CheckerPoolImpl {
@@ -1302,16 +1301,20 @@ impl CheckerPoolImpl {
             files.iter().map(|f| state.file_indices.get(f).copied()).collect();
         let owner = |i: usize| {
             // Owners change only inside a work group (stealing); this pass starts after the last one joined.
-            index_of[i].map(|fi| state.owners[fi].load(std::sync::atomic::Ordering::Relaxed) as usize)
+            index_of[i]
+                .map(|fi| state.owners[fi].load(std::sync::atomic::Ordering::Relaxed) as usize)
         };
         let weight = |i: u32| {
             index_of[i as usize]
                 .map_or(1, |fi| state.weights.get(fi).copied().unwrap_or(1).max(0) as u64)
         };
         let mut checks: Vec<Vec<u32>> = vec![Vec::new(); n];
-        let visits: Vec<VisitQueue> = (0..n)
-            .map(|_| VisitQueue { items: Mutex::default(), left: Default::default() })
-            .collect();
+        let visits: Vec<VisitQueue> = std::iter::repeat_with(|| VisitQueue {
+            items: Mutex::default(),
+            left: std::sync::atomic::AtomicU64::default(),
+        })
+        .take(n)
+        .collect();
         for i in visit_order(files.len()) {
             let Some(owner) = owner(i) else {
                 continue;
@@ -1334,16 +1337,22 @@ impl CheckerPoolImpl {
                 heavy_files_first(queue, threshold, weight);
             }
         }
-        let checks: Vec<FileQueue> = checks.into_iter().map(|p| FileQueue::new(p, weight)).collect();
+        let checks: Vec<FileQueue> =
+            checks.into_iter().map(|p| FileQueue::new(p, weight)).collect();
         let steal_visits = steal && steal_visits();
         let run = |me: usize| {
             let mut guard = state.checkers[me].0.lock().unwrap();
             let scope = guard.enter();
             crate::sharedgraph::enter_checker(&guard);
             let (mut slot, mut last_victim) = (usize::MAX, usize::MAX);
-            while let Some((i, from_other)) =
-                queues_next(&checks, me, steal, max_thieves, &mut slot, sticky.then_some(&mut last_victim))
-            {
+            while let Some((i, from_other)) = queues_next(
+                &checks,
+                me,
+                steal,
+                max_thieves,
+                &mut slot,
+                sticky.then_some(&mut last_victim),
+            ) {
                 if from_other && let Some(fi) = index_of[i] {
                     // Read only after the work group joined.
                     state.owners[fi].store(me as u32, std::sync::atomic::Ordering::Relaxed);

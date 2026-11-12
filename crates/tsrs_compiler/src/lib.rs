@@ -22,9 +22,9 @@ mod sharedgraph;
 mod splitcheck;
 
 pub use checkerpool::{
-    CheckAndVisit, Checker, CheckerHandle, CheckerPool, Context, PooledChecker, checker_count_upper_bound,
-    parse_memory_size, set_checker_assignment_from_cli, set_checker_cost_cache_from_cli,
-    set_max_memory_from_cli, use_go_default_checker_count,
+    CheckAndVisit, Checker, CheckerHandle, CheckerPool, Context, PooledChecker,
+    checker_count_upper_bound, parse_memory_size, set_checker_assignment_from_cli,
+    set_checker_cost_cache_from_cli, set_max_memory_from_cli, use_go_default_checker_count,
 };
 pub use emitter::EmitOnly;
 pub use file_include::FileIncludeReason;

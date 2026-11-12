@@ -6894,7 +6894,7 @@ fn type_check_reports_type_errors_like_no_emit() {
 // Each file's type errors are reported once, though the root program imports every file here.
 // A listed file is reported by the program it maps to: `sub/b.ts` by `sub/tsconfig.json`, and `other/loose.ts`, which
 // no tsconfig includes, by the inferred program. The unlisted `lib/u.ts`, which both tsconfig programs import, is
-// reported by one of them.
+// reported by one of them, the same one whether the programs are linted at once or one at a time.
 #[test]
 fn type_check_reports_each_file_once() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-program-once");
@@ -6923,6 +6923,11 @@ fn type_check_reports_each_file_once() {
         assert_eq!(
             reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program-once"),
             vec!["lib/u.ts TS2322", "other/loose.ts TS2322", "sub/b.ts TS2322"]
+        );
+        assert_eq!(
+            run_raw_with_env(&input, &[], &[("TSRS_FAST", fast)]),
+            run_raw_with_env(&input, &[], &[("TSRS_FAST", fast), ("RAYON_NUM_THREADS", "1")]),
+            "fast={fast}"
         );
     }
 }

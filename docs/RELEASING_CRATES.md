@@ -48,9 +48,9 @@ Keep bootstrap credentials local.
 
 Push coordinated version bumps in both the root `Cargo.toml` (`[workspace.package] version`) and `package.json` to
 `main` to trigger the npm and crate release workflows. Set `package.json` to `node npm/build.mjs --print-version` and
-update the versioned workspace dependencies in the same push. Both workflows compare against the commit before the
-whole push and reject a bump to only one version. Other manifest edits leave publication skipped. The crate workflow
-packages and builds every archive before publishing.
+update the versioned workspace dependencies in the same push. The crate workflow watches only `Cargo.toml`. The
+version gate compares against the commit before the whole push and rejects a bump to only one version. Other
+manifest edits leave publication skipped. The crate workflow packages and builds every archive before publishing.
 
 To validate manually, run **Release Crates** from `main` with `dry_run` enabled. Disable `dry_run` for a manual publish
 or retry. Publishing uses the `crates` environment and never cancels a release in progress. A rerun skips crate

@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/*", "tasks/*"]
 
 [workspace.package]
-version = "0.24.0"
+version = "0.25.0"
 edition = "2024"
 rust-version = "1.99"
 license = "Apache-2.0"
@@ -71,40 +71,40 @@ windows-sys = { version = "0.61.2", features = [
     "Win32_System_Threading",
 ] }
 xxhash-rust = { version = "0.8", features = ["xxh3", "const_xxh3"] }
-tsrs_core = { version = "0.24.0", path = "crates/tsrs_core" }
-tsrs_diagnostics = { version = "0.24.0", path = "crates/tsrs_diagnostics" }
-tsrs_spanmap = { version = "0.24.0", path = "crates/tsrs_spanmap" }
-tsrs_ast = { version = "0.24.0", path = "crates/tsrs_ast" }
-tsrs_scanner = { version = "0.24.0", path = "crates/tsrs_scanner" }
-tsrs_parser = { version = "0.24.0", path = "crates/tsrs_parser" }
-tsrs_binder = { version = "0.24.0", path = "crates/tsrs_binder" }
-tsrs_vfs = { version = "0.24.0", path = "crates/tsrs_vfs" }
-tsrs_module = { version = "0.24.0", path = "crates/tsrs_module" }
-tsrs_tsoptions = { version = "0.24.0", path = "crates/tsrs_tsoptions" }
-tsrs_checker = { version = "0.24.0", path = "crates/tsrs_checker" }
-tsrs_pseudochecker = { version = "0.24.0", path = "crates/tsrs_pseudochecker" }
-tsrs_modulespecifiers = { version = "0.24.0", path = "crates/tsrs_modulespecifiers" }
-tsrs_compiler = { version = "0.24.0", path = "crates/tsrs_compiler" }
-tsrs_printer = { version = "0.24.0", path = "crates/tsrs_printer" }
-tsrs_transformers = { version = "0.24.0", path = "crates/tsrs_transformers" }
-tsrs_sourcemap = { version = "0.24.0", path = "crates/tsrs_sourcemap" }
-tsrs_declarations = { version = "0.24.0", path = "crates/tsrs_declarations" }
-tsrs_astnav = { version = "0.24.0", path = "crates/tsrs_astnav" }
-tsrs_lsproto = { version = "0.24.0", path = "crates/tsrs_lsproto" }
-tsrs_ls = { version = "0.24.0", path = "crates/tsrs_ls" }
-tsrs_project = { version = "0.24.0", path = "crates/tsrs_project" }
-tsrs_projectutil = { version = "0.24.0", path = "crates/tsrs_projectutil" }
-tsrs_lsp = { version = "0.24.0", path = "crates/tsrs_lsp" }
-tsrs_incremental = { version = "0.24.0", path = "crates/tsrs_incremental" }
-tsrs_api = { version = "0.24.0", path = "crates/tsrs_api" }
-tsrs_api_transport = { version = "0.24.0", path = "crates/tsrs_api_transport" }
-tsrs_api_codec = { version = "0.24.0", path = "crates/tsrs_api_codec" }
-tsrs_ipc = { version = "0.24.0", path = "crates/tsrs_ipc" }
-tsrs_contentmapper = { version = "0.24.0", path = "crates/tsrs_contentmapper" }
-tsrs_contentmappertest = { version = "0.24.0", path = "crates/tsrs_contentmappertest" }
-tsrs_execute = { version = "0.24.0", path = "crates/tsrs_execute" }
-tsrs_lint = { version = "0.24.0", path = "crates/tsrs_lint" }
-tsrs_fswatch = { version = "0.24.0", path = "crates/tsrs_fswatch" }
+tsrs_core = { version = "0.25.0", path = "crates/tsrs_core" }
+tsrs_diagnostics = { version = "0.25.0", path = "crates/tsrs_diagnostics" }
+tsrs_spanmap = { version = "0.25.0", path = "crates/tsrs_spanmap" }
+tsrs_ast = { version = "0.25.0", path = "crates/tsrs_ast" }
+tsrs_scanner = { version = "0.25.0", path = "crates/tsrs_scanner" }
+tsrs_parser = { version = "0.25.0", path = "crates/tsrs_parser" }
+tsrs_binder = { version = "0.25.0", path = "crates/tsrs_binder" }
+tsrs_vfs = { version = "0.25.0", path = "crates/tsrs_vfs" }
+tsrs_module = { version = "0.25.0", path = "crates/tsrs_module" }
+tsrs_tsoptions = { version = "0.25.0", path = "crates/tsrs_tsoptions" }
+tsrs_checker = { version = "0.25.0", path = "crates/tsrs_checker" }
+tsrs_pseudochecker = { version = "0.25.0", path = "crates/tsrs_pseudochecker" }
+tsrs_modulespecifiers = { version = "0.25.0", path = "crates/tsrs_modulespecifiers" }
+tsrs_compiler = { version = "0.25.0", path = "crates/tsrs_compiler" }
+tsrs_printer = { version = "0.25.0", path = "crates/tsrs_printer" }
+tsrs_transformers = { version = "0.25.0", path = "crates/tsrs_transformers" }
+tsrs_sourcemap = { version = "0.25.0", path = "crates/tsrs_sourcemap" }
+tsrs_declarations = { version = "0.25.0", path = "crates/tsrs_declarations" }
+tsrs_astnav = { version = "0.25.0", path = "crates/tsrs_astnav" }
+tsrs_lsproto = { version = "0.25.0", path = "crates/tsrs_lsproto" }
+tsrs_ls = { version = "0.25.0", path = "crates/tsrs_ls" }
+tsrs_project = { version = "0.25.0", path = "crates/tsrs_project" }
+tsrs_projectutil = { version = "0.25.0", path = "crates/tsrs_projectutil" }
+tsrs_lsp = { version = "0.25.0", path = "crates/tsrs_lsp" }
+tsrs_incremental = { version = "0.25.0", path = "crates/tsrs_incremental" }
+tsrs_api = { version = "0.25.0", path = "crates/tsrs_api" }
+tsrs_api_transport = { version = "0.25.0", path = "crates/tsrs_api_transport" }
+tsrs_api_codec = { version = "0.25.0", path = "crates/tsrs_api_codec" }
+tsrs_ipc = { version = "0.25.0", path = "crates/tsrs_ipc" }
+tsrs_contentmapper = { version = "0.25.0", path = "crates/tsrs_contentmapper" }
+tsrs_contentmappertest = { version = "0.25.0", path = "crates/tsrs_contentmappertest" }
+tsrs_execute = { version = "0.25.0", path = "crates/tsrs_execute" }
+tsrs_lint = { version = "0.25.0", path = "crates/tsrs_lint" }
+tsrs_fswatch = { version = "0.25.0", path = "crates/tsrs_fswatch" }
 
 [profile.dev]
 debug = false

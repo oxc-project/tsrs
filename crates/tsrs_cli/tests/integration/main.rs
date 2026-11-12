@@ -14,6 +14,7 @@ mod deferred_type_argument_check;
 mod flow_memo;
 mod free_leaf_files;
 mod generate_trace;
+mod invalid_utf8_argument;
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 mod isolated;
 mod lazy_dts_build;
@@ -27,4 +28,5 @@ mod split_check;
 mod symbol_name_literal_clone;
 mod trace_resolution_order;
 mod union_too_complex_cross_product;
+mod unsupported_commands;
 mod watch_macos;

@@ -25,7 +25,7 @@ repeated default-mode runs with identical inputs and settings.
 
 ## Command line
 
-Release 0.24.0 defaults to the pinned TypeScript checker settings. Its opt-in fast preset is enabled
+Release 0.25.0 defaults to the pinned TypeScript checker settings. Its opt-in fast preset is enabled
 by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this table. See
 [side effects and precedence](USAGE.md#side-effects) before enabling it.
 
@@ -41,8 +41,8 @@ by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this tabl
 | Incremental startup | Reads tsbuildinfo, then builds the program | Both at once on two threads, unless `--singleThreaded` |
 | tsbuildinfo contents | tsgo's fields | The same by default. Opt-in modes add `tsrsPerformance`; canonical history also adds `tsrsCanonicalCheckSignature` and `tsrsInterfaceFiles`. Changing history or lazy members invalidates incompatible cached diagnostics |
 | `--version` | `Version <TypeScript version>` | Appends `(tsrs <release>, microsoft/TypeScript@<commit>)`. Unstamped source builds use `7.1.0-beta`; npm builds use the pinned package version on both sides |
-| `--init` | Writes a tsconfig.json | `error: --init is not supported by tsrs.`, exit status 5, no file written |
-| `--showConfig` | Prints the resolved config as JSON | Not supported, exit status 5 |
+| `--init` | Writes a tsconfig.json | `error: --init is not supported by tsrs.` on stderr, exit status 5, no file written |
+| `--showConfig` | Prints the resolved config as JSON | `error: --showConfig is not supported by tsrs.` on stderr, exit status 5 |
 | `--help`, `--all`, `-b --help` | Full option help | A version line and short usage, exit status 0 |
 | No tsconfig.json and no files | Version and full help, exit status 1 | Version and one usage line, exit status 1 |
 | `--locale` | Translates messages | Accepted; messages stay in English |
@@ -51,6 +51,7 @@ by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this tabl
 | `--pprofDir` | Writes CPU and memory profiles | Parsed and ignored. `--lsp -pprofDir` prints the "will be written" line but writes nothing |
 | `Memory used` in `--diagnostics` | Live heap after two garbage collections | Process resident set size |
 | `Memory allocs` in `--diagnostics` | Number of allocations | Always 0 |
+| `Bind time` in `--diagnostics` | The bind pass | Near 0: the parallel loader binds each file right after parsing it, so `Parse time` includes binding. `--singleThreaded` binds in a separate pass and reports it |
 | `--diagnostics`, `--extendedDiagnostics` output | Compiler statistics | Adds subphase timings, program-load counts and lazy-member counters. Filesystem-call and lazy-list counters have been removed |
 | Uncaught panic during CLI compilation | Exit status 2 with a Go stack trace | The compilation thread's panic maps to exit status 5; unflushed output can be lost. Panics before that thread starts, in LSP or in API mode have different handling |
 | Stdout | Unbuffered | Buffered, flushed at exit and on watch status lines, so stdout and stderr can interleave differently |
@@ -61,7 +62,7 @@ by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this tabl
 | Case sensitivity detection | At startup | On first use (same test) |
 | Realpath on Linux | `O_PATH` and `/proc/self/fd`, falling back to walking symlinks | Rust's `std::fs::canonicalize` |
 | Memory management | Go garbage collection; honors Go runtime environment settings | Arenas and mimalloc. On Linux, huge pages are enabled for eligible arena allocations, not mimalloc's heap by default. Go runtime variables have no effect |
-| Arguments that aren't UTF-8 (Unix) | Accepted as byte strings | Panic while collecting arguments, before the compilation thread starts (normally exit status 101) |
+| Arguments that aren't UTF-8 (Unix) | Kept as bytes for file lookups; diagnostics print each run of invalid bytes as U+FFFD | Each run of invalid bytes becomes U+FFFD before parsing, so diagnostics match but lookups use the replaced name: a file whose name isn't UTF-8 (possible on Linux) is not found |
 | tsrs-only flags with `-b` | — | The tsrs-only flags (`--checkerAssignment`, `--checkerCostCache`, `--maxMemory`, `--lazyMembers`, `--noLazyMembers`) are rejected with TS5072 |
 
 The preset is supported by ordinary compilation, watch and build mode. `--fast` works in response files and is
@@ -207,7 +208,7 @@ and watch declarations were regenerated into scratch files and compared; all 174
 library files matched. Probes with source-built binaries on macOS covered help, version, unsupported commands,
 locale handling, statistics, incremental metadata, tracing, profiling, non-UTF-8 arguments and API startup errors. Direct Go/Rust
 probes confirmed the unknown `moduleDetection` and tsbuildinfo enum conversions. Platform-specific watcher
-behavior, runtime scheduling and the remaining server/API details were checked in source. The current 0.24.0
+behavior, runtime scheduling and the remaining server/API details were checked in source. The current 0.25.0
 source pin is `3e9236361fa9`; its broader conformance evidence is in the
 [recorded suite results](COMPATIBILITY.md#conformance), [source-upgrade log](../notes/typescript-623-ports.md),
 and [beta follow-up log](../notes/typescript-7.1-beta-ports.md).

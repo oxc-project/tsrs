@@ -1535,13 +1535,11 @@ dependencies = [
  "tsrs_ast",
  "tsrs_binder",
  "tsrs_checker",
- "tsrs_compiler",
  "tsrs_core",
  "tsrs_parser",
  "tsrs_printer",
  "tsrs_scanner",
  "tsrs_tsoptions",
- "tsrs_vfs",
 ]
 
 [[package]]

@@ -1,6 +1,6 @@
 # Builds the tsrs binaries and the WebAssembly module, publishes the npm packages, then creates the GitHub release,
-# using docs/releases/<workspace version>.md for its notes. Update root package.json on main to release an unpublished version;
-# it must match the npm version npm/build.mjs derives from Cargo.toml. The conformance and fourslash gates run here on the BOLT-optimized
+# using docs/releases/<workspace version>.md for its notes. Bump the Cargo workspace and root package.json versions together on main;
+# package.json must match the npm version npm/build.mjs derives from Cargo.toml. The conformance and fourslash gates run here on the BOLT-optimized
 # GNU binaries (.github/scripts/bolt.sh). The macOS and Windows binaries get the smoke tests below; Windows also
 # trains on the conformance suite. The broader WebAssembly differential gate
 # (tools/wasm/gate.sh) remains available locally.
@@ -8,7 +8,8 @@
 # Setup before the first release:
 #   - npm trusted publishers for `tsrs`, `@tsrs/wasm` and every platform package: GitHub Actions,
 #     repository oxc-project/tsrs, workflow release.yml, no environment, with direct publishing allowed.
-#   - root package.json version set to `node npm/build.mjs --print-version` when preparing a release.
+#   - Cargo workspace version and root package.json version bumped together, with package.json set to
+#     `node npm/build.mjs --print-version` when preparing a release.
 # Provenance (`pnpm publish --provenance`) is only possible from a public repository; it is enabled automatically
 # when the repository is public and skipped while it is private.
 
@@ -17,7 +18,7 @@ name: Release
 on:
   push:
     branches: [main]
-    paths: [package.json]
+    paths: [Cargo.toml, package.json]
   workflow_dispatch:
     inputs:
       dry_run:
@@ -47,15 +48,25 @@ jobs:
       ts_commit: ${{ steps.v.outputs.ts_commit }}
       ts_nightly: ${{ steps.v.outputs.ts_nightly }}
     steps:
-      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Node
         uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
         with:
           registry-url: ""
 
-      - name: Check version changes
+      - name: Check coordinated version changes
         if: github.event_name == 'push'
+        id: versions
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: node tools/release/version-changed.mjs --before "$BEFORE_SHA"
+
+      - name: Check for an unpublished npm version
+        if: github.event_name == 'push' && steps.versions.outputs.changed == 'true'
         id: check
         uses: EndBug/version-check@095362f3cd50f690c8fa0e6afeea81834bd8d320 # v3.0.0
         with:

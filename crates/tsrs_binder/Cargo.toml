@@ -1,6 +1,6 @@
 [package]
 name = "tsrs_binder"
-version = "7.1.0-beta.tsrs0001"
+version = "7.1.0-beta.tsrs1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

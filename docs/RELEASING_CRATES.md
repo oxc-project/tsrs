@@ -7,7 +7,7 @@ benchmarks, test helpers, task crates and the WebAssembly crate are excluded.
 ## Prepare a release
 
 1. Run [Prepare Release](../.github/workflows/prepare_release.yml) from `main` with the next TypeScript-aligned version,
-   such as `7.1.0-beta.tsrs0002`, without a leading `v`.
+   such as `7.1.0-beta.tsrs2`, without a leading `v`.
 2. Review the generated PR. It bumps Cargo and npm versions together, refreshes `Cargo.lock`, packages and builds
    every published crate, and generates `docs/releases/<version>.md` if notes do not already exist.
 3. Merge the PR to trigger [Release Crates](../.github/workflows/release_crates.yml) and
@@ -24,35 +24,37 @@ workflow watches only root `Cargo.toml`; unrelated manifest edits skip publicati
 ## Versioning
 
 Following [#961](https://github.com/oxc-project/tsrs/issues/961), versions keep TypeScript's numeric version and
-append a four-digit tsrs revision as a SemVer prerelease identifier:
+append an unpadded tsrs revision as a SemVer prerelease identifier:
 
 | TypeScript reference | First tsrs release | Next tsrs fix |
 | --- | --- | --- |
-| `7.0.2` | `7.0.2-tsrs0001` | `7.0.2-tsrs0002` |
-| `7.1.0` | `7.1.0-tsrs0001` | `7.1.0-tsrs0002` |
-| `7.1.0-beta` | `7.1.0-beta.tsrs0001` | `7.1.0-beta.tsrs0002` |
-| `7.1.0-dev.20261112` | `7.1.0-alpha.20261112.tsrs0001` | `7.1.0-alpha.20261112.tsrs0002` |
+| `7.0.2` | `7.0.2-tsrs1` | `7.0.2-tsrs2` |
+| `7.1.0` | `7.1.0-tsrs1` | `7.1.0-tsrs2` |
+| `7.1.0-beta` | `7.1.0-beta.tsrs1` | `7.1.0-beta.tsrs2` |
+| `7.1.0-dev.20261112` | `7.1.0-alpha.20261112.tsrs1` | `7.1.0-alpha.20261112.tsrs2` |
 
 SemVer forbids leading zeros in numeric components, so `7.1.0001-beta` and `7.1.0-beta.0001` are invalid.
-`tsrs0001` contains letters, making its padding valid. Revisions run from `0001` to `9999`; the checks reject
-wrapping or widening the identifier because that would break its lexical ordering. A newer TypeScript reference
-starts a fresh revision range.
+`tsrs1` is a valid nonnumeric identifier. Revisions are positive integers without leading zeros.
 
-Increment the revision for a fix against the same upstream version; reset it to `0001` for a new upstream version.
+SemVer compares `tsrsN` as text, so `tsrs10` sorts before `tsrs9`. Sequential revisions on the same TypeScript
+version therefore run from `tsrs1` through `tsrs9`; further sequential releases require a new TypeScript version.
+Release checks reject any transition that moves backwards, including `tsrs9` to `tsrs10`.
+
+Increment the revision for a fix against the same upstream version; reset it to `1` for a new upstream version.
 Nightly `dev` labels map to `alpha` so they sort before beta, rc and stable-reference releases. The exact upstream
 nightly version stays in metadata. Every requested release must increase in SemVer order; channel transitions
 that would move backwards are rejected. For example:
 
 ```text
-7.1.0-alpha.20261112.tsrs0001 < 7.1.0-beta.tsrs0001 < 7.1.0-tsrs0001 < 7.1.0-tsrs0002
+7.1.0-alpha.20261112.tsrs1 < 7.1.0-beta.tsrs1 < 7.1.0-tsrs1 < 7.1.0-tsrs2
 ```
 
 These versions are all SemVer prereleases, including those targeting stable TypeScript. They publish to npm's
 `next` tag and create GitHub prereleases. Tags and notes use the same version: `v<version>` and
-`docs/releases/<version>.md`. Build metadata such as `+tsrs0001` cannot replace the prerelease identifier because
+`docs/releases/<version>.md`. Build metadata such as `+tsrs1` cannot replace the prerelease identifier because
 SemVer ignores it when ordering releases.
 
-The first release under this scheme is `7.1.0-beta.tsrs0001`, replacing `0.25.0-ts7.1.0-beta` for npm packages. Cargo uses
+The first release under this scheme is `7.1.0-beta.tsrs1`, replacing `0.25.0-ts7.1.0-beta` for npm packages. Cargo uses
 the same version, and all native platform and WebAssembly npm packages move together. The pinned TypeScript version,
 matching npm compiler package and exact source commit remain in `[workspace.metadata.typescript]`; generated npm
 packages expose the version and commit through their `tsrs` metadata. Compiler compatibility uses that TypeScript
@@ -65,7 +67,7 @@ From a clean checkout:
 ```sh
 cargo binstall cargo-release-oxc --version 0.0.44 --locked
 mkdir -p target
-cargo release-oxc update --release crates --version 7.1.0-beta.tsrs0002
+cargo release-oxc update --release crates --version 7.1.0-beta.tsrs2
 cargo check
 node tools/release/crates.mjs --allow-dirty
 ```

@@ -36,15 +36,16 @@ runtime differences and unsupported features.
 
 ## Versioning
 
-Versions identify the supported TypeScript release and a padded tsrs revision. For TypeScript `7.1.0-beta`,
-`7.1.0-beta.tsrs0001` is the first tsrs release and `7.1.0-beta.tsrs0002` is the next fix. Stable TypeScript `7.1.0`
-uses `7.1.0-tsrs0001`.
+Versions identify the supported TypeScript release and an unpadded tsrs revision. For TypeScript `7.1.0-beta`,
+`7.1.0-beta.tsrs1` is the first tsrs release and `7.1.0-beta.tsrs2` is the next fix. Stable TypeScript `7.1.0`
+uses `7.1.0-tsrs1`.
 
-The `tsrs` identifier permits zero padding under SemVer. These versions are tsrs prereleases, including those
-targeting stable TypeScript, and publish to npm's `next` tag (`pnpm add -D tsrs@next`). The compiler's TypeScript
+SemVer compares `tsrsN` as text, so `tsrs10` sorts before `tsrs9`; further sequential revisions require a new
+TypeScript version. These versions are tsrs prereleases, including those targeting stable TypeScript, and publish
+to npm's `next` tag (`pnpm add -D tsrs@next`). The compiler's TypeScript
 compatibility version and exact source commit remain available separately in `tsrs --version` and npm metadata.
 See [versioning and releases](https://github.com/oxc-project/tsrs/blob/main/docs/RELEASING_CRATES.md#versioning)
-for nightly versions and revision limits.
+for nightly versions and release ordering.
 
 ## Fast mode
 

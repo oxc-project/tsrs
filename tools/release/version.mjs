@@ -47,11 +47,11 @@ export function validateReleaseVersion(version, typescriptVersion) {
     const prefix = [...upstream.prerelease];
     // TypeScript's dev label sorts after beta; alpha preserves chronological channel order.
     if (prefix[0] === "dev") prefix[0] = "alpha";
-    const revision = /^tsrs(\d{4})$/.exec(release.prerelease.at(-1) ?? "");
-    const expected = `${upstream.core.join(".")}-${[...prefix, "tsrs0001"].join(".")}`;
+    const revision = /^tsrs([1-9]\d*)$/.exec(release.prerelease.at(-1) ?? "");
+    const expected = `${upstream.core.join(".")}-${[...prefix, "tsrs1"].join(".")}`;
     if (release.core.some((part, index) => part !== upstream.core[index])
-        || release.prerelease.slice(0, -1).join(".") !== prefix.join(".") || !revision || revision[1] === "0000") {
-        throw new Error(`${version} must follow ${expected} for TypeScript ${typescriptVersion}, with a revision from tsrs0001 to tsrs9999`);
+        || release.prerelease.slice(0, -1).join(".") !== prefix.join(".") || !revision) {
+        throw new Error(`${version} must follow ${expected} for TypeScript ${typescriptVersion}, with an unpadded positive tsrs revision`);
     }
     return { counter: BigInt(revision[1]) };
 }

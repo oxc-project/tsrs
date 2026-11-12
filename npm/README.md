@@ -62,9 +62,12 @@ launcher and the JS API on each given Node; 16.20.0, 18, 20, 22 and 24 pass.)
 
 ## Versions
 
-Cargo and all ten npm packages share the TypeScript-aligned version `7.1.0-beta.tsrs0001`. The prefix identifies
-TypeScript `7.1.0-beta`; `tsrs0001` is the padded tsrs revision. The next fix is `7.1.0-beta.tsrs0002`. Stable
-TypeScript `7.1.0` uses `7.1.0-tsrs0001`. These are SemVer prereleases and publish under npm's `next` tag.
+Cargo and all ten npm packages share the TypeScript-aligned version `7.1.0-beta.tsrs1`. The prefix identifies
+TypeScript `7.1.0-beta`; `tsrs1` is the unpadded tsrs revision. The next fix is `7.1.0-beta.tsrs2`. Stable
+TypeScript `7.1.0` uses `7.1.0-tsrs1`. These are SemVer prereleases and publish under npm's `next` tag.
+
+SemVer compares `tsrsN` as text: `tsrs10` sorts before `tsrs9`. Release checks reject that transition, so after
+`tsrs9` a new TypeScript version is required for further sequential revisions.
 
 `cargo-release-oxc` manages the explicit published crate versions and their workspace dependency versions in
 `Cargo.toml`, along with the private root `package.json`. `npm/build.mjs` copies the same version into the main,
@@ -77,7 +80,7 @@ manifests expose the version and commit as `tsrs.typescriptVersion` and `tsrs.ty
 `tsrs --version` and `tsrs-wasm --version` report both the compiler compatibility version and the tsrs package version:
 
 ```
-Version 7.1.0-beta (tsrs 7.1.0-beta.tsrs0001, microsoft/TypeScript@3e9236361fa9)
+Version 7.1.0-beta (tsrs 7.1.0-beta.tsrs1, microsoft/TypeScript@3e9236361fa9)
 ```
 
 See [versioning and releases](../docs/RELEASING_CRATES.md#versioning) for nightly ordering, revision limits and
@@ -184,7 +187,7 @@ Wire contract the server has to speak (from the pinned `tsc/cmd/tsc/api.go`, `ts
 ## Releasing
 
 Run [Prepare Release](../.github/workflows/prepare_release.yml) from `main` with the next version, such as
-`7.1.0-beta.tsrs0002`. It uses `cargo release-oxc update` to bump Cargo and npm together, updates `Cargo.lock`,
+`7.1.0-beta.tsrs2`. It uses `cargo release-oxc update` to bump Cargo and npm together, updates `Cargo.lock`,
 validates crate archives and opens a PR with release notes in `docs/releases/<version>.md`.
 Merging the coordinated version bump triggers crate and npm publishing. For local commands and publisher setup,
 see [the release guide](../docs/RELEASING_CRATES.md).

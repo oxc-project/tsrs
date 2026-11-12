@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Crate version without a leading v or TypeScript suffix (for example 0.26.0)"
+        description: "TypeScript-aligned version without v (for example 7.1.0-beta.tsrs2)"
         type: string
         required: true
 
@@ -36,18 +36,9 @@ jobs:
       - name: Validate requested version
         run: |
           node --input-type=module <<'JS'
-          import fs from "node:fs";
-          const requested = process.env.RELEASE_VERSION;
-          if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(requested)) {
-            throw new Error("Use a version such as 0.26.0, without a leading v or prerelease suffix");
-          }
-          const current = JSON.parse(fs.readFileSync("package.json", "utf8")).version;
-          const previous = current.split(".").map(BigInt);
-          const next = requested.split(".").map(BigInt);
-          const first = next.findIndex((part, index) => part !== previous[index]);
-          if (first === -1 || next[first] < previous[first]) {
-            throw new Error(`Requested version ${requested} must be newer than ${current}`);
-          }
+          import { readVersions, validateNextVersion } from "./tools/release/version.mjs";
+          const current = readVersions(process.cwd());
+          validateNextVersion(current.version, process.env.RELEASE_VERSION, current.typescriptVersion);
           JS
 
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17

@@ -15,7 +15,7 @@
 // build-only compiler in npm/package.json (`pnpm install --frozen-lockfile` first; `--tsc <path>` to use another TypeScript 7 tsc).
 //
 // The package name comes from npm/tsrs/package.json; Linux platform packages have a `-gnu` or `-musl` suffix. The version is
-// `<tsrs_cli version>-ts<[workspace.metadata.typescript] version>` from the workspace Cargo.toml, for every package
+// the TypeScript-aligned `tsrs_cli` version from the workspace Cargo.toml, for every package
 // including `@tsrs/wasm` (npm/tsrs-wasm). The main package lists exactly the platforms given here, so a
 // release never points at a platform package that was not published.
 
@@ -23,6 +23,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { distTag, readVersions } from "../tools/release/version.mjs";
 
 const npmDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(npmDir, "..");
@@ -114,35 +115,6 @@ function parseArgs(argv) {
     return opts;
 }
 
-// Read the CLI's workspace dependency version and the TypeScript source pin.
-function readCargoVersions() {
-    const text = fs.readFileSync(path.join(repoRoot, "Cargo.toml"), "utf8");
-    const tables = {};
-    let table = "";
-    for (const raw of text.split("\n")) {
-        const line = raw.replace(/#.*$/, "").trim();
-        const header = line.match(/^\[([^\]]+)\]$/);
-        if (header) {
-            table = header[1];
-            continue;
-        }
-        const kv = line.match(/^([\w-]+)\s*=\s*"([^"]*)"$/);
-        if (kv) (tables[table] ??= {})[kv[1]] = kv[2];
-    }
-    const crateVersion = text.match(/^tsrs_cli\s*=\s*\{[^}]*\bversion\s*=\s*"([^"]+)"/m)?.[1];
-    const ts = tables["workspace.metadata.typescript"];
-    if (!crateVersion || !ts?.version || !ts?.commit || !ts?.nightly) {
-        throw new Error("Cargo.toml needs the tsrs_cli workspace dependency version and [workspace.metadata.typescript] version/commit/nightly");
-    }
-    return {
-        crateVersion,
-        version: `${crateVersion}-ts${ts.version}`,
-        typescriptVersion: ts.version,
-        typescriptCommit: ts.commit,
-        typescriptNightly: ts.nightly,
-    };
-}
-
 function writeJson(file, value) {
     fs.writeFileSync(file, JSON.stringify(value, undefined, 4) + "\n");
 }
@@ -230,6 +202,7 @@ function stageWasm(module, out, versions, license, notice) {
     writeJson(path.join(dir, "package.json"), {
         ...template,
         version: versions.version,
+        publishConfig: { ...template.publishConfig, tag: distTag(versions.version) },
         tsrs: { typescriptVersion: versions.typescriptVersion, typescriptCommit: versions.typescriptCommit },
     });
     return dir;
@@ -253,13 +226,13 @@ function pnpmPack(dir, out) {
 
 function main() {
     const opts = parseArgs(process.argv.slice(2));
-    const versions = readCargoVersions();
+    const versions = readVersions(repoRoot);
     const { version } = versions;
 
     if (opts.checkTag !== undefined) {
         const tag = opts.checkTag.replace(/^refs\/tags\//, "");
-        if (tag !== `v${version}` && tag !== `v${versions.crateVersion}`) {
-            throw new Error(`git tag ${tag} does not match the package version: expected v${versions.crateVersion} or v${version}`);
+        if (tag !== `v${version}`) {
+            throw new Error(`git tag ${tag} does not match the package version: expected v${version}`);
         }
     }
     if (opts.print) {
@@ -288,7 +261,8 @@ function main() {
         license: template.license,
         repository: template.repository,
         engines: template.engines,
-        publishConfig: template.publishConfig,
+        publishConfig: { ...template.publishConfig, tag: distTag(version) },
+        tsrs: { typescriptVersion: versions.typescriptVersion, typescriptCommit: versions.typescriptCommit },
     };
 
     const packageDirs = [];
@@ -354,6 +328,7 @@ function main() {
         writeJson(path.join(mainDir, "package.json"), {
             ...stripSourceConditions(template),
             version,
+            publishConfig: common.publishConfig,
             tsrs: { typescriptVersion: versions.typescriptVersion, typescriptCommit: versions.typescriptCommit },
             optionalDependencies,
         });

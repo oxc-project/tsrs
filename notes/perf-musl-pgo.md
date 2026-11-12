@@ -7,7 +7,7 @@ cheapest sound way to give it a profile?
 
 Answer: the published 0.25.0 arm64 musl binary takes 6-22% more wall time and 9-22% more CPU than the glibc one on the
 five public projects, with 10-21% more instructions and the same peak memory. Training on musl builds (the glibc job's
-workload without the Go fourslash suite, plus `--fast` runs of the two bench projects) removes most of that: -4 to -14%
+workload without the Go fourslash suite, including its `--fast` runs of the two bench projects) removes most of that: -4 to -14%
 wall and -6.5 to -14% CPU against the unprofiled musl build, leaving it 0.5-3.9% behind the glibc binary, which also has
 BOLT. Reusing the glibc job's profile does not work (no measurable gain): 88% of the functions find no profile data,
 because cargo's crate hash, which is part of every symbol name, includes the target. Release builds now train on musl
@@ -38,6 +38,11 @@ Arms:
   mode, with `--fast` and with `--lint headless` (4 cores, as the release runners have). Needs only `tsrs`.
 - `mF`: `mA` + a profile from a musl instrumented build of tsrs and tsrs-test, trained on the conformance suite plus
   `mS`'s workload. This is what `build-musl` now does (`pgo-train.sh --musl`).
+
+After these measurements main's `pgo-train.sh` gained the same `--fast` runs for every target (PR #976,
+notes/perf-pgo-fast-training.md), so `--musl` is now that workload minus the Go fourslash suite: the `mF` workload,
+with the runs in a different order. `pubG` is the 0.25.0 glibc binary, trained before that change; a glibc build with
+it would sit somewhat further ahead of `mF` than the "pubG →" columns show.
 
 `mA` against `pubM` is the check that the box reproduces the release build: instructions are identical (0.0% on every
 workload), CPU 0-2.6% lower.

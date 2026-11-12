@@ -1296,7 +1296,7 @@ impl Checker {
         let new_symbol = self.new_symbol(SymbolFlags::Alias, INTERNAL_SYMBOL_NAME_DEFAULT);
         new_symbol.set_parent(original_symbol);
         let name_type = self.get_string_literal_type("default");
-        self.value_symbol_links.get(new_symbol).set_name_type(Some(name_type));
+        self.value_symbol_links.get_fresh(new_symbol).set_name_type(Some(name_type));
         let alias_target = self.resolve_symbol(symbol);
         self.alias_symbol_links.get(new_symbol).alias_target.set(Some(alias_target));
         member_table.set(INTERNAL_SYMBOL_NAME_DEFAULT, new_symbol);
@@ -1335,7 +1335,7 @@ impl Checker {
             &[],
             resolved_module_type.index_infos(),
         );
-        self.value_symbol_links.get(result).resolved_type.set(Some(t));
+        self.value_symbol_links.get_fresh(result).resolved_type.set(Some(t));
         result
     }
 
@@ -3024,7 +3024,7 @@ impl Checker {
                 e, false, /*includePatternInType*/
                 true,  /*reportErrors*/
             );
-            self.value_symbol_links.get(symbol).resolved_type.set(Some(resolved_type));
+            self.value_symbol_links.get_fresh(symbol).resolved_type.set(Some(resolved_type));
             members.set(symbol.name(), symbol);
         }
         let index_infos = self.get_index_infos_of_type(t);

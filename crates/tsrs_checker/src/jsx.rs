@@ -1154,7 +1154,7 @@ impl Checker {
                     if member.value_declaration().is_some() {
                         attribute_symbol.set_value_declaration(member.value_declaration());
                     }
-                    let links = self.value_symbol_links.get(attribute_symbol);
+                    let links = self.value_symbol_links.get_fresh(attribute_symbol);
                     links.resolved_type.set(Some(expr_type));
                     links.set_target(Some(member));
                     attributes_table.set(attribute_symbol.name(), attribute_symbol);
@@ -1281,7 +1281,7 @@ impl Checker {
                 // If there are children in the body of JSX element, create dummy attribute "children" with the union of children types so that it will pass the attribute checking process
                 let children_prop_symbol =
                     self.new_symbol(SymbolFlags::Property, alloc_str(&jsx_children_property_name));
-                let links = self.value_symbol_links.get(children_prop_symbol);
+                let links = self.value_symbol_links.get_fresh(children_prop_symbol);
                 if child_types.len() == 1 {
                     links.resolved_type.set(Some(child_types[0]));
                 } else if children_contextual_type.is_some()
@@ -1842,7 +1842,7 @@ impl Checker {
         // returnNode := typeSymbol && c.nodeBuilder.symbolToEntityName(typeSymbol, ast.SymbolFlagsType, node)
         // declaration := factory.createFunctionTypeNode(nil, []ParameterDeclaration{factory.createParameterDeclaration(nil, nil /*dotDotDotToken*/, "props", nil /*questionToken*/, c.nodeBuilder.typeToTypeNode(result, node))}, ifElse(returnNode != nil, factory.createTypeReferenceNode(returnNode, nil /*typeArguments*/), factory.createKeywordTypeNode(ast.KindAnyKeyword)))
         let parameter_symbol = self.new_symbol(SymbolFlags::FunctionScopedVariable, "props");
-        self.value_symbol_links.get(parameter_symbol).resolved_type.set(Some(result));
+        self.value_symbol_links.get_fresh(parameter_symbol).resolved_type.set(Some(result));
         self.new_signature(
             SignatureFlags::None,
             None,

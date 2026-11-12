@@ -2012,7 +2012,7 @@ impl Checker {
                 let value_type =
                     self.check_expression_cached(attribute.as_import_attribute().value);
                 let resolved_type = self.get_regular_type_of_literal_type(value_type);
-                self.value_symbol_links.get(member).resolved_type.set(Some(resolved_type));
+                self.value_symbol_links.get_fresh(member).resolved_type.set(Some(resolved_type));
                 members.set(member.name(), member);
             }
             let t = self.new_anonymous_type(Some(symbol), Some(members), &[], &[], &[]);

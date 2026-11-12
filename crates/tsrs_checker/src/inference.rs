@@ -1888,7 +1888,7 @@ impl Checker {
             );
             inferred_prop.set_declarations_static(prop.declarations());
             let name_type = self.value_symbol_links.get(prop).name_type();
-            self.value_symbol_links.get(inferred_prop).set_name_type(name_type);
+            self.value_symbol_links.get_fresh(inferred_prop).set_name_type(name_type);
             let links = self.reverse_mapped_symbol_links.get(inferred_prop);
             links.property_type.set(Some(self.get_type_of_symbol(prop)));
             let constraint_target = r_constraint_type.as_index_type().target().unwrap();
@@ -2072,7 +2072,7 @@ impl Checker {
             }
             let name = get_string_literal_value(t);
             let literal_prop = self.new_symbol(SymbolFlags::Property, alloc_str(name));
-            self.value_symbol_links.get(literal_prop).resolved_type.set(Some(self.any_type));
+            self.value_symbol_links.get_fresh(literal_prop).resolved_type.set(Some(self.any_type));
             if let Some(symbol) = t.symbol() {
                 literal_prop.set_declarations_static(symbol.declarations());
                 literal_prop.set_value_declaration(symbol.value_declaration());

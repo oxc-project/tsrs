@@ -89,6 +89,21 @@ impl SymbolIdGenerator {
             };
         SymbolId(decode_id(id))
     }
+
+    /// `get_symbol_id` for a symbol that no other thread can reach yet, such as one the caller's checker has just
+    /// created: the same id from the same block, written with a plain store instead of a compare-and-swap.
+    #[inline]
+    pub fn get_fresh_symbol_id(&self, symbol: P<Symbol>) -> SymbolId {
+        // Relaxed: as in `get_symbol_id`.
+        let id = symbol.id.load(Ordering::Relaxed);
+        if id != 0 {
+            return SymbolId(decode_id(id));
+        }
+        let id = next_block_id(&NEXT_SYMBOL_BLOCK_ID, &self.block);
+        // Relaxed: only this thread can see the symbol, so nothing competes for its id.
+        symbol.id.store(id, Ordering::Relaxed);
+        SymbolId(decode_id(id))
+    }
 }
 
 /// Ids a thread in id-block mode (`use_id_blocks`) takes from a counter at a time.

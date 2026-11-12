@@ -383,7 +383,7 @@ impl Checker {
             // Inherit information about parent type.
             result.set_parent(first_value_declaration.symbol().unwrap().parent());
         }
-        let links = self.value_symbol_links.get(result);
+        let links = self.value_symbol_links.get_fresh(result);
         links.set_containing_type(Some(containing_type));
         links.set_name_type(name_type);
         if prop_types.len() > 2 {
@@ -510,7 +510,7 @@ impl Checker {
         symbol.set_declarations_static(source.declarations());
         symbol.set_parent(source.parent());
         symbol.set_value_declaration(source.value_declaration());
-        let links = self.value_symbol_links.get(symbol);
+        let links = self.value_symbol_links.get_fresh(symbol);
         links.resolved_type.set(t);
         links.set_target(Some(source));
         links.set_name_type(self.value_symbol_links.get(source).name_type());

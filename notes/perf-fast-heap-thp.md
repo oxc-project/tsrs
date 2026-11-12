@@ -1,9 +1,9 @@
-# perf-fast-heap-thp: transparent huge pages for mimalloc's heap under `--fast`, after the parse phase
+# perf-fast-heap-thp: transparent huge pages for mimalloc's heap under `--fast`, after parsing a large program
 
 The build keeps transparent huge pages off mimalloc's heap (`no_thp`, notes/mem-no-thp.md): every partly filled
-thread-local mimalloc page would be resident as a whole 2 MiB page. `--fast` may spend memory, so under `--fast` the
-CLI gives the checkers' heap huge pages; the parse phase's heap stays without them. The arena's own `MADV_HUGEPAGE`
-advice is unchanged.
+thread-local mimalloc page would be resident as a whole 2 MiB page. Under `--fast` the CLI gives the checkers' heap
+huge pages when the program is large enough that the extra memory is a small share of its peak (the size gate below);
+the parse phase's heap stays without them. The arena's own `MADV_HUGEPAGE` advice is unchanged.
 
 ## Mechanism
 
@@ -17,8 +17,9 @@ mimalloc starts:
 - `arena_reserve = 64 MiB` instead of 1 GiB, so the checkers' memory is mapped after the parse phase instead of carved
   out of the arena the parse threads filled.
 
-`main` then sets `allow_thp = 0`, and the checker pool sets it back to 1 once the program is parsed, before any
-checker thread starts (`tsrs_core::allocator::parse_ended`). The constructor allocates nothing: the first allocation
+A priority-102 constructor, right after mimalloc's, sets `allow_thp = 0` before anything allocates, and the checker
+pool may set it back to 1 once the program is parsed, before any checker thread starts
+(`tsrs_core::allocator::parse_ended`, the size gate). The constructor allocates nothing: the first allocation
 would start mimalloc with the default policy.
 
 - An explicit `MIMALLOC_ALLOW_THP` or `MIMALLOC_ARENA_RESERVE` in the environment wins.
@@ -28,18 +29,105 @@ would start mimalloc with the default policy.
 - musl builds keep the build's policy: musl calls constructors without arguments.
 - The `fast_heap_huge_pages` integration tests (tsrs_cli, Linux glibc) read the values mimalloc starts with from its
   `MIMALLOC_VERBOSE=1` report, which pins the option numbers: 43 and 23 in mimalloc v3's `mimalloc.h`
-  (`libmimalloc-sys2`'s constants are v2's).
+  (`libmimalloc-sys2`'s constants are v2's). Another reads the size gate's decision from `TSRS_MEM_SPLIT=1`.
 
-## Why the gate
+## Why huge pages wait for parse end
 
 `TSRS_MEM_SPLIT=1` on vscode showed that with huge pages for the whole run, the heap at parse end holds about 470 MiB
 more resident memory than without (the same block, not one that scales with the program, on every project measured):
 free space inside the partly used pages of 32 parse threads, now 2 MiB each. That fixed block is why the first
-version of this change doubled the small projects' peak. With the gate, vscode's heap at parse end has 60 MiB on huge
-pages (the first 64 MiB arena, mapped at start-up) instead of 762 MiB, and nearly all of the checkers' heap is on huge
-pages.
+version of this change doubled the small projects' peak. With the parse-end switch alone (the version measured at 32
+vCPUs below), vscode's heap at parse end still had 60 MiB on huge pages: mimalloc's first 64 MiB arena, mapped by the
+first allocation while `allow_thp` was still 1. The priority-102 constructor turns it off before that allocation, so
+the parse phase's heap now has no huge pages at all (20-45 MiB less at parse end on every project).
 
-## Measurements
+## The size gate
+
+After parsing, huge pages still cost a roughly fixed block per checker: each checker thread's partly used heap pages
+(64 KiB small and 512 KiB medium pages, one per size class in use) are resident whole. Forced on
+(`TSRS_FAST_HEAP_HUGE_PAGES=1`) against main, the public projects' peak grew by 12-20 MiB per checker at 4 and 8
+checkers. That is a large share of a small program's peak and a small share of a large one's, and a program's peak was
+at least 1.45x its resident memory at parse end on every project measured (vscode has the lowest ratio). So at parse
+end, `fast_heap_at_parse_end` (crates/tsrs_cli/src/main.rs) reads the process's resident memory (`/proc/self/statm`,
+one read) and turns huge pages on only if it is at least 256 MiB per checker. With 20 MiB per checker and a 1.45x
+ratio, the block is then at most about 5% of the peak. Other predictors were not needed: the resident memory already
+includes the arena, the source text and the heap, and the checker count is the cost's own scale.
+
+- `TSRS_FAST_HEAP_HUGE_PAGES=1` turns huge pages on at parse end whatever the size, `0` never (for A/B runs). An
+  explicit `MIMALLOC_ALLOW_THP` still wins over both.
+- `TSRS_MEM_SPLIT=1` prints the decision, the parse-end memory and the checker count.
+- Build mode checks the gate for each program and never turns huge pages off again.
+
+The rule is conservative: it fires for the large private monorepo at 8 and 4 checkers and for vscode at 4, and for
+nothing at 16 checkers, where the monorepo would gain -8.4% wall for +2.9% peak memory. Parse-end memory cannot tell
+that run from vscode at 8 checkers, where huge pages cost +7.5%: vscode's checkers add little after parsing, the
+monorepo's a lot. A predictor of the checkers' own growth would be needed.
+
+## Measurements at 8 and 4 cores, with the size gate
+
+One AWS `m8g.4xlarge` (Graviton4, 16 vCPU, 64 GiB, Ubuntu 24.04, kernel 7.0, THP `enabled` and `defrag` both
+`madvise`), every arm built with `cargo build --release --locked -p tsrs_cli` on that box; main is 221ee7bf. 15
+alternating pairs per project and arm (`runner.mjs`), `taskset -c 0-7` (8 cores, 8 checkers; xstate-main gets 7 by
+the file-count rule) or `taskset -c 0-3` (4 checkers), `-p <project> --noEmit --incremental false --pretty false
+--fast`. Cells as in the 32-vCPU section below. "891" is the parse-end-only version (this branch before the size
+gate and the priority-102 constructor); "gated" is this branch. Diagnostics are byte-identical to main in default
+mode and `--fast` for both, on every project; default-mode `--extendedDiagnostics` counters (times and memory
+excluded) are unchanged.
+
+8 cores:
+
+| project | gate | gated: wall | gated: CPU | gated: peak RSS | gated: instructions | 891: wall | 891: peak RSS |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| a large private monorepo | on | -6.5% [-6.7, -6.2] | -5.3% [-5.5, -5.3] | +1.9% [1.6, 2.2] | -0.1% | -6.4% | +2.1% |
+| vscode | off | -0.4% (noise) | -0.4% (noise) | -0.3% (1,840 -> 1,834 MiB) | +0.0% | -3.2% | +7.9% (1,837 -> 1,983 MiB) |
+| t3code-server | off | -0.2% (noise) | +0.1% (noise) | -0.1% (noise) | -0.0% | -4.6% | +9.7% (1,457 -> 1,599 MiB) |
+| mui-docs | off | -3.4% (noise) | -4.8% [-5.5, -0.1] | -2.7% [-3.1, -0.1] | -5.4% (noise) | -5.1% | +13.6% (1,233 -> 1,402 MiB) |
+| mikro-orm | off | -0.5% [-1.1, -0.2] | -0.2% (noise) | -1.2% (1,281 -> 1,264 MiB) | -0.1% | -6.9% | +13.0% (1,283 -> 1,447 MiB) |
+| supabase-studio | off | +0.2% (noise) | -0.4% (noise) | -0.3% | +0.1% | -4.7% | +12.5% (1,313 -> 1,475 MiB) |
+| cal-diy | off | +0.0% (noise) | +0.1% (noise) | -0.1% (noise) | +0.4% (noise) | -6.8% | +12.9% (1,370 -> 1,549 MiB) |
+| webpack | off | +0.5% (noise) | +0.0% (noise) | +0.1% (noise) | +0.5% (noise) | -4.0% | +37.7% (401 -> 553 MiB) |
+| xstate-main | off | +0.9% (noise) | -0.4% (noise) | -0.4% | -0.1% | -1.9% | +55.9% (241 -> 376 MiB) |
+
+4 cores:
+
+| project | gate | gated: wall | gated: CPU | gated: peak RSS | gated: instructions | 891: wall | 891: peak RSS |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| a large private monorepo | on | -5.7% [-6.9, -4.3] | -4.7% [-6.6, -4.3] | +1.5% [1.0, 1.8] | -0.0% | -5.0% | +1.5% |
+| vscode | on | -2.5% [-2.8, -1.7] (3.44 -> 3.35 s) | -2.2% [-2.4, -2.0] | +3.1% [2.6, 3.7] (1,697 -> 1,753 MiB) | +0.0% | -3.0% | +4.0% (1,698 -> 1,765 MiB) |
+| t3code-server | off | -0.2% (noise) | -0.6% | -0.2% (noise) | -0.0% | -4.1% | +6.8% (1,094 -> 1,169 MiB) |
+| mui-docs | off | -0.6% | -0.5% | -0.7% | +0.1% | -4.2% | +8.9% (976 -> 1,062 MiB) |
+| mikro-orm | off | -0.4% (noise) | -0.4% | -1.8% (1,086 -> 1,065 MiB) | +0.0% | -5.2% | +6.1% (1,082 -> 1,148 MiB) |
+| supabase-studio | off | -0.1% (noise) | -0.1% (noise) | +0.0% (noise) | +0.0% | -3.8% | +7.3% (1,114 -> 1,197 MiB) |
+| cal-diy | off | -0.0% (noise) | +0.0% (noise) | -0.4% (noise) | +0.0% | -5.4% | +8.6% (1,092 -> 1,184 MiB) |
+| webpack | off | -0.3% (noise) | -0.5% | -0.2% (noise) | +0.0% | -3.7% | +24.5% (356 -> 443 MiB) |
+| xstate-main | off | +0.8% (noise) | -0.1% (noise) | -0.5% (noise) | -0.0% | -3.7% | +41.3% (213 -> 300 MiB) |
+
+16 cores (16 checkers), same box: 891 against main gave the monorepo -8.4% [-8.7, -8.2] wall for +2.9% [1.6, 4.0]
+peak memory, and the public projects -3.3 to -9.1% wall for +13.6 to +20.6% on the large ones (vscode +15.3%, 1,993 ->
+2,295 MiB) and +53.6% / +64.0% on webpack and xstate-main, the same picture as the 32-vCPU numbers below. With the
+gate nothing fires at 16 checkers, and every project is within noise of main (wall -2.6 to +2.2%, peak RSS -0.9 to
++0.3%, no interval excluding 0).
+
+Read:
+
+- Where the gate fires, the change keeps most of its speed for under 2% peak memory on the monorepo and 3.1% on vscode
+  at 4 checkers. Where it does not, runs match main within noise; the slightly lower peaks on some (mikro-orm -1.2 to
+  -1.8%) come from the 64 MiB arena reservations.
+- Instructions do not move: the gain is page faults and TLB misses, and the kernel's teardown at exit.
+- Exit teardown (`strace -f -ttt -e trace=exit_group`, from the call to `+++ exited`, median of 3, both arms
+  measured the same way): on the monorepo huge pages cut it by about 64% at 8 cores and 53% at 4. Without that part
+  the gated wall gain is -5.0% at 8 cores (of -6.5%) and -5.1% at 4 (of -5.7%); for 891 it is -4.9% at 8 and -4.3%
+  at 4. vscode at 4 cores: 48 -> 33 ms, so -2.1% without it. Where the gate is off, the teardown is main's.
+
+Shrinking the fixed block: the priority-102 constructor is the one change that did. Forced on, against 891, the
+block at 8 checkers shrinks by 25-35 MiB (xstate-main +44% instead of +56%, webpack +31.5% instead of +37.7%,
+mikro-orm +10.6% instead of +13.0%) and at 4 checkers by 10-30 MiB (xstate-main +26% instead of +41%). It gives back
+0.3-1.3 points of wall time on the public projects (the parse phase no longer has the first arena on huge pages), and
+on the monorepo -6.1% instead of -6.4% at 8 cores (within the intervals' overlap) and -4.7% instead of -5.0% at 4.
+What remains is the per-thread partly used pages; their sizes are fixed when mimalloc is built, and no runtime option
+changes them.
+
+## Measurements at 32 vCPUs, before the size gate
 
 One AWS `m8g.8xlarge` per comparison (Graviton4, 32 vCPU, 128 GiB, Ubuntu 24.04, kernel 7.0, THP `enabled` and
 `defrag` both `madvise`), base and candidate built with `cargo build --release --locked -p tsrs_cli` in the same
@@ -49,7 +137,7 @@ per-pair ratios candidate / base - 1 with a ~95% interval; CPU is user + sys of 
 `/usr/bin/time`. Diagnostics are byte-identical to base in default mode and `--fast` on every project, and the
 default-mode `--extendedDiagnostics` counters are unchanged.
 
-This branch against main 48cf809ef:
+The parse-end-only version (891) against main 48cf809ef:
 
 | project | wall | CPU | peak RSS | instructions |
 | --- | ---: | ---: | ---: | ---: |

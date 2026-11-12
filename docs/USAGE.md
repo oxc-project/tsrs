@@ -47,7 +47,7 @@ preserves this upstream behavior; see the [known cases](../notes/open-history-de
 | Type members | Eager | Lazy resolution and instantiation, including tuples, conditional/inference mappers and property-cache optimizations |
 | Declaration parsing | Eager | Lazy `.d.ts` member parsing in batch/incremental compilation and non-watch builds when declaration checking is skipped |
 | Finished leaf files | Retained | Freed on eligible non-incremental, non-watch `--noEmit` runs |
-| Allocator huge pages (Linux, glibc) | Arena only | mimalloc's heap too once the program is parsed: faster, more peak memory ([numbers](../notes/perf-fast-heap-thp.md)) |
+| Allocator huge pages (Linux, glibc) | Arena only | mimalloc's heap too once a large program is parsed: faster, slightly more peak memory ([numbers](../notes/perf-fast-heap-thp.md)) |
 
 The preset keeps compiler options such as `strict`, `skipLibCheck` and `noCheck` as configured. Lazy declaration
 parsing requires `skipLibCheck` or `noCheck`; in build mode every built project must qualify. Memory targets and

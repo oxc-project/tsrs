@@ -134,12 +134,19 @@ caches do not keep; not attempted here.
 
 m8g.4xlarge (Graviton4), one box, both arms alternating, `taskset -c 0-7` or `-c 0-3`, `--noEmit --pretty false
 --fast --extendedDiagnostics`, build info in `/tmp` (`--incremental true --tsBuildInfoFile`), deleted before each cold
-run. main = 221ee7bf; new = this branch's first revision (later revisions moved code, added the `TSRS_FILE_TIMES`
-hook, the test and the docs, and did not change what runs). Median of per-pair ratios, ~95% interval in brackets;
-check time from the `Check time` row.
+run. Median of per-pair ratios, ~95% interval in brackets; check time from the `Check time` row.
+
+Two binaries are compared only as fresh copies: each arm's binary is `cp`'d to a new file and `sync`ed, and the
+copies run. A binary run from the path cargo linked it to can take 0.5-2.4% more cycles (2.5-50 times the
+instruction-TLB misses of a copy, by a different amount for each build: how the linker wrote the file decides how the
+page cache maps its text), which is the size of the effects measured here. A same-binary comparison with an
+environment switch is not affected. main = 221ee7bf. The main-against-branch tables use a copy of this branch's final
+code; the same-binary tables (the switch, both gap tables) used its first revision, which differs only by moved code,
+the `TSRS_FILE_TIMES` hook, the test and the docs, run from its link path, so their absolute seconds can be a few
+percent high (their ratios are not affected).
 
 **Cold incremental run** (no build info), the same binary with `TSRS_INCREMENTAL_STEAL=0` (A) and without (B), 10
-pairs. This is the clean comparison: two different binaries also differ by code layout (below).
+pairs:
 
 | project | cores | wall A → B (s) | check A → B (s) | wall | CPU | check | instructions | peak RSS |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -154,64 +161,66 @@ pairs. This is the clean comparison: two different binaries also differ by code 
 | supabase-studio | 8 | 1.53 → 1.49 | 1.04 → 0.99 | −3.1% [−3.8, −2.6] | +2.1% [+1.6, +2.5] | −4.8% [−5.3, −4.1] | +1.5% [+1.3, +1.6] | +1.0% [+0.8, +1.3] |
 | | 4 | 2.40 → 2.29 | 1.74 → 1.63 | −4.6% [−5.4, −4.2] | +0.7% [+0.4, +1.6] | −6.5% [−7.6, −5.6] | +0.9% [+0.8, +0.9] | +0.4% [+0.2, +0.8] |
 
-**Cold incremental run, main (A) against this branch (B)**, 15 pairs:
+**Cold incremental run, main (A) against this branch (B)**, fresh copies, 15 pairs:
 
 | project | cores | wall A → B (s) | wall | CPU | check | instructions | peak RSS |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| private monorepo | 8 | | −9.5% [−9.7, −9.3] | +4.9% [+4.8, +5.2] | −11.0% [−11.3, −10.7] | +2.5% [+2.4, +2.8] | +4.0% [+3.8, +4.2] |
-| | 4 | | −3.7% [−4.0, −3.5] | +2.8% [+2.8, +3.0] | −4.3% [−4.6, −4.2] | +0.9% [+0.8, +0.9] | +1.6% [+1.3, +1.6] |
-| vscode | 8 | 2.34 → 2.20 | −6.5% [−7.0, −6.0] | +4.0% [+3.1, +4.3] | −8.6% [−9.3, −7.8] | +0.2% [+0.2, +0.3] | +0.4% [+0.2, +0.7] |
-| | 4 | 4.09 → 3.94 | −3.5% [−4.6, −3.2] | +3.2% [+2.6, +3.9] | −5.0% [−5.8, −4.4] | −0.0% [−0.0, +0.0] | +0.2% [+0.0, +0.6] |
-| mikro-orm | 8 | 1.61 → 1.43 | −11.2% [−11.6, −11.0] | +2.8% [+2.3, +3.4] | −14.7% [−15.0, −13.6] | +2.2% [+2.1, +2.5] | +2.7% [+2.4, +3.1] |
-| | 4 | 2.36 → 2.20 | −6.6% [−7.0, −6.3] | +1.3% [+0.7, +2.3] | −8.4% [−8.8, −7.9] | +0.2% [+0.2, +0.3] | +1.3% [+1.2, +2.0] |
-| mui-docs | 8 | 1.78 → 1.64 | −8.4% [−9.4, −5.6] | +17.3% [+16.2, +23.0] | −10.2% [−12.4, −6.6] | +19.0% [+18.9, +25.9] | +9.0% [+8.2, +10.3] |
-| | 4 | 2.20 → 1.93 | −12.8% [−13.0, −12.3] | +12.7% [+12.6, +13.1] | −16.3% [−16.5, −16.1] | +14.3% [+14.3, +14.4] | +6.6% [+6.4, +7.6] |
-| supabase-studio | 8 | 1.53 → 1.49 | −2.3% [−2.7, −1.8] | +3.0% [+2.4, +3.4] | −3.1% [−4.2, −2.8] | +1.5% [+1.4, +1.6] | +0.9% [+0.6, +1.0] |
-| | 4 | 2.43 → 2.35 | −3.6% [−4.3, −2.9] | +2.1% [+1.5, +2.7] | −5.3% [−5.8, −4.4] | +0.9% [+0.9, +1.0] | +0.3% [+0.2, +0.5] |
+| private monorepo | 8 | | −11.7% [−12.3, −11.3] | +3.4% [+3.1, +4.3] | −13.4% [−14.3, −13.1] | +2.8% [+2.7, +3.0] | +4.1% [+4.0, +4.3] |
+| | 4 | | −5.2% [−6.4, −4.6] | +1.6% [−0.0, +1.8] | −5.9% [−7.4, −5.5] | +0.8% [+0.8, +0.9] | +1.4% [+1.3, +1.7] |
+| vscode | 8 | 2.19 → 2.01 | −8.3% [−8.6, −7.8] | +1.3% [+1.2, +1.5] | −10.8% [−11.2, −10.6] | +0.2% [+0.2, +0.2] | +0.5% [+0.3, +0.7] |
+| | 4 | 3.75 → 3.52 | −6.1% [−6.5, −5.9] | +0.8% [+0.6, +0.9] | −7.7% [−8.0, −7.5] | −0.0% [−0.0, +0.0] | +0.5% [+0.2, +0.7] |
+| mikro-orm | 8 | 1.51 → 1.33 | −11.2% [−11.8, −10.4] | +2.8% [+2.5, +3.0] | −14.8% [−15.3, −13.3] | +2.2% [+2.2, +2.5] | +2.6% [+2.1, +3.4] |
+| | 4 | 2.22 → 2.07 | −6.9% [−7.5, −6.5] | +0.7% [+0.6, +0.9] | −8.6% [−9.1, −8.2] | +0.2% [+0.2, +0.2] | +1.5% [+0.2, +2.0] |
+| mui-docs | 8 | 1.67 → 1.57 | −6.7% [−9.7, −5.1] | +22.5% [+16.6, +23.3] | −9.3% [−12.9, −7.2] | +25.9% [+18.8, +26.0] | +11.1% [+7.3, +11.7] |
+| | 4 | 2.05 → 1.79 | −12.6% [−13.2, −12.2] | +12.9% [+12.7, +13.1] | −16.1% [−16.6, −16.0] | +14.4% [+14.3, +14.4] | +7.0% [+6.4, +7.7] |
+| supabase-studio | 8 | 1.44 → 1.40 | −2.6% [−2.8, −2.3] | +2.3% [+2.1, +2.5] | −3.6% [−4.2, −3.4] | +1.6% [+1.6, +1.6] | +1.0% [+0.7, +1.2] |
+| | 4 | 2.26 → 2.16 | −4.4% [−4.7, −4.1] | +1.4% [+1.1, +1.6] | −6.3% [−7.2, −6.0] | +1.0% [+0.9, +1.1] | +0.5% [+0.1, +0.9] |
 
-**Other runs, main (A) against this branch (B)**, 8 cores unless noted, 10 pairs (8 for the private 4-core rows).
-`--incremental false` is the full pass, which this change does not alter; warm no change reads the build info and
-checks nothing; warm hub edit appends an export to the most imported file before each run, starting from a cold
-build info of the unedited program.
+**Other runs, main (A) against this branch (B)**, fresh copies, 8 cores unless noted, 10 pairs (8 for the private
+4-core rows). `--incremental false` is the full pass, which this change does not alter; warm no change reads the build
+info and checks nothing; warm hub edit appends an export to the most imported file before each run, starting from a
+cold build info of the unedited program.
 
 | project | run | wall | CPU | check | instructions | peak RSS |
 | --- | --- | --- | --- | --- | --- | --- |
-| private monorepo | `--incremental false` | +1.4% [+0.9, +1.5] | +1.4% [+1.0, +2.2] | +1.6% [+1.1, +1.7] | −0.1% [−0.6, +0.9] | +0.1% [−0.2, +0.2] |
-| | `--incremental false`, 4 cores | +1.6% [+1.5, +2.1] | +1.6% [+1.4, +1.7] | +1.7% [+1.5, +1.7] | +0.0% [−0.1, +0.0] | +0.0% [−0.3, +0.1] |
-| | warm no change | +0.1% [−0.6, +0.6] | +0.1% [−0.3, +1.0] | | −0.0% [−0.0, +0.0] | −0.1% [−0.3, +0.2] |
-| | warm hub edit | −8.6% [−9.1, −8.3] | +4.2% [+4.0, +5.0] | −19.4% [−19.8, −19.1] | +2.3% [+2.2, +2.5] | +3.5% [+3.4, +3.9] |
-| | warm hub edit, 4 cores | −3.6% [−5.3, −2.8] | +2.7% [+0.7, +3.1] | −8.7% [−11.5, −6.7] | +0.6% [+0.6, +0.6] | +0.9% [+0.5, +1.0] |
-| vscode | `--incremental false` | +3.4% [+2.2, +4.3] | +3.3% [+2.5, +4.3] | +4.0% [+3.0, +4.8] | +0.0% [−0.1, +0.0] | −0.1% [−0.3, +0.1] |
-| | warm no change | −0.0% [−1.5, +2.4] | +0.1% [−0.4, +0.7] | | +0.0% [−0.0, +0.0] | −0.3% [−0.4, +0.1] |
-| | warm hub edit (2.95 → 2.76 s) | −6.1% [−7.0, −4.1] | +2.9% [+1.8, +4.0] | −9.4% [−10.8, −8.2] | +0.3% [+0.2, +0.3] | +0.6% [+0.5, +1.0] |
-| mikro-orm | `--incremental false` | +0.1% [−0.6, +2.5] | +1.1% [+0.3, +1.5] | +0.4% [−0.3, +2.7] | −0.0% [−0.4, +0.5] | −0.2% [−1.1, +0.7] |
-| | warm no change | −1.0% [−5.3, +3.6] | +0.3% [−0.3, +0.5] | | +0.0% [−0.1, +0.1] | −1.7% [−3.4, −0.3] |
-| | warm hub edit (1.40 → 1.10 s) | −21.3% [−22.3, −21.0] | +4.8% [+4.0, +5.6] | −28.9% [−29.3, −28.3] | +3.7% [+3.7, +3.8] | +4.8% [+4.3, +5.2] |
-| mui-docs | `--incremental false` | +0.5% [−4.2, +5.9] | +1.0% [−4.7, +6.8] | +0.8% [−5.7, +6.1] | +0.1% [−5.9, +6.4] | +0.1% [−2.3, +2.5] |
-| | warm no change | −2.3% [−5.0, +8.0] | +0.7% [−0.7, +1.7] | | +0.0% [−0.0, +0.1] | −0.9% [−1.4, −0.0] |
-| | warm hub edit (1.87 → 1.75 s) | −7.2% [−9.7, −3.6] | +17.4% [+11.8, +23.5] | −10.2% [−14.0, −6.3] | +18.5% [+11.9, +25.5] | +9.1% [+7.6, +11.2] |
-| supabase-studio | `--incremental false` | +0.9% [+0.4, +1.4] | +1.2% [+0.7, +1.4] | +1.2% [+0.6, +1.4] | −0.1% [−0.1, +0.1] | −0.1% [−0.4, +0.3] |
-| | warm no change | +0.0% [−2.0, +2.1] | +0.2% [−1.2, +1.0] | | +0.0% [−0.0, +0.0] | −1.1% [−2.3, +1.4] |
-| | warm hub edit (1.65 → 1.66 s) | −0.6% [−1.1, +0.7] | +2.9% [+2.0, +3.9] | −0.9% [−1.8, +0.3] | +0.5% [+0.3, +0.9] | +0.6% [−0.2, +1.0] |
+| private monorepo | `--incremental false` | +0.7% [−1.7, +2.3] | +0.5% [−1.0, +2.8] | +0.6% [−1.8, +2.6] | +0.0% [−0.7, +0.5] | −0.1% [−0.2, +0.4] |
+| | `--incremental false`, 4 cores | +0.5% [−0.3, +0.6] | +0.4% [−0.2, +0.7] | +0.4% [−0.4, +0.6] | −0.0% [−0.0, −0.0] | −0.1% [−0.3, −0.1] |
+| | warm no change | −0.7% [−1.1, +0.6] | −0.3% [−0.8, +0.3] | | −0.0% [−0.0, +0.0] | −0.1% [−0.4, +0.2] |
+| | warm hub edit | −10.8% [−11.8, −9.7] | +2.4% [+1.3, +2.9] | −21.6% [−22.6, −20.7] | +2.4% [+2.1, +2.4] | +3.6% [+3.3, +4.0] |
+| | warm hub edit, 4 cores | −4.6% [−4.7, −4.3] | +1.1% [+0.7, +1.3] | −9.3% [−9.7, −9.0] | +0.6% [+0.6, +0.6] | +1.1% [+1.0, +1.2] |
+| vscode | `--incremental false` | −0.1% [−0.8, +0.4] | +0.0% [−0.1, +0.3] | +0.1% [−0.3, +0.7] | +0.0% [−0.0, +0.1] | −0.0% [−0.3, +0.5] |
+| | warm no change | +0.1% [−0.4, +0.7] | +0.0% [−0.1, +0.8] | | +0.0% [−0.0, +0.0] | +0.1% [−0.2, +0.3] |
+| | warm hub edit (2.83 → 2.63 s) | −7.1% [−8.2, −6.0] | +0.8% [−0.1, +1.6] | −11.2% [−11.6, −11.0] | +0.3% [+0.2, +0.3] | +0.8% [+0.4, +0.9] |
+| mikro-orm | `--incremental false` | −0.3% [−1.3, +0.4] | +0.1% [−0.5, +0.4] | −0.5% [−1.9, +0.7] | −0.1% [−0.4, +0.1] | −0.1% [−0.9, +0.5] |
+| | warm no change | +2.8% [−1.2, +4.4] | +0.0% [−0.5, +0.8] | | +0.0% [−0.1, +0.1] | −0.5% [−1.4, +1.5] |
+| | warm hub edit (1.32 → 1.04 s) | −20.9% [−21.7, −20.2] | +4.4% [+4.1, +5.2] | −28.0% [−28.6, −27.9] | +3.8% [+3.8, +3.9] | +4.8% [+4.5, +5.1] |
+| mui-docs | `--incremental false` | +1.5% [−4.7, +5.1] | +0.6% [−0.2, +6.0] | +0.9% [−5.7, +6.0] | +0.1% [−0.1, +6.6] | +0.6% [−0.4, +2.6] |
+| | warm no change | −0.0% [−4.9, +3.9] | +0.4% [−0.9, +1.6] | | +0.0% [−0.0, +0.0] | +0.1% [−1.2, +1.6] |
+| | warm hub edit (1.77 → 1.61 s) | −8.7% [−10.7, −6.1] | +16.9% [+16.4, +17.4] | −11.5% [−12.5, −7.3] | +18.5% [+18.3, +18.7] | +8.8% [+7.5, +10.1] |
+| supabase-studio | `--incremental false` | +0.2% [−0.7, +0.8] | +0.3% [−0.2, +0.4] | +0.3% [−0.2, +0.7] | +0.0% [−0.2, +0.1] | −0.0% [−0.4, +0.2] |
+| | warm no change | +0.1% [−1.3, +1.5] | +0.1% [−0.4, +0.8] | | −0.0% [−0.0, +0.0] | −0.2% [−1.6, +0.8] |
+| | warm hub edit (1.59 → 1.58 s) | −1.1% [−1.7, −0.7] | +1.7% [+1.4, +1.9] | −1.9% [−2.5, −1.4] | +0.5% [+0.4, +1.1] | +0.5% [−0.2, +1.7] |
 
 Reading them:
 
-- The check phase of a cold incremental run is 7-16% shorter on every project at both core counts, on the same
-  binary. The private monorepo gains more at 8 cores than at 4, as expected from a tail that needs several idle
-  checkers to show.
-- The full pass (`--incremental false`) does exactly the same instructions on both binaries (every interval contains
-  0 or is within 0.1%), yet takes 0.1-3.4% more cycles on the branch: code layout of two fat-LTO builds, not work.
-  That is also why main against the branch shows about 1-3 points more CPU than the same-binary switch.
+- The check phase of a cold incremental run is 3.6-16% shorter on every project at both core counts, the wall time
+  2.6-13%, in the same-binary and in the main-against-branch comparison alike. The private monorepo gains more at 8
+  cores than at 4, as expected from a tail that needs several idle checkers to show.
+- The full pass (`--incremental false`) is the same on both binaries within the noise: instructions identical, wall
+  and CPU intervals containing 0. A first run of these comparisons from the binaries' link paths under
+  `target/release` had shown +0.1-3.4% cycles on that path (vscode +3.4%) with identical instructions, and main
+  against the branch 1.5-3 points more CPU than the switch, which was first read as code layout. It was the link-path
+  effect above: with fresh copies it is gone, and main against the branch agrees with the switch.
 - The cost is the full pass's: a stolen file is checked on a checker that has not resolved its neighbourhood, so
-  instructions and peak RSS grow with the share that moves. Small on most projects (0-2.5% instructions, 0-4% RSS at 8
-  cores). mui-docs is the exception, +14-19% instructions and +7-9% RSS, with the wall time still down 7-13%: about
+  instructions and peak RSS grow with the share that moves. Small on most projects (0-3% instructions, 0-4% RSS at 8
+  cores). mui-docs is the exception, +14-26% instructions and +7-11% RSS, with the wall time still down 7-13%: about
   30% of its check CPU moves (above). Its full pass pays the same: single runs of `--incremental false` at 8 cores
   did 19.5% more instructions with stealing than with `--checkerAssignment locality`, and on main the static
   incremental pass did 10-15% fewer instructions than the full pass with stealing (the gap table above). It did not
   take the fallback.
 - Warm runs with no change check nothing and do not move. After a hub edit the incremental pass re-checks most of
-  the program and gets the same kind of gain, larger in the check phase (−9% to −29%) because the signature step
-  before it is unchanged. supabase-studio's hub edit re-checks little and does not move.
+  the program and gets the same kind of gain, larger in the check phase (−9% to −28%) because the signature step
+  before it is unchanged. supabase-studio's hub edit re-checks little.
 - Exit statuses and output were the same in every sample (the runner records the status; outputs are covered by the
   exactness runs).
 

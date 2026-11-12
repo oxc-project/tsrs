@@ -32,6 +32,9 @@ pub struct Options {
     pub suppress_program_diagnostics: bool,
     /// tsc's `--runExternalCode`: tsconfig `contentMappers` are kept and their mapper processes run.
     pub run_external_code: bool,
+    /// The process exits once the request is done (`cli::main`): the memory of the programs that are still live at
+    /// the end of the request, and of what the request shares, is left to the exit instead of being freed first.
+    pub exit_after: bool,
 }
 
 #[derive(Default)]
@@ -232,13 +235,19 @@ pub fn run(
     let region = tsrs_core::arena::Region::new_scratch(1 << 20);
     // The inferred program's loader regions: each tsconfig program has its own.
     let regions = RequestRegions::default();
-    let _scope = region.enter();
+    let scope = region.enter();
     crate::trace::start();
     let result = {
         let _span = crate::trace::span("request", String::new);
         run_in_region(payload, options, cwd, writer, fs, &host, &regions)
     };
     crate::trace::finish();
+    drop(scope);
+    if options.exit_after {
+        // The exit gives it all back without visiting it.
+        std::mem::forget(regions);
+        std::mem::forget(region);
+    }
     result
 }
 
@@ -246,6 +255,20 @@ struct ProgramOwner {
     program: &'static Program,
     // Dropped after the program is freed.
     _content_mappers: Option<ContentMappers>,
+}
+
+impl ProgramOwner {
+    // Frees the program, or with `leave` (the process exits once the request is done and the program is among the
+    // last it builds) leaves it to the exit. Its content mapper processes are closed either way.
+    fn release(self, leave: bool) {
+        if leave {
+            let mut this = std::mem::ManuallyDrop::new(self);
+            drop(this._content_mappers.take());
+        } else {
+            let _span = crate::trace::span("free-program", String::new);
+            drop(self);
+        }
+    }
 }
 
 impl Drop for ProgramOwner {
@@ -383,6 +406,9 @@ fn run_in_region(
                             &shared,
                             &file_configs,
                             &mut program_timings,
+                            // No other program starts after it: every index has been handed out and no inferred
+                            // program follows.
+                            &|| next.load(Ordering::Relaxed) >= programs.len() && unmatched.is_empty(),
                         );
                         drop(turn);
                         *linted[index].lock().unwrap() = Some((result, output, program_timings));
@@ -425,7 +451,7 @@ fn run_in_region(
             },
         );
         let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders), &shared);
-        run_program(
+        let result = run_program(
             program.program,
             &unmatched,
             None,
@@ -434,7 +460,13 @@ fn run_in_region(
             writer,
             &file_configs,
             &mut timings,
-        )?;
+        );
+        // The request's last program.
+        program.release(options.exit_after);
+        result?;
+    }
+    if options.exit_after {
+        std::mem::forget(shared);
     }
     if options.debug_timings {
         let mut records = timings.into_iter().collect::<Vec<_>>();
@@ -537,6 +569,7 @@ fn lint_program(
     shared: &Arc<Shared>,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
+    last: &dyn Fn() -> bool,
 ) -> Result<(), String> {
     // Dropped after the program: nothing that outlives a program points into its loader regions.
     let regions = RequestRegions::default();
@@ -581,8 +614,14 @@ fn lint_program(
         return Ok(());
     }
     let global_diagnostics =
-        run_program(program_ref, files, turn, payload, options, writer, file_configs, timings)?;
-    for diagnostic in global_diagnostics {
+        run_program(program_ref, files, turn, payload, options, writer, file_configs, timings);
+    // With `exit_after`, a program after which the request builds no other one is left to the exit.
+    let leave = options.exit_after && last();
+    program.release(leave);
+    if leave {
+        std::mem::forget(regions);
+    }
+    for diagnostic in global_diagnostics? {
         report_global_error(diagnostic, config_path, writer)?;
     }
     Ok(())

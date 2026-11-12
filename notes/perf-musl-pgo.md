@@ -5,15 +5,15 @@ were built with `cargo zigbuild --release` and no profile, while the glibc, macO
 glibc ones also BOLT (notes/perf-pgo.md, notes/perf-build-level.md). How much slower is the musl binary, and what is the
 cheapest sound way to give it a profile?
 
-Answer: the published 0.25.0 arm64 musl binary takes 6-22% more wall time and 9-22% more CPU than the glibc one on
-the five public projects, with 10-21% more instructions and the same peak memory. Training on musl builds
-(the glibc job's workload without the Go fourslash suite, plus `--fast` runs of the two bench projects) removes
-most of that: -4 to -14% wall and -6.5 to -14% CPU against the unprofiled musl build, leaving it 0.5-3.3% behind the
-glibc binary, which also has BOLT. Reusing the glibc job's profile does not work: 88% of the functions find no
-profile data, because cargo's crate hash, which is part of every symbol name, includes the target. Release builds now
-train on musl (`build-musl` in `.github/workflows/release.yml`, `pgo-train.sh --musl`). BOLT also works on the
-static binary (-1.5 to -2.8% wall in a short run) but needs a linker other than zig and periodic profile dumps, so it is
-left for a separate change.
+Answer: the published 0.25.0 arm64 musl binary takes 6-22% more wall time and 9-22% more CPU than the glibc one on the
+five public projects, with 10-21% more instructions and the same peak memory. Training on musl builds (the glibc job's
+workload without the Go fourslash suite, plus `--fast` runs of the two bench projects) removes most of that: -4 to -14%
+wall and -6.5 to -14% CPU against the unprofiled musl build, leaving it 0.5-3.9% behind the glibc binary, which also has
+BOLT. Reusing the glibc job's profile does not work (no measurable gain): 88% of the functions find no profile data,
+because cargo's crate hash, which is part of every symbol name, includes the target. Release builds now train on musl
+(`build-musl` in `.github/workflows/release.yml`, `pgo-train.sh --musl`). BOLT also works on the static binary (-0.5 to
+-3.0% wall in a short run) but needs a linker other than zig and periodic profile dumps, so it is left for a separate
+change.
 
 ## Setup
 
@@ -42,6 +42,22 @@ Arms:
 `mA` against `pubM` is the check that the box reproduces the release build: instructions are identical (0.0% on every
 workload), CPU 0-2.6% lower.
 
+### Binaries run from fresh copies
+
+How the linker (or `strip`) wrote an executable can change how the kernel maps its text and so its instruction-TLB
+misses, by up to a few percent of cycles (found on these boxes the same night, kernel 7.0, ext4). Every arm here ran
+from a copy (`cp` out of the target directory, or the npm tarball's extraction), except `mR`, which was stripped in
+place by `strip` after its copy. In the first run `mR` measured +0.4 to +3.1% wall against `mA`; run from a fresh `cp`
+(after `sync`), it measures −1.5 to +2.0%, with the same instruction counts. The `mR` columns below are the fresh-copy
+rerun (8 rounds; the large private monorepo too). A fresh-copy rerun of all the other arms on vscode, webpack and
+supabase-studio (both modes, 8 and 4 cores, 8 rounds) reproduced their deltas within about a point:
+
+| fresh copies, wall | mA → mS | mA → mF | mS → mF | pubG → mF |
+| --- | ---: | ---: | ---: | ---: |
+| vscode (4 rows) | −9.1 to −12.5% | −11.3 to −13.8% | −1.8 to −2.5% | +2.5 to +3.2% |
+| webpack (4 rows) | −9.2 to −11.0% | −10.9 to −12.5% | −1.1 to −3.0% | +0.8 to +3.1% |
+| supabase-studio (4 rows) | −5.7 to −7.3% | −7.2 to −9.6% | −1.2 to −2.7% | +1.9 to +3.9% |
+
 ## Results
 
 CPU (user + system), median paired change. Columns: the published gap, then each candidate against the unprofiled
@@ -49,51 +65,51 @@ musl build, then the remaining distance to the published glibc binary.
 
 | CPU | pubG → pubM | mA → mR | mA → mS | mA → mF | mS → mF | pubG → mS | pubG → mF |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| fast vscode, 8 cores | +19.6% | +1.8% | −10.9% | −13.0% | −2.2% | +4.0% | +1.9% |
-| fast mikro-orm, 8 cores | +10.6% | +1.0% | −5.2% | −7.9% | −2.9% | +3.4% | +0.5% |
-| fast mui-docs, 8 cores | +8.8% | +2.0% | −6.0% | −6.5% | −0.5% | +1.8% | +1.4% |
-| fast supabase-studio, 8 cores | +13.1% | +1.3% | −6.7% | −8.6% | −2.0% | +4.2% | +2.1% |
-| fast webpack, 8 cores | +17.5% | +1.5% | −10.3% | −12.2% | −2.1% | +3.3% | +1.2% |
-| default vscode, 8 cores | +21.0% | +1.6% | −11.4% | −13.4% | −2.2% | +4.9% | +2.3% |
-| default mikro-orm, 8 cores | +14.6% | +0.5% | −7.4% | −10.3% | −3.5% | +4.8% | +1.9% |
-| default mui-docs, 8 cores | +11.6% | +2.5% | −6.3% | −7.0% | −0.9% | +3.8% | +2.9% |
-| default supabase-studio, 8 cores | +15.7% | +1.7% | −8.0% | −9.8% | −2.1% | +5.0% | +2.8% |
-| default webpack, 8 cores | +20.5% | +1.6% | −11.7% | −13.0% | −1.7% | +3.5% | +2.1% |
-| fast vscode, 4 cores | +20.3% | +2.3% | −11.2% | −13.2% | −1.7% | +3.4% | +1.6% |
-| fast mikro-orm, 4 cores | +11.6% | +1.2% | −6.1% | −9.1% | −3.1% | +3.2% | +0.6% |
-| fast mui-docs, 4 cores | +10.5% | +1.6% | −7.0% | −7.3% | −0.3% | +2.0% | +1.9% |
-| fast supabase-studio, 4 cores | +13.8% | +1.3% | −7.4% | −9.4% | −2.2% | +4.2% | +1.9% |
-| fast webpack, 4 cores | +18.8% | +1.9% | −11.4% | −12.6% | −1.6% | +2.8% | +1.5% |
-| default vscode, 4 cores | +21.9% | +1.6% | −12.3% | −14.0% | −2.1% | +4.4% | +2.2% |
-| default mikro-orm, 4 cores | +14.1% | +0.6% | −7.6% | −9.8% | −2.3% | +4.5% | +2.3% |
-| default mui-docs, 4 cores | +11.7% | +2.4% | −6.3% | −7.0% | −0.8% | +4.0% | +3.2% |
-| default supabase-studio, 4 cores | +15.5% | +1.4% | −8.1% | −10.1% | −2.1% | +4.9% | +2.6% |
-| default webpack, 4 cores | +20.1% | +1.9% | −11.8% | −13.4% | −1.8% | +4.1% | +2.2% |
+| fast vscode, 8 cores | +19.6% | −0.9% | −10.9% | −13.0% | −2.2% | +4.0% | +1.9% |
+| fast mikro-orm, 8 cores | +10.6% | −0.1% | −5.2% | −7.9% | −2.9% | +3.4% | +0.5% |
+| fast mui-docs, 8 cores | +8.8% | +1.3% | −6.0% | −6.5% | −0.5% | +1.8% | +1.4% |
+| fast supabase-studio, 8 cores | +13.1% | +0.3% | −6.7% | −8.6% | −2.0% | +4.2% | +2.1% |
+| fast webpack, 8 cores | +17.5% | −0.6% | −10.3% | −12.2% | −2.1% | +3.3% | +1.2% |
+| default vscode, 8 cores | +21.0% | −1.1% | −11.4% | −13.4% | −2.2% | +4.9% | +2.3% |
+| default mikro-orm, 8 cores | +14.6% | −0.2% | −7.4% | −10.3% | −3.5% | +4.8% | +1.9% |
+| default mui-docs, 8 cores | +11.6% | +1.6% | −6.3% | −7.0% | −0.9% | +3.8% | +2.9% |
+| default supabase-studio, 8 cores | +15.7% | +0.2% | −8.0% | −9.8% | −2.1% | +5.0% | +2.8% |
+| default webpack, 8 cores | +20.5% | −0.4% | −11.7% | −13.0% | −1.7% | +3.5% | +2.1% |
+| fast vscode, 4 cores | +20.3% | −0.9% | −11.2% | −13.2% | −1.7% | +3.4% | +1.6% |
+| fast mikro-orm, 4 cores | +11.6% | −0.3% | −6.1% | −9.1% | −3.1% | +3.2% | +0.6% |
+| fast mui-docs, 4 cores | +10.5% | +1.0% | −7.0% | −7.3% | −0.3% | +2.0% | +1.9% |
+| fast supabase-studio, 4 cores | +13.8% | +0.2% | −7.4% | −9.4% | −2.2% | +4.2% | +1.9% |
+| fast webpack, 4 cores | +18.8% | −1.1% | −11.4% | −12.6% | −1.6% | +2.8% | +1.5% |
+| default vscode, 4 cores | +21.9% | −0.9% | −12.3% | −14.0% | −2.1% | +4.4% | +2.2% |
+| default mikro-orm, 4 cores | +14.1% | +0.0% | −7.6% | −9.8% | −2.3% | +4.5% | +2.3% |
+| default mui-docs, 4 cores | +11.7% | +1.7% | −6.3% | −7.0% | −0.8% | +4.0% | +3.2% |
+| default supabase-studio, 4 cores | +15.5% | −0.3% | −8.1% | −10.1% | −2.1% | +4.9% | +2.6% |
+| default webpack, 4 cores | +20.1% | −0.3% | −11.8% | −13.4% | −1.8% | +4.1% | +2.2% |
 
 Wall time:
 
 | wall | pubG → pubM | mA → mR | mA → mS | mA → mF | mS → mF | pubG → mS | pubG → mF |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| fast vscode, 8 cores | +18.9% | +1.7% | −10.0% | −12.1% | −1.8% | +4.4% | +2.3% |
-| fast mikro-orm, 8 cores | +10.6% | +0.6% | −5.3% | −8.1% | −2.2% | +3.9% | +0.9% |
-| fast mui-docs, 8 cores | +5.9% | +2.5% | −4.4% | −4.3% | −0.1% | +2.1% | +2.2% |
-| fast supabase-studio, 8 cores | +12.3% | +1.0% | −5.9% | −7.4% | −1.5% | +4.4% | +2.9% |
-| fast webpack, 8 cores | +14.6% | +3.1% | −7.9% | −11.0% | −3.3% | +3.6% | +0.9% |
-| default vscode, 8 cores | +20.7% | +1.3% | −11.9% | −13.7% | −1.8% | +4.0% | +2.0% |
-| default mikro-orm, 8 cores | +14.4% | +0.4% | −7.4% | −9.8% | −3.6% | +5.1% | +2.3% |
-| default mui-docs, 8 cores | +10.2% | +2.2% | −5.2% | −6.5% | −1.1% | +3.6% | +2.7% |
-| default supabase-studio, 8 cores | +14.1% | +2.1% | −7.3% | −8.9% | −1.8% | +4.5% | +2.7% |
-| default webpack, 8 cores | +19.1% | +1.6% | −11.4% | −13.2% | −2.1% | +3.9% | +1.9% |
-| fast vscode, 4 cores | +19.6% | +2.4% | −10.9% | −12.9% | −2.0% | +3.8% | +1.5% |
-| fast mikro-orm, 4 cores | +11.9% | +1.3% | −6.1% | −8.5% | −2.9% | +3.1% | +0.7% |
-| fast mui-docs, 4 cores | +10.6% | +1.1% | −6.8% | −6.9% | −0.2% | +2.3% | +1.9% |
-| fast supabase-studio, 4 cores | +13.3% | +1.5% | −7.0% | −8.9% | −2.1% | +4.1% | +1.6% |
-| fast webpack, 4 cores | +15.4% | +2.1% | −10.1% | −10.6% | −1.6% | +2.5% | +0.5% |
-| default vscode, 4 cores | +21.8% | +1.1% | −12.9% | −14.4% | −1.6% | +3.7% | +1.9% |
-| default mikro-orm, 4 cores | +14.2% | +0.6% | −7.3% | −9.7% | −2.7% | +4.6% | +2.4% |
-| default mui-docs, 4 cores | +11.2% | +2.4% | −5.8% | −6.4% | −0.7% | +4.0% | +3.3% |
-| default supabase-studio, 4 cores | +14.3% | +1.5% | −7.6% | −9.3% | −1.8% | +4.4% | +2.5% |
-| default webpack, 4 cores | +18.8% | +0.6% | −11.6% | −13.9% | −3.0% | +4.1% | +2.1% |
+| fast vscode, 8 cores | +18.9% | −0.7% | −10.0% | −12.1% | −1.8% | +4.4% | +2.3% |
+| fast mikro-orm, 8 cores | +10.6% | +0.4% | −5.3% | −8.1% | −2.2% | +3.9% | +0.9% |
+| fast mui-docs, 8 cores | +5.9% | +1.3% | −4.4% | −4.3% | −0.1% | +2.1% | +2.2% |
+| fast supabase-studio, 8 cores | +12.3% | +0.1% | −5.9% | −7.4% | −1.5% | +4.4% | +2.9% |
+| fast webpack, 8 cores | +14.6% | −0.3% | −7.9% | −11.0% | −3.3% | +3.6% | +0.9% |
+| default vscode, 8 cores | +20.7% | −1.5% | −11.9% | −13.7% | −1.8% | +4.0% | +2.0% |
+| default mikro-orm, 8 cores | +14.4% | −0.2% | −7.4% | −9.8% | −3.6% | +5.1% | +2.3% |
+| default mui-docs, 8 cores | +10.2% | +2.0% | −5.2% | −6.5% | −1.1% | +3.6% | +2.7% |
+| default supabase-studio, 8 cores | +14.1% | +0.6% | −7.3% | −8.9% | −1.8% | +4.5% | +2.7% |
+| default webpack, 8 cores | +19.1% | −0.2% | −11.4% | −13.2% | −2.1% | +3.9% | +1.9% |
+| fast vscode, 4 cores | +19.6% | −0.9% | −10.9% | −12.9% | −2.0% | +3.8% | +1.5% |
+| fast mikro-orm, 4 cores | +11.9% | −0.1% | −6.1% | −8.5% | −2.9% | +3.1% | +0.7% |
+| fast mui-docs, 4 cores | +10.6% | +0.7% | −6.8% | −6.9% | −0.2% | +2.3% | +1.9% |
+| fast supabase-studio, 4 cores | +13.3% | −0.1% | −7.0% | −8.9% | −2.1% | +4.1% | +1.6% |
+| fast webpack, 4 cores | +15.4% | −0.2% | −10.1% | −10.6% | −1.6% | +2.5% | +0.5% |
+| default vscode, 4 cores | +21.8% | −1.3% | −12.9% | −14.4% | −1.6% | +3.7% | +1.9% |
+| default mikro-orm, 4 cores | +14.2% | −0.2% | −7.3% | −9.7% | −2.7% | +4.6% | +2.4% |
+| default mui-docs, 4 cores | +11.2% | +1.9% | −5.8% | −6.4% | −0.7% | +4.0% | +3.3% |
+| default supabase-studio, 4 cores | +14.3% | −0.1% | −7.6% | −9.3% | −1.8% | +4.4% | +2.5% |
+| default webpack, 4 cores | +18.8% | −0.6% | −11.6% | −13.9% | −3.0% | +4.1% | +2.1% |
 
 Instructions (user space; the same at 8 and 4 cores within 0.5 points, so 8 cores only):
 
@@ -114,24 +130,25 @@ A large private monorepo, `--fast` only, the same six arms, 8 rounds (relative n
 
 | large private monorepo, `--fast` | pubG → pubM | mA → mR | mA → mS | mA → mF | mS → mF | pubG → mS | pubG → mF |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| wall, 8 cores | +11.6% | +0.6% | −6.0% | −8.4% | −2.3% | +3.4% | +1.0% |
-| wall, 4 cores | +13.0% | +1.3% | −7.4% | −9.3% | −2.1% | +3.1% | +0.8% |
-| CPU, 8 cores | +12.4% | +1.2% | −6.2% | −8.3% | −2.4% | +3.9% | +1.4% |
-| CPU, 4 cores | +13.2% | +1.3% | −7.5% | −9.5% | −2.3% | +3.2% | +0.8% |
-| instructions, 8 cores | +13.9% | +0.3% | −12.4% | −11.6% | +1.0% | −0.3% | +0.9% |
-| instructions, 4 cores | +14.5% | +0.0% | −13.4% | −12.2% | +1.4% | −0.9% | +0.5% |
+| wall, 8 cores | +11.6% | +0.0% | −6.0% | −8.4% | −2.3% | +3.4% | +1.0% |
+| wall, 4 cores | +13.0% | −0.4% | −7.4% | −9.3% | −2.1% | +3.1% | +0.8% |
+| CPU, 8 cores | +12.4% | +0.3% | −6.2% | −8.3% | −2.4% | +3.9% | +1.4% |
+| CPU, 4 cores | +13.2% | −0.3% | −7.5% | −9.5% | −2.3% | +3.2% | +0.8% |
+| instructions, 8 cores | +13.9% | +0.5% | −12.4% | −11.6% | +1.0% | −0.3% | +0.9% |
+| instructions, 4 cores | +14.5% | +0.1% | −13.4% | −12.2% | +1.4% | −0.9% | +0.5% |
 | peak RSS, 8 / 4 cores | −0.1% / +0.1% | −0.1% / +0.2% | +0.2% / +0.1% | +0.1% / +0.1% | −0.1% / −0.0% | +0.1% / +0.2% | +0.1% / +0.0% |
 
 Peak RSS moves by at most 1.2% in any column (all arms allocate through mimalloc), mostly under 0.5%.
 
 - The published gap is mostly the missing profile: instructions +10-21%, and `mF` brings them to within 0-3% of the
-  glibc binary's. What is left in time (+0.5-3.3% wall) is about what BOLT gives the glibc binary
+  glibc binary's. What is left in time (+0.5 to +3.3% wall, +0.8 to +3.9% in the
+  fresh-copy rerun) is about what BOLT gives the glibc binary
   (notes/perf-build-level.md: -1 to -4% wall); musl's own libc routines (mimalloc replaces only the allocator) may
   account for some of it, which was not separated here.
 - `mS` (tsrs only) retires the fewest instructions, but `mF` (plus the conformance suite) is 0-3.6% faster in wall and
   CPU nearly everywhere (mui-docs ties). Presumably the suite profiles code the two bench projects reach rarely, so less
   of it is laid out as cold; that was not checked.
-- `mR` is slightly slower than no profile at all (+0.4-3.1% wall).
+- `mR` gains nothing: −1.5 to +2.0% wall against no profile (fresh copies, see "Binaries run from fresh copies").
 
 ## Why the glibc profile does not fit
 
@@ -141,11 +158,11 @@ each target: `tsrs_checker` is `Cs6ogqFrjbwtp` in the glibc profile and `Cs3T9zN
 strip setting (`Cs8utJt9zQ7Ab` with the musl job's default `strip = "symbols"`, the 2026-10-09 problem in
 notes/perf-pgo.md). With `-Cllvm-args=-pgo-warn-missing-function`, the `mR` build reports 27,438 functions without
 profile data, 0 hash mismatches, out of about 31,200 in the musl binary (88%). The rest (code whose names carry no crate
-hash, such as C-ABI functions) gets counts from a different program; that `mR` ends up slightly slower than no profile
-is consistent with a few percent of the code being optimized as hot or cold on the wrong evidence. The `mS` and `mF` builds report 0 missing and 0 mismatched functions. The same cause made the arm64 profile
-useless for macOS x86_64 (notes/perf-pgo.md, "macOS x86_64"). Renaming the profile's symbols from one target's hashes
-to the other's might work but was not tried: training on musl costs a few minutes, and a rename would be a new piece of
-tooling with its own failure modes.
+hash, such as C-ABI functions) gets counts from a different program, which buys nothing measurable. The `mS` and `mF`
+builds report 0 missing and 0 mismatched functions. The same cause made the arm64 profile useless for macOS x86_64
+(notes/perf-pgo.md, "macOS x86_64"). Renaming the profile's symbols from one target's hashes to the other's might work
+but was not tried: training on musl costs a few minutes, and a rename would be a new piece of tooling with its own
+failure modes.
 
 ## Building the instrumented musl binary
 
@@ -200,14 +217,19 @@ BOLT can optimize the static musl binary, but not with the release job's toolcha
 - The optimized binary (`bolt.sh`'s flags plus `--drop-cortex-a53-843419-veneers`) prints byte-identical output to its
   input on the six public projects, default and `--fast`. Stripped size: 40.0 MB against 19.5 MB.
 
-Six interleaved rounds, BOLT-optimized against its own input (vscode and webpack were both in the BOLT training set):
+Eight interleaved rounds from fresh copies, BOLT-optimized against its own input (vscode and webpack were in the BOLT
+training set, supabase-studio was not):
 
 | | wall | CPU | instructions |
 | --- | ---: | ---: | ---: |
-| `--fast` vscode, 8 / 4 cores | −1.7% / −1.5% | −1.8% / −1.7% | −0.1% / −0.1% |
-| default vscode, 8 / 4 cores | −2.3% / −2.5% | −2.6% / −2.9% | −0.1% / −0.1% |
-| `--fast` webpack, 8 / 4 cores | −2.8% / −1.9% | −1.9% / −1.9% | +0.5% / +0.0% |
-| default webpack, 8 / 4 cores | −1.7% / −1.5% | −1.4% / −1.4% | −0.0% / −0.0% |
+| `--fast` vscode, 8 / 4 cores | −2.3% / −1.9% | −2.4% / −2.2% | −0.1% / −0.1% |
+| default vscode, 8 / 4 cores | −2.6% / −3.0% | −2.7% / −3.3% | −0.1% / −0.1% |
+| `--fast` webpack, 8 / 4 cores | −2.9% / −0.5% | −1.9% / −1.4% | −0.4% / +0.0% |
+| default webpack, 8 / 4 cores | −2.1% / −0.8% | −2.6% / −2.2% | −0.0% / −0.0% |
+| `--fast` supabase-studio, 8 / 4 cores | −1.4% / −1.7% | −1.8% / −1.7% | −0.1% / −0.1% |
+| default supabase-studio, 8 / 4 cores | −1.2% / −1.8% | −1.7% / −2.1% | −0.1% / −0.1% |
+
+(A first 6-round run on vscode and webpack, from files written by `strip -o`, gave −1.5 to −2.8% wall.)
 
 That is about what BOLT gives the glibc binary, so it would close most of the remaining gap. Shipping it would mean
 linking the release binary with something other than zig, a training run long enough for the periodic dumps (or

@@ -49,24 +49,12 @@ export function validateReleaseVersion(version, typescriptVersion) {
     if (release.core[0] !== major || release.core[1] !== minor) {
         throw new Error(`${version} must use TypeScript ${typescriptVersion}'s major and minor versions`);
     }
-    if (upstream.prerelease.length) {
-        const identifiers = [...upstream.prerelease];
-        if (!["dev", "alpha", "beta", "rc"].includes(identifiers[0])) {
-            throw new Error(`Unsupported TypeScript prerelease channel: ${typescriptVersion}`);
-        }
-        // TypeScript's dev nightlies must sort before beta and rc releases.
-        if (identifiers[0] === "dev") identifiers[0] = "alpha";
-        const prefix = identifiers.join(".");
-        const sequence = release.prerelease.at(-1);
-        const expected = `${major}.${minor}.${base + 1n}-${prefix}.<counter>`;
-        if (release.core[2] !== base + 1n || release.prerelease.slice(0, -1).join(".") !== prefix || !/^[1-9]\d*$/.test(sequence ?? "")) {
-            throw new Error(`${version} must follow ${expected} for TypeScript ${typescriptVersion}`);
-        }
-        return { counter: BigInt(sequence) };
-    }
     const counter = release.core[2] - base;
-    if (release.prerelease.length || counter < 1n || counter > 999n) {
+    if (counter < 1n || counter > 999n) {
         throw new Error(`${version} must use TypeScript patch ${patch} × 1000 + a suffix from 001 to 999; upgrade TypeScript instead of rolling the suffix over`);
+    }
+    if (release.prerelease.join(".") !== upstream.prerelease.join(".")) {
+        throw new Error(`${version} must preserve TypeScript ${typescriptVersion}'s prerelease identifiers`);
     }
     return { counter };
 }
@@ -74,13 +62,13 @@ export function validateReleaseVersion(version, typescriptVersion) {
 export function validateNextVersion(current, requested, typescriptVersion) {
     const next = validateReleaseVersion(requested, typescriptVersion);
     if (compareVersions(requested, current) <= 0) throw new Error(`${requested} must be newer than ${current}`);
-    let previous;
-    try {
-        previous = validateReleaseVersion(current, typescriptVersion);
-    } catch {
-        // A new TypeScript release or migration from 0.x starts a fresh counter.
-    }
-    const expected = previous ? previous.counter + 1n : 1n;
+    const previous = parseVersion(current);
+    const upstream = parseVersion(typescriptVersion);
+    const counter = previous.core[2] - upstream.core[2] * 1000n;
+    // Keep counting across prereleases and stable promotion of the same TypeScript numeric version.
+    const sameReference = previous.core[0] === upstream.core[0] && previous.core[1] === upstream.core[1]
+        && counter >= 1n && counter <= 999n;
+    const expected = sameReference ? counter + 1n : 1n;
     if (next.counter !== expected) throw new Error(`Expected tsrs counter ${expected} for TypeScript ${typescriptVersion}`);
 }
 

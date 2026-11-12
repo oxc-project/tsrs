@@ -7,7 +7,7 @@ benchmarks, test helpers, task crates and the WebAssembly crate are excluded.
 ## Prepare a release
 
 1. Run [Prepare Release](../.github/workflows/prepare_release.yml) from `main` with the next TypeScript-aligned version,
-   such as `7.1.1-beta.2`, without a leading `v`.
+   such as `7.1.2-beta`, without a leading `v`.
 2. Review the generated PR. It bumps Cargo and npm versions together, refreshes `Cargo.lock`, packages and builds
    every published crate, and generates `docs/releases/<version>.md` if notes do not already exist.
 3. Merge the PR to trigger [Release Crates](../.github/workflows/release_crates.yml) and
@@ -23,7 +23,7 @@ workflow watches only root `Cargo.toml`; unrelated manifest edits skip publicati
 
 ## Versioning
 
-Following [#961](https://github.com/oxc-project/tsrs/issues/961), stable versions use the TypeScript major and minor
+Following [#961](https://github.com/oxc-project/tsrs/issues/961), versions use the TypeScript major and minor
 versions, with patch `TypeScript patch × 1000 + tsrs counter`. The counter starts at `001` and increments for each
 tsrs fix against the same TypeScript release:
 
@@ -31,22 +31,24 @@ tsrs fix against the same TypeScript release:
 | --- | --- | --- |
 | `7.0.2` | `7.0.2001` | `7.0.2002` |
 | `7.0.3` | `7.0.3001` | `7.0.3002` |
-| `7.1.0-beta` | `7.1.1-beta.1` | `7.1.1-beta.2` |
-| `7.1.0-dev.20261112` | `7.1.1-alpha.20261112.1` | `7.1.1-alpha.20261112.2` |
+| `7.1.0-beta` | `7.1.1-beta` | `7.1.2-beta` |
+| `7.1.0-dev.20261112` | `7.1.1-dev.20261112` | `7.1.2-dev.20261112` |
 
-SemVer omits leading zeros, so TypeScript patch zero with counter `001` becomes patch `1`. Stable counters stop at
+SemVer forbids leading zeros, so TypeScript patch zero with counter `001` becomes patch `1`: write `7.1.1-beta`,
+the valid SemVer spelling of the conceptual `7.1.0001-beta`. Counters stop at
 `999`; the version checks reject rollover because it would overlap the next TypeScript patch's range. Upgrade the
 TypeScript reference to start a new range.
 
-For prereleases, the combined patch stays at `TypeScript patch × 1000 + 1`, and the final prerelease identifier is
-the tsrs counter. Preserve TypeScript's `alpha`, `beta` or `rc` identifiers; map nightly `dev` to `alpha` so nightlies
-sort before beta, rc and stable releases. A new upstream prerelease or nightly date resets the final counter to `1`.
-Every release must increase in SemVer order. For example, `7.1.1-beta.2` precedes stable `7.1.1`.
+Prereleases and nightlies preserve TypeScript's prerelease identifiers after the combined patch. Increment the
+counter for every tsrs release with the same TypeScript numeric version, including nightly dates and transitions
+between prerelease and stable channels. For example, `7.1.1-beta` → `7.1.2-beta` → stable `7.1.3` all target
+TypeScript `7.1.0`. Reset to `001` when the TypeScript major, minor or patch changes. This keeps every release
+increasing in SemVer order.
 
 Prereleases publish to npm's `next` tag and create a GitHub prerelease. Stable releases use npm's `latest` tag and
 the latest GitHub release. Tags and notes use the same version: `v<version>` and `docs/releases/<version>.md`.
 
-The first release under this scheme is `7.1.1-beta.1`, replacing `0.25.0-ts7.1.0-beta` for npm packages. Cargo uses
+The first release under this scheme is `7.1.1-beta`, replacing `0.25.0-ts7.1.0-beta` for npm packages. Cargo uses
 the same version, and all native platform and WebAssembly npm packages move together. The pinned TypeScript version,
 matching npm compiler package and exact source commit remain in `[workspace.metadata.typescript]`; generated npm
 packages expose the version and commit through their `tsrs` metadata. Compiler compatibility uses that TypeScript
@@ -59,7 +61,7 @@ From a clean checkout:
 ```sh
 cargo binstall cargo-release-oxc --version 0.0.44 --locked
 mkdir -p target
-cargo release-oxc update --release crates --version 7.1.1-beta.2
+cargo release-oxc update --release crates --version 7.1.2-beta
 cargo check
 node tools/release/crates.mjs --allow-dirty
 ```

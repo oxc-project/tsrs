@@ -233,7 +233,13 @@ pub fn run(
     // The inferred program's loader regions: each tsconfig program has its own.
     let regions = RequestRegions::default();
     let _scope = region.enter();
-    run_in_region(payload, options, cwd, writer, fs, &host, &regions)
+    crate::trace::start();
+    let result = {
+        let _span = crate::trace::span("request", String::new);
+        run_in_region(payload, options, cwd, writer, fs, &host, &regions)
+    };
+    crate::trace::finish();
+    result
 }
 
 struct ProgramOwner {
@@ -321,6 +327,7 @@ fn run_in_region(
     // program it maps to, any other file by the first program that has it.
     let mut type_checked = FxHashSet::default();
     let mut config_cache = FxHashMap::default();
+    let find_span = crate::trace::span("find-tsconfigs", String::new);
     for path in file_configs.keys() {
         let resolved = tspath::get_normalized_absolute_path(path, cwd);
         if payload.report_semantic {
@@ -337,6 +344,7 @@ fn run_in_region(
         }
     }
     drop(config_cache);
+    drop(find_span);
     let shared = Arc::default();
     let programs: Vec<(String, Vec<String>)> = programs.into_iter().collect();
     let claims = Claims { state: Mutex::new((0, type_checked)), passed: Condvar::new() };
@@ -532,6 +540,7 @@ fn lint_program(
 ) -> Result<(), String> {
     // Dropped after the program: nothing that outlives a program points into its loader regions.
     let regions = RequestRegions::default();
+    let config_span = crate::trace::span("parse-tsconfig", || config_path.to_owned());
     let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
         config_path,
         host.existing_options.as_ref(),
@@ -539,6 +548,7 @@ fn lint_program(
         host,
         None,
     );
+    drop(config_span);
     if !diagnostics.is_empty() {
         for diagnostic in diagnostics {
             report_config_error(diagnostic, config_path, false, writer)?;
@@ -552,6 +562,7 @@ fn lint_program(
         }
         return Ok(());
     }
+    let program_span = crate::trace::span("create-program", || config_path.to_owned());
     let program = create_program(
         config,
         Arc::clone(fs),
@@ -560,6 +571,7 @@ fn lint_program(
         Arc::clone(&regions.loaders),
         shared,
     );
+    drop(program_span);
     let program_ref = program.program;
     let diagnostics = program_ref.get_program_diagnostics();
     if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
@@ -632,7 +644,7 @@ fn run_program(
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
 ) -> Result<Vec<P<TsDiagnostic>>, String> {
-    program.bind_source_files();
+    crate::trace::span("bind", String::new).finish_with(|| program.bind_source_files());
     let report_global = whole.is_some();
     let mut work = Vec::with_capacity(files.len());
     for name in files {
@@ -666,7 +678,12 @@ fn run_program(
     // Every file is type-checked before any rule runs: a rule's type query could otherwise hit an error before the
     // checking `tsrs --noEmit` does, and record it without a location (a global diagnostic) instead.
     for rules in [false, true] {
+        let pass_span = crate::trace::span(if rules { "pass-lint" } else { "pass-check" }, || {
+            lint_files.len().to_string()
+        });
         let pooled = program.for_each_checker_group(&lint_files, |checker, index, file| {
+            let _file_span =
+                crate::trace::span(if rules { "lint" } else { "check" }, || index.to_string());
             let mut output = Vec::new();
             let mut file_timings = BTreeMap::new();
             let result = lint_one(
@@ -688,16 +705,19 @@ fn run_program(
                 merge_timings(&mut pool_timings.lock().unwrap(), file_timings);
             }
         });
+        drop(pass_span);
         if !pooled {
             return Err("the program has no checker pool".into());
         }
         if !rules && report_global {
+            let _span = crate::trace::span("globals", String::new);
             global_diagnostics = program.get_global_diagnostics(&Context::default());
         }
     }
     if let Some(error) = errors.into_inner().unwrap().into_iter().next() {
         return Err(error);
     }
+    let _write_span = crate::trace::span("write", String::new);
     for output in outputs {
         writer.write_all(&output.into_inner().unwrap()).map_err(|error| error.to_string())?;
     }

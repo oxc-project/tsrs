@@ -98,10 +98,10 @@ and use `--fast false`. Match any explicit `--checkers` or `--singleThreaded` op
 
 Alongside the supported `tsc` flags, tsrs offers these controls:
 
-- `--checkers N` sets the number of checker threads (default 4). In fast mode, tsrs uses one per core up to 16 cores,
-  then the greater of 16 and half the cores, capped at 32; a program with fewer than 32 type-checked files per
-  checker gets fewer, down to 4, and never more checkers than files. `--build` defaults to 4 per project in both
-  modes. Go's default history can produce different diagnostics at different checker counts.
+- `--checkers N` sets the number of checker threads (default 4). In fast mode, tsrs uses one per core, capped at
+  32; a program with fewer than 32 type-checked files per checker gets fewer, down to 4, and never more checkers
+  than files. `--build` defaults to 4 per project in both modes. Go's default history can produce different
+  diagnostics at different checker counts.
 - `--singleThreaded` uses one thread and avoids duplicating state across checkers.
 - `--fast --checkerCostCache <file>` remembers how long each file took to check and uses that to balance threads on the next
   run (up to ~15% faster on repeated runs).

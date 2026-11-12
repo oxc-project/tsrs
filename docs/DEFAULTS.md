@@ -31,7 +31,7 @@ by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this tabl
 
 | setting | tsgo | tsrs |
 | --- | --- | --- |
-| Checker count without `--checkers` | 4 | 4. `--fast` uses every core up to 16, then the greater of 16 and half the cores, capped at 32 and one checker per 32 checked files (floor 4). `--build` keeps 4 per project in either mode. Both compilers finally clamp to 1–256 and the file count |
+| Checker count without `--checkers` | 4 | 4. `--fast` uses every core, capped at 32 and one checker per 32 checked files (floor 4). `--build` keeps 4 per project in either mode. Both compilers finally clamp to 1–256 and the file count |
 | How files are split across checkers | FENNEL association | The same by default. `--fast` uses directory-subtree groups with work stealing, file splitting and module affinity when eligible. Explicit `--checkerAssignment` / `TSRS_CHECKER_ASSIGNMENT` overrides the preset and disables stealing |
 | Checker history | tsgo's: which file reports some diagnostics depends on check order | The same by default. `--fast` enables canonical history and tsrs-only checker caches (inference-walk, union-front and indexed-access). `go` assignment restores tsgo's history ([details](../notes/fix-history-dependent-diagnostics.md)) |
 | Lazy checker members | Eager member instantiation | Eager by default. `--fast` or `--lazyMembers` enables lazy members; `--noLazyMembers` / `TSRS_LAZY_MEMBERS=0` overrides the preset. Reduced instantiation can change diagnostics near a depth limit ([known exceptions](../notes/open-history-dependence.md)) |

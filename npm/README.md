@@ -62,32 +62,32 @@ launcher and the JS API on each given Node; 16.20.0, 18, 20, 22 and 24 pass.)
 
 ## Versions
 
-The workspace `Cargo.toml` is the version source of truth. This checkout prepares 0.22.0:
+Cargo and all ten npm packages share the TypeScript-aligned version `7.1.0-beta.tsrs1`. The prefix identifies
+TypeScript `7.1.0-beta`; `tsrs1` is the unpadded tsrs revision. The next fix is `7.1.0-beta.tsrs2`. Stable
+TypeScript `7.1.0` uses `7.1.0-tsrs1`. These are SemVer prereleases and publish under npm's `next` tag.
 
-```toml
-[workspace.package]
-version = "0.22.0"
+SemVer compares `tsrsN` as text: `tsrs10` sorts before `tsrs9`. Release checks reject that transition, so after
+`tsrs9` a new TypeScript version is required for further sequential revisions.
 
-[workspace.metadata.typescript]
-version = "7.1.0-beta"                                 # the TypeScript version the port follows
-commit = "3e9236361fa97a9e6c685f4833ac457ae2d8c50a"    # and its commit (CI checks out its tsc/testdata)
-nightly = "7.1.0-beta"                                 # matching npm package used for the compiler's reported version
+`cargo-release-oxc` manages the explicit published crate versions and their workspace dependency versions in
+`Cargo.toml`, along with the private root `package.json`. `npm/build.mjs` copies the same version into the main,
+native platform and WebAssembly package manifests; their checked-in npm manifests hold placeholders.
+`[workspace.package] version` supplies the default for unpublished support crates.
+
+The exact reference remains in `[workspace.metadata.typescript]`: `version` identifies the supported TypeScript
+release, `commit` pins its source and `nightly` identifies the matching npm compiler package. Generated npm
+manifests expose the version and commit as `tsrs.typescriptVersion` and `tsrs.typescriptCommit`.
+`tsrs --version` and `tsrs-wasm --version` report both the compiler compatibility version and the tsrs package version:
+
+```
+Version 7.1.0-beta (tsrs 7.1.0-beta.tsrs1, microsoft/TypeScript@3e9236361fa9)
 ```
 
-npm version: `<version>-ts<typescript version>` = `0.22.0-ts7.1.0-beta`, for every package including
-`@tsrs/wasm` (`npm/tsrs-wasm/package.json` holds a placeholder that `npm/build.mjs` replaces). `tsrs --version`
-and `tsrs-wasm --version` include the package version, embedded at build time by `crates/tsrs_execute/build.rs`.
-The example below shows the 0.22.0 release version; read `Cargo.toml` for the current source pin:
+See [versioning and releases](../docs/RELEASING_CRATES.md#versioning) for nightly ordering, revision limits and
+migration from the previous `<tsrs version>-ts<TypeScript version>` format.
 
-```
-Version 7.1.0-beta (tsrs 0.22.0-ts7.1.0-beta, microsoft/TypeScript@3e9236361fa9)
-```
-
-To release a fix on the same TypeScript commit, bump `[workspace.package] version`; after porting a newer TypeScript
-commit, update `[workspace.metadata.typescript]`, including the matching npm package version in `nightly`.
-
-Source builds default to `7.1.0-beta` unless `TSRS_TS_VERSION` is set. Release builds stamp the matching npm package as the
-compiler version so `.tsbuildinfo` files and `typesVersions` agree with the reference compiler.
+Source builds default to `7.1.0-beta` unless `TSRS_TS_VERSION` is set. Release builds stamp the matching TypeScript
+npm package version so `.tsbuildinfo` files and `typesVersions` agree with the reference compiler.
 
 ## Building packages locally
 
@@ -186,9 +186,13 @@ Wire contract the server has to speak (from the pinned `tsc/cmd/tsc/api.go`, `ts
 
 ## Releasing
 
-To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refresh `Cargo.lock`, set the root
-`package.json` version to the output of `node npm/build.mjs --print-version`, and add `docs/releases/<workspace version>.md`.
-`.github/workflows/release.yml` publishes when that root package version is bumped on `main`:
+Run [Prepare Release](../.github/workflows/prepare_release.yml) from `main` with the next version, such as
+`7.1.0-beta.tsrs2`. It uses `cargo release-oxc update` to bump Cargo and npm together, updates `Cargo.lock`,
+validates crate archives and opens a PR with release notes in `docs/releases/<version>.md`.
+Merging the coordinated version bump triggers crate and npm publishing. For local commands and publisher setup,
+see [the release guide](../docs/RELEASING_CRATES.md).
+
+The [npm release workflow](../.github/workflows/release.yml):
 
 1. checks the root package version against `Cargo.toml`, requires release notes, and runs `cargo check`;
 2. builds PGO release binaries (`release` profile, trained by `.github/scripts/pgo-train.sh`) for macOS arm64 (`macos-latest`),
@@ -204,14 +208,14 @@ To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refres
    release version, exit code 2 on a type error), and uploads it as the `npm-wasm` artifact;
 4. assembles and packs the native packages with `npm/build.mjs`, uploads the tarballs as the `npm-packages` artifact,
    and publishes the platform packages, then the main package, then `@tsrs/wasm`, with
-   `--access public --tag latest` using npm trusted publishing (skipping versions already published or staged, so a
+   `--access public --tag next` using npm trusted publishing (skipping versions already published or staged, so a
    failed run can be re-run). The publish job allows 90 minutes. Before publishing the main package, waits up to
    30 minutes for every optional dependency's exact version metadata and tarball to be available on npm, including
    platform packages skipped on a re-run.
    Dry runs skip this check. Releases publish directly, without a staged approval step.
-5. waits for all published packages to be available on npm, creates the GitHub release tagged `v<workspace version>`
-   with the version alone as its title and `docs/releases/<workspace version>.md` as its notes, marks it as the
-   latest GitHub release, then deploys the browser playground.
+5. waits for all published packages and their `next` tags to be available on npm, creates a GitHub prerelease
+   tagged `v<version>` with the version alone as its title and `docs/releases/<version>.md` as its notes,
+   then deploys the browser playground.
 
 The conformance and Go fourslash gates run on the GNU Linux release runners (`bolt.sh`), with Fourslash driving
 the BOLT-optimized `fourslash_server` task binary. Unix PGO training uses the same Go harness. The macOS binaries get only the

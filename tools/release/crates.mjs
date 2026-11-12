@@ -2,6 +2,7 @@
 // Package the release together so Cargo can verify dependencies before their first crates.io publication.
 import path from "node:path";
 import { ROOT, args, main, read, requireValue, run } from "../lib/cli.mjs";
+import { readVersions, validateReleaseVersion } from "./version.mjs";
 
 main(() => {
     const values = args("Validate and package the publishable Rust crates.", {
@@ -22,6 +23,7 @@ main(() => {
     );
     requireValue(!unexpected.length, `Excluded crates must stay unpublished: ${unexpected.map((pkg) => pkg.name).join(", ")}`);
     requireValue(packages.length && version, "No publishable workspace crates or shared version found");
+    validateReleaseVersion(version, readVersions(ROOT).typescriptVersion);
     const npmVersion = JSON.parse(read(path.join(ROOT, "package.json"))).version;
     const expectedNpmVersion = run([process.execPath, "npm/build.mjs", "--print-crate-version"], { cwd: ROOT }).stdout.trim();
     requireValue(

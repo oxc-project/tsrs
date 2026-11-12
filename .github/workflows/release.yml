@@ -1,6 +1,6 @@
 # Builds the tsrs binaries and the WebAssembly module, publishes the npm packages, then creates the GitHub release,
 # using docs/releases/<crate version>.md for its notes. Use cargo-release-oxc to bump Cargo and the private root package.json together;
-# npm/build.mjs adds the TypeScript suffix to the published npm version. The conformance and fourslash gates run here on the BOLT-optimized
+# Cargo and npm use the same TypeScript-aligned version. The conformance and fourslash gates run here on the BOLT-optimized
 # GNU binaries (.github/scripts/bolt.sh). The macOS and Windows binaries get the smoke tests below; Windows also
 # trains on the conformance suite. The broader WebAssembly differential gate
 # (tools/wasm/gate.sh) remains available locally.
@@ -44,6 +44,7 @@ jobs:
       release: ${{ github.event_name == 'workflow_dispatch' || steps.check.outputs.changed == 'true' }}
       version: ${{ steps.v.outputs.version }}
       crate_version: ${{ steps.v.outputs.crate_version }}
+      dist_tag: ${{ steps.v.outputs.dist_tag }}
       ts_commit: ${{ steps.v.outputs.ts_commit }}
       ts_nightly: ${{ steps.v.outputs.ts_nightly }}
     steps:
@@ -93,6 +94,13 @@ jobs:
           crate_version=$(node npm/build.mjs --print-crate-version)
           root_version=$(node -p 'require("./package.json").version')
           [ "$root_version" = "$crate_version" ] || { echo "::error::package.json version $root_version does not match Cargo version $crate_version"; exit 1; }
+          node --input-type=module <<'JS'
+          import fs from "node:fs";
+          import { distTag, readVersions, validateReleaseVersion } from "./tools/release/version.mjs";
+          const release = readVersions(process.cwd());
+          validateReleaseVersion(release.version, release.typescriptVersion);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `dist_tag=${distTag(release.version)}\n`);
+          JS
           test -s "docs/releases/$crate_version.md" || { echo "::error::Missing release notes for $crate_version"; exit 1; }
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "crate_version=$crate_version" >> "$GITHUB_OUTPUT"
@@ -615,9 +623,10 @@ jobs:
         env:
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
           VERSION: ${{ needs.version.outputs.version }}
+          DIST_TAG: ${{ needs.version.outputs.dist_tag }}
           PRIVATE_REPO: ${{ github.event.repository.private }}
         run: |
-          flags=(--access public --tag latest --no-git-checks)
+          flags=(--access public --tag "$DIST_TAG" --no-git-checks)
           [ "$PRIVATE_REPO" = false ] && flags+=(--provenance)
           [ "$DRY_RUN" = true ] && flags+=(--dry-run)
           # pnpm authenticates with this job's GitHub Actions OIDC identity and publishes directly.
@@ -648,7 +657,7 @@ jobs:
               status=$?
               cat "$RUNNER_TEMP/publish.log"
               # Staged versions can be absent from `pnpm view` while npm already rejects republishing them.
-              # The availability checks still require their metadata, tarballs and latest tags to become visible.
+              # The availability checks still require their metadata, tarballs and release tags to become visible.
               if [ "$DRY_RUN" != true ] && grep -Eq 'publish over (previously staged|the previously published) version' "$RUNNER_TEMP/publish.log"; then
                 echo "$name@$VERSION already published or staged"
                 continue
@@ -657,7 +666,7 @@ jobs:
             fi
           done < "$RUNNER_TEMP/publish.txt"
 
-      - name: Verify every published package and latest tag
+      - name: Verify every published package and release tag
         if: github.event_name != 'workflow_dispatch' || !inputs.dry_run
         run: node .github/scripts/wait-for-npm-packages.mjs --release npm/dist/packages.json wasm-dist/packages.json
 
@@ -675,9 +684,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.version.outputs.crate_version }}
-        run: >-
-          gh release create "v$VERSION" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA"
-          --title "$VERSION" --notes-file "docs/releases/$VERSION.md" --latest
+          DIST_TAG: ${{ needs.version.outputs.dist_tag }}
+        run: |
+          flags=(--latest)
+          if [ "$DIST_TAG" = next ]; then flags=(--prerelease --latest=false); fi
+          gh release create "v$VERSION" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "$VERSION" --notes-file "docs/releases/$VERSION.md" "${flags[@]}"
 
   playground:
     needs: github-release

@@ -152,18 +152,70 @@ extern "C" fn fast_heap_huge_pages(
     }
 }
 
-fn main() -> std::process::ExitCode {
-    #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
-    tsrs_core::allocator::init_mimalloc();
-    // Huge pages stay off while the parse threads allocate: their partly used heap pages would be resident as whole
-    // 2 MiB pages, about 0.5 GiB however small the program (notes/perf-fast-heap-thp.md).
-    #[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
-    // Relaxed: see the store in `fast_heap_huge_pages`.
+// Right after mimalloc's constructor (priority 101), which needed `allow_thp = 1` to keep the process's THP on, and
+// before anything allocates: huge pages stay off while the parse threads allocate, since their partly used heap pages
+// would be resident as whole 2 MiB pages, about 0.5 GiB however small the program, and so does mimalloc's first arena,
+// mapped on the first allocation (notes/perf-fast-heap-thp.md).
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+#[used]
+#[unsafe(link_section = ".init_array.00102")]
+static FAST_HEAP_AFTER_MIMALLOC_START: extern "C" fn() = fast_heap_after_mimalloc_start;
+
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+extern "C" fn fast_heap_after_mimalloc_start() {
+    // Relaxed: written by the priority-100 constructor on this thread.
     if FAST_HEAP.load(std::sync::atomic::Ordering::Relaxed) {
         // SAFETY: sets one integer option; mimalloc reads it on each later OS allocation.
         unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 0) };
-        // SAFETY: sets one integer option at parse end, before any checker thread starts.
-        tsrs_core::allocator::at_parse_end(|| unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 1) });
+    }
+}
+
+// The resident memory at parse end, per checker, from which `--fast` gives the checkers' heap huge pages. They cost a
+// roughly fixed block per checker (12-20 MiB on Graviton4: its threads' partly used heap pages resident whole), and a
+// run peaked at 1.45x its parse-end memory or more on every project measured, so from here the block is at most about
+// 5% of the peak (notes/perf-fast-heap-thp.md).
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+const FAST_HEAP_MIN_PARSE_RSS_PER_CHECKER: usize = 256 << 20;
+
+// `TSRS_FAST_HEAP_HUGE_PAGES`: 1 turns the size gate on whatever the size, 0 off; anything else leaves it to the size.
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+static FAST_HEAP_FORCED: std::sync::OnceLock<Option<bool>> = std::sync::OnceLock::new();
+
+/// Runs at parse end under `--fast`, before any checker thread starts. Only ever turns huge pages on, never off again
+/// (build mode parses several programs).
+#[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+fn fast_heap_at_parse_end(checkers: usize) {
+    let rss = tsrs_core::memsplit::process_memory();
+    let forced = FAST_HEAP_FORCED.get().copied().flatten();
+    let on = forced.unwrap_or(rss >= checkers.max(1) * FAST_HEAP_MIN_PARSE_RSS_PER_CHECKER);
+    if tsrs_core::memsplit::enabled() {
+        eprintln!(
+            "tsrs mem split: heap huge pages {}{} (parse end {} MiB, {checkers} checkers)",
+            if on { "on" } else { "off" },
+            if forced.is_some() { ", forced" } else { "" },
+            rss >> 20
+        );
+    }
+    if on {
+        // SAFETY: sets one integer option; mimalloc reads it on each later OS allocation.
+        unsafe { mi_option_set(MI_OPTION_ALLOW_THP, 1) };
+    }
+}
+
+fn main() -> std::process::ExitCode {
+    #[cfg(all(target_os = "linux", not(any(feature = "system-alloc", miri))))]
+    tsrs_core::allocator::init_mimalloc();
+    // The heap stays off huge pages until parse end (`fast_heap_after_mimalloc_start`); the size gate decides then.
+    #[cfg(all(target_os = "linux", target_env = "gnu", not(any(feature = "system-alloc", miri))))]
+    // Relaxed: see the store in `fast_heap_huge_pages`.
+    if FAST_HEAP.load(std::sync::atomic::Ordering::Relaxed) {
+        let forced = match std::env::var("TSRS_FAST_HEAP_HUGE_PAGES").as_deref() {
+            Ok("1") => Some(true),
+            Ok("0") => Some(false),
+            _ => None,
+        };
+        let _ = FAST_HEAP_FORCED.set(forced);
+        tsrs_core::allocator::at_parse_end(fast_heap_at_parse_end);
     }
     // `std::env::args()` panics on an argument that isn't UTF-8. tsgo keeps the bytes and its diagnostics format them
     // with `strings.ToValidUTF8`, so converting the same way up front prints the same text.

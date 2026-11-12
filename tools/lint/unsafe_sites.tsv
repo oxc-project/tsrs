@@ -153,13 +153,13 @@ crates/tsrs_checker/src/types.rs	restore_bits	fn	logic		keep	tagged word decode;
 crates/tsrs_cli/src/lsp.rs	(file)	extern	boundary		keep	OS, FFI or allocator call
 crates/tsrs_cli/src/lsp.rs	is_process_alive	block	boundary	kill(2) with signal 0 only checks for the existence of the process and sends nothing.	keep	OS, FFI or allocator call
 crates/tsrs_cli/src/main.rs	(file)	extern	boundary		keep	OS, FFI or allocator call
+crates/tsrs_cli/src/main.rs	fast_heap_after_mimalloc_start	block	boundary	sets one integer option; mimalloc reads it on each later OS allocation.	keep	OS, FFI or allocator call
+crates/tsrs_cli/src/main.rs	fast_heap_at_parse_end	block	boundary	sets one integer option; mimalloc reads it on each later OS allocation.	keep	OS, FFI or allocator call
 crates/tsrs_cli/src/main.rs	fast_heap_huge_pages	block	boundary	glibc passes `argc` argument pointers.	keep	C start-up arguments from glibc; read only, before main
 crates/tsrs_cli/src/main.rs	fast_heap_huge_pages	block	boundary	glibc's argument and environment strings are NUL-terminated and live as long as the process.	keep	C start-up arguments from glibc; read only, before main
 crates/tsrs_cli/src/main.rs	fast_heap_huge_pages	block	boundary	glibc's environment vector is NULL-terminated; this stops at its end.	keep	C start-up arguments from glibc; read only, before main
 crates/tsrs_cli/src/main.rs	fast_heap_huge_pages	block	boundary	sets one integer option; mimalloc reads it when it starts, right after this constructor.	keep	OS, FFI or allocator call
 crates/tsrs_cli/src/main.rs	fast_heap_huge_pages	block	boundary	sets the arena reservation size; mimalloc reads it when it starts, right after this constructor.	keep	OS, FFI or allocator call
-crates/tsrs_cli/src/main.rs	main	block	boundary	sets one integer option at parse end, before any checker thread starts.	keep	OS, FFI or allocator call
-crates/tsrs_cli/src/main.rs	main	block	boundary	sets one integer option; mimalloc reads it on each later OS allocation.	keep	OS, FFI or allocator call
 crates/tsrs_cli/src/main.rs	main	leak	ownership		keep	process-lifetime by design; one allocation, no growth (CLI host)
 crates/tsrs_cli/src/main.rs	mimalloc_collect	block	boundary	collects the calling thread's heap; no arguments to get wrong.	keep	OS, FFI or allocator call
 crates/tsrs_cli/src/main.rs	mimalloc_collect	extern	boundary		keep	OS, FFI or allocator call

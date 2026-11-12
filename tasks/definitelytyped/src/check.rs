@@ -345,7 +345,7 @@ fn is_out_of_range_expect_error(diagnostic: &Value) -> bool {
 }
 
 pub fn pinned_typescript_version() -> Option<String> {
-    let manifest = include_str!("typescript_generated.toml");
+    let manifest = include_str!("../../../Cargo.toml");
     let section = manifest.split("[workspace.metadata.typescript]").nth(1)?;
     let line = section.lines().find(|line| line.trim_start().starts_with("version = "))?;
     Some(line.split('"').nth(1)?.split('-').next()?.to_string())

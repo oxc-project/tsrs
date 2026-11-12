@@ -5,13 +5,6 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
-categories.workspace = true
-homepage.workspace = true
-keywords.workspace = true
-repository.workspace = true
-readme.workspace = true
-include = ["/src","/LICENSE","/NOTICE"]
-description = "Content mapper fixtures and test support for tsrs"
 
 [lints]
 workspace = true

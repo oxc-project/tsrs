@@ -15,9 +15,12 @@ main(() => {
     );
     const version = read(path.join(ROOT, "Cargo.toml")).match(/\[workspace\.package\][^[]*?^version\s*=\s*"([^"]+)"/m)?.[1];
     const members = metadata.packages.filter((pkg) => metadata.workspace_members.includes(pkg.id));
-    const excluded = members.filter((pkg) => pkg.name.startsWith("tsrs_") && pkg.publish !== null);
-    requireValue(!excluded.length, `Every tsrs_ crate must be publishable: ${excluded.map((pkg) => pkg.name).join(", ")}`);
     const packages = members.filter((pkg) => pkg.publish === null);
+    const privateCrates = new Set(["tsrs_bench", "tsrs_contentmappertest", "tsrs_testrunner", "tsrs_wasm"]);
+    const unexpected = packages.filter((pkg) =>
+        privateCrates.has(pkg.name) || pkg.manifest_path.startsWith(path.join(ROOT, "tasks") + path.sep),
+    );
+    requireValue(!unexpected.length, `Excluded crates must stay unpublished: ${unexpected.map((pkg) => pkg.name).join(", ")}`);
     requireValue(packages.length && version, "No publishable workspace crates or shared version found");
     const npmVersion = JSON.parse(read(path.join(ROOT, "package.json"))).version;
     const expectedNpmVersion = run([process.execPath, "npm/build.mjs", "--print-version"], { cwd: ROOT }).stdout.trim();

@@ -41,8 +41,8 @@ Details:
   through `tools/go-fourslash` without generating Rust fixtures.
 - Also check `--all-features` when changing lint policy. It enables `plain-ptrs`, so check optional features with
   compressed pointers separately. These scopes include profiling tools and both pointer representations.
-- Every `tsrs_*` workspace crate is published, including tooling crates. Each inherits crates.io metadata from the
-  workspace and declares a description. See [crate releases](RELEASING_CRATES.md).
+- Published crates inherit crates.io metadata from the workspace and declare a description. Benchmarks, test support,
+  task crates and WebAssembly stay `publish = false`. See [crate releases](RELEASING_CRATES.md).
 - Generated Rust is linted; fix its generator when Clippy finds something. When generated code intentionally needs
   an exception, emit the smallest reasoned `#[expect]` from the generator.
 - `dead_code`, `unused_imports`, `unused_variables`, `unused_mut` and `unsafe_op_in_unsafe_fn` are ordinary compiler

@@ -69,11 +69,7 @@ pub fn run() -> Result<()> {
         }
         _ => return Err("expected --write (default) or --check".into()),
     };
-    // Installed generators use the checkout they run in rather than Cargo's cached crate sources.
-    let cwd = std::env::current_dir()?;
-    let root = cwd.ancestors().find(|path| path.join(DESTINATION).is_file()).unwrap_or_else(|| {
-        Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap()
-    });
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
     let generated = generate(&source::load(root)?)?;
     let mut rustfmt = Command::new("rustfmt")
         .current_dir(root)

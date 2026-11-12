@@ -70,7 +70,7 @@ fn git_commit(path: &Path) -> Result<String> {
 }
 
 fn pinned_typescript_commit() -> Result<String> {
-    let manifest = include_str!("typescript_generated.toml");
+    let manifest = include_str!("../../../Cargo.toml");
     let section =
         manifest.split("[workspace.metadata.typescript]").nth(1).ok_or("TypeScript pin absent")?;
     let line = section

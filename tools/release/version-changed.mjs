@@ -25,7 +25,7 @@ main(() => {
         : {
               cargo: version(run(["git", "show", `${values.before}:Cargo.toml`], { cwd: ROOT }).stdout),
               // Before cargo-release-oxc managed the root version, it included the published TypeScript suffix.
-              npm: JSON.parse(run(["git", "show", `${values.before}:package.json`], { cwd: ROOT }).stdout).version?.replace(/-ts.*$/, ""),
+              npm: JSON.parse(run(["git", "show", `${values.before}:package.json`], { cwd: ROOT }).stdout).version?.replace(/-ts(?=\d).*$/, ""),
           };
     requireValue(
         typeof current.npm === "string" && (previous.npm === null || typeof previous.npm === "string"),

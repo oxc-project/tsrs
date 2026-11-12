@@ -44,31 +44,28 @@ export function distTag(version) {
 export function validateReleaseVersion(version, typescriptVersion) {
     const release = parseVersion(version);
     const upstream = parseVersion(typescriptVersion);
-    const [major, minor, patch] = upstream.core;
-    const base = patch * 1000n;
-    if (release.core[0] !== major || release.core[1] !== minor) {
-        throw new Error(`${version} must use TypeScript ${typescriptVersion}'s major and minor versions`);
+    const prefix = [...upstream.prerelease];
+    // TypeScript's dev label sorts after beta; alpha preserves chronological channel order.
+    if (prefix[0] === "dev") prefix[0] = "alpha";
+    const revision = /^tsrs(\d{4})$/.exec(release.prerelease.at(-1) ?? "");
+    const expected = `${upstream.core.join(".")}-${[...prefix, "tsrs0001"].join(".")}`;
+    if (release.core.some((part, index) => part !== upstream.core[index])
+        || release.prerelease.slice(0, -1).join(".") !== prefix.join(".") || !revision || revision[1] === "0000") {
+        throw new Error(`${version} must follow ${expected} for TypeScript ${typescriptVersion}, with a revision from tsrs0001 to tsrs9999`);
     }
-    const counter = release.core[2] - base;
-    if (counter < 1n || counter > 999n) {
-        throw new Error(`${version} must use TypeScript patch ${patch} × 1000 + a suffix from 001 to 999; upgrade TypeScript instead of rolling the suffix over`);
-    }
-    if (release.prerelease.join(".") !== upstream.prerelease.join(".")) {
-        throw new Error(`${version} must preserve TypeScript ${typescriptVersion}'s prerelease identifiers`);
-    }
-    return { counter };
+    return { counter: BigInt(revision[1]) };
 }
 
 export function validateNextVersion(current, requested, typescriptVersion) {
     const next = validateReleaseVersion(requested, typescriptVersion);
     if (compareVersions(requested, current) <= 0) throw new Error(`${requested} must be newer than ${current}`);
-    const previous = parseVersion(current);
-    const upstream = parseVersion(typescriptVersion);
-    const counter = previous.core[2] - upstream.core[2] * 1000n;
-    // Keep counting across prereleases and stable promotion of the same TypeScript numeric version.
-    const sameReference = previous.core[0] === upstream.core[0] && previous.core[1] === upstream.core[1]
-        && counter >= 1n && counter <= 999n;
-    const expected = sameReference ? counter + 1n : 1n;
+    let previous;
+    try {
+        previous = validateReleaseVersion(current, typescriptVersion);
+    } catch {
+        // A new upstream version or migration from 0.x starts a fresh revision.
+    }
+    const expected = previous ? previous.counter + 1n : 1n;
     if (next.counter !== expected) throw new Error(`Expected tsrs counter ${expected} for TypeScript ${typescriptVersion}`);
 }
 

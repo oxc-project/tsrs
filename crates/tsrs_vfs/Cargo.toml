@@ -1,6 +1,6 @@
 [package]
 name = "tsrs_vfs"
-version = "7.1.1-beta"
+version = "7.1.0-beta.tsrs0001"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

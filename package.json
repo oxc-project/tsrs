@@ -1,6 +1,6 @@
 {
     "name": "tsrs-tooling",
-    "version": "0.25.0-ts7.1.0-beta",
+    "version": "0.25.0",
     "private": true,
     "publishConfig": {
         "tag": "latest"

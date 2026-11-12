@@ -15,7 +15,7 @@
 // build-only compiler in npm/package.json (`pnpm install --frozen-lockfile` first; `--tsc <path>` to use another TypeScript 7 tsc).
 //
 // The package name comes from npm/tsrs/package.json; Linux platform packages have a `-gnu` or `-musl` suffix. The version is
-// `<workspace version>-ts<[workspace.metadata.typescript] version>` from the workspace Cargo.toml, for every package
+// `<tsrs_cli version>-ts<[workspace.metadata.typescript] version>` from the workspace Cargo.toml, for every package
 // including `@tsrs/wasm` (npm/tsrs-wasm). The main package lists exactly the platforms given here, so a
 // release never points at a platform package that was not published.
 
@@ -114,7 +114,7 @@ function parseArgs(argv) {
     return opts;
 }
 
-// Minimal reader for the two tables we need from the workspace Cargo.toml.
+// Read the CLI's workspace dependency version and the TypeScript source pin.
 function readCargoVersions() {
     const text = fs.readFileSync(path.join(repoRoot, "Cargo.toml"), "utf8");
     const tables = {};
@@ -129,10 +129,10 @@ function readCargoVersions() {
         const kv = line.match(/^([\w-]+)\s*=\s*"([^"]*)"$/);
         if (kv) (tables[table] ??= {})[kv[1]] = kv[2];
     }
-    const crateVersion = tables["workspace.package"]?.version;
+    const crateVersion = text.match(/^tsrs_cli\s*=\s*\{[^}]*\bversion\s*=\s*"([^"]+)"/m)?.[1];
     const ts = tables["workspace.metadata.typescript"];
     if (!crateVersion || !ts?.version || !ts?.commit || !ts?.nightly) {
-        throw new Error("Cargo.toml needs [workspace.package] version and [workspace.metadata.typescript] version/commit/nightly");
+        throw new Error("Cargo.toml needs the tsrs_cli workspace dependency version and [workspace.metadata.typescript] version/commit/nightly");
     }
     return {
         crateVersion,

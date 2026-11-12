@@ -1,67 +1,73 @@
-# Publishing Rust crates
+# Preparing and publishing releases
 
-The [Release Crates workflow](../.github/workflows/release_crates.yml) uses
-[`cargo-release-oxc` 0.0.44](https://github.com/oxc-project/cargo-release-oxc) with
-[`oxc_release.toml`](../oxc_release.toml). It publishes the 34 compiler, language-service and CLI crates in dependency
-order. Benchmarks, test helpers, task crates and the WebAssembly crate are excluded from publication, and validation
-rejects accidentally enabling them.
+Releases use [`cargo-release-oxc` 0.0.44](https://github.com/oxc-project/cargo-release-oxc) with
+[`oxc_release.toml`](../oxc_release.toml). The 34 compiler, language-service and CLI crates are published to crates.io;
+benchmarks, test helpers, task crates and the WebAssembly crate are excluded.
 
-The initial [0.24.0 release](https://crates.io/crates/tsrs_cli/0.24.0) was published locally on 2026-11-11.
-All 34 registry versions and their trusted publishers were read back and verified after publication.
+## Prepare a release
 
-The crates require Rust 1.99 or newer; repository builds use the version pinned in
-[`rust-toolchain.toml`](../rust-toolchain.toml).
+1. Run [Prepare Release](../.github/workflows/prepare_release.yml) from `main` with a newer version such as `0.26.0`,
+   without a leading `v` or TypeScript suffix.
+2. Review the generated PR. It bumps Cargo and npm versions together, refreshes `Cargo.lock`, packages and builds
+   every published crate, and generates `docs/releases/<version>.md` if notes do not already exist.
+3. Merge the PR to trigger [Release Crates](../.github/workflows/release_crates.yml) and
+   [Release](../.github/workflows/release.yml), which publish the crates and npm packages respectively. The npm
+   workflow also creates the GitHub release.
 
-Crates share `[workspace.package] version` with the existing npm release. When changing it, update every published
-crate's version requirement in `[workspace.dependencies]` to match. Keep the existing npm release preparation and
-notes workflow. `cargo-release-oxc update` is not used: it requires explicit package versions instead of inherited
-workspace versions.
+Published crates have explicit versions managed by `cargo-release-oxc update`. Their manifests, workspace dependency
+versions and the private root `package.json` share the crate version. `npm/build.mjs` adds the pinned TypeScript
+suffix to public npm versions, for example `0.26.0-ts7.1.0-beta`. `[workspace.package] version` supplies the default
+for unpublished support crates.
 
-After changing the TypeScript pin, run `node tools/gen-release-version.mjs` (also part of `tools/gen-check.sh`).
-Its checked-in output lets `tsrs_execute` build from a crate archive without reading the repository's root manifest.
-The `tsrs_vfs` archive includes the standard TypeScript libraries, so the Cargo CLI needs no separate library install.
-Every published archive also carries the repository's license and attribution notices.
+Both publishing workflows require Cargo and root npm versions to change in the same push to `main`. The crate
+workflow watches only root `Cargo.toml`; unrelated manifest edits skip publication.
 
-## Validate
+## Prepare locally
 
-```sh
-node tools/release/crates.mjs --check       # metadata, versions and TypeScript pin
-node tools/release/crates.mjs               # package and compile all publishable crates
-```
-
-Use `--allow-dirty` while preparing changes locally, or `--no-verify` to inspect archives without compiling them.
-Cargo packages the crates together using its temporary registry, so this works before the first release. Archives
-are written to `target/package`. `cargo-release-oxc publish --dry-run` checks crates individually and requires their
-dependencies to have been published already.
-
-## Publish
-
-The GitHub `crates` environment allows deployments only from `main`. The workflow uses the same crates.io OIDC
-authentication action as oxc and needs no long-lived publishing secret. Each crate must trust owner `oxc-project`,
-repository `tsrs`, workflow `release_crates.yml`, environment `crates`.
-
-[crates.io requires an API token for initial publication](https://crates.io/docs/trusted-publishing). When adding a
-new crate, publish it locally with a suitable token, then configure its trusted publisher with the values above.
-Keep bootstrap credentials local.
-
-Push coordinated version bumps in both the root `Cargo.toml` (`[workspace.package] version`) and `package.json` to
-`main` to trigger the npm and crate release workflows. Set `package.json` to `node npm/build.mjs --print-version` and
-update the versioned workspace dependencies in the same push. The crate workflow watches only `Cargo.toml`. The
-version gate compares against the commit before the whole push and rejects a bump to only one version. Other
-manifest edits leave publication skipped. The crate workflow packages and builds every archive before publishing.
-
-To validate manually, run **Release Crates** from `main` with `dry_run` enabled. Disable `dry_run` for a manual publish
-or retry. Publishing uses the `crates` environment and never cancels a release in progress. A rerun skips crate
-versions already on crates.io, allowing a partial release to resume.
-This workflow does not create another npm release or GitHub release.
-
-With suitable crates.io credentials, the equivalent command from a clean checkout is:
+From a clean checkout:
 
 ```sh
 cargo binstall cargo-release-oxc --version 0.0.44 --locked
-node -e 'require("node:fs").mkdirSync("target", { recursive: true })'
+mkdir -p target
+cargo release-oxc update --release crates --version 0.26.0
+cargo check
+node tools/release/crates.mjs --allow-dirty
+```
+
+Commit the version changes, updated lockfile and release notes in `docs/releases/<version>.md` together.
+After changing the TypeScript pin, regenerate its release metadata with `node tools/gen-release-version.mjs`.
+
+## Validate and retry
+
+```sh
+node tools/release/crates.mjs --check  # Check metadata, versions and the TypeScript pin
+node tools/release/crates.mjs          # Package and compile all published crates
+```
+
+Use `--allow-dirty` for uncommitted changes or `--no-verify` to inspect archives without compiling them. Archives
+are written to `target/package`; Cargo verifies unpublished dependency versions together using a temporary registry.
+
+Run **Release Crates** manually from `main` with `dry_run` enabled to validate without publishing. Disable it to
+publish or retry a partial release. Releases run serially, and retries skip versions already on crates.io.
+
+## Publishing configuration
+
+The GitHub `crates` environment permits deployments only from `main`. Crates.io trusted publishing uses OIDC with
+these settings for each crate:
+
+- Repository owner: `oxc-project`
+- Repository name: `tsrs`
+- Workflow filename: `release_crates.yml`
+- Environment: `crates`
+
+[Initial publication requires a crates.io API token](https://crates.io/docs/trusted-publishing). Publish a new crate
+locally, then configure its trusted publisher. With local credentials and `cargo-release-oxc` installed:
+
+```sh
+mkdir -p target
 cargo release-oxc publish --release crates
 ```
 
-The tool writes `target/CRATES_VERSION` even when `CARGO_TARGET_DIR` points elsewhere, so create `target` before
-publishing from a fresh checkout.
+Keep the local `target` directory even with a custom `CARGO_TARGET_DIR`: the tool writes `target/CRATES_VERSION` there.
+The prepare workflow uses the same `CAPTAIN_ID` / `CAPTAIN_KEY` GitHub App credentials as TypeScript sync so its PRs
+trigger CI.

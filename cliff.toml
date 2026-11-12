@@ -1,0 +1,3 @@
+# Required by cargo-release-oxc, including updates with an explicit --version.
+[bump]
+bump_type = "minor"

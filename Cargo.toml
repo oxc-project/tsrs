@@ -3,6 +3,7 @@ resolver = "3"
 members = ["crates/*", "tasks/*"]
 
 [workspace.package]
+# Default for unpublished support crates; published crates have explicit versions managed by cargo-release-oxc.
 version = "0.25.0"
 edition = "2024"
 rust-version = "1.99"
@@ -15,7 +16,7 @@ repository = "https://github.com/oxc-project/tsrs"
 readme = "README.md"
 
 # The microsoft/TypeScript commit this port follows. Read by tools/gen-release-version.mjs (`tsrs --version`), by
-# npm/build.mjs (npm version = "<workspace version>-ts<version>") and by CI (conformance testdata checkout).
+# npm/build.mjs (npm version = "<tsrs_cli version>-ts<version>") and by CI (conformance testdata checkout).
 # `nightly` is the npm `typescript` package matching `commit` (a nightly or prerelease; its package.json `gitHead`
 # is exactly `commit`). Published-version and release builds stamp it
 # as TypeScript's version (TSRS_TS_VERSION, crates/tsrs_core/src/version.rs), as the package's own build does, so the
@@ -24,6 +25,10 @@ readme = "README.md"
 version = "7.1.0-beta"
 commit = "3e9236361fa97a9e6c685f4833ac457ae2d8c50a"
 nightly = "7.1.0-beta"
+
+[workspace.metadata.cargo-shear]
+# cargo-release-oxc needs an entry for every published crate, including the CLI that no member depends on.
+ignored = ["tsrs_cli"]
 
 [workspace.dependencies]
 criterion2 = { version = "3.0.5", default-features = false } # Benchmarking
@@ -103,6 +108,8 @@ tsrs_ipc = { version = "0.25.0", path = "crates/tsrs_ipc" }
 tsrs_contentmapper = { version = "0.25.0", path = "crates/tsrs_contentmapper" }
 tsrs_contentmappertest = { path = "crates/tsrs_contentmappertest" }
 tsrs_execute = { version = "0.25.0", path = "crates/tsrs_execute" }
+# cargo-release-oxc updates every published crate through its workspace dependency entry.
+tsrs_cli = { version = "0.25.0", path = "crates/tsrs_cli" }
 tsrs_lint = { version = "0.25.0", path = "crates/tsrs_lint" }
 tsrs_fswatch = { version = "0.25.0", path = "crates/tsrs_fswatch" }
 

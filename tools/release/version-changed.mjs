@@ -10,8 +10,9 @@ main(() => {
     );
     requireValue(/^[0-9a-f]{40}$/.test(values.before), "--before must be the full commit SHA before the push");
     const version = (manifest) => {
-        const value = manifest.match(/\[workspace\.package\][^[]*?^version\s*=\s*"([^"]+)"/m)?.[1];
-        requireValue(value, "Missing [workspace.package] version in Cargo.toml");
+        const value = manifest.match(/^tsrs_cli\s*=\s*\{[^}]*\bversion\s*=\s*"([^"]+)"/m)?.[1]
+            ?? manifest.match(/\[workspace\.package\][^[]*?^version\s*=\s*"([^"]+)"/m)?.[1];
+        requireValue(value, "Missing tsrs_cli workspace dependency version in Cargo.toml");
         return value;
     };
     const current = {
@@ -22,7 +23,8 @@ main(() => {
         ? { cargo: null, npm: null }
         : {
               cargo: version(run(["git", "show", `${values.before}:Cargo.toml`], { cwd: ROOT }).stdout),
-              npm: JSON.parse(run(["git", "show", `${values.before}:package.json`], { cwd: ROOT }).stdout).version,
+              // Before cargo-release-oxc managed the root version, it included the published TypeScript suffix.
+              npm: JSON.parse(run(["git", "show", `${values.before}:package.json`], { cwd: ROOT }).stdout).version?.replace(/-ts.*$/, ""),
           };
     requireValue(
         typeof current.npm === "string" && (previous.npm === null || typeof previous.npm === "string"),
@@ -32,7 +34,7 @@ main(() => {
     const npmChanged = current.npm !== previous.npm;
     requireValue(
         cargoChanged === npmChanged,
-        "Bump Cargo.toml [workspace.package] version and package.json version together in the same push",
+        "Bump Cargo and package.json versions together with cargo release-oxc update --release crates --version <version>",
     );
     const changed = cargoChanged && npmChanged;
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\n`);

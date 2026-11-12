@@ -1,0 +1,113 @@
+name: Prepare Release
+
+permissions: {}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Crate version without a leading v or TypeScript suffix (for example 0.26.0)"
+        type: string
+        required: true
+
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.repository == 'oxc-project/tsrs' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+        with:
+          registry-url: ""
+
+      - name: Validate requested version
+        run: |
+          node --input-type=module <<'JS'
+          import fs from "node:fs";
+          const requested = process.env.RELEASE_VERSION;
+          if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(requested)) {
+            throw new Error("Use a version such as 0.26.0, without a leading v or prerelease suffix");
+          }
+          const current = JSON.parse(fs.readFileSync("package.json", "utf8")).version;
+          const previous = current.split(".").map(BigInt);
+          const next = requested.split(".").map(BigInt);
+          const first = next.findIndex((part, index) => part !== previous[index]);
+          if (first === -1 || next[first] < previous[first]) {
+            throw new Error(`Requested version ${requested} must be newer than ${current}`);
+          }
+          JS
+
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          cache-key: prepare-release
+          tools: cargo-release-oxc@0.0.44
+
+      - name: Bump Cargo and npm versions
+        run: |
+          mkdir -p target
+          cargo release-oxc update --release crates --version "$RELEASE_VERSION"
+
+      - name: Refresh Cargo.lock
+        run: cargo check
+
+      - name: Verify packaged crates
+        run: node tools/release/crates.mjs --allow-dirty
+
+      # An App token lets the release PR trigger CI, as in the TypeScript sync workflow.
+      - name: Create oxc-guard token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ secrets.CAPTAIN_ID }}
+          private-key: ${{ secrets.CAPTAIN_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Prepare release notes
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from "node:fs";
+          import { execFileSync } from "node:child_process";
+          const version = process.env.RELEASE_VERSION;
+          const notes = `docs/releases/${version}.md`;
+          if (!fs.existsSync(notes)) {
+            const body = execFileSync("gh", [
+              "api", "--method", "POST", `repos/${process.env.GITHUB_REPOSITORY}/releases/generate-notes`,
+              "-f", `tag_name=v${version}`, "-f", `target_commitish=${process.env.GITHUB_SHA}`, "--jq", ".body",
+            ], { encoding: "utf8" }).trim();
+            fs.writeFileSync(notes, `# tsrs ${version}\n\n${body}\n`);
+          }
+          if (!fs.readFileSync(notes, "utf8").trim()) throw new Error(`Release notes are empty: ${notes}`);
+          JS
+
+      - name: Open release PR
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          base: main
+          branch: release/tsrs-${{ inputs.version }}
+          delete-branch: true
+          commit-message: "chore(release): prepare ${{ inputs.version }}"
+          title: "chore(release): prepare ${{ inputs.version }}"
+          body: "Prepare tsrs ${{ inputs.version }} for the next coordinated Cargo and npm release."
+          add-paths: |
+            Cargo.toml
+            Cargo.lock
+            package.json
+            crates/*/Cargo.toml
+            docs/releases/${{ inputs.version }}.md

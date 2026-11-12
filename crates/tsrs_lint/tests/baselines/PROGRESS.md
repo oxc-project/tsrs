@@ -22,7 +22,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | no-for-in-array | Updated to Go HEAD | 24 current cases; structural array-likes and loop-header byte ranges |
 | no-implied-eval | Updated to Go HEAD | 70 current cases; Function constructors, timer handlers, local shadowing |
 | no-meaningless-void-operator | Updated to Go HEAD | 24 current cases; checkNever and independent fix/suggestion flags |
-| no-misused-promises | Updated to 6b043c5f | 237 current cases, 1 upstream skip; conditionals, predicates, spreads, nested void-return options, generic overloads and constraints, Promise-accepting overloads, constructors and impossible intersections |
+| no-misused-promises | Updated to 1ae4bbd5 | 263 current cases, 1 upstream skip; conditionals with `flagUnions` none/strict/all from upstream #1353, predicates, spreads, nested void-return options, generic overloads and constraints, Promise-accepting overloads, constructors and impossible intersections |
 | no-misused-spread | Updated to Go HEAD | 133 current cases, 1 upstream skips; string/array/iterable/class checks, allowlists, await and map suggestions |
 | no-mixed-enums | Updated to Go HEAD | 51 current cases; initializer types, merged declarations and namespace/module augmentation |
 | no-redundant-type-constituents | Updated to Go HEAD | 104 current cases; union/intersection overrides, aliases, literals and function return exceptions |

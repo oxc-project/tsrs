@@ -1,2 +1,8 @@
-tsgolint 6b043c5f3dd19e3a162b7f0edf587a9ae83bfe81
+tsgolint 1ae4bbd516db0a7a5390e86c90623dc343dea1e6
 typescript-go 2bd066d87f5bafd315be9f40889d0a60b9e58e0b
+
+Scoped rule refresh for 1ae4bbd516db0a7a5390e86c90623dc343dea1e6 (#1353).
+All six compiler patches; Go 1.26.10; @types/node 24.13.2; undici-types 7.18.2.
+Exported with tools/tsgolint/export.mts --reference 1ae4bbd516db0a7a5390e86c90623dc343dea1e6
+in a disposable checkout. The shared corpus REFERENCE, fixtures and other rules retain
+their existing provenance.

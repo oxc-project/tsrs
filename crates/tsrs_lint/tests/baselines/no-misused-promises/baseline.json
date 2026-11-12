@@ -1874,6 +1874,238 @@
           "Diagnostics": []
         },
         {
+          "Code": "\ndeclare const f: () => number | Promise<void>;\nif (f()) {\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const f: () => boolean | Promise<boolean>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "none"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const f: () => boolean | Promise<void>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "none"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const f: () => boolean | Promise<void>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype MyUnion = number | string | undefined;\ntype PromiseUnion = string | number;\ndeclare const f: () => MyUnion | Promise<PromiseUnion>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const f: () => number | string | Promise<number> | Promise<boolean>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const f: () => string[] | Promise<number[]>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const f: () => [number, string] | Promise<[string, number]>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const f: () => (() => void) | Promise<() => number>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface MyInterface {\n  name: string;\n}\n\ninterface PromiseInterface {\n  age: string;\n}\n\ndeclare const f: () => MyInterface | Promise<PromiseInterface>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Recursive = Promise<Recursive>;\ndeclare const f: () => boolean | Recursive;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const f: boolean | string;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "all"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst fn: () => Promise<boolean> | boolean = () => Promise.resolve(true);\nif (await fn()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "all"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype MyUnion = number | string;\ntype PromiseUnion = string | number | undefined;\ndeclare const f: () => MyUnion | Promise<PromiseUnion>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
           "Code": "if (process.env.SKIP) { return x; }",
           "Only": false,
           "Skip": false,
@@ -7004,6 +7236,567 @@
           ]
         },
         {
+          "Code": "\ndeclare const f: () => number | Promise<number>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 3,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 54,
+                "end": 57
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `number | Promise<number>`.",
+                  "range": {
+                    "pos": 54,
+                    "end": 57
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const f: () => number | string | Promise<number> | Promise<string>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 3,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 81,
+                "end": 84
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `string | number | Promise<string> | Promise<number>`.",
+                  "range": {
+                    "pos": 81,
+                    "end": 84
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype MyUnion = number | string | undefined;\ndeclare const f: () => MyUnion | Promise<MyUnion>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 4,
+              "Column": 5,
+              "EndLine": 4,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `Promise<MyUnion> | MyUnion`.",
+                  "range": {
+                    "pos": 100,
+                    "end": 103
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 100,
+                "end": 103
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const f: () => string[] | Promise<string[]>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 3,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 61
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `string[] | Promise<string[]>`.",
+                  "range": {
+                    "pos": 58,
+                    "end": 61
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-promises"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const f: () => [number, string] | Promise<[number, string]>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 3,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 74,
+                "end": 77
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `Promise<[number, string]> | [number, string]`.",
+                  "range": {
+                    "end": 77,
+                    "pos": 74
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const f: () => (() => void) | Promise<() => void>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 3,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 64,
+                "end": 67
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `Promise<() => void> | (() => void)`.",
+                  "range": {
+                    "pos": 64,
+                    "end": 67
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface MyInterface {\n  name: string;\n}\ndeclare const f: () => MyInterface | Promise<MyInterface>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 6,
+              "Column": 5,
+              "EndLine": 6,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 106,
+                "end": 109
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `MyInterface | Promise<MyInterface>`.",
+                  "range": {
+                    "pos": 106,
+                    "end": 109
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-promises"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype MyType<T> = { value: T };\ndeclare const f: () => MyType<number> | Promise<MyType<number>>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 4,
+              "Column": 5,
+              "EndLine": 4,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 101,
+                "end": 104
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `MyType<number> | Promise<MyType<number>>`.",
+                  "range": {
+                    "pos": 101,
+                    "end": 104
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype T = number | string | undefined;\ndeclare const f: () => T | Promise<T>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 4,
+              "Column": 5,
+              "EndLine": 4,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 85
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `Promise<T> | T`.",
+                  "range": {
+                    "pos": 82,
+                    "end": 85
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype MyType<T> = { value: T };\ntype PromiseType<T> = { value: T };\ndeclare const f: () => MyType<number> | Promise<PromiseType<number>>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 5,
+              "Column": 5,
+              "EndLine": 5,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "strict"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 145,
+                "pos": 142
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `MyType<number> | Promise<PromiseType<number>>`.",
+                  "range": {
+                    "pos": 142,
+                    "end": 145
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const f: () => boolean | Promise<void>;\nif (f()) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 3,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "all"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 56
+              },
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 53,
+                    "end": 56
+                  },
+                  "label": "This expression has type `boolean | Promise<void>`."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-promises"
+            }
+          ]
+        },
+        {
           "Code": "\ndeclare function on(this: void, ...callbacks: Array<() => void>): void;\non(async () => {}, async () => {});\n      ",
           "Only": false,
           "Skip": false,
@@ -7700,6 +8493,57 @@
               ],
               "kind": 0,
               "rule": "no-misused-promises"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction f<T extends Promise<number> | string>(x: T | undefined) {\n  if (x) {\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "conditional",
+              "Line": 3,
+              "Column": 7,
+              "EndLine": 3,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checksConditionals": {
+              "flagUnions": "all"
+            },
+            "checksSpreads": true,
+            "checksVoidReturn": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-promises",
+              "message": {
+                "id": "conditional",
+                "description": "Expected non-Promise value in a boolean conditional."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 74,
+                "end": 75
+              },
+              "labeled_ranges": [
+                {
+                  "label": "This expression has type `T | undefined`.",
+                  "range": {
+                    "end": 75,
+                    "pos": 74
+                  }
+                }
+              ]
             }
           ]
         }

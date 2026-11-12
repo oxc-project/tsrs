@@ -9,6 +9,7 @@ import { main, writeJSON } from "../lib/cli.mjs";
 
 const REFERENCE = "4ebf80fd2b166cba4890c6896220fec4a1462b29";
 const COMPILER = "2bd066d87f5bafd315be9f40889d0a60b9e58e0b";
+const CHECKED_IN = path.resolve(import.meta.dirname, "../../crates/tsrs_lint/tests/baselines");
 
 type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 
@@ -86,7 +87,7 @@ func exportBaselineResult(t *testing.T, r *rule.Rule, rootDir string, diagnostic
 }
 `;
 
-const USAGE = "usage: export.mts [-h] --rule RULE reference output";
+const USAGE = "usage: export.mts [-h] --rule RULE [--reference SHA] reference output";
 const HELP = `${USAGE}
 
 Export evaluated baseline cases from an isolated pinned tsgolint checkout.
@@ -96,8 +97,9 @@ positional arguments:
   output
 
 options:
-  -h, --help   show this help message and exit
-  --rule RULE  Rule directory name, e.g. await_thenable, or all`;
+  -h, --help       show this help message and exit
+  --rule RULE      Rule directory name, e.g. await_thenable, or all
+  --reference SHA  tsgolint commit for a scoped rule refresh (default ${REFERENCE})`;
 
 function usageError(message: string): never {
     console.error(`${USAGE}\nexport.mts: error: ${message}`);
@@ -161,7 +163,11 @@ main(() => {
     let parsed;
     try {
         parsed = parseArgs({
-            options: { help: { type: "boolean", short: "h" }, rule: { type: "string" } },
+            options: {
+                help: { type: "boolean", short: "h" },
+                rule: { type: "string" },
+                reference: { type: "string" },
+            },
             allowPositionals: true,
         });
     } catch (error) {
@@ -176,9 +182,11 @@ main(() => {
     if (values.rule === undefined) missing.push("--rule");
     if (missing.length) usageError(`the following arguments are required: ${missing.join(", ")}`);
     if (positionals.length > 2) usageError(`unrecognized arguments: ${positionals.slice(2).join(" ")}`);
+    const pin = values.reference ?? REFERENCE;
+    if (!/^[0-9a-f]{40}$/.test(pin)) usageError("--reference must be a full lowercase commit SHA");
     const reference = fs.realpathSync(positionals[0]);
     const exported = path.resolve(positionals[1]);
-    if (gitHead(reference) !== REFERENCE || gitHead(path.join(reference, "typescript-go")) !== COMPILER)
+    if (gitHead(reference) !== pin || gitHead(path.join(reference, "typescript-go")) !== COMPILER)
         usageError("reference revisions do not match the pinned baseline");
     const compiler = path.join(reference, "typescript-go");
     const patches = path.join(reference, "patches");
@@ -261,13 +269,20 @@ main(() => {
         values.rule === "all"
             ? sorted(fs.readdirSync(rulesDirectory)).map((name) => path.join(rulesDirectory, name))
             : [path.join(rulesDirectory, values.rule!)];
-    const stamp = `tsgolint ${REFERENCE}\ntypescript-go ${COMPILER}\n`;
+    const stamp = `tsgolint ${pin}\ntypescript-go ${COMPILER}\n`;
     for (const rule of rules) {
         const tests = isDirectory(rule) ? fs.readdirSync(rule).filter((name) => name.endsWith("test.go")) : [];
         if (!tests.length) continue;
-        const ruleOutput = path.join(exported, path.basename(rule).replaceAll("_", "-"));
+        const name = path.basename(rule).replaceAll("_", "-");
+        const ruleOutput = path.join(exported, name);
         fs.mkdirSync(ruleOutput, { recursive: true });
         fs.writeFileSync(path.join(ruleOutput, "REFERENCE"), stamp);
+        const checkedIn = path.join(CHECKED_IN, name, "REFERENCE");
+        const checkedInPin = fs.existsSync(checkedIn)
+            ? /^tsgolint ([0-9a-f]{40})$/m.exec(fs.readFileSync(checkedIn, "utf8"))?.[1]
+            : undefined;
+        if (checkedInPin !== undefined && checkedInPin !== pin)
+            console.warn(`export.mts: ${name} is checked in at tsgolint ${checkedInPin}; do not replace it with this ${pin} export`);
     }
     fs.writeFileSync(path.join(exported, "REFERENCE"), stamp);
 });

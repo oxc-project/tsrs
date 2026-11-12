@@ -57,9 +57,27 @@ impl ChecksVoidReturn {
 
 pub struct NoMisusedPromises {
     checks_conditionals: bool,
+    flag_unions: FlagUnions,
     checks_spreads: bool,
     void_return: Option<ChecksVoidReturn>,
     checked_nodes: FxHashSet<P<Node>>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum FlagUnions {
+    None,
+    Strict,
+    All,
+}
+
+impl FlagUnions {
+    fn from_object(object: &tsrs_core::json::JsonMap) -> Self {
+        match object.get("flagUnions") {
+            Some(Value::String(value)) if value == "all" => Self::All,
+            Some(Value::String(value)) if value == "strict" => Self::Strict,
+            _ => Self::None,
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -287,6 +305,53 @@ fn is_always_thenable(context: &mut RuleContext<'_>, node: P<Node>) -> bool {
     true
 }
 
+fn is_sometimes_thenable(context: &mut RuleContext<'_>, node: P<Node>) -> bool {
+    let t = context.checker.get_type_at_location(node);
+    let apparent = context.checker.get_apparent_type(t);
+    union_type_parts(&apparent).iter().any(|&part| is_thenable_type(context.checker, node, part))
+}
+
+fn has_matching_promise_type_argument(context: &mut RuleContext<'_>, node: P<Node>) -> bool {
+    let t = context.checker.get_type_at_location(node);
+    let apparent = context.checker.get_apparent_type(t);
+    let constituents = union_type_parts(&apparent);
+    let Some(first_promise) =
+        constituents.iter().position(|&part| is_thenable_type(context.checker, node, part))
+    else {
+        return false;
+    };
+    let mut promise_types = vec![constituents[first_promise]];
+    let mut non_promise_types = constituents[..first_promise].to_vec();
+    for &part in &constituents[first_promise + 1..] {
+        if is_thenable_type(context.checker, node, part) {
+            promise_types.push(part);
+        } else {
+            non_promise_types.push(part);
+        }
+    }
+    let mut awaited_types = Vec::new();
+    for promise_type in promise_types {
+        let Some(awaited) = context.checker.get_awaited_type(promise_type) else {
+            return false;
+        };
+        awaited_types.extend_from_slice(union_type_parts(&awaited));
+    }
+    let non_promise_set: FxHashSet<P<Type>> = non_promise_types.iter().copied().collect();
+    let awaited_set: FxHashSet<P<Type>> = awaited_types.iter().copied().collect();
+    let mut has_equivalent_type =
+        |t: P<Type>, candidates: &[P<Type>], candidate_set: &FxHashSet<P<Type>>| {
+            candidate_set.contains(&t)
+                || candidates.iter().any(|&candidate| {
+                    context.checker.is_type_assignable_to(t, candidate)
+                        && context.checker.is_type_assignable_to(candidate, t)
+                })
+        };
+    non_promise_types.iter().all(|&t| has_equivalent_type(t, &awaited_types, &awaited_set))
+        && awaited_types
+            .iter()
+            .all(|&awaited| has_equivalent_type(awaited, &non_promise_types, &non_promise_set))
+}
+
 fn get_member_if_exists(
     context: &mut RuleContext<'_>,
     t: P<Type>,
@@ -495,13 +560,20 @@ impl NoMisusedPromises {
             Some(Value::Bool(value)) => Ok(*value),
             _ => Err(format!("no-misused-promises: {name} must be a boolean")),
         };
+        let (checks_conditionals, flag_unions) =
+            match object.and_then(|object| object.get("checksConditionals")) {
+                Some(Value::Bool(value)) => (*value, FlagUnions::None),
+                Some(Value::Object(object)) => (true, FlagUnions::from_object(object)),
+                _ => (true, FlagUnions::None),
+            };
         let void_return = match object.and_then(|object| object.get("checksVoidReturn")) {
             None | Some(Value::Null | Value::Bool(true)) => Some(ChecksVoidReturn::default()),
             Some(Value::Object(object)) => Some(ChecksVoidReturn::from_object(object)),
             _ => None,
         };
         Ok(Self {
-            checks_conditionals: boolean("checksConditionals")?,
+            checks_conditionals,
+            flag_unions,
             checks_spreads: boolean("checksSpreads")?,
             void_return,
             checked_nodes: FxHashSet::default(),
@@ -531,7 +603,11 @@ impl NoMisusedPromises {
             }
             return;
         }
-        if is_always_thenable(context, node) {
+        if is_always_thenable(context, node)
+            || (self.flag_unions == FlagUnions::All && is_sometimes_thenable(context, node))
+            || (self.flag_unions == FlagUnions::Strict
+                && has_matching_promise_type_argument(context, node))
+        {
             report_node(context, node, MessageId::Conditional.message(), None);
         }
     }

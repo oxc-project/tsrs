@@ -2283,6 +2283,69 @@ fn no_misused_promises_preserves_conditional_dedup_and_void_option_fallbacks() {
 }
 
 #[test]
+fn no_misused_promises_decodes_checks_conditionals_flag_unions() {
+    let file = std::env::current_dir()
+        .unwrap()
+        .join("target/lint-misused-flag-unions/virtual.ts")
+        .to_string_lossy()
+        .into_owned();
+    let source = "export {}; declare const always: Promise<void>; if (always) {} declare const matching: Promise<number> | number; if (matching) {} declare const mixed: Promise<void> | boolean; if (mixed) {}";
+    let always = source.find("always) {}").unwrap();
+    let matching = source.find("matching) {}").unwrap();
+    let mixed = source.find("mixed) {}").unwrap();
+    for (options, expected) in [
+        (r#"{"checksConditionals":false}"#, vec![]),
+        ("{}", vec![always]),
+        (r#"{"checksConditionals":{}}"#, vec![always]),
+        (r#"{"checksConditionals":{"flagUnions":null}}"#, vec![always]),
+        (r#"{"checksConditionals":{"flagUnions":"none"}}"#, vec![always]),
+        (r#"{"checksConditionals":{"flagUnions":"bogus"}}"#, vec![always]),
+        (r#"{"checksConditionals":{"flagUnions":"ALL"}}"#, vec![always]),
+        (r#"{"checksConditionals":"unexpected"}"#, vec![always]),
+        (r#"{"checksConditionals":{"flagUnions":"strict"}}"#, vec![always, matching]),
+        (r#"{"checksConditionals":{"flagUnions":"all"}}"#, vec![always, matching, mixed]),
+    ] {
+        let payload = protocol::object([
+            ("version", Value::Integer(2)),
+            (
+                "configs",
+                Value::Array(vec![protocol::object([
+                    ("file_paths", Value::Array(vec![Value::String(file.clone())])),
+                    (
+                        "rules",
+                        Value::Array(vec![protocol::object([
+                            ("name", Value::String("no-misused-promises".into())),
+                            ("options", json::unmarshal(options).unwrap()),
+                        ])]),
+                    ),
+                ])]),
+            ),
+            (
+                "source_overrides",
+                Value::Object(
+                    std::iter::once((file.clone(), Value::String(source.into()))).collect(),
+                ),
+            ),
+        ]);
+        let (status, frames) = run(&payload, &[]);
+        assert_eq!(status, 0, "{options}: {frames:?}");
+        let mut starts = frames
+            .iter()
+            .map(|(_, value)| {
+                let Value::Object(diagnostic) = value else { panic!() };
+                let Value::Object(message) = &diagnostic["message"] else { panic!() };
+                assert_eq!(message["id"], Value::String("conditional".into()));
+                let Value::Object(range) = &diagnostic["range"] else { panic!() };
+                let Value::Number(pos) = range["pos"] else { panic!() };
+                pos as usize
+            })
+            .collect::<Vec<_>>();
+        starts.sort_unstable();
+        assert_eq!(starts, expected, "{options}: {frames:?}");
+    }
+}
+
+#[test]
 fn no_misused_spread_gates_await_suggestions_and_keeps_unicode_byte_ranges() {
     let file = std::env::current_dir()
         .unwrap()

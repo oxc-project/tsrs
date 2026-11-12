@@ -401,7 +401,12 @@ fn run_in_region(
     // largest (`Options::exit_after`); its output still comes last.
     let inferred = usize::from(!unmatched.is_empty());
     let jobs = inferred + programs.len();
-    let schedule = Schedule { next: AtomicUsize::new(0), jobs, running: AtomicUsize::new(0) };
+    let schedule = Schedule {
+        next: AtomicUsize::new(0),
+        jobs,
+        running: AtomicUsize::new(0),
+        running_tsconfigs: AtomicUsize::new(0),
+    };
     let linted: Vec<Mutex<Option<Linted>>> = programs.iter().map(|_| Mutex::new(None)).collect();
     let inferred_linted: Mutex<Option<Linted>> = Mutex::new(None);
     // Each worker's tsconfigs are parsed into a scratch region of its own, kept until the request ends as the
@@ -422,7 +427,7 @@ fn run_in_region(
                         if job >= jobs {
                             break;
                         }
-                        let _running = schedule.start();
+                        let _running = schedule.start(job >= inferred);
                         if job < inferred {
                             let mut output = Vec::new();
                             let mut program_timings = BTreeMap::new();
@@ -524,8 +529,9 @@ struct Schedule {
     // The next job to hand out.
     next: AtomicUsize,
     jobs: usize,
-    // Jobs started and not yet done.
+    // Jobs started and not yet done, and how many of them are tsconfig programs.
     running: AtomicUsize,
+    running_tsconfigs: AtomicUsize,
 }
 
 impl Schedule {
@@ -541,20 +547,39 @@ impl Schedule {
         self.running.load(Ordering::Relaxed) == 1
     }
 
-    fn start(&self) -> Running<'_> {
-        // A count read only to decide whether to steal; it publishes nothing.
+    /// With `Options::exit_after`, whether a program starting now is left to the process exit (and allocates its
+    /// checkers in the thread arenas, `create_program`): no program starts after it, and it is expected to finish
+    /// last, so that holding on to its memory never holds up another program. A tsconfig program is when no other
+    /// tsconfig program runs; the inferred one, started first and only for the files outside every tsconfig, is
+    /// expected to finish before it. The inferred program is when nothing else runs.
+    fn leaves_at_start(&self, tsconfig: bool) -> bool {
+        // See `Schedule::start`.
+        let others = if tsconfig { &self.running_tsconfigs } else { &self.running };
+        self.last() && others.load(Ordering::Relaxed) == 1
+    }
+
+    fn start(&self, tsconfig: bool) -> Running<'_> {
+        // Counts read only to decide whether to steal and what to free; they publish nothing.
         self.running.fetch_add(1, Ordering::Relaxed);
-        Running(self)
+        if tsconfig {
+            // See above.
+            self.running_tsconfigs.fetch_add(1, Ordering::Relaxed);
+        }
+        Running(self, tsconfig)
     }
 }
 
-/// A job of `Schedule` from its start to its end.
-struct Running<'a>(&'a Schedule);
+/// A job of `Schedule` from its start to its end, and whether it is a tsconfig program.
+struct Running<'a>(&'a Schedule, bool);
 
 impl Drop for Running<'_> {
     fn drop(&mut self) {
         // See `Schedule::start`.
         self.0.running.fetch_sub(1, Ordering::Relaxed);
+        if self.1 {
+            // See `Schedule::start`.
+            self.0.running_tsconfigs.fetch_sub(1, Ordering::Relaxed);
+        }
     }
 }
 
@@ -665,7 +690,7 @@ fn lint_inferred_program(
     );
     // Dropped after the program: nothing that outlives a program points into its loader regions.
     let regions = RequestRegions::default();
-    let leave = options.exit_after && schedule.last();
+    let leave = options.exit_after && schedule.leaves_at_start(false);
     let program = create_program(
         config,
         Arc::clone(fs),
@@ -686,12 +711,17 @@ fn lint_inferred_program(
         timings,
         schedule,
     );
-    release(program, regions, leave, shared);
+    release(
+        program,
+        regions,
+        leave || options.exit_after && schedule.last() && schedule.alone(),
+        shared,
+    );
     result.map(drop)
 }
 
-// A program the request is done with: left to the process exit with `leave` (`Options::exit_after` and no program
-// starts after it), else freed on a thread of its own while the request goes on.
+// A program the request is done with: left to the process exit with `leave` (`Options::exit_after`, and it was
+// expected to finish last or is the last one running), else freed on a thread of its own while the request goes on.
 fn release(program: ProgramOwner, regions: RequestRegions, leave: bool, shared: &Shared) {
     if leave {
         program.release(true);
@@ -744,9 +774,9 @@ fn lint_program(
         }
         return Ok(());
     }
-    // With `exit_after`, a program after which the request builds no other one is left to the exit; any other is freed
-    // while the request goes on.
-    let leave = options.exit_after && schedule.last();
+    // With `exit_after`, a program expected to finish last is left to the exit; any other is freed while the request
+    // goes on.
+    let leave = options.exit_after && schedule.leaves_at_start(true);
     let program_span = crate::trace::span("create-program", || config_path.to_owned());
     let program = create_program(
         config,
@@ -777,7 +807,12 @@ fn lint_program(
         timings,
         schedule,
     );
-    release(program, regions, leave, shared);
+    release(
+        program,
+        regions,
+        leave || options.exit_after && schedule.last() && schedule.alone(),
+        shared,
+    );
     for diagnostic in global_diagnostics? {
         report_global_error(diagnostic, config_path, writer)?;
     }

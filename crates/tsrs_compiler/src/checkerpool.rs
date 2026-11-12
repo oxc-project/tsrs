@@ -1231,7 +1231,155 @@ impl CheckerPoolImpl {
     }
 }
 
+/// What a checker does with each file of a check-then-visit pass (`for_each_checker_check_then_visit`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CheckAndVisit {
+    pub check: bool,
+    pub visit: bool,
+}
+
+// One checker's files to visit: the files it checked, in the order it checked them, then (or, without checks) the
+// files it owns. The owner takes from the front, other checkers from the back. `left` is the weight of what is queued,
+// for picking a victim.
+struct VisitQueue {
+    items: Mutex<std::collections::VecDeque<u32>>,
+    left: std::sync::atomic::AtomicU64,
+}
+
+impl VisitQueue {
+    fn push(&self, i: u32, weight: u64) {
+        self.items.lock().unwrap().push_back(i);
+        // A heuristic count for picking a victim; the queue's lock decides who gets a file.
+        self.left.fetch_add(weight, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    fn take(&self, front: bool, weight: impl Fn(u32) -> u64) -> Option<u32> {
+        let mut items = self.items.lock().unwrap();
+        let i = if front { items.pop_front() } else { items.pop_back() }?;
+        drop(items);
+        // See `push`.
+        self.left.fetch_sub(weight(i), std::sync::atomic::Ordering::Relaxed);
+        Some(i)
+    }
+
+    fn left(&self) -> u64 {
+        // See `push`.
+        self.left.load(std::sync::atomic::Ordering::Relaxed)
+    }
+}
+
+// tsrs-only: whether a check-then-visit pass moves visits between checkers (`TSRS_STEAL_VISITS=0` turns it off, for
+// measurement).
+fn steal_visits() -> bool {
+    static VALUE: OnceLock<bool> = OnceLock::new();
+    *VALUE
+        .get_or_init(|| !std::env::var("TSRS_STEAL_VISITS").is_ok_and(|v| v == "0" || v == "off"))
+}
+
 impl CheckerPoolImpl {
+    /// tsrs-only: one pass in which each checker first checks its files (`check`, for the files whose `needs` say so)
+    /// and then visits its files (`visit`), with `between` run once on every checker of the pool after its last
+    /// check and before its first visit. So a checker's visits (a linter's type queries) never run before one of its
+    /// checks, and cannot change what the checks report, while no checker waits for the others between the two:
+    /// the type-aware linter's check and lint passes in one, with the cores a pass's tail leaves idle doing the other
+    /// pass's work. With stealing (`stealing_enabled`) checks move between checkers as in the type-check pass
+    /// (heavy files first, thieves from the back), and a checker visits the files it checked, hot, before it takes
+    /// visits from the back of other checkers' queues; a checker takes visits only once no check is left that it may
+    /// take. Without stealing each checker checks and visits the files of the static assignment in the order of
+    /// `files`, as two passes over them would.
+    pub(crate) fn for_each_checker_check_then_visit(
+        &self,
+        files: &[P<SourceFile>],
+        needs: &[CheckAndVisit],
+        single_threaded: bool,
+        check: &(dyn Fn(&mut Checker, usize, P<SourceFile>) + Sync),
+        between: &(dyn Fn(usize, &mut Checker) + Sync),
+        visit: &(dyn Fn(&mut Checker, usize, P<SourceFile>) + Sync),
+    ) {
+        let state = self.create_checkers();
+        let n = state.checkers.len();
+        let index_of: Vec<Option<usize>> =
+            files.iter().map(|f| state.file_indices.get(f).copied()).collect();
+        let owner = |i: usize| {
+            // Owners change only inside a work group (stealing); this pass starts after the last one joined.
+            index_of[i].map(|fi| state.owners[fi].load(std::sync::atomic::Ordering::Relaxed) as usize)
+        };
+        let weight = |i: u32| {
+            index_of[i as usize]
+                .map_or(1, |fi| state.weights.get(fi).copied().unwrap_or(1).max(0) as u64)
+        };
+        let mut checks: Vec<Vec<u32>> = vec![Vec::new(); n];
+        let visits: Vec<VisitQueue> = (0..n)
+            .map(|_| VisitQueue { items: Mutex::default(), left: Default::default() })
+            .collect();
+        for i in visit_order(files.len()) {
+            let Some(owner) = owner(i) else {
+                continue;
+            };
+            if needs[i].check {
+                checks[owner].push(i as u32);
+            } else if needs[i].visit {
+                visits[owner].push(i as u32, weight(i as u32));
+            }
+        }
+        let active = (0..n).filter(|&c| !checks[c].is_empty() || visits[c].left() > 0).count();
+        let single = single_threaded || self.single_threaded || active <= 1;
+        let steal = !single && stealing_enabled();
+        let sticky = steal && crate::affinity::applies(n, files.len()) && steal_sticky();
+        let max_thieves = max_thieves_per_queue(n);
+        if steal {
+            let total: u64 = checks.iter().flatten().map(|&i| weight(i)).sum();
+            let threshold = total / (n as u64 * heavy_share_divisor());
+            for queue in &mut checks {
+                heavy_files_first(queue, threshold, weight);
+            }
+        }
+        let checks: Vec<FileQueue> = checks.into_iter().map(|p| FileQueue::new(p, weight)).collect();
+        let steal_visits = steal && steal_visits();
+        let run = |me: usize| {
+            let mut guard = state.checkers[me].0.lock().unwrap();
+            let scope = guard.enter();
+            crate::sharedgraph::enter_checker(&guard);
+            let (mut slot, mut last_victim) = (usize::MAX, usize::MAX);
+            while let Some((i, from_other)) =
+                queues_next(&checks, me, steal, max_thieves, &mut slot, sticky.then_some(&mut last_victim))
+            {
+                if from_other && let Some(fi) = index_of[i] {
+                    // Read only after the work group joined.
+                    state.owners[fi].store(me as u32, std::sync::atomic::Ordering::Relaxed);
+                }
+                check(&mut guard, i, files[i]);
+                if needs[i].visit {
+                    visits[me].push(i as u32, weight(i as u32));
+                }
+            }
+            between(me, &mut guard);
+            loop {
+                if let Some(i) = visits[me].take(true, weight) {
+                    visit(&mut guard, i as usize, files[i as usize]);
+                    continue;
+                }
+                if !steal_visits {
+                    break;
+                }
+                // The queue with the most work left; its owner may still be adding the files it checks.
+                let victim = (0..n)
+                    .filter(|&c| c != me)
+                    .max_by_key(|&c| (visits[c].left(), std::cmp::Reverse(c)))
+                    .filter(|&c| visits[c].left() > 0);
+                let Some(victim) = victim else {
+                    // Nothing queued. A checker still checking may queue more, but it visits those itself.
+                    break;
+                };
+                if let Some(i) = visits[victim].take(false, weight) {
+                    visit(&mut guard, i as usize, files[i as usize]);
+                }
+            }
+            drop(scope);
+        };
+        run_work_group(single, n, run);
+    }
+
     // Replaces the checker in `slot` by a fresh one in a new region and frees the old checker and its region, keeping
     // its global diagnostics and counters (`RetiredCheckers`). Called between two files of the type-check pass: the
     // diagnostics of the files the old checker checked have been collected, and no later pass runs a checker over

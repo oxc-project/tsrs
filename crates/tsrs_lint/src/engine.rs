@@ -675,43 +675,87 @@ fn run_program(
     let errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
     let pool_timings: Mutex<BTreeMap<String, (u64, u64)>> = Mutex::new(BTreeMap::new());
     let mut global_diagnostics = Vec::new();
-    // Every file is type-checked before any rule runs: a rule's type query could otherwise hit an error before the
-    // checking `tsrs --noEmit` does, and record it without a location (a global diagnostic) instead.
-    for rules in [false, true] {
-        let pass_span = crate::trace::span(if rules { "pass-lint" } else { "pass-check" }, || {
-            lint_files.len().to_string()
-        });
-        let pooled = program.for_each_checker_group(&lint_files, |checker, index, file| {
-            let _file_span =
-                crate::trace::span(if rules { "lint" } else { "check" }, || index.to_string());
-            let mut output = Vec::new();
-            let mut file_timings = BTreeMap::new();
-            let result = lint_one(
-                program,
-                file,
-                if rules { work[index].1 } else { &[] },
-                !rules,
-                payload,
-                options,
-                checker,
-                &mut output,
-                &mut file_timings,
-            );
-            if let Err(error) = result {
-                errors.lock().unwrap().push(error);
+    let run_file = |checker: &mut tsrs_checker::Checker, index: usize, file, rules: bool| {
+        let _file_span = crate::trace::span(if rules { "lint" } else { "check" }, || index.to_string());
+        let mut output = Vec::new();
+        let mut file_timings = BTreeMap::new();
+        let result = lint_one(
+            program,
+            file,
+            if rules { work[index].1 } else { &[] },
+            !rules,
+            payload,
+            options,
+            checker,
+            &mut output,
+            &mut file_timings,
+        );
+        if let Err(error) = result {
+            errors.lock().unwrap().push(error);
+        }
+        outputs[index].lock().unwrap().extend(output);
+        if options.debug_timings {
+            merge_timings(&mut pool_timings.lock().unwrap(), file_timings);
+        }
+    };
+    if two_passes() {
+        // Every file is type-checked before any rule runs: a rule's type query could otherwise hit an error before the
+        // checking `tsrs --noEmit` does, and record it without a location (a global diagnostic) instead.
+        for rules in [false, true] {
+            let pass_span = crate::trace::span(if rules { "pass-lint" } else { "pass-check" }, || {
+                lint_files.len().to_string()
+            });
+            let pooled = program.for_each_checker_group(&lint_files, |checker, index, file| {
+                run_file(checker, index, file, rules);
+            });
+            drop(pass_span);
+            if !pooled {
+                return Err("the program has no checker pool".into());
             }
-            outputs[index].lock().unwrap().extend(output);
-            if options.debug_timings {
-                merge_timings(&mut pool_timings.lock().unwrap(), file_timings);
+            if !rules && report_global {
+                let _span = crate::trace::span("globals", String::new);
+                global_diagnostics = program.get_global_diagnostics(&Context::default());
             }
-        });
+        }
+    } else {
+        // Each checker type-checks all of its files before any rule runs on it: a rule's type query could otherwise
+        // hit an error before the checking `tsrs --noEmit` does, and record it without a location (a global
+        // diagnostic) instead, or cache a type whose error a later file's check would report. The checkers' global
+        // diagnostics are taken in between, so what rule queries add to them is never reported. Checkers do not wait
+        // for each other: one that is done checking lints while the others still check.
+        let check = payload.report_syntactic || payload.report_semantic;
+        let needs: Vec<tsrs_compiler::CheckAndVisit> = work
+            .iter()
+            .map(|&(file, configured)| tsrs_compiler::CheckAndVisit {
+                check,
+                visit: !configured.is_empty() && !file.is_content_mapped(),
+            })
+            .collect();
+        let globals: Mutex<Vec<(usize, Vec<P<TsDiagnostic>>)>> = Mutex::new(Vec::new());
+        let pass_span = crate::trace::span("pass", || lint_files.len().to_string());
+        let pooled = program.for_each_checker_check_then_visit(
+            &lint_files,
+            &needs,
+            |checker, index, file| run_file(checker, index, file, false),
+            |checker_index, checker| {
+                if report_global {
+                    let diagnostics = checker.get_global_diagnostics();
+                    globals.lock().unwrap().push((checker_index, diagnostics));
+                }
+            },
+            |checker, index, file| run_file(checker, index, file, true),
+        );
         drop(pass_span);
         if !pooled {
             return Err("the program has no checker pool".into());
         }
-        if !rules && report_global {
-            let _span = crate::trace::span("globals", String::new);
-            global_diagnostics = program.get_global_diagnostics(&Context::default());
+        if report_global {
+            // As `Program::get_global_diagnostics` collects them: in checker order, sorted and deduplicated.
+            let mut globals = globals.into_inner().unwrap();
+            globals.sort_by_key(|&(checker_index, _)| checker_index);
+            let all: Vec<P<TsDiagnostic>> =
+                globals.into_iter().flat_map(|(_, diagnostics)| diagnostics).collect();
+            global_diagnostics = tsrs_compiler::sort_and_deduplicate_diagnostics(&all);
         }
     }
     if let Some(error) = errors.into_inner().unwrap().into_iter().next() {
@@ -723,6 +767,11 @@ fn run_program(
     }
     merge_timings(timings, pool_timings.into_inner().unwrap());
     Ok(global_diagnostics)
+}
+
+// `TSRS_LINT_TWO_PASSES=1`: the check pass and then the lint pass, each over every file, as before the one pass.
+fn two_passes() -> bool {
+    std::env::var("TSRS_LINT_TWO_PASSES").is_ok_and(|v| v == "1")
 }
 
 fn lint_one(

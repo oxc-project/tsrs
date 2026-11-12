@@ -98,7 +98,11 @@ defaults. The conformance, fourslash and tsc harnesses use Go history by default
 The scheduling gate requires identical diagnostics for its selected fixtures across seeds and checker counts;
 the upstream history-dependent cases listed above remain outside that guarantee. Single-threaded runs have no assignment.
 In fast mode without a named assignment the type-check pass also steals work: a checker that has run out of files takes unstarted
-files from the back of the busiest checker (notes/perf-checker-stealing.md). Counters can vary from run to run;
+files from the back of the busiest checker (notes/perf-checker-stealing.md). So does the check pass of an incremental
+compilation (`incremental`, `composite`, build mode), which keeps the stolen result only when no checker found a new
+global diagnostic (one without a file, such as TS2318) and otherwise checks the files again on fresh checkers without
+stealing (notes/perf-incremental-pass-stealing.md); `TSRS_INCREMENTAL_STEAL=0` keeps that pass static, for A/B
+measurements. Counters can vary from run to run;
 naming an assignment (`--checkerAssignment locality`) turns stealing off and fixes the file placement and visit
 order. The scheduling gate checks output stability; this does not remove the known history-dependent cases.
 Work stealing can change assignment and visit order between identical fast-mode invocations, exposing those
@@ -432,7 +436,7 @@ testdata/regressions/lazy-dts-members holds the cases where a lazy list could di
 
 ## Checking a heavy declaration file on several checkers: `TSRS_SPLIT_FILES`
 
-In the type-check pass with stealing (`--fast` with more than one checker), a checked declaration file that
+In a check pass with stealing (`--fast` with more than one checker, incremental or not), a checked declaration file that
 weighs at least 40% of an average checker's share (80% for default library files) is cut into contiguous
 statement ranges of about 1/8 of a share
 (`crates/tsrs_compiler/src/splitcheck.rs`, notes/perf-next-heavy-files.md). The checker that owns the file checks the
@@ -441,8 +445,7 @@ statements (`Checker::check_source_file_piece`) and hands its diagnostics for th
 them to its collection, which deduplicates and sorts, and then runs the file-level steps as usual. A file is split only
 if all its top-level statements are declarations (`TS1036` is reported on the first executable statement of a block
 only, so two ranges would each report one). It is off with a named assignment (`--checkerAssignment`, `go`,
-`random:<seed>`), single-threaded, and in every other pass (declaration diagnostics, emit, incremental, the language
-server).
+`random:<seed>`), single-threaded, and in every other pass (declaration diagnostics, emit, the language server).
 
 | variable | values | effect |
 | --- | --- | --- |

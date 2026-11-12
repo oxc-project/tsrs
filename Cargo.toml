@@ -16,7 +16,7 @@ repository = "https://github.com/oxc-project/tsrs"
 readme = "README.md"
 
 # The microsoft/TypeScript commit this port follows. Read by tools/gen-release-version.mjs (`tsrs --version`), by
-# npm/build.mjs (npm version = "<tsrs_cli version>-ts<version>") and by CI (conformance testdata checkout).
+# npm/build.mjs (TypeScript compatibility metadata) and by CI (conformance testdata checkout).
 # `nightly` is the npm `typescript` package matching `commit` (a nightly or prerelease; its package.json `gitHead`
 # is exactly `commit`). Published-version and release builds stamp it
 # as TypeScript's version (TSRS_TS_VERSION, crates/tsrs_core/src/version.rs), as the package's own build does, so the
@@ -76,42 +76,42 @@ windows-sys = { version = "0.61.2", features = [
     "Win32_System_Threading",
 ] }
 xxhash-rust = { version = "0.8", features = ["xxh3", "const_xxh3"] }
-tsrs_core = { version = "0.25.0", path = "crates/tsrs_core" }
-tsrs_diagnostics = { version = "0.25.0", path = "crates/tsrs_diagnostics" }
-tsrs_spanmap = { version = "0.25.0", path = "crates/tsrs_spanmap" }
-tsrs_ast = { version = "0.25.0", path = "crates/tsrs_ast" }
-tsrs_scanner = { version = "0.25.0", path = "crates/tsrs_scanner" }
-tsrs_parser = { version = "0.25.0", path = "crates/tsrs_parser" }
-tsrs_binder = { version = "0.25.0", path = "crates/tsrs_binder" }
-tsrs_vfs = { version = "0.25.0", path = "crates/tsrs_vfs" }
-tsrs_module = { version = "0.25.0", path = "crates/tsrs_module" }
-tsrs_tsoptions = { version = "0.25.0", path = "crates/tsrs_tsoptions" }
-tsrs_checker = { version = "0.25.0", path = "crates/tsrs_checker" }
-tsrs_pseudochecker = { version = "0.25.0", path = "crates/tsrs_pseudochecker" }
-tsrs_modulespecifiers = { version = "0.25.0", path = "crates/tsrs_modulespecifiers" }
-tsrs_compiler = { version = "0.25.0", path = "crates/tsrs_compiler" }
-tsrs_printer = { version = "0.25.0", path = "crates/tsrs_printer" }
-tsrs_transformers = { version = "0.25.0", path = "crates/tsrs_transformers" }
-tsrs_sourcemap = { version = "0.25.0", path = "crates/tsrs_sourcemap" }
-tsrs_declarations = { version = "0.25.0", path = "crates/tsrs_declarations" }
-tsrs_astnav = { version = "0.25.0", path = "crates/tsrs_astnav" }
-tsrs_lsproto = { version = "0.25.0", path = "crates/tsrs_lsproto" }
-tsrs_ls = { version = "0.25.0", path = "crates/tsrs_ls" }
-tsrs_project = { version = "0.25.0", path = "crates/tsrs_project" }
-tsrs_projectutil = { version = "0.25.0", path = "crates/tsrs_projectutil" }
-tsrs_lsp = { version = "0.25.0", path = "crates/tsrs_lsp" }
-tsrs_incremental = { version = "0.25.0", path = "crates/tsrs_incremental" }
-tsrs_api = { version = "0.25.0", path = "crates/tsrs_api" }
-tsrs_api_transport = { version = "0.25.0", path = "crates/tsrs_api_transport" }
-tsrs_api_codec = { version = "0.25.0", path = "crates/tsrs_api_codec" }
-tsrs_ipc = { version = "0.25.0", path = "crates/tsrs_ipc" }
-tsrs_contentmapper = { version = "0.25.0", path = "crates/tsrs_contentmapper" }
+tsrs_core = { version = "7.1.1-beta.1", path = "crates/tsrs_core" }
+tsrs_diagnostics = { version = "7.1.1-beta.1", path = "crates/tsrs_diagnostics" }
+tsrs_spanmap = { version = "7.1.1-beta.1", path = "crates/tsrs_spanmap" }
+tsrs_ast = { version = "7.1.1-beta.1", path = "crates/tsrs_ast" }
+tsrs_scanner = { version = "7.1.1-beta.1", path = "crates/tsrs_scanner" }
+tsrs_parser = { version = "7.1.1-beta.1", path = "crates/tsrs_parser" }
+tsrs_binder = { version = "7.1.1-beta.1", path = "crates/tsrs_binder" }
+tsrs_vfs = { version = "7.1.1-beta.1", path = "crates/tsrs_vfs" }
+tsrs_module = { version = "7.1.1-beta.1", path = "crates/tsrs_module" }
+tsrs_tsoptions = { version = "7.1.1-beta.1", path = "crates/tsrs_tsoptions" }
+tsrs_checker = { version = "7.1.1-beta.1", path = "crates/tsrs_checker" }
+tsrs_pseudochecker = { version = "7.1.1-beta.1", path = "crates/tsrs_pseudochecker" }
+tsrs_modulespecifiers = { version = "7.1.1-beta.1", path = "crates/tsrs_modulespecifiers" }
+tsrs_compiler = { version = "7.1.1-beta.1", path = "crates/tsrs_compiler" }
+tsrs_printer = { version = "7.1.1-beta.1", path = "crates/tsrs_printer" }
+tsrs_transformers = { version = "7.1.1-beta.1", path = "crates/tsrs_transformers" }
+tsrs_sourcemap = { version = "7.1.1-beta.1", path = "crates/tsrs_sourcemap" }
+tsrs_declarations = { version = "7.1.1-beta.1", path = "crates/tsrs_declarations" }
+tsrs_astnav = { version = "7.1.1-beta.1", path = "crates/tsrs_astnav" }
+tsrs_lsproto = { version = "7.1.1-beta.1", path = "crates/tsrs_lsproto" }
+tsrs_ls = { version = "7.1.1-beta.1", path = "crates/tsrs_ls" }
+tsrs_project = { version = "7.1.1-beta.1", path = "crates/tsrs_project" }
+tsrs_projectutil = { version = "7.1.1-beta.1", path = "crates/tsrs_projectutil" }
+tsrs_lsp = { version = "7.1.1-beta.1", path = "crates/tsrs_lsp" }
+tsrs_incremental = { version = "7.1.1-beta.1", path = "crates/tsrs_incremental" }
+tsrs_api = { version = "7.1.1-beta.1", path = "crates/tsrs_api" }
+tsrs_api_transport = { version = "7.1.1-beta.1", path = "crates/tsrs_api_transport" }
+tsrs_api_codec = { version = "7.1.1-beta.1", path = "crates/tsrs_api_codec" }
+tsrs_ipc = { version = "7.1.1-beta.1", path = "crates/tsrs_ipc" }
+tsrs_contentmapper = { version = "7.1.1-beta.1", path = "crates/tsrs_contentmapper" }
 tsrs_contentmappertest = { path = "crates/tsrs_contentmappertest" }
-tsrs_execute = { version = "0.25.0", path = "crates/tsrs_execute" }
+tsrs_execute = { version = "7.1.1-beta.1", path = "crates/tsrs_execute" }
 # cargo-release-oxc updates every published crate through its workspace dependency entry.
-tsrs_cli = { version = "0.25.0", path = "crates/tsrs_cli" }
-tsrs_lint = { version = "0.25.0", path = "crates/tsrs_lint" }
-tsrs_fswatch = { version = "0.25.0", path = "crates/tsrs_fswatch" }
+tsrs_cli = { version = "7.1.1-beta.1", path = "crates/tsrs_cli" }
+tsrs_lint = { version = "7.1.1-beta.1", path = "crates/tsrs_lint" }
+tsrs_fswatch = { version = "7.1.1-beta.1", path = "crates/tsrs_fswatch" }
 
 [profile.dev]
 debug = false

@@ -1,4 +1,4 @@
-/** The npm package version, `<tsrs version>-ts<TypeScript reference version>`. */
+/** The TypeScript-aligned tsrs package version. */
 export declare const version: string;
 /** The microsoft/TypeScript version this release ports. */
 export declare const typescriptVersion: string;

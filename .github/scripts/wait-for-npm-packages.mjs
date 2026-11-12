@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// Wait for optional dependencies, or --release <manifests...> for every package and its latest tag.
+// Wait for optional dependencies, or --release <manifests...> for every package and its release tag.
 
 import fs from "node:fs";
+import { distTag } from "../../tools/release/version.mjs";
 
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-export async function checkPackage([name, version], latest = false, fetchPackage = fetch) {
+export async function checkPackage([name, version], verifyTag = false, fetchPackage = fetch) {
     const metadataUrl = `https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`;
     const options = { headers: { "cache-control": "no-cache" }, signal: AbortSignal.timeout(30_000) };
     const metadata = await fetchPackage(metadataUrl, options);
@@ -18,13 +19,14 @@ export async function checkPackage([name, version], latest = false, fetchPackage
     });
     await tarball.body?.cancel();
     if (!tarball.ok) throw new Error(`tarball unavailable for ${name}@${version}`);
-    if (latest) {
-        const tag = await fetchPackage(`https://registry.npmjs.org/${encodeURIComponent(name)}/latest`, options);
-        if (!tag.ok || (await tag.json()).version !== version) throw new Error(`latest does not name ${name}@${version}`);
+    if (verifyTag) {
+        const channel = distTag(version);
+        const tag = await fetchPackage(`https://registry.npmjs.org/${encodeURIComponent(name)}/${channel}`, options);
+        if (!tag.ok || (await tag.json()).version !== version) throw new Error(`${channel} does not name ${name}@${version}`);
     }
 }
 
-async function waitForPackage([name, version], latest) {
+async function waitForPackage([name, version], verifyTag) {
     const spec = `${name}@${version}`;
     // Allow slow registry staging, with room for both waits within the release job's 90-minute timeout.
     const deadline = Date.now() + 30 * 60 * 1000;
@@ -32,7 +34,7 @@ async function waitForPackage([name, version], latest) {
     console.log(`Waiting for ${spec} to be available.`);
     while (Date.now() < deadline) {
         try {
-            await checkPackage([name, version], latest);
+            await checkPackage([name, version], verifyTag);
             console.log(`✓ ${spec} is available.`);
             return;
         } catch {
@@ -58,11 +60,11 @@ export function releasePackages(manifests) {
 
 if (import.meta.main) {
     try {
-        const latest = process.argv[2] === "--release";
-        const packages = latest
+        const verifyTag = process.argv[2] === "--release";
+        const packages = verifyTag
             ? releasePackages(process.argv.slice(3).map(file => JSON.parse(fs.readFileSync(file, "utf8"))))
             : Object.entries(JSON.parse(fs.readFileSync(process.argv[2], "utf8")).optionalDependencies);
-        await Promise.all(packages.map(pkg => waitForPackage(pkg, latest)));
+        await Promise.all(packages.map(pkg => waitForPackage(pkg, verifyTag)));
     } catch (error) {
         console.error(`::error::${error.message}`);
         process.exitCode = 1;

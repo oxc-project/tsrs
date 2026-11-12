@@ -20,6 +20,10 @@ const BLOCK_ID_SIZE: u32 = tsrs_core::LINK_PAGE_SIZE as u32;
 // offset from BLOCK_ID_OFFSET. This preserves the Go-visible 64-bit id without enlarging every AST object.
 const BLOCK_ID_TAG: u32 = 1 << 31;
 
+/// How many reserved ids the 31 bits below the tag hold: every reserved id is below
+/// `BLOCK_ID_OFFSET + BLOCK_ID_COUNT` (`next_block_id` asserts it).
+pub const BLOCK_ID_COUNT: u64 = BLOCK_ID_TAG as u64;
+
 #[inline]
 fn decode_id(stored: u32) -> u64 {
     if stored & BLOCK_ID_TAG != 0 {

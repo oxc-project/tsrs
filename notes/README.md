@@ -217,6 +217,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [mem-pointer-compression](mem-pointer-compression.md)
 - [mem-signature-links](mem-signature-links.md)
 - [mem-small](mem-small.md)
+- [perf-dense-link-id-cap](perf-dense-link-id-cap.md)
 
 ### Memory lifetime, sharing and profiling
 

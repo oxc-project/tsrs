@@ -764,8 +764,16 @@ impl<V: Default + LinkCopy + 'static> InlineIdStore<V> {
     }
 }
 
-pub const MAX_PAGE_LINK_COUNT: u64 = 0x100_0000;
+/// The reserved ids that take the dense path: all of them (the 31 bits the AST stores).
+///
+/// Go stops at 16M (`maxPageCount` pages of 256) and hashes the ids above it, since its 64-bit counters never stop
+/// in a long-running process; here they assert below 2^31, and a program past 16M paid for the hash on every
+/// lookup (notes/perf-dense-link-id-cap.md: 2% of the cycles). A store's index grows to the highest id its
+/// checker has seen, 4 bytes per 128 ids for `IdLinkStore` and per 1,024 for the node stores' block vectors:
+/// 64 MiB and 8 MiB at the top of the range, which only 2^31 symbols or nodes reach.
+pub const MAX_PAGE_LINK_COUNT: u64 = ast::BLOCK_ID_COUNT;
 
+/// A reserved id's offset in the reserved range, the dense stores' key; `None` for an ordinary id.
 #[inline]
 pub fn dense_link_key(id: u64) -> Option<u64> {
     // Ordinary ids wrap to a large key and fail the bound check; the hot path needs one comparison.
@@ -813,7 +821,7 @@ impl<V: Default + LinkCopy + 'static> NodeLinkStore<V> {
     /// The node's links, created on first use. The reference stays valid for the store's lifetime (`InlineIdStore`).
     #[inline]
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub(crate) fn get(&mut self, node: P<Node>) -> &'static V {
+    pub fn get(&mut self, node: P<Node>) -> &'static V {
         let id = self.generator.get_node_id(node).0;
         if let Some(key) = dense_link_key(id) {
             self.block_store.get(key)
@@ -838,11 +846,10 @@ impl<V: 'static> NodeLinkStore<V> {
 
     /// `try_get` that returns `None` for a node without an id instead of assigning one (no side effect).
     #[inline]
-    pub(crate) fn try_get_if_id_assigned(&self, node: P<Node>) -> Option<&'static V> {
+    pub fn try_get_if_id_assigned(&self, node: P<Node>) -> Option<&'static V> {
         let id = ast::get_assigned_node_id(node)?.0;
         let (store, key) = match dense_link_key(id) {
             Some(key) => (&self.block_store, key),
-            None if id >= ast::BLOCK_ID_OFFSET => return self.ordinary_store.try_get(id),
             None => (&self.ordinary_store, id),
         };
         let key = u32::try_from(key).ok()?;
@@ -966,7 +973,7 @@ impl<V: Default + LinkCopy + 'static> NodeValueLinkStore<V> {
 /// separate stores to prevent collisions.
 pub struct SymbolArenaLinkStore<V: 'static> {
     generator: ast::SymbolIdGenerator,
-    block_store: IdLinkStore<V>,
+    pub block_store: IdLinkStore<V>, // public for the integration tests
     ordinary_store: IdLinkStore<V>,
 }
 
@@ -1023,7 +1030,6 @@ impl<V: 'static> SymbolArenaLinkStore<V> {
         let id = ast::get_assigned_symbol_id(symbol)?.0;
         let (store, key) = match dense_link_key(id) {
             Some(key) => (&self.block_store, key),
-            None if id >= ast::BLOCK_ID_OFFSET => return self.ordinary_store.try_get(id),
             None => (&self.ordinary_store, id),
         };
         let key = u32::try_from(key).ok()?;

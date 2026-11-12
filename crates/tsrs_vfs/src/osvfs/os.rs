@@ -169,7 +169,7 @@ pub fn global_typings_cache_location(cache_dir: Option<&str>) -> String {
 }
 
 // Go os.UserCacheDir.
-fn user_cache_dir() -> Option<String> {
+pub(crate) fn user_cache_dir() -> Option<String> {
     let non_empty = |name: &str| std::env::var(name).ok().filter(|v| !v.is_empty());
     if cfg!(windows) {
         return non_empty("LocalAppData");
@@ -629,6 +629,10 @@ impl IoFS for DirFS<'_> {
 
     fn read_file(&self, name: &str) -> Result<Vec<u8>, FsError> {
         let full = self.join(name)?;
+        #[cfg(unix)]
+        if let Some(bytes) = super::sourcecache::read(&full) {
+            return bytes.map_err(io_error);
+        }
         fs::read(&full).map_err(io_error)
     }
 }

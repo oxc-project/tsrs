@@ -348,9 +348,18 @@ fn tsc_compilation(
             watcher: watcher.map(|w| w as Box<dyn tsc::Watcher>),
         };
     }
+    // tsrs-only, `--fast`: file text from a stat-validated cache (tsrs_vfs osvfs/sourcecache.rs), rewritten while
+    // the program is checked and joined after the output is flushed.
+    let source_cache = testing.is_none()
+        && tsrs_core::fast::enabled()
+        && tsrs_vfs::osvfs::sourcecache::install(&source_cache_key(
+            sys,
+            &config_file_name,
+            &config_for_compilation,
+        ));
     // tsc.go:245
-    if config_for_compilation.compiler_options().unwrap().is_incremental() {
-        return perform_incremental_compilation(
+    let result = if config_for_compilation.compiler_options().unwrap().is_incremental() {
+        perform_incremental_compilation(
             sys,
             config_for_compilation,
             &report_diagnostic,
@@ -359,18 +368,42 @@ fn tsc_compilation(
             extended_config_cache,
             compile_times,
             testing,
-        );
+        )
+    } else {
+        perform_compilation(
+            sys,
+            config_for_compilation,
+            &report_diagnostic,
+            format_diagnostic.as_ref(),
+            &report_error_summary,
+            extended_config_cache,
+            compile_times,
+            testing,
+        )
+    };
+    if source_cache {
+        sys.flush();
+        tsrs_vfs::osvfs::sourcecache::finish();
     }
-    perform_compilation(
-        sys,
-        config_for_compilation,
-        &report_diagnostic,
-        format_diagnostic.as_ref(),
-        &report_error_summary,
-        extended_config_cache,
-        compile_times,
-        testing,
-    )
+    result
+}
+
+// The project a source cache belongs to: its config file, or the directory and root files of a run without one.
+fn source_cache_key(
+    sys: &dyn System,
+    config_file_name: &str,
+    config: &ParsedCommandLine,
+) -> String {
+    let cwd = sys.get_current_directory();
+    if !config_file_name.is_empty() {
+        return tspath::get_normalized_absolute_path(config_file_name, cwd);
+    }
+    let mut key = cwd.to_string();
+    for name in config.file_names() {
+        key.push('\n');
+        key.push_str(name);
+    }
+    key
 }
 
 fn find_config_file(
@@ -465,6 +498,7 @@ fn perform_compilation(
         tsc::DiagnosticTimer::new(sys, config.compiler_options().unwrap().diagnostics_enabled());
     let program = new_program(program_options);
     compile_times.parse_time = parse_start.elapsed();
+    tsrs_vfs::osvfs::sourcecache::end_reads(program.options().diagnostics_enabled());
     if let Some(content_mapper_host) = &content_mapper_host {
         compile_times.content_mapper_times = content_mapper_host.timings();
     }
@@ -563,6 +597,9 @@ fn perform_incremental_compilation(
         };
     compile_times.build_info_read_time = build_info_read_time;
     compile_times.parse_time = parse_time;
+    tsrs_vfs::osvfs::sourcecache::end_reads(
+        config.compiler_options().unwrap().diagnostics_enabled(),
+    );
     let changes_compute_start =
         tsc::DiagnosticTimer::new(sys, config.compiler_options().unwrap().diagnostics_enabled());
     let incremental_program = tsrs_incremental::new_program(

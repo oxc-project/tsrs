@@ -13,8 +13,8 @@ main(() => {
     const metadata = JSON.parse(
         run(["cargo", "metadata", "--locked", "--no-deps", "--format-version", "1"], { cwd: ROOT }).stdout,
     );
-    const version = read(path.join(ROOT, "Cargo.toml")).match(/\[workspace\.package\][^[]*?^version\s*=\s*"([^"]+)"/m)?.[1];
     const members = metadata.packages.filter((pkg) => metadata.workspace_members.includes(pkg.id));
+    const version = members.find((pkg) => pkg.name === "tsrs_cli")?.version;
     const packages = members.filter((pkg) => pkg.publish === null);
     const privateCrates = new Set(["tsrs_bench", "tsrs_contentmappertest", "tsrs_testrunner", "tsrs_wasm"]);
     const unexpected = packages.filter((pkg) =>
@@ -23,14 +23,18 @@ main(() => {
     requireValue(!unexpected.length, `Excluded crates must stay unpublished: ${unexpected.map((pkg) => pkg.name).join(", ")}`);
     requireValue(packages.length && version, "No publishable workspace crates or shared version found");
     const npmVersion = JSON.parse(read(path.join(ROOT, "package.json"))).version;
-    const expectedNpmVersion = run([process.execPath, "npm/build.mjs", "--print-version"], { cwd: ROOT }).stdout.trim();
+    const expectedNpmVersion = run([process.execPath, "npm/build.mjs", "--print-crate-version"], { cwd: ROOT }).stdout.trim();
+    requireValue(
+        expectedNpmVersion === version,
+        `tsrs_cli workspace dependency version ${expectedNpmVersion} must match its package version ${version}`,
+    );
     requireValue(
         npmVersion === expectedNpmVersion,
         `package.json version ${npmVersion} must match ${expectedNpmVersion} from Cargo.toml`,
     );
     const names = new Set(packages.map((pkg) => pkg.name));
     for (const pkg of packages) {
-        requireValue(pkg.version === version, `${pkg.name}: version must match workspace version ${version}`);
+        requireValue(pkg.version === version, `${pkg.name}: version must match tsrs_cli version ${version}`);
         requireValue(pkg.description && pkg.license && pkg.repository && pkg.readme, `${pkg.name}: incomplete release metadata`);
         for (const dep of pkg.dependencies.filter((dep) => dep.path && dep.kind !== "dev")) {
             requireValue(names.has(dep.name), `${pkg.name}: runtime dependency ${dep.name} is not publishable`);

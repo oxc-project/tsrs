@@ -68,6 +68,14 @@ static SKIPPED_TESTS: &[&str] = &[
 ];
 
 pub fn repo_root() -> PathBuf {
+    // An installed runner's crate sources live in Cargo's registry, so prefer the checkout it runs in.
+    if let Some(root) = std::env::current_dir().ok().and_then(|cwd| {
+        cwd.ancestors()
+            .find(|path| path.join("crates/tsrs_testrunner/Cargo.toml").is_file())
+            .map(Path::to_path_buf)
+    }) {
+        return root;
+    }
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()

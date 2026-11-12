@@ -14,7 +14,10 @@ main(() => {
         run(["cargo", "metadata", "--locked", "--no-deps", "--format-version", "1"], { cwd: ROOT }).stdout,
     );
     const version = read(path.join(ROOT, "Cargo.toml")).match(/\[workspace\.package\][^[]*?^version\s*=\s*"([^"]+)"/m)?.[1];
-    const packages = metadata.packages.filter((pkg) => metadata.workspace_members.includes(pkg.id) && pkg.publish === null);
+    const members = metadata.packages.filter((pkg) => metadata.workspace_members.includes(pkg.id));
+    const excluded = members.filter((pkg) => pkg.name.startsWith("tsrs_") && pkg.publish !== null);
+    requireValue(!excluded.length, `Every tsrs_ crate must be publishable: ${excluded.map((pkg) => pkg.name).join(", ")}`);
+    const packages = members.filter((pkg) => pkg.publish === null);
     requireValue(packages.length && version, "No publishable workspace crates or shared version found");
     const npmVersion = JSON.parse(read(path.join(ROOT, "package.json"))).version;
     const expectedNpmVersion = run([process.execPath, "npm/build.mjs", "--print-version"], { cwd: ROOT }).stdout.trim();

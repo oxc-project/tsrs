@@ -2,11 +2,13 @@
 
 The [Release Crates workflow](../.github/workflows/release_crates.yml) uses
 [`cargo-release-oxc` 0.0.44](https://github.com/oxc-project/cargo-release-oxc) with
-[`oxc_release.toml`](../oxc_release.toml). It publishes the 34 compiler, language-service and CLI crates in dependency
-order. Benchmarks, test helpers, task crates and the WebAssembly package remain unpublished.
+[`oxc_release.toml`](../oxc_release.toml). It publishes every `tsrs_*` workspace crate in dependency order: 43 compiler,
+language-service, CLI, WebAssembly, benchmark, test-support and task crates. Validation rejects any excluded `tsrs_*`
+member. Test and maintenance binaries operate against a tsrs checkout and its reference compiler, fixtures or tools.
 
 The initial [0.24.0 release](https://crates.io/crates/tsrs_cli/0.24.0) was published locally on 2026-11-11.
-All 34 registry versions and their trusted publishers were read back and verified after publication.
+Those 34 registry versions and their trusted publishers were read back and verified after publication. The remaining
+nine workspace crates are prepared for initial publication with the same version and trusted publisher.
 
 The crates require Rust 1.99 or newer; repository builds use the version pinned in
 [`rust-toolchain.toml`](../rust-toolchain.toml).
@@ -17,7 +19,8 @@ notes workflow. `cargo-release-oxc update` is not used: it requires explicit pac
 workspace versions.
 
 After changing the TypeScript pin, run `node tools/gen-release-version.mjs` (also part of `tools/gen-check.sh`).
-Its checked-in output lets `tsrs_execute` build from a crate archive without reading the repository's root manifest.
+Its checked-in outputs let `tsrs_execute` and `tsrs_definitelytyped` build from crate archives without reading the
+repository's root manifest.
 The `tsrs_vfs` archive includes the standard TypeScript libraries, so the Cargo CLI needs no separate library install.
 Every published archive also carries the repository's license and attribution notices.
 

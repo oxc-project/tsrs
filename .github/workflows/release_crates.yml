@@ -5,7 +5,7 @@ permissions: {}
 on:
   push:
     branches: [main]
-    paths: [Cargo.toml, package.json]
+    paths: [Cargo.toml]
   workflow_dispatch:
     inputs:
       dry_run:

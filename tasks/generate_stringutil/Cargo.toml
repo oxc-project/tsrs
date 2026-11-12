@@ -5,6 +5,13 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
+categories.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+repository.workspace = true
+readme.workspace = true
+include = ["/src","/LICENSE","/NOTICE"]
+description = "Unicode string table generator for tsrs"
 
 [lints]
 workspace = true

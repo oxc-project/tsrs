@@ -179,6 +179,7 @@ tsrs-only variables that change behavior:
 | `TSRS_MAX_MEMORY` | off | Same as `--maxMemory` |
 | `TSRS_LAZY_MEMBERS` | off; on in fast mode | Same as `--lazyMembers` / `--noLazyMembers`; explicit CLI flags win |
 | `TSRS_LAZY_DTS` | off; on in eligible fast-mode compilations | `1` enables lazy declaration member parsing; `0` / `off` disables it even in fast mode. Requires skipped declaration checking; unavailable in watch, LSP and API modes |
+| `TSRS_EXIT_HELPER` | on in fast mode (Linux) | At the end of a batch compile on Linux, a helper process that shares the memory frees it after the process has exited, so the caller does not wait for the kernel's teardown ([details](../notes/perf-exit-teardown.md)). `0` turns it off; `1` turns it on in every mode and for any size. Each run leaves the helper for init to reap: under a PID 1 that never reaps (a container without an init), that is one zombie per run until the container exits |
 | `TSRS_LIB_PATH` | unset | Directory to load the default libs from |
 | `TSRS_LINT_RUN_EXTERNAL_CODE` | off | Only `1` gives `tsrs --lint` / `tsrs-lint` `--runExternalCode`, so tsconfig `contentMappers` run under oxlint |
 | `TSRS_WATCH_BACKEND` | unset | `kqueue` uses the macOS fallback watcher |

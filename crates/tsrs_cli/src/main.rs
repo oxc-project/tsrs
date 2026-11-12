@@ -4,7 +4,7 @@
 #[global_allocator]
 static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
-use tsrs_cli::{api, lsp, signals};
+use tsrs_cli::{api, exit_helper, lsp, signals};
 use tsrs_execute::{execute, sys, tsc};
 
 // TSRS_MEM_SPLIT (tsrs_core::memsplit): mimalloc's view of its heap, every page of every thread.
@@ -128,6 +128,11 @@ fn main() -> std::process::ExitCode {
     tsrs_core::memsplit::report("exit");
     let _ = std::io::Write::flush(&mut std::io::stdout());
     let _ = std::io::Write::flush(&mut std::io::stderr());
+    // A batch compile's output is complete: on Linux, a helper process frees the memory after the caller has seen the
+    // exit (exit_helper.rs). Not after a watch session, which ends only when stopped.
+    if !tsrs_execute::watchmanager::ran_watch_loop() {
+        exit_helper::at_exit();
+    }
     // Return through the C runtime so LLVM's atexit handler writes PGO profiles on Windows too.
     std::process::ExitCode::from(status as u8)
 }

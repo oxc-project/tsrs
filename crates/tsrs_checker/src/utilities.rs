@@ -59,6 +59,14 @@ pub(crate) fn has_readonly_modifier(node: P<Node>) -> bool {
 
 // utilities.go:71
 pub(crate) fn is_static_private_identifier_property(s: P<Symbol>) -> bool {
+    // tsrs: the relater's property loops call this per property, and the value declaration is a cold node. A
+    // private-identifier class element binds under `get_symbol_name_for_private_identifier` (or the missing name
+    // after a parse error), both internal names, and every symbol the checker derives from it with that value
+    // declaration keeps its name (instantiated, union, spread, object-literal and merged symbols copy it; mapped
+    // members get no value declaration). So a name without the internal prefix answers false without the node.
+    if s.name().as_bytes().first() != Some(&ast::INTERNAL_SYMBOL_NAME_PREFIX_BYTE) {
+        return false;
+    }
     match s.value_declaration() {
         Some(vd) => ast::is_private_identifier_class_element_declaration(vd) && ast::is_static(vd),
         None => false,

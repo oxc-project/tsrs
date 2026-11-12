@@ -10,8 +10,8 @@
 # profile counts apply to the checker code in tsrs), the Go fourslash suite (Rust language-server workers,
 # for the language-service and project-system code behind `tsrs --lsp`), plus
 # the tsrs binary itself on two open-source projects from bench/projects.json (xstate-main, webpack; default mode,
-# tsrs's default checker count for the runner), then `tsrs --lint` on the same two. Needs Go, Node.js 24+, the
-# pinned ts-ref/tsc source checkout, and network for the bench projects' clone + install
+# tsrs's default checker count for the runner; then again with --fast), then `tsrs --lint` on the same two.
+# Needs Go, Node.js 24+, the pinned ts-ref/tsc source checkout, and network for the bench projects' clone + install
 # (bench/bench.mjs prepare). Never train on private code.
 set -euo pipefail
 
@@ -40,6 +40,14 @@ for p in xstate-main webpack; do
   check_exit "$status" "tsrs -p $p"
 done
 
+# The fast preset (lazy members, locality scheduling, the extra checker caches, leaf-file regions) runs code that
+# default mode never does; without counts PGO lays it out as cold (notes/perf-pgo-fast-training.md).
+for p in xstate-main webpack; do
+  (cd "$work/solutions/$p" && LLVM_PROFILE_FILE="$raw/fast-$p-%p.profraw" \
+    "$bin/tsrs" -p . --noEmit --incremental false --pretty false --fast > /dev/null) && status=0 || status=$?
+  check_exit "$status" "tsrs -p $p --fast"
+done
+
 # `tsrs --lint` (the type-aware linter) on the same projects with every rule, as oxlint runs it. Listing the files
 # for the request also runs tsrs; its profile is discarded so it does not count twice.
 for p in xstate-main webpack; do
@@ -53,7 +61,7 @@ done
 ls -l "$raw"
 # Every workload must have left a profile with counts in it: an instrumented binary that ends with `_exit` leaves a
 # 0-byte file (the profile is written from an exit handler), which `llvm-profdata merge` accepts silently.
-for f in suite fourslash xstate-main webpack lint-xstate-main lint-webpack; do
+for f in suite fourslash xstate-main webpack fast-xstate-main fast-webpack lint-xstate-main lint-webpack; do
   found=0
   for g in "$raw"/$f-*.profraw; do
     [ -s "$g" ] && found=1

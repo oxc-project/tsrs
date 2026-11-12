@@ -5,8 +5,8 @@
 #
 # <dist dir> holds tsrs, tsrs-test and fourslash_server from the final PGO build, linked with -Wl,--emit-relocs. Each
 # binary is instrumented (llvm-bolt -instrument), runs its part of the PGO training workload (pgo-train.sh: tsrs on
-# xstate-main and webpack, tsrs-test on the conformance suite, fourslash_server driven by the Go suite), and is
-# rewritten with the profile. The BOLT-optimized tsrs-test and fourslash_server then run the conformance and fourslash
+# xstate-main and webpack in default mode and with --fast, tsrs-test on the conformance suite, fourslash_server driven
+# by the Go suite), and is rewritten with the profile. The BOLT-optimized tsrs-test and fourslash_server then run the conformance and fourslash
 # gates, and the BOLT-optimized tsrs must print byte-identical output to the input tsrs on both bench projects
 # (one and four checkers). Only then is <dist dir>/tsrs replaced; the input is kept as tsrs.prebolt.
 #
@@ -45,6 +45,9 @@ for p in xstate-main webpack; do
   (cd "$bench/solutions/$p" && "$work/tsrs.inst" -p . --noEmit --incremental false --pretty false \
     > /dev/null 2>> "$work/tsrs-train-stderr.log") && status=0 || status=$?
   check_exit "$status" "instrumented tsrs -p $p"
+  (cd "$bench/solutions/$p" && "$work/tsrs.inst" -p . --noEmit --incremental false --pretty false --fast \
+    > /dev/null 2>> "$work/tsrs-train-stderr.log") && status=0 || status=$?
+  check_exit "$status" "instrumented tsrs -p $p --fast"
 done
 if [ ${#bins[@]} -gt 1 ]; then
   TSRS_TEST_RESULTS="$work/train-test-results" "$work/tsrs-test.inst" run --suite all --timeout 300 > /dev/null \

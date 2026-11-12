@@ -29,6 +29,12 @@ $env:LLVM_PROFILE_FILE = Join-Path $RawDir "cli-%m.profraw"
 & (Join-Path $BinDir "tsrs.exe") -p testdata/split-check/declaration-errors --noEmit --incremental false --pretty false | Out-Null
 if ($LASTEXITCODE -notin @(0, 2)) { throw "tsrs CLI training exited with $LASTEXITCODE" }
 
+# The fast preset runs code default mode never does (notes/perf-pgo-fast-training.md).
+$env:LLVM_PROFILE_FILE = Join-Path $RawDir "fast-cli-%m.profraw"
+& (Join-Path $BinDir "tsrs.exe") -p testdata/split-check/declaration-errors --noEmit --incremental false --pretty false `
+    --fast | Out-Null
+if ($LASTEXITCODE -notin @(0, 2)) { throw "tsrs --fast CLI training exited with $LASTEXITCODE" }
+
 # `tsrs --lint` with every rule on the lint fixtures (no bench projects on Windows).
 $request = Join-Path $env:RUNNER_TEMP "pgo/lint-request.json"
 $fixtures = @(Get-ChildItem crates/tsrs_lint/tests/fixtures -Recurse -Include *.ts, *.tsx | ForEach-Object FullName)
@@ -39,7 +45,7 @@ $lint = Start-Process -FilePath (Join-Path $BinDir "tsrs.exe") -ArgumentList "--
     -RedirectStandardInput $request -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP "pgo/lint-output.bin")
 if ($lint.ExitCode -ne 0) { throw "tsrs --lint training exited with $($lint.ExitCode)" }
 
-foreach ($prefix in @("suite", "cli", "lint")) {
+foreach ($prefix in @("suite", "cli", "fast-cli", "lint")) {
     $profiles = @(Get-ChildItem $RawDir -Filter "$prefix-*.profraw" | Where-Object Length -gt 0)
     if ($profiles.Count -eq 0) { throw "no nonempty $prefix profile" }
 }

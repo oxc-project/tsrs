@@ -208,7 +208,15 @@ impl Chunks {
 pub fn alloc_chunk(size: usize, huge: bool) -> *mut u8 {
     let align = if huge { HUGE_CHUNK } else { GRANULE };
     let size = size.next_multiple_of(align);
+    let p = carve(size, align);
+    commit(p, size, huge);
+    p
+}
+
+/// `size` bytes of the reservation at an `align` boundary, not committed yet.
+fn carve(size: usize, align: usize) -> *mut u8 {
     let mut c = CHUNKS.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+    // Relaxed: `RESERVED` is read and written only under the `CHUNKS` lock.
     if !RESERVED.load(Ordering::Relaxed) {
         reserve();
         RESERVED.store(true, Ordering::Relaxed);
@@ -220,12 +228,31 @@ pub fn alloc_chunk(size: usize, huge: bool) -> *mut u8 {
     };
     drop(c);
     // SAFETY: inside the reservation.
-    let p = unsafe { base.add(off) };
-    commit(p, size, huge);
+    unsafe { base.add(off) }
+}
+
+/// A committed, zero-filled, `HUGE_CHUNK`-aligned chunk of at least `size` bytes for a large hash table.
+///
+/// For `hugealloc::HugeAlloc`. On Linux only its whole `HUGE_CHUNK` blocks are advised for transparent huge pages, so
+/// the part past the last whole block stays on 4 KiB pages and no huge page is resident for a few bytes. Give it back
+/// with `release_chunk` (same `size`).
+pub fn alloc_table_chunk(size: usize) -> *mut u8 {
+    let size = size.next_multiple_of(GRANULE);
+    let p = carve(size, HUGE_CHUNK);
+    commit(p, size, false);
+    #[cfg(target_os = "linux")]
+    {
+        let whole = size & !(HUGE_CHUNK - 1);
+        if whole != 0 {
+            // SAFETY: `p .. p + whole` lies inside the chunk just committed. Advice only, as in `commit`.
+            unsafe { libc::madvise(p.cast(), whole, libc::MADV_HUGEPAGE) };
+        }
+    }
     p
 }
 
-/// Gives back a chunk from `alloc_chunk` (same `size`); its memory is released and its range reused.
+/// Gives back a chunk from `alloc_chunk` or `alloc_table_chunk` (same `size`); its memory is released and its range
+/// reused.
 ///
 /// # Safety
 /// Nothing may use the chunk afterwards.

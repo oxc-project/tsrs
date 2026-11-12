@@ -224,7 +224,7 @@ jobs:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
           CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
         # Graviton cannot execute mimalloc's default ARMv8.1 LSE atomics; retain portable allocator code.
-        run: cargo codspeed build -p tsrs_bench --bench compiler_default --features codspeed,mimalloc-safe/no_opt_arch --profile release --locked -m walltime
+        run: cargo codspeed build -p tsrs_bench --bench compiler_default --features codspeed,libmimalloc-sys2/no_opt_arch --profile release --locked -m walltime
 
       - name: Package CodSpeed benchmarks
         run: tar -czf codspeed-benchmarks.tar.gz -C target codspeed

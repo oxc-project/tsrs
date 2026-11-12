@@ -2,7 +2,7 @@ use criterion::Criterion;
 use tsrs_bench::PreparedProject;
 
 #[global_allocator]
-static ALLOCATOR: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+static ALLOCATOR: tsrs_core::allocator::MiMalloc = tsrs_core::allocator::MiMalloc;
 
 fn compiler(criterion: &mut Criterion) {
     criterion.set_current_file(criterion::abs_file!());

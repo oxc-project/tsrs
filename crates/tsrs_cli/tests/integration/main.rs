@@ -1,7 +1,7 @@
 // The binary's allocator (src/main.rs), so the in-process API builds and their RSS checks run as they do in `tsrs`.
 #[cfg(not(any(feature = "system-alloc", miri)))]
 #[global_allocator]
-static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+static GLOBAL: tsrs_core::allocator::MiMalloc = tsrs_core::allocator::MiMalloc;
 
 mod api_contentmapper;
 mod api_memory_test;

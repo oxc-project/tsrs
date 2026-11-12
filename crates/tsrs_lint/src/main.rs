@@ -1,6 +1,6 @@
 #[cfg(not(miri))]
 #[global_allocator]
-static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+static GLOBAL: tsrs_core::allocator::MiMalloc = tsrs_core::allocator::MiMalloc;
 
 fn main() -> std::process::ExitCode {
     #[cfg(all(target_os = "linux", not(miri)))]

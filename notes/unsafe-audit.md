@@ -51,11 +51,14 @@ are where a lifetime fix starts. Each is one safe API, not many unsafe blocks.
   `free_project_reference_file_mapper`, `free_api_orchestrator`, `Program::drop_replaced` / `free_replaced` and every
   caller (the watcher, the build task, the orchestrator, `programOwner`, `transpile_in_current_region`, the CLI API
   handle), plus the `Box::leak`s they reclaim (the processed files, the file loader's mapper and resolution hosts,
-  the dts-faking host, the checker slice). One owner type with `Drop` replaces all of them; the program ownership
-  package of #646 is exactly this set.
+  the dts-faking host). One owner type with `Drop` replaces all of them; the program ownership package of #646 is
+  exactly this set.
 - **Checker handles (`CheckerHandle::from_raw` and its derefs, `checkerPool::create_release`,
-  `get_persistent_checker`, `View::checker`, the API's `node_index_table` / `encode_source_file`).** The lifetime is
-  a pool lease or a held checker, enforced at run time (docs/LSP.md "Memory management"), not by the type.
+  `get_persistent_checker`, `View::checker`, the API's `node_index_table` / `encode_source_file`).** A handle borrows
+  its pool (`CheckerHandle<'pool>`), so dropping the pool while a checker is held no longer compiles, and the built-in
+  pool owns its `Box<[CheckerSlot]>`: the slice's `Box::leak` and the `PoolState::drop` block and `Box::from_raw`
+  that freed it (three ownership sites) are gone. Whether an external pool's checker is held is still enforced at run
+  time (docs/LSP.md "Memory management"), not by the type.
 - **Allocations #638 already owns** (`format/rule.rs`, `rulecontext.rs`, `lsproto::intern`, the background
   worker pool and timer, `includeProcessor::get_reference_location`): the rows change to `keep` or disappear when it
   merges.

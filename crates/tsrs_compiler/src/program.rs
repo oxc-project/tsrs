@@ -1360,15 +1360,23 @@ impl Program {
         source_files: &[P<SourceFile>],
         collect: &(impl Fn(&Context, &mut Checker, P<SourceFile>) -> Vec<P<Diagnostic>> + Sync),
     ) -> Vec<Vec<P<Diagnostic>>> {
-        self.collect_checker_diagnostics_from_files_ex(ctx, source_files, false, collect)
+        self.collect_checker_diagnostics_from_files_ex(
+            ctx,
+            source_files,
+            crate::checkerpool::GroupPass::Static,
+            None,
+            collect,
+        )
     }
 
-    // `allow_steal`: files may move between checkers while they are checked (checkerPool::for_each_checker_group_do_ex).
+    // `pass`: whether files may move between checkers while they are checked (checkerPool::for_each_checker_group_do_ex).
+    // `stop`: once set, the pass stops before each checker's next file.
     fn collect_checker_diagnostics_from_files_ex(
         &'static self,
         ctx: &Context,
         source_files: &[P<SourceFile>],
-        allow_steal: bool,
+        pass: crate::checkerpool::GroupPass,
+        stop: Option<&std::sync::atomic::AtomicBool>,
         collect: &(impl Fn(&Context, &mut Checker, P<SourceFile>) -> Vec<P<Diagnostic>> + Sync),
     ) -> Vec<Vec<P<Diagnostic>>> {
         let diagnostics: Vec<Mutex<Vec<P<Diagnostic>>>> =
@@ -1377,8 +1385,9 @@ impl Program {
             pool.for_each_checker_group_do_ex(
                 source_files,
                 self.single_threaded(),
-                allow_steal,
-                allow_steal.then_some(ctx),
+                pass,
+                (pass != crate::checkerpool::GroupPass::Static).then_some(ctx),
+                stop,
                 |c, file_index, file| {
                     *diagnostics[file_index].lock().unwrap() = collect(ctx, c, file);
                 },
@@ -1467,7 +1476,13 @@ impl Program {
                     diagnostics
                 };
                 let diagnostics = self
-                    .collect_checker_diagnostics_from_files_ex(ctx, self.files, true, &collect)
+                    .collect_checker_diagnostics_from_files_ex(
+                        ctx,
+                        self.files,
+                        crate::checkerpool::GroupPass::TypeCheck,
+                        None,
+                        &collect,
+                    )
                     .concat();
                 if free_leaves {
                     crate::fileregions::pass_done();
@@ -1486,16 +1501,25 @@ impl Program {
         ctx: &Context,
         source_files: &[P<SourceFile>],
     ) -> FxHashMap<P<SourceFile>, Vec<P<Diagnostic>>> {
-        let all_diags =
-            self.collect_checker_diagnostics_from_files(ctx, source_files, &|ctx: &Context,
-                                                                             c: &mut Checker,
-                                                                             file: P<
-                SourceFile,
-            >| {
-                self.get_bind_and_check_diagnostics_with_checker(
-                    ctx, c, file, true, /*includeDeferredGlobals*/
-                )
-            });
+        let all_diags = match self.compiler_checker_pool() {
+            Some(pool)
+                if source_files.len() > 1
+                    && pool.incremental_check_steals(self.single_threaded()) =>
+            {
+                self.collect_incremental_diagnostics_stealing(ctx, pool, source_files)
+            }
+            _ => self.collect_checker_diagnostics_from_files(
+                ctx,
+                source_files,
+                &|ctx: &Context, c: &mut Checker, file: P<SourceFile>| {
+                    self.get_bind_and_check_diagnostics_with_checker(
+                        ctx, c, file, true, /*includeDeferredGlobals*/
+                    )
+                },
+            ),
+        };
+        // TSRS_FILE_TIMES: the incremental pass is the check of an incremental program.
+        crate::checkerpool::write_file_times(self);
         let mut result = FxHashMap::default();
         result.extend(
             all_diags
@@ -1504,6 +1528,87 @@ impl Program {
                 .map(|(i, diags)| (source_files[i], filter_and_sort_diagnostics(&diags))),
         );
         result
+    }
+
+    // tsrs-only (notes/perf-incremental-pass-stealing.md): the incremental pass with work stealing, heavy files first
+    // and file splitting, as the type-check pass does in fast mode. Canonical history makes a file's diagnostics the
+    // same on any checker, but the incremental pass also stores, with a file's diagnostics, the global diagnostics
+    // (no file) that its checker found first while checking it, and which file that is depends on the placement. So
+    // the stolen pass is kept only when no checker found a global diagnostic it did not have before the pass, and
+    // every checker started with the same ones: then the static pass would have attributed none either, and every
+    // file's result is the static one. Otherwise the checkers are replaced by fresh ones with the static owners and the
+    // files are checked again without stealing, keeping out of each file's result the global diagnostics the
+    // checkers had before the pass: the static pass's attribution. A checker that found one before the pass (a
+    // declaration signature computed for a changed file) on only some checkers decides the attribution by itself, so
+    // then the pass runs statically from the start.
+    fn collect_incremental_diagnostics_stealing(
+        &'static self,
+        ctx: &Context,
+        pool: &CheckerPoolImpl,
+        source_files: &[P<SourceFile>],
+    ) -> Vec<Vec<P<Diagnostic>>> {
+        use crate::checkerpool::GroupPass;
+        use std::sync::atomic::{AtomicBool, Ordering};
+        let collect = |ctx: &Context, c: &mut Checker, file: P<SourceFile>| {
+            self.get_bind_and_check_diagnostics_with_checker(
+                ctx, c, file, true, /*includeDeferredGlobals*/
+            )
+        };
+        let before = pool.checker_global_diagnostics();
+        let same_globals = |a: &[P<Diagnostic>], b: &[P<Diagnostic>]| {
+            a.len() == b.len() && a.iter().zip(b).all(|(&x, &y)| compare_diagnostics(x, y).is_eq())
+        };
+        if before.windows(2).any(|w| !same_globals(&w[0], &w[1])) {
+            return self.collect_checker_diagnostics_from_files(ctx, source_files, &collect);
+        }
+        let owners = pool.owners();
+        // Set when a file's check finds a global diagnostic: the other checkers stop before their next file.
+        let found_global = AtomicBool::new(false);
+        let stolen = self.collect_checker_diagnostics_from_files_ex(
+            ctx,
+            source_files,
+            GroupPass::IncrementalCheck,
+            Some(&found_global),
+            &|ctx: &Context, c: &mut Checker, file: P<SourceFile>| {
+                let globals = c.get_global_diagnostics().len();
+                let diagnostics = collect(ctx, c, file);
+                if !c.was_canceled() && c.get_global_diagnostics().len() != globals {
+                    // Relaxed: a hint to stop early; the counts below decide.
+                    found_global.store(true, Ordering::Relaxed);
+                }
+                diagnostics
+            },
+        );
+        if ctx.err().is_some() {
+            return stolen;
+        }
+        // Globals are only ever added, so equal counts are equal sets. The counts also cover what the pieces of a
+        // split file found on other checkers, outside the callback.
+        let after = pool.checker_global_diagnostics();
+        if !found_global.load(Ordering::Relaxed)
+            && before.iter().zip(&after).all(|(b, a)| b.len() == a.len())
+        {
+            return stolen;
+        }
+        if self.options().diagnostics_enabled() {
+            tsrs_core::phases::count(true, "Checkers: incremental pass rechecked statically", 1);
+        }
+        pool.restart_static(&owners);
+        let known = before.into_iter().next().unwrap_or_default();
+        self.collect_checker_diagnostics_from_files(
+            ctx,
+            source_files,
+            &|ctx: &Context, c: &mut Checker, file: P<SourceFile>| {
+                let mut diagnostics = collect(ctx, c, file);
+                if !known.is_empty() {
+                    diagnostics.retain(|&d| {
+                        d.file().is_some()
+                            || known.binary_search_by(|&k| compare_diagnostics(k, d)).is_err()
+                    });
+                }
+                diagnostics
+            },
+        )
     }
 
     // program.go:823

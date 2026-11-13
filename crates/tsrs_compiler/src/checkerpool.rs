@@ -984,8 +984,8 @@ impl CheckerPoolImpl {
     // checkerpool.go:476
     // forEachCheckerGroupDo runs one task per checker in parallel. Each task iterates the provided files,
     // processing only those assigned to its checker. Within each checker's set, files are visited in their original
-    // order (`visit_order`), except that the type-check pass with stealing starts each checker on its heavy files
-    // (heavy_files_first). Fast mode removes selected order dependencies, but TypeScript's own history-dependent
+    // order (`visit_order`), except that a check pass with stealing (`GroupPass`) starts each checker on its heavy
+    // files (heavy_files_first). Fast mode removes selected order dependencies, but TypeScript's own history-dependent
     // cases remain (notes/open-history-dependence.md). Program order preserves Go's history in the default mode.
     pub(crate) fn for_each_checker_group_do(
         &self,
@@ -993,23 +993,78 @@ impl CheckerPoolImpl {
         single_threaded: bool,
         cb: impl Fn(&mut Checker, usize, P<SourceFile>) + Sync,
     ) {
-        self.for_each_checker_group_do_ex(files, single_threaded, false, None, cb);
+        self.for_each_checker_group_do_ex(
+            files,
+            single_threaded,
+            GroupPass::Static,
+            None,
+            None,
+            cb,
+        );
     }
 
-    // `allow_steal`: the pass may move files between checkers (stealing_enabled). Only the type-check pass does: later
-    // passes over a file (declaration diagnostics, emit) must run on the checker that checked it, and the incremental
-    // pass records which checker found a global diagnostic first. `split_ctx`: with stealing, heavy declaration files
-    // may be checked in pieces on several checkers before `cb` runs for them (splitcheck.rs); only the type-check pass,
-    // whose `cb` collects the file's diagnostics from its checker, passes it.
+    // `pass`: whether files may move between checkers (`GroupPass`). Later passes over a file (declaration diagnostics,
+    // emit) run on the checker that checked it. `split_ctx`: with stealing, heavy declaration files may be checked in
+    // pieces on several checkers before `cb` runs for them (splitcheck.rs); only the check passes, whose `cb` collects
+    // the file's diagnostics from its checker, pass it. `stop`: once set, each checker stops before its next file.
     pub(crate) fn for_each_checker_group_do_ex(
         &self,
         files: &[P<SourceFile>],
         single_threaded: bool,
-        allow_steal: bool,
+        pass: GroupPass,
         split_ctx: Option<&Context>,
+        stop: Option<&std::sync::atomic::AtomicBool>,
         cb: impl Fn(&mut Checker, usize, P<SourceFile>) + Sync,
     ) {
-        self.for_each_checker_group_do_inner(files, single_threaded, allow_steal, split_ctx, &cb);
+        self.for_each_checker_group_do_inner(files, single_threaded, pass, split_ctx, stop, &cb);
+    }
+
+    /// Whether `for_each_checker_group_do_ex` with `GroupPass::IncrementalCheck` may move files between checkers:
+    /// stealing is on (fast mode, no named assignment), `TSRS_INCREMENTAL_STEAL` does not turn it off and there are
+    /// several checkers.
+    pub(crate) fn incremental_check_steals(&self, single_threaded: bool) -> bool {
+        !single_threaded
+            && !self.single_threaded
+            && self.checker_count > 1
+            && stealing_enabled()
+            && incremental_steal_enabled()
+    }
+
+    /// Each checker's global diagnostics (diagnostics without a file), in checker order.
+    pub(crate) fn checker_global_diagnostics(&self) -> Vec<Vec<P<Diagnostic>>> {
+        let state = self.create_checkers();
+        state
+            .checkers
+            .iter()
+            .map(|slot| {
+                let mut guard = slot.0.lock().unwrap();
+                let _scope = guard.enter();
+                crate::sharedgraph::enter_checker(&guard);
+                guard.get_global_diagnostics()
+            })
+            .collect()
+    }
+
+    /// The checker that runs each program file now (`PoolState::owners`), for `restart_static`.
+    pub(crate) fn owners(&self) -> Vec<u32> {
+        let state = self.create_checkers();
+        // Written by stealing inside a work group, read between work groups.
+        state.owners.iter().map(|o| o.load(std::sync::atomic::Ordering::Relaxed)).collect()
+    }
+
+    /// tsrs-only (notes/perf-incremental-pass-stealing.md): replaces every checker by a fresh one, keeping the global
+    /// diagnostics and counters of the old ones (`retire_checker`), and gives every file back the owner it had in
+    /// `owners`. A pass that runs next sees checkers in the state of a pool that has not checked anything yet.
+    pub(crate) fn restart_static(&self, owners: &[u32]) {
+        let state = self.create_checkers();
+        run_work_group(self.single_threaded, state.checkers.len(), |i| {
+            let mut guard = state.checkers[i].0.lock().unwrap();
+            self.retire_checker(state, &mut guard);
+        });
+        for (owner, &o) in state.owners.iter().zip(owners) {
+            // Read by the next work group, which starts after this.
+            owner.store(o, std::sync::atomic::Ordering::Relaxed);
+        }
     }
 
     // Share the scheduling body across callbacks; dispatch happens once per file, outside the checker walk.
@@ -1017,10 +1072,14 @@ impl CheckerPoolImpl {
         &self,
         files: &[P<SourceFile>],
         single_threaded: bool,
-        allow_steal: bool,
+        pass: GroupPass,
         split_ctx: Option<&Context>,
+        stop: Option<&std::sync::atomic::AtomicBool>,
         cb: &(dyn Fn(&mut Checker, usize, P<SourceFile>) + Sync),
     ) {
+        // The type-check pass is the only one after which no pass reads the checkers' state for the files it checked
+        // (`--noEmit`): only it retires checkers, forks the shared graph and trims arenas.
+        let allow_steal = pass == GroupPass::TypeCheck;
         let state = self.create_checkers();
         let n = state.checkers.len();
         let file_times = file_times_path().is_some();
@@ -1042,7 +1101,7 @@ impl CheckerPoolImpl {
         // runs on the calling thread instead of creating `checkers.len()` threads per file.
         let active: Vec<usize> = (0..n).filter(|&c| !positions[c].is_empty()).collect();
         let single = single_threaded || self.single_threaded || active.len() <= 1;
-        let steal = allow_steal && !single && stealing_enabled();
+        let steal = pass != GroupPass::Static && !single && stealing_enabled();
         // Like the module affinity (affinity.rs `applies`; steal_sticky).
         let sticky = steal && crate::affinity::applies(n, files.len()) && steal_sticky();
         let max_thieves = max_thieves_per_queue(n);
@@ -1115,14 +1174,17 @@ impl CheckerPoolImpl {
             crate::sharedgraph::enter_checker(&guard);
             let recycle = allow_steal && state.recycle;
             let (mut slot, mut last_victim) = (usize::MAX, usize::MAX);
-            while let Some((i, from_other)) = queues_next(
-                &queues,
-                checker_idx,
-                steal,
-                max_thieves,
-                &mut slot,
-                sticky.then_some(&mut last_victim),
-            ) {
+            // Relaxed: `stop` is a hint to end the pass early; the caller reads its results after the group joined.
+            while !stop.is_some_and(|s| s.load(std::sync::atomic::Ordering::Relaxed))
+                && let Some((i, from_other)) = queues_next(
+                    &queues,
+                    checker_idx,
+                    steal,
+                    max_thieves,
+                    &mut slot,
+                    sticky.then_some(&mut last_victim),
+                )
+            {
                 if let Some(&(s, k, _)) = i.checked_sub(files.len()).map(|p| &split.piece_items[p])
                 {
                     let piece_start = file_times.then(std::time::Instant::now);
@@ -1235,7 +1297,8 @@ impl CheckerPoolImpl {
     // Replaces the checker in `slot` by a fresh one in a new region and frees the old checker and its region, keeping
     // its global diagnostics and counters (`RetiredCheckers`). Called between two files of the type-check pass: the
     // diagnostics of the files the old checker checked have been collected, and no later pass runs a checker over
-    // them (the CLI's `--noEmit` check, as for leaf freeing).
+    // them (the CLI's `--noEmit` check, as for leaf freeing). Also between the two runs of an incremental pass
+    // (`restart_static`), which checks the files again on the new checkers.
     fn retire_checker(&self, state: &PoolState, slot: &mut SlotChecker) {
         let diagnostics = slot.diagnostics.take();
         let mut old =
@@ -1287,6 +1350,32 @@ impl PoolState {
         // See owner_of.
         self.owners[i].load(std::sync::atomic::Ordering::Relaxed) as usize
     }
+}
+
+/// What a `for_each_checker_group_do_ex` pass may do besides running each checker's files in program order.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum GroupPass {
+    /// Each checker runs the files it owns (declaration diagnostics, emit, the incremental pass in Go's history).
+    Static,
+    /// The type-check pass: with stealing, heavy files first, file splitting, and the memory features that need no
+    /// later pass over the checked files (checker retirement, the shared graph, arena trimming).
+    TypeCheck,
+    /// tsrs-only (notes/perf-incremental-pass-stealing.md): the incremental pass in fast mode: with stealing, heavy files
+    /// first and file splitting, and nothing else. The caller checks that no checker found a new global diagnostic,
+    /// which the pass attributes to a file by checker (`Program::get_semantic_diagnostics_for_incremental`).
+    IncrementalCheck,
+}
+
+// `TSRS_INCREMENTAL_STEAL=0` (or `off`): the incremental pass keeps the static assignment in fast mode, as before
+// notes/perf-incremental-pass-stealing.md (the A/B switch).
+fn incremental_steal_enabled() -> bool {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ON.get_or_init(|| {
+        !matches!(
+            std::env::var("TSRS_INCREMENTAL_STEAL").as_deref().map(str::trim),
+            Ok("0" | "off")
+        )
+    })
 }
 
 // tsrs-only: dynamic scheduling (notes/perf-checker-stealing.md, after tsrslint's scheduler). Each checker runs the files

@@ -14,6 +14,7 @@ mod deferred_type_argument_check;
 mod flow_memo;
 mod free_leaf_files;
 mod generate_trace;
+mod incremental_pass_stealing;
 mod invalid_utf8_argument;
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 mod isolated;

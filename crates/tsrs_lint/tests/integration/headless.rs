@@ -6714,6 +6714,18 @@ fn parallel_rules_and_type_checking_match_serial_for_independent_modules() {
                 );
             }
         }
+        // The fast preset moves checks and rule visits between checkers (stealing); independent modules still get the
+        // serial output.
+        let (_, serial) = run_raw_with_env(&serial_input, &[], &[("RAYON_NUM_THREADS", "1")]);
+        for threads in ["2", "4", "8"] {
+            let (status, parallel) = run_raw_with_env(
+                &input,
+                &[],
+                &[("RAYON_NUM_THREADS", threads), ("TSRS_FAST", "1")],
+            );
+            assert_eq!(status, 0, "{parallel:?}");
+            assert_eq!(parallel, serial, "fast, semantic={semantic}, threads={threads}");
+        }
     }
 }
 

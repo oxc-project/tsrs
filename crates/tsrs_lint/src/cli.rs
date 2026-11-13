@@ -15,7 +15,12 @@ pub fn main(args: Vec<String>) -> i32 {
         .name("tsrs-lint".into())
         .stack_size(512 * 1024 * 1024)
         .spawn(move || {
-            run(args, &mut io::stdin().lock(), &mut io::BufWriter::new(io::stdout().lock()))
+            run_with(
+                args,
+                &mut io::stdin().lock(),
+                &mut io::BufWriter::new(io::stdout().lock()),
+                true,
+            )
         });
     match result {
         Ok(thread) => {
@@ -42,7 +47,18 @@ pub fn run(
     input: &mut dyn Read,
     output: &mut dyn Write,
 ) -> i32 {
+    run_with(args, input, output, false)
+}
+
+// `exit_after`: the process exits once this returns (`engine::Options::exit_after`).
+fn run_with(
+    args: impl IntoIterator<Item = String>,
+    input: &mut dyn Read,
+    output: &mut dyn Write,
+    exit_after: bool,
+) -> i32 {
     let mut options = engine::Options {
+        exit_after,
         suppress_program_diagnostics: std::env::var(
             "OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS",
         )

@@ -32,6 +32,9 @@ pub struct Options {
     pub suppress_program_diagnostics: bool,
     /// tsc's `--runExternalCode`: tsconfig `contentMappers` are kept and their mapper processes run.
     pub run_external_code: bool,
+    /// The process exits once the request is done (`cli::main`): the memory of the programs that are still live at
+    /// the end of the request, and of what the request shares, is left to the exit instead of being freed first.
+    pub exit_after: bool,
 }
 
 #[derive(Default)]
@@ -47,9 +50,28 @@ struct Shared {
     references: tsrs_core::collections::SyncMap<String, Option<P<ParsedCommandLine>>>,
     files: tsrs_core::collections::SyncMap<SourceFileParseOptions, Option<P<SourceFile>>>,
     regions: Mutex<Vec<tsrs_core::arena::Region>>,
+    // Programs being freed on threads of their own (`free_later`), joined before what they share is.
+    frees: Mutex<Vec<std::thread::JoinHandle<()>>>,
 }
 
 impl Shared {
+    // Frees a program on a thread of its own while the request goes on.
+    fn free_later(&self, free: impl FnOnce() + Send + 'static) {
+        let thread = std::thread::Builder::new()
+            .name("lint-free".into())
+            .stack_size(512 << 20)
+            .spawn(free)
+            .expect("failed to spawn a lint thread");
+        self.frees.lock().unwrap().push(thread);
+    }
+
+    fn join_frees(&self) {
+        let frees = std::mem::take(&mut *self.frees.lock().unwrap());
+        for thread in frees {
+            thread.join().expect("freeing a program panicked");
+        }
+    }
+
     fn keep<T>(&self, first_chunk: usize, make: impl FnOnce() -> T) -> T {
         let region = tsrs_core::arena::Region::new(first_chunk);
         let _scope = region.enter();
@@ -230,16 +252,47 @@ pub fn run(
         ..ConfigHost::new(Arc::clone(&fs), cwd.into())
     };
     let region = tsrs_core::arena::Region::new_scratch(1 << 20);
-    // The inferred program's loader regions: each tsconfig program has its own.
-    let regions = RequestRegions::default();
-    let _scope = region.enter();
-    run_in_region(payload, options, cwd, writer, fs, &host, &regions)
+    let scope = region.enter();
+    crate::trace::start();
+    let result = {
+        let _span = crate::trace::span("request", String::new);
+        run_in_region(payload, options, cwd, writer, &fs, &host)
+    };
+    crate::trace::finish();
+    drop(scope);
+    if options.exit_after {
+        leave_to_exit(region);
+    }
+    result
+}
+
+// `Options::exit_after`: memory the process exit gives back without visiting it, as freeing it first would.
+fn leave_to_exit<T>(value: T) {
+    #[expect(
+        clippy::mem_forget,
+        reason = "the process exits once the request is done; freeing first only costs time"
+    )]
+    std::mem::forget(value);
 }
 
 struct ProgramOwner {
     program: &'static Program,
     // Dropped after the program is freed.
-    _content_mappers: Option<ContentMappers>,
+    content_mappers: Option<ContentMappers>,
+}
+
+impl ProgramOwner {
+    // Frees the program, or with `leave` (the process exits once the request is done and the program is among the
+    // last it builds) leaves it to the exit. Its content mapper processes are closed either way.
+    fn release(self, leave: bool) {
+        if leave {
+            let mut this = std::mem::ManuallyDrop::new(self);
+            drop(this.content_mappers.take());
+        } else {
+            let _span = crate::trace::span("free-program", String::new);
+            drop(self);
+        }
+    }
 }
 
 impl Drop for ProgramOwner {
@@ -296,9 +349,8 @@ fn run_in_region(
     options: Options,
     cwd: &str,
     writer: &mut dyn Write,
-    fs: Arc<dyn FS>,
+    fs: &Arc<dyn FS>,
     host: &ConfigHost,
-    regions: &RequestRegions,
 ) -> Result<(), String> {
     let mut programs: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut unmatched = Vec::new();
@@ -321,6 +373,7 @@ fn run_in_region(
     // program it maps to, any other file by the first program that has it.
     let mut type_checked = FxHashSet::default();
     let mut config_cache = FxHashMap::default();
+    let find_span = crate::trace::span("find-tsconfigs", String::new);
     for path in file_configs.keys() {
         let resolved = tspath::get_normalized_absolute_path(path, cwd);
         if payload.report_semantic {
@@ -337,16 +390,30 @@ fn run_in_region(
         }
     }
     drop(config_cache);
-    let shared = Arc::default();
+    drop(find_span);
+    let shared: Arc<Shared> = Arc::default();
+    // Waits for the programs freed on threads of their own before `shared` goes, on every path out.
+    let frees = JoinFrees(&shared);
     let programs: Vec<(String, Vec<String>)> = programs.into_iter().collect();
     let claims = Claims { state: Mutex::new((0, type_checked)), passed: Condvar::new() };
-    let next = AtomicUsize::new(0);
+    // The programs to build: the inferred program of the files outside every tsconfig first, when there are any, then
+    // the tsconfig programs. The inferred one goes first so that the last one built is a tsconfig program, usually the
+    // largest (`Options::exit_after`); its output still comes last.
+    let inferred = usize::from(!unmatched.is_empty());
+    let jobs = inferred + programs.len();
+    let schedule = Schedule {
+        next: AtomicUsize::new(0),
+        jobs,
+        running: AtomicUsize::new(0),
+        running_tsconfigs: AtomicUsize::new(0),
+    };
     let linted: Vec<Mutex<Option<Linted>>> = programs.iter().map(|_| Mutex::new(None)).collect();
+    let inferred_linted: Mutex<Option<Linted>> = Mutex::new(None);
     // Each worker's tsconfigs are parsed into a scratch region of its own, kept until the request ends as the
     // calling thread's is.
     let scratch = Mutex::new(Vec::new());
     std::thread::scope(|scope| {
-        for i in 0..program_threads(programs.len()) {
+        for i in 0..program_threads(jobs) {
             std::thread::Builder::new()
                 .name(format!("lint-program-{i}"))
                 .stack_size(512 << 20)
@@ -356,7 +423,31 @@ fn run_in_region(
                     loop {
                         // Only hands out distinct indices. Results reach the caller through the `linted` mutexes
                         // and the scope's join.
-                        let index = next.fetch_add(1, Ordering::Relaxed);
+                        let job = schedule.next.fetch_add(1, Ordering::Relaxed);
+                        if job >= jobs {
+                            break;
+                        }
+                        let _running = schedule.start(job >= inferred);
+                        if job < inferred {
+                            let mut output = Vec::new();
+                            let mut program_timings = BTreeMap::new();
+                            let result = lint_inferred_program(
+                                &unmatched,
+                                payload,
+                                options,
+                                &mut output,
+                                fs,
+                                cwd,
+                                &shared,
+                                &file_configs,
+                                &mut program_timings,
+                                &schedule,
+                            );
+                            *inferred_linted.lock().unwrap() =
+                                Some((result, output, program_timings));
+                            continue;
+                        }
+                        let index = job - inferred;
                         let Some((config_path, files)) = programs.get(index) else {
                             break;
                         };
@@ -370,11 +461,12 @@ fn run_in_region(
                             payload,
                             options,
                             &mut output,
-                            &fs,
+                            fs,
                             host,
                             &shared,
                             &file_configs,
                             &mut program_timings,
+                            &schedule,
                         );
                         drop(turn);
                         *linted[index].lock().unwrap() = Some((result, output, program_timings));
@@ -392,41 +484,16 @@ fn run_in_region(
         merge_timings(&mut timings, program_timings);
         result?;
     }
-    if !unmatched.is_empty() {
-        let config = tsrs_tsoptions::new_parsed_command_line(
-            P::new(CompilerOptions {
-                allow_js: Tristate::True,
-                module: ModuleKind::ES_NEXT,
-                module_resolution: ModuleResolutionKind::BUNDLER,
-                target: ScriptTarget::ES2022,
-                jsx: JsxEmit::REACT_JSX,
-                allow_importing_ts_extensions: Tristate::True,
-                strict_null_checks: Tristate::True,
-                strict_function_types: Tristate::True,
-                source_map: Tristate::True,
-                es_module_interop: Tristate::True,
-                allow_non_ts_extensions: Tristate::True,
-                resolve_json_module: Tristate::True,
-                ..Default::default()
-            }),
-            unmatched.clone(),
-            Vec::new(),
-            tspath::ComparePathsOptions {
-                current_directory: cwd.into(),
-                use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
-            },
-        );
-        let program = create_program(config, fs, cwd, false, Arc::clone(&regions.loaders), &shared);
-        run_program(
-            program.program,
-            &unmatched,
-            None,
-            payload,
-            options,
-            writer,
-            &file_configs,
-            &mut timings,
-        )?;
+    // The inferred program's output follows the tsconfig programs'.
+    if let Some((result, output, program_timings)) = inferred_linted.into_inner().unwrap() {
+        writer.write_all(&output).map_err(|error| error.to_string())?;
+        merge_timings(&mut timings, program_timings);
+        result?;
+    }
+    if options.exit_after {
+        // The exit ends the frees still running, and gives back what the request shares.
+        leave_to_exit(frees);
+        leave_to_exit(shared);
     }
     if options.debug_timings {
         let mut records = timings.into_iter().collect::<Vec<_>>();
@@ -455,6 +522,74 @@ fn run_in_region(
         .map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+/// The programs of a request, built by `program_threads` threads in job order.
+struct Schedule {
+    // The next job to hand out.
+    next: AtomicUsize,
+    jobs: usize,
+    // Jobs started and not yet done, and how many of them are tsconfig programs.
+    running: AtomicUsize,
+    running_tsconfigs: AtomicUsize,
+}
+
+impl Schedule {
+    /// No program starts after one that sees this: every job has been handed out.
+    fn last(&self) -> bool {
+        // Only distinct indices are handed out through `next`; a stale read only frees a program it could leave.
+        self.next.load(Ordering::Relaxed) >= self.jobs
+    }
+
+    /// No other program is being built or checked now.
+    fn alone(&self) -> bool {
+        // See `Schedule::start`.
+        self.running.load(Ordering::Relaxed) == 1
+    }
+
+    /// With `Options::exit_after`, whether a program starting now is left to the process exit (and allocates its
+    /// checkers in the thread arenas, `create_program`): no program starts after it, and it is expected to finish
+    /// last, so that holding on to its memory never holds up another program. A tsconfig program is when no other
+    /// tsconfig program runs; the inferred one, started first and only for the files outside every tsconfig, is
+    /// expected to finish before it. The inferred program is when nothing else runs.
+    fn leaves_at_start(&self, tsconfig: bool) -> bool {
+        // See `Schedule::start`.
+        let others = if tsconfig { &self.running_tsconfigs } else { &self.running };
+        self.last() && others.load(Ordering::Relaxed) == 1
+    }
+
+    fn start(&self, tsconfig: bool) -> Running<'_> {
+        // Counts read only to decide whether to steal and what to free; they publish nothing.
+        self.running.fetch_add(1, Ordering::Relaxed);
+        if tsconfig {
+            // See above.
+            self.running_tsconfigs.fetch_add(1, Ordering::Relaxed);
+        }
+        Running(self, tsconfig)
+    }
+}
+
+/// A job of `Schedule` from its start to its end, and whether it is a tsconfig program.
+struct Running<'a>(&'a Schedule, bool);
+
+impl Drop for Running<'_> {
+    fn drop(&mut self) {
+        // See `Schedule::start`.
+        self.0.running.fetch_sub(1, Ordering::Relaxed);
+        if self.1 {
+            // See `Schedule::start`.
+            self.0.running_tsconfigs.fetch_sub(1, Ordering::Relaxed);
+        }
+    }
+}
+
+/// `Shared::join_frees` on drop.
+struct JoinFrees<'a>(&'a Shared);
+
+impl Drop for JoinFrees<'_> {
+    fn drop(&mut self) {
+        self.0.join_frees();
+    }
 }
 
 /// A program's result, output and rule timings.
@@ -515,6 +650,90 @@ fn program_threads(programs: usize) -> usize {
     (cores / 4).clamp(1, programs.max(1))
 }
 
+/// Lints and type-checks the listed files outside every tsconfig into `writer`, in a program of their own with the
+/// linter's default compiler options.
+#[expect(clippy::too_many_arguments, reason = "the request state each program reads")]
+fn lint_inferred_program(
+    files: &[String],
+    payload: &Payload,
+    options: Options,
+    writer: &mut dyn Write,
+    fs: &Arc<dyn FS>,
+    cwd: &str,
+    shared: &Arc<Shared>,
+    file_configs: &BTreeMap<String, &[ConfiguredRule]>,
+    timings: &mut BTreeMap<String, (u64, u64)>,
+    schedule: &Schedule,
+) -> Result<(), String> {
+    let config = tsrs_tsoptions::new_parsed_command_line(
+        P::new(CompilerOptions {
+            allow_js: Tristate::True,
+            module: ModuleKind::ES_NEXT,
+            module_resolution: ModuleResolutionKind::BUNDLER,
+            target: ScriptTarget::ES2022,
+            jsx: JsxEmit::REACT_JSX,
+            allow_importing_ts_extensions: Tristate::True,
+            strict_null_checks: Tristate::True,
+            strict_function_types: Tristate::True,
+            source_map: Tristate::True,
+            es_module_interop: Tristate::True,
+            allow_non_ts_extensions: Tristate::True,
+            resolve_json_module: Tristate::True,
+            ..Default::default()
+        }),
+        files.to_vec(),
+        Vec::new(),
+        tspath::ComparePathsOptions {
+            current_directory: cwd.into(),
+            use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
+        },
+    );
+    // Dropped after the program: nothing that outlives a program points into its loader regions.
+    let regions = RequestRegions::default();
+    let leave = options.exit_after && schedule.leaves_at_start(false);
+    let program = create_program(
+        config,
+        Arc::clone(fs),
+        cwd,
+        false,
+        Arc::clone(&regions.loaders),
+        shared,
+        !leave,
+    );
+    let result = run_program(
+        program.program,
+        files,
+        None,
+        payload,
+        options,
+        writer,
+        file_configs,
+        timings,
+        schedule,
+    );
+    release(
+        program,
+        regions,
+        leave || options.exit_after && schedule.last() && schedule.alone(),
+        shared,
+    );
+    result.map(drop)
+}
+
+// A program the request is done with: left to the process exit with `leave` (`Options::exit_after`, and it was
+// expected to finish last or is the last one running), else freed on a thread of its own while the request goes on.
+fn release(program: ProgramOwner, regions: RequestRegions, leave: bool, shared: &Shared) {
+    if leave {
+        program.release(true);
+        leave_to_exit(regions);
+    } else {
+        shared.free_later(move || {
+            program.release(false);
+            drop(regions);
+        });
+    }
+}
+
 /// Lints one tsconfig program into `writer`: its config errors, or its files and global diagnostics.
 #[expect(clippy::too_many_arguments, reason = "the request state each program reads")]
 fn lint_program(
@@ -529,9 +748,11 @@ fn lint_program(
     shared: &Arc<Shared>,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
+    schedule: &Schedule,
 ) -> Result<(), String> {
     // Dropped after the program: nothing that outlives a program points into its loader regions.
     let regions = RequestRegions::default();
+    let config_span = crate::trace::span("parse-tsconfig", || config_path.to_owned());
     let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
         config_path,
         host.existing_options.as_ref(),
@@ -539,6 +760,7 @@ fn lint_program(
         host,
         None,
     );
+    drop(config_span);
     if !diagnostics.is_empty() {
         for diagnostic in diagnostics {
             report_config_error(diagnostic, config_path, false, writer)?;
@@ -552,6 +774,10 @@ fn lint_program(
         }
         return Ok(());
     }
+    // With `exit_after`, a program expected to finish last is left to the exit; any other is freed while the request
+    // goes on.
+    let leave = options.exit_after && schedule.leaves_at_start(true);
+    let program_span = crate::trace::span("create-program", || config_path.to_owned());
     let program = create_program(
         config,
         Arc::clone(fs),
@@ -559,7 +785,9 @@ fn lint_program(
         true,
         Arc::clone(&regions.loaders),
         shared,
+        !leave,
     );
+    drop(program_span);
     let program_ref = program.program;
     let diagnostics = program_ref.get_program_diagnostics();
     if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
@@ -568,9 +796,24 @@ fn lint_program(
         }
         return Ok(());
     }
-    let global_diagnostics =
-        run_program(program_ref, files, turn, payload, options, writer, file_configs, timings)?;
-    for diagnostic in global_diagnostics {
+    let global_diagnostics = run_program(
+        program_ref,
+        files,
+        turn,
+        payload,
+        options,
+        writer,
+        file_configs,
+        timings,
+        schedule,
+    );
+    release(
+        program,
+        regions,
+        leave || options.exit_after && schedule.last() && schedule.alone(),
+        shared,
+    );
+    for diagnostic in global_diagnostics? {
         report_global_error(diagnostic, config_path, writer)?;
     }
     Ok(())
@@ -583,6 +826,7 @@ fn create_program(
     references: bool,
     loader_regions: Arc<tsrs_compiler::ProgramRegions>,
     shared: &Arc<Shared>,
+    checker_regions: bool,
 ) -> ProgramOwner {
     if let Some(checkers) = checker_count() {
         config.parsed_config.compiler_options = Some(P::new(CompilerOptions {
@@ -606,8 +850,10 @@ fn create_program(
     options.use_source_of_project_reference = references;
     options.regions = Some(loader_regions);
     // The checkers' memory goes back with the program (`free_unshared_program`), before the next program's is built.
-    options.checker_regions = true;
-    ProgramOwner { program: tsrs_compiler::new_program(options), _content_mappers: content_mappers }
+    // A program left to the process exit allocates its checkers in the thread arenas instead, whose large chunks are
+    // huge pages on Linux: 4-5% less wall time on vscode and a large private monorepo, with less system time.
+    options.checker_regions = checker_regions;
+    ProgramOwner { program: tsrs_compiler::new_program(options), content_mappers }
 }
 
 /// `RAYON_NUM_THREADS` (oxlint's thread count) caps the checkers as well as the loader threads, else the compiler's
@@ -631,8 +877,9 @@ fn run_program(
     writer: &mut dyn Write,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
+    schedule: &Schedule,
 ) -> Result<Vec<P<TsDiagnostic>>, String> {
-    program.bind_source_files();
+    crate::trace::span("bind", String::new).finish_with(|| program.bind_source_files());
     let report_global = whole.is_some();
     let mut work = Vec::with_capacity(files.len());
     for name in files {
@@ -662,42 +909,75 @@ fn run_program(
     let outputs: Vec<Mutex<Vec<u8>>> = work.iter().map(|_| Mutex::new(Vec::new())).collect();
     let errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
     let pool_timings: Mutex<BTreeMap<String, (u64, u64)>> = Mutex::new(BTreeMap::new());
-    let mut global_diagnostics = Vec::new();
-    // Every file is type-checked before any rule runs: a rule's type query could otherwise hit an error before the
-    // checking `tsrs --noEmit` does, and record it without a location (a global diagnostic) instead.
-    for rules in [false, true] {
-        let pooled = program.for_each_checker_group(&lint_files, |checker, index, file| {
-            let mut output = Vec::new();
-            let mut file_timings = BTreeMap::new();
-            let result = lint_one(
-                program,
-                file,
-                if rules { work[index].1 } else { &[] },
-                !rules,
-                payload,
-                options,
-                checker,
-                &mut output,
-                &mut file_timings,
-            );
-            if let Err(error) = result {
-                errors.lock().unwrap().push(error);
-            }
-            outputs[index].lock().unwrap().extend(output);
-            if options.debug_timings {
-                merge_timings(&mut pool_timings.lock().unwrap(), file_timings);
-            }
-        });
-        if !pooled {
-            return Err("the program has no checker pool".into());
+    // `rules`: the file's lint rules, else its compiler diagnostics.
+    let run_file = |checker: &mut tsrs_checker::Checker, index: usize, file, rules: bool| {
+        let _file_span =
+            crate::trace::span(if rules { "lint" } else { "check" }, || index.to_string());
+        let mut output = Vec::new();
+        let mut file_timings = BTreeMap::new();
+        let result = lint_one(
+            program,
+            file,
+            if rules { work[index].1 } else { &[] },
+            !rules,
+            payload,
+            options,
+            checker,
+            &mut output,
+            &mut file_timings,
+        );
+        if let Err(error) = result {
+            errors.lock().unwrap().push(error);
         }
-        if !rules && report_global {
-            global_diagnostics = program.get_global_diagnostics(&Context::default());
+        outputs[index].lock().unwrap().extend(output);
+        if options.debug_timings {
+            merge_timings(&mut pool_timings.lock().unwrap(), file_timings);
         }
+    };
+    // Each checker type-checks all of its files before any rule runs on it: a rule's type query could otherwise hit an
+    // error before the checking `tsrs --noEmit` does, and record it without a location (a global diagnostic) instead,
+    // or cache a type whose error a later file's check would then miss. The checkers' global diagnostics are taken in
+    // between, so what rule queries add to them is never reported. Checkers do not wait for each other: one that is
+    // done checking lints while the others still check (`for_each_checker_check_then_visit`).
+    let check = payload.report_syntactic || payload.report_semantic;
+    let needs: Vec<tsrs_compiler::CheckAndVisit> = work
+        .iter()
+        .map(|&(file, configured)| tsrs_compiler::CheckAndVisit {
+            check,
+            visit: !configured.is_empty() && !file.is_content_mapped(),
+        })
+        .collect();
+    let globals: Mutex<Vec<(usize, Vec<P<TsDiagnostic>>)>> = Mutex::new(Vec::new());
+    let pass_span = crate::trace::span("pass", || lint_files.len().to_string());
+    let pooled = program.for_each_checker_check_then_visit(
+        &lint_files,
+        &needs,
+        // While other programs run, a checker out of work leaves its core to them instead of redoing the work of
+        // another checker's files (stealing).
+        || schedule.alone(),
+        |checker, index, file| run_file(checker, index, file, false),
+        |checker_index, checker| {
+            if report_global {
+                let diagnostics = checker.get_global_diagnostics();
+                globals.lock().unwrap().push((checker_index, diagnostics));
+            }
+        },
+        |checker, index, file| run_file(checker, index, file, true),
+    );
+    drop(pass_span);
+    if !pooled {
+        return Err("the program has no checker pool".into());
     }
+    // As `Program::get_global_diagnostics` collects them: in checker order, sorted and deduplicated.
+    let mut globals = globals.into_inner().unwrap();
+    globals.sort_by_key(|&(checker_index, _)| checker_index);
+    let globals: Vec<P<TsDiagnostic>> =
+        globals.into_iter().flat_map(|(_, diagnostics)| diagnostics).collect();
+    let global_diagnostics = tsrs_compiler::sort_and_deduplicate_diagnostics(&globals);
     if let Some(error) = errors.into_inner().unwrap().into_iter().next() {
         return Err(error);
     }
+    let _write_span = crate::trace::span("write", String::new);
     for output in outputs {
         writer.write_all(&output.into_inner().unwrap()).map_err(|error| error.to_string())?;
     }

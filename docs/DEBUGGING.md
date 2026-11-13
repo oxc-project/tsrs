@@ -58,8 +58,9 @@ understand, read both versions and the Go source; do not blindly take one side.
 ## Fast mode and reference defaults
 
 tsrs ports microsoft/TypeScript#64475 + #64526 (lazy member tables, `tsrs_core::lazymembers`, notes/lazy-members.md)
-and enables them with **`--fast`, `TSRS_FAST=1` or `--lazyMembers`**. Eager members are the default, as in the pinned
-reference. `--noLazyMembers` / `TSRS_LAZY_MEMBERS=0` overrides the fast preset. An explicit `--fast false` disables
+and enables them with **`--fast`, `TSRS_FAST=1` or `--lazyMembers`**. Compilation defaults to eager members, as in the pinned
+reference. The linter enables the fast preset by default; `TSRS_FAST=0` disables it.
+`--noLazyMembers` / `TSRS_LAZY_MEMBERS=0` overrides the fast preset. An explicit `--fast false` disables
 the environment preset but leaves per-feature overrides in effect. See [performance options](USAGE.md#performance-options)
 for the full preset and its diagnostic, memory, counter and cache-reuse effects.
 

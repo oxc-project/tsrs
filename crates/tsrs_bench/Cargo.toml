@@ -19,7 +19,7 @@ rustc-hash.workspace = true
 [dev-dependencies]
 codspeed.workspace = true
 criterion2.workspace = true
-mimalloc-safe.workspace = true
+tsrs_core = { workspace = true, features = ["mimalloc"] }
 
 [features]
 codspeed = ["criterion2/codspeed"]

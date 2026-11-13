@@ -270,6 +270,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [perf-round2](perf-round2.md)
 - [perf-round2-followups](perf-round2-followups.md)
 - [perf-round3](perf-round3.md)
+- [perf-small-exact-wins-20261112](perf-small-exact-wins-20261112.md)
 - [unsafe-audit](unsafe-audit.md)
 
 ### Rust helpers and collections

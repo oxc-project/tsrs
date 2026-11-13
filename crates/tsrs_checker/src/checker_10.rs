@@ -2356,7 +2356,7 @@ impl Checker {
             self.inst_symbol_sites.insert(result, std::panic::Location::caller());
             crate::sitecount::hit("inst-symbol-created", "");
         }
-        let result_links = self.value_symbol_links.get(result);
+        let result_links = self.value_symbol_links.get_fresh(result);
         result_links.set_target(Some(symbol));
         result_links.set_mapper(m);
         result_links.set_name_type(links.name_type());
@@ -2690,7 +2690,7 @@ impl Checker {
                 | if is_readonly { CheckFlags::Readonly } else { CheckFlags::None }
                 | if strip_optional { CheckFlags::StripOptional } else { CheckFlags::None },
         );
-        let value_links = self.value_symbol_links.get(prop);
+        let value_links = self.value_symbol_links.get_fresh(prop);
         value_links.set_containing_type(Some(t));
         value_links.set_name_type(Some(prop_name_type));
         let mapped_links = self.mapped_symbol_links.get(prop);
@@ -3484,7 +3484,7 @@ impl Checker {
                     CheckFlags::None
                 },
             );
-            let links = self.value_symbol_links.get(param_symbol);
+            let links = self.value_symbol_links.get_fresh(param_symbol);
             if is_rest_param {
                 links.resolved_type.set(Some(self.create_array_type(combined_param_type)));
             } else {
@@ -3498,7 +3498,7 @@ impl Checker {
                 "args",
                 CheckFlags::RestParameter,
             );
-            let links = self.value_symbol_links.get(rest_param_symbol);
+            let links = self.value_symbol_links.get_fresh(rest_param_symbol);
             let type_at_position = self.get_type_at_position(shorter, longest_count);
             links.resolved_type.set(Some(self.create_array_type(type_at_position)));
             if shorter == right {

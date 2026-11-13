@@ -5,7 +5,7 @@ use std::time::Instant;
 use tsrs_bench::{BenchmarkSystem, Compilation, default_invocation};
 
 #[global_allocator]
-static ALLOCATOR: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+static ALLOCATOR: tsrs_core::allocator::MiMalloc = tsrs_core::allocator::MiMalloc;
 
 // Walltime: ten one-shot compilations in child processes after the hooked one (a compilation keeps its arenas
 // until exit, so sampling in one process would stack them). One sample gave CodSpeed no stdev or p-value.

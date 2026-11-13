@@ -3113,7 +3113,7 @@ impl Checker {
                     symbol.set_value_declaration(Some(declarations[0]));
                     symbol.set_declarations(&declarations);
                     symbol.set_parent(t.symbol());
-                    let links = self.value_symbol_links.get(symbol);
+                    let links = self.value_symbol_links.get_fresh(symbol);
                     links.resolved_type.set(info.value_type.get());
                     info.index_symbol.set(Some(symbol));
                 }

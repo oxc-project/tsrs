@@ -1003,6 +1003,21 @@ impl<V: Default + LinkCopy + 'static> SymbolArenaLinkStore<V> {
             self.ordinary_store.get(id)
         }
     }
+
+    /// `get` for a symbol this checker has just created and not yet handed to anything another thread reads
+    /// (`new_symbol`, `new_shared_data_symbol`): the id it gets is the one `get` would give, without the
+    /// compare-and-swap (notes/perf-small-exact-wins-20261112.md).
+    #[inline]
+    #[cfg_attr(feature = "site-counts", track_caller)]
+    pub fn get_fresh(&mut self, symbol: P<Symbol>) -> P<V> {
+        debug_assert!(symbol.flags().intersects(ast::SymbolFlags::Transient));
+        let id = self.generator.get_fresh_symbol_id(symbol).0;
+        if let Some(key) = dense_link_key(id) {
+            self.block_store.get(key)
+        } else {
+            self.ordinary_store.get(id)
+        }
+    }
 }
 
 impl<V: 'static> SymbolArenaLinkStore<V> {

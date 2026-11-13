@@ -540,15 +540,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
-name = "mimalloc-safe"
-version = "0.1.69"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91a05b5362ba7c45b5a2359693236833e97fd4378ee448effb663462941f9500"
-dependencies = [
- "libmimalloc-sys2",
-]
-
-[[package]]
 name = "miniz_oxide"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1030,7 +1021,6 @@ version = "0.25.0"
 dependencies = [
  "codspeed",
  "criterion2",
- "mimalloc-safe",
  "rustc-hash",
  "tsrs_core",
  "tsrs_execute",
@@ -1079,7 +1069,6 @@ name = "tsrs_cli"
 version = "7.1.0-beta.tsrs1"
 dependencies = [
  "libc",
- "mimalloc-safe",
  "tsrs_api",
  "tsrs_api_transport",
  "tsrs_compiler",
@@ -1152,6 +1141,7 @@ dependencies = [
  "icu_normalizer",
  "indexmap",
  "libc",
+ "libmimalloc-sys2",
  "memchr",
  "num-bigint",
  "num-traits",
@@ -1295,7 +1285,6 @@ dependencies = [
 name = "tsrs_lint"
 version = "7.1.0-beta.tsrs1"
 dependencies = [
- "mimalloc-safe",
  "regex",
  "regress",
  "rustc-hash",
@@ -1400,7 +1389,6 @@ name = "tsrs_parser"
 version = "7.1.0-beta.tsrs1"
 dependencies = [
  "bitflags",
- "mimalloc-safe",
  "rustc-hash",
  "tsrs_ast",
  "tsrs_core",
@@ -1498,7 +1486,6 @@ name = "tsrs_testrunner"
 version = "0.25.0"
 dependencies = [
  "indexmap",
- "mimalloc-safe",
  "regex",
  "rustc-hash",
  "serde_json",

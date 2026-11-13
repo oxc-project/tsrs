@@ -1,5 +1,5 @@
 #[global_allocator]
-static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+static GLOBAL: tsrs_core::allocator::MiMalloc = tsrs_core::allocator::MiMalloc;
 
 use std::path::PathBuf;
 use std::time::{Duration, Instant};

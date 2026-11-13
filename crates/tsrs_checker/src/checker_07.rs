@@ -1026,7 +1026,7 @@ impl Checker {
                     declarations.extend(right_prop.declarations().iter().copied());
                     let flags = SymbolFlags::Property | (left_prop.flags() & SymbolFlags::Optional);
                     let result = self.new_symbol(flags, left_prop.name());
-                    let links = self.value_symbol_links.get(result);
+                    let links = self.value_symbol_links.get_fresh(result);
                     // Optimization: avoid calculating the union type if spreading into the exact same type.
                     // This is common, e.g. spreading one options bag into another where the bags have the
                     // same type, or have properties which overlap. If the unions are large, it may turn out
@@ -1175,7 +1175,7 @@ impl Checker {
                     prop.check_flags() & CheckFlags::Late
                         | if readonly { CheckFlags::Readonly } else { CheckFlags::empty() },
                 );
-                let links = self.value_symbol_links.get(result);
+                let links = self.value_symbol_links.get_fresh(result);
                 if is_setonly_accessor {
                     links.resolved_type.set(Some(self.undefined_type));
                 } else {
@@ -1229,7 +1229,7 @@ impl Checker {
             prop.check_flags() & CheckFlags::Late
                 | if readonly { CheckFlags::Readonly } else { CheckFlags::empty() },
         );
-        let links = self.value_symbol_links.get(result);
+        let links = self.value_symbol_links.get_fresh(result);
         if is_setonly_accessor {
             links.resolved_type.set(Some(self.undefined_type));
         } else {
@@ -2186,7 +2186,7 @@ impl Checker {
     #[cfg_attr(feature = "site-counts", track_caller)]
     pub(crate) fn new_parameter(&mut self, name: &'static str, t: P<Type>) -> P<Symbol> {
         let symbol = self.new_symbol(SymbolFlags::FunctionScopedVariable, name);
-        self.value_symbol_links.get(symbol).resolved_type.set(Some(t));
+        self.value_symbol_links.get_fresh(symbol).resolved_type.set(Some(t));
         symbol
     }
 
@@ -2194,7 +2194,7 @@ impl Checker {
     #[cfg_attr(feature = "site-counts", track_caller)]
     pub(crate) fn new_property(&mut self, name: &'static str, t: P<Type>) -> P<Symbol> {
         let symbol = self.new_symbol(SymbolFlags::Property, name);
-        self.value_symbol_links.get(symbol).resolved_type.set(Some(t));
+        self.value_symbol_links.get_fresh(symbol).resolved_type.set(Some(t));
         symbol
     }
 

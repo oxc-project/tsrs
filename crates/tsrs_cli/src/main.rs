@@ -2,7 +2,7 @@
 // blocks) keep the system allocator.
 #[cfg(not(any(feature = "system-alloc", miri)))]
 #[global_allocator]
-static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+static GLOBAL: tsrs_core::allocator::MiMalloc = tsrs_core::allocator::MiMalloc;
 
 use tsrs_cli::{api, lsp, signals};
 use tsrs_execute::{execute, sys, tsc};

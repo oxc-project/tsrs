@@ -2101,7 +2101,10 @@ impl Checker {
                         name,
                         if readonly { CheckFlags::Readonly } else { CheckFlags::None },
                     );
-                    self.value_symbol_links.get(property).resolved_type.set(Some(type_parameter));
+                    self.value_symbol_links
+                        .get_fresh(property)
+                        .resolved_type
+                        .set(Some(type_parameter));
                     // c.valueSymbolLinks.get(property).tupleLabelDeclaration = elementInfos[i].labeledDeclaration
                     members.set(property.name(), property);
                 }
@@ -2114,7 +2117,10 @@ impl Checker {
             if readonly { CheckFlags::Readonly } else { CheckFlags::None },
         );
         if combined_flags.intersects(ElementFlags::Variable) {
-            self.value_symbol_links.get(length_symbol).resolved_type.set(Some(self.number_type));
+            self.value_symbol_links
+                .get_fresh(length_symbol)
+                .resolved_type
+                .set(Some(self.number_type));
         } else {
             let mut literal_types = Vec::new();
             literal_types.extend(

@@ -206,7 +206,8 @@ binary); mimalloc v2, jemalloc and glibc malloc instead of mimalloc v3 (3-14% sl
 THP off for the whole process (`MIMALLOC_ALLOW_THP=0`, which also drops the arena's huge pages: +4-10% check time at
 4 checkers, `notes/mem-no-thp.md`); releasing memory before the exit to shorten the kernel's teardown (an arena
 `munmap` cost 3 ms and moved the ~15 ms teardown within noise, `madvise` from 16 threads was slower than one
-`munmap`; `notes/perf-front-end-fixed-costs.md`);
+`munmap`; `notes/perf-front-end-fixed-costs.md`; on Linux the fast preset instead lets a helper process that shares the
+memory do the teardown after the exit, `notes/perf-exit-teardown.md`);
 `opt-level = "s"` for the language-server, API and emit crates (`.text` -6%, speed unchanged); adding vscode at eight
 checkers to the PGO training (-3% instructions, cycles unchanged).
 

@@ -11,6 +11,8 @@ mod broken_pipe;
 mod build_free_programs;
 mod default_emit;
 mod deferred_type_argument_check;
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+mod exit_helper;
 mod flow_memo;
 mod free_leaf_files;
 mod generate_trace;

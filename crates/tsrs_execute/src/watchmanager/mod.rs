@@ -16,6 +16,14 @@ use tsrs_fswatch::{
 
 use crate::tsc::SyncWriter;
 
+static RAN_LOOP: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// tsrs-only: whether this process ran a watch session's loop (`tsc --watch` or `--build --watch`), so the CLI can
+/// tell a batch compile's exit from a watch session's (`crates/tsrs_cli/src/exit_helper.rs`).
+pub fn ran_watch_loop() -> bool {
+    RAN_LOOP.load(std::sync::atomic::Ordering::SeqCst)
+}
+
 /// Go `WatchBackend`: fswatch, or the test harness's mock.
 pub trait WatchBackend: Send + Sync {
     fn watch_directories(
@@ -418,6 +426,7 @@ impl WatchManager {
 
     /// Go `RunLoop`: runs `do_cycle` whenever events were signaled, until `stop` (Go: the context is cancelled).
     pub(crate) fn run_loop(&self, mut do_cycle: impl FnMut()) {
+        RAN_LOOP.store(true, std::sync::atomic::Ordering::SeqCst);
         loop {
             {
                 let mut pending =

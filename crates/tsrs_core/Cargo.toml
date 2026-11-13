@@ -28,6 +28,7 @@ shared-graph = []
 [dependencies]
 rustc-hash.workspace = true
 hashbrown.workspace = true
+allocator-api2.workspace = true
 indexmap.workspace = true
 memchr.workspace = true
 unicode-id-start.workspace = true

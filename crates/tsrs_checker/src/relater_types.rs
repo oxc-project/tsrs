@@ -103,7 +103,7 @@ impl From<P<Type>> for RecursionId {
 #[derive(Default)]
 pub struct Relation {
     /// `RelationKey::Pair` keys: each slot is `key << RELATION_RESULT_BITS | result bits` (8 bytes).
-    pub(crate) pairs: RefCell<hashbrown::HashTable<u64>>,
+    pub(crate) pairs: RefCell<hashbrown::HashTable<u64, tsrs_core::hugealloc::HugeAlloc>>,
     /// `RelationKey::Hashed` keys -> result bits.
     pub(crate) hashed: RefCell<FxHashMap<PackedHashKey, u8>>,
 }

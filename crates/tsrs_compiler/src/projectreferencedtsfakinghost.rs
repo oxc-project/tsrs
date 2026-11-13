@@ -8,28 +8,27 @@ use tsrs_vfs::{Entries, FS, FileInfo, cachedvfs};
 
 use crate::projectreferencefilemapper::ProjectReferenceFileMapper;
 
-struct ProjectReferenceDtsFakingHost {
+struct ProjectReferenceDtsFakingHost<'h> {
     current_directory: String,
-    fs: cachedvfs::FS<ProjectReferenceDtsFakingVfs>,
+    fs: cachedvfs::FS<ProjectReferenceDtsFakingVfs<'h>>,
 }
 
 // projectreferencedtsfakinghost.go:22
-pub(crate) fn new_project_reference_dts_faking_host(
-    host: &'static dyn ResolutionHost,
-    references: &'static ProjectReferenceFileMapper,
-) -> &'static dyn ResolutionHost {
-    // Create a new host that will fake the dts files
-    Box::leak(Box::new(ProjectReferenceDtsFakingHost {
+pub(crate) fn new_project_reference_dts_faking_host<'h>(
+    host: &'h dyn ResolutionHost,
+    references: &'h ProjectReferenceFileMapper,
+) -> Box<dyn ResolutionHost + 'h> {
+    Box::new(ProjectReferenceDtsFakingHost {
         current_directory: host.get_current_directory().to_string(),
         fs: cachedvfs::from(ProjectReferenceDtsFakingVfs {
             host,
             project_reference_file_mapper: references,
             known_symlinks: KnownSymlinks::default(),
         }),
-    }))
+    })
 }
 
-impl ResolutionHost for ProjectReferenceDtsFakingHost {
+impl ResolutionHost for ProjectReferenceDtsFakingHost<'_> {
     // projectreferencedtsfakinghost.go:35
     fn fs(&self) -> &dyn FS {
         &self.fs
@@ -41,13 +40,13 @@ impl ResolutionHost for ProjectReferenceDtsFakingHost {
     }
 }
 
-pub struct ProjectReferenceDtsFakingVfs {
-    pub host: &'static dyn ResolutionHost,
-    pub project_reference_file_mapper: &'static ProjectReferenceFileMapper,
+pub struct ProjectReferenceDtsFakingVfs<'h> {
+    pub host: &'h dyn ResolutionHost,
+    pub project_reference_file_mapper: &'h ProjectReferenceFileMapper,
     pub known_symlinks: KnownSymlinks,
 }
 
-impl FS for ProjectReferenceDtsFakingVfs {
+impl FS for ProjectReferenceDtsFakingVfs<'_> {
     // projectreferencedtsfakinghost.go:53
     fn use_case_sensitive_file_names(&self) -> bool {
         self.host.fs().use_case_sensitive_file_names()
@@ -119,7 +118,7 @@ impl FS for ProjectReferenceDtsFakingVfs {
     }
 }
 
-impl ProjectReferenceDtsFakingVfs {
+impl ProjectReferenceDtsFakingVfs<'_> {
     // projectreferencedtsfakinghost.go:123
     fn to_path(&self, path: &str) -> Path {
         tspath::to_path(

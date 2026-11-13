@@ -193,7 +193,7 @@ enum ProgramCheckerPool {
 pub struct Program {
     pub(crate) opts: ProgramConfig,
     host: Arc<dyn CompilerHost>,
-    resolution_host: &'static dyn ResolutionHost,
+    resolution_host: Box<dyn ResolutionHost>,
     pub resolution_data: P<module::ResolutionData>,
     // Always set once the program is constructed (see `init_checker_pool`).
     checker_pool: OnceLock<ProgramCheckerPool>,
@@ -318,10 +318,10 @@ impl Program {
         }
     }
 
-    fn new_resolver(&self) -> module::DefaultResolver<'static> {
-        self.resolution_data
-            .get()
-            .new_resolver(self.project_reference_file_mapper.resolution_host(self.resolution_host))
+    fn new_resolver(&self) -> module::DefaultResolver<'_> {
+        self.resolution_data.get().new_resolver(
+            self.project_reference_file_mapper.resolution_host(&*self.resolution_host),
+        )
     }
 
     // GetRedirectTargets returns the list of file paths that redirect to the given path.
@@ -594,12 +594,8 @@ pub fn new_program(opts: ProgramOptions) -> &'static Program {
 /// # Safety
 /// `program` came from `new_program` / `update_program` and is not used afterwards.
 pub unsafe fn free_program(program: &'static Program) {
-    let resolution_host: *const dyn ResolutionHost = program.resolution_host;
     // SAFETY: both functions leak the program from a `Box`, and nothing uses it afterwards (this function's contract).
     drop(unsafe { Box::from_raw(std::ptr::from_ref::<Program>(program).cast_mut()) });
-    // Per program (`resolution_host_for`); it keeps the compiler host alive.
-    // SAFETY: `resolution_host_for` leaked it from a `Box` for this program alone, which is gone.
-    drop(unsafe { Box::from_raw(resolution_host as *mut dyn ResolutionHost) });
 }
 
 /// Releases a program that never shared data with another version.
@@ -657,23 +653,8 @@ impl SharedProgramData {
 /// # Safety
 /// `mapper` came from `Box::leak` in the file loader, and nothing refers to it or its hosts any more.
 pub unsafe fn free_project_reference_file_mapper(mapper: *mut ProjectReferenceFileMapper) {
-    // SAFETY: `mapper` is a live leaked `Box` (this function's contract).
-    let (dts_faking_host, loader_host) =
-        unsafe { ((*mapper).dts_faking_host.get().copied(), (*mapper).loader_host) };
     // SAFETY: it came from `Box::leak`, and nothing refers to it any more (this function's contract).
     drop(unsafe { Box::from_raw(mapper) });
-    if let Some(h) = dts_faking_host {
-        // SAFETY: `new_project_reference_dts_faking_host` leaked it from a `Box` for this mapper, which is gone.
-        drop(unsafe {
-            Box::from_raw(std::ptr::from_ref::<dyn ResolutionHost>(h) as *mut dyn ResolutionHost)
-        });
-    }
-    if let Some(h) = loader_host {
-        // SAFETY: `resolution_host_for` leaked it from a `Box` for this mapper's loader, which is gone.
-        drop(unsafe {
-            Box::from_raw(std::ptr::from_ref::<dyn ResolutionHost>(h) as *mut dyn ResolutionHost)
-        });
-    }
 }
 
 impl Program {

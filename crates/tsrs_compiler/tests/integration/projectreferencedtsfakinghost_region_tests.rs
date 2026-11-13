@@ -28,11 +28,10 @@ fn symlinked_directory_first_seen_in_a_region_is_not_kept_there() {
         Vec::new(),
         tsrs_core::tspath::ComparePathsOptions::default(),
     ));
-    let mapper: &'static ProjectReferenceFileMapper =
-        Box::leak(Box::new(ProjectReferenceFileMapper::new(config, true)));
+    let mapper = ProjectReferenceFileMapper::new(config, true);
     let vfs = ProjectReferenceDtsFakingVfs {
-        host,
-        project_reference_file_mapper: mapper,
+        host: &*host,
+        project_reference_file_mapper: &mapper,
         known_symlinks: KnownSymlinks::default(),
     };
     let region = Region::new(1 << 20);

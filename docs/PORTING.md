@@ -87,6 +87,7 @@ programs and file versions ([LSP.md](LSP.md#memory-management)). The rules are:
   `CheckerHandle<'pool>` borrows its pool so the built-in pool owns its checker slots without leaking them.
   `tsrs_module::DefaultResolver<'h>` borrows its resolution host and config parsing takes `&dyn ParseConfigHost`, so
   the project system and content-mapper lookups pass hosts that live on the caller's stack instead of faking `'static`.
+  The project-reference dts-faking host and its VFS also borrow their host and mapper.
 - Arena objects remain live until their arena is released, unless an explicit recycling site proves them dead
   (rolled-back parses, dropped flow labels, scratch mappers and inference contexts whose escape
   bit is clear; `tsrs_core::arena`, notes/mem-recycle.md). A struct field that keeps a mapper must be a `MapperCell`.

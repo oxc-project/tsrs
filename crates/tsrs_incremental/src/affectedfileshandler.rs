@@ -46,6 +46,8 @@ struct AffectedFilesHandler<'a> {
     // Declaration signatures computed ahead of update_shape_signature by one emit for many files
     // (collect_all_affected_files, a change that affects the global scope).
     precomputed: RefCell<FxHashMap<Path, String>>,
+    // tsrs-only (notes/perf-signature-emit-stealing.md): the batched signature emits may move files between checkers.
+    steal: bool,
 }
 
 impl AffectedFilesHandler<'_> {
@@ -151,6 +153,7 @@ impl AffectedFilesHandler<'_> {
                 target_source_files: Some(files),
                 emit_only: EmitOnly::EmitOnlyBuilderSignature,
                 write_file: Some(&write_file),
+                steal: self.steal,
                 ..Default::default()
             },
         );
@@ -616,11 +619,50 @@ fn sorted(mut paths: Vec<Path>) -> Vec<Path> {
 }
 
 // affectedfileshandler.go:366
+//
+// tsrs-only (notes/perf-signature-emit-stealing.md): in fast mode the batched signature emits move files between
+// checkers. A file's declaration signature does not depend on the checker that prints it, so the stolen walk visits
+// the same files and stores the same signatures. What it can change is the checkers' state for the check that
+// follows: a signature emit can report a global diagnostic (a declared return type that needs a missing global type),
+// and which checker holds it decides which file the incremental check stores it with. So the walk steals only when no
+// checker holds a global diagnostic before it, and its result is kept only when none holds one after it; the files
+// then go back to their static checkers, and the check starts as it does after the static walk. Otherwise nothing
+// of the stolen walk is committed: the checkers are replaced by fresh ones on the static assignment and the walk runs
+// again statically, as main runs it.
 pub fn collect_all_affected_files(ctx: &Context, program: &Program) {
     if program.snapshot.changed_files_set.size() == 0 {
         return;
     }
+    let compiler = program.p();
+    if compiler.signature_emits_steal() && compiler.checkers_have_no_global_diagnostics() {
+        let handler = collect_affected_files_with(ctx, program, true);
+        if ctx.err().is_some() {
+            return;
+        }
+        if compiler.checkers_have_no_global_diagnostics() {
+            compiler.reset_checker_owners_static();
+            handler.update_snapshot();
+            return;
+        }
+        if compiler.options().diagnostics_enabled() {
+            tsrs_core::phases::count(true, "Signatures: walk rerun statically", 1);
+        }
+        compiler.restart_checkers_static();
+    }
+    let handler = collect_affected_files_with(ctx, program, false);
+    if ctx.err().is_some() {
+        return;
+    }
+    // Update the snapshot with the new state
+    handler.update_snapshot();
+}
 
+// The walk of collect_all_affected_files up to the snapshot update, which the caller makes.
+fn collect_affected_files_with<'a>(
+    ctx: &'a Context,
+    program: &'a Program,
+    steal: bool,
+) -> AffectedFilesHandler<'a> {
     let handler = AffectedFilesHandler {
         ctx,
         program,
@@ -631,6 +673,7 @@ pub fn collect_all_affected_files(ctx: &Context, program: &Program) {
         cleaned_diagnostics_of_lib_files: Cell::new(false),
         seen_file_and_references: RefCell::new(FxHashMap::default()),
         precomputed: RefCell::new(FxHashMap::default()),
+        steal,
     };
     let mut result: Vec<P<SourceFile>> = Vec::new();
     let mut seen: FxHashSet<P<SourceFile>> = FxHashSet::default();
@@ -642,7 +685,7 @@ pub fn collect_all_affected_files(ctx: &Context, program: &Program) {
     );
 
     if ctx.err().is_some() {
-        return;
+        return handler;
     }
 
     // For all the affected files, get all the files that would need to change their dts or js files,
@@ -651,7 +694,8 @@ pub fn collect_all_affected_files(ctx: &Context, program: &Program) {
     result.sort_by(|a, b| a.path().clone().cmp(b.path()));
     // When every file is affected, handle_dts_may_change_of_affected_file computes the declaration signature of each
     // one in turn, one emit per file. Compute them with one emit instead: each checker still emits its files in
-    // the same (sorted) order, so every checker goes through the same states and the signatures are the same.
+    // the same (sorted) order, so every checker goes through the same states and the signatures are the same (with
+    // `steal`, files move, and the signatures are the same because no checker's state changes them).
     if handler.has_all_files_excluding_default_library_file.get() {
         let to_compute: Vec<P<SourceFile>> =
             result.iter().copied().filter(|&f| handler.needs_dts_signature(f)).collect();
@@ -670,7 +714,5 @@ pub fn collect_all_affected_files(ctx: &Context, program: &Program) {
         let dts_may_change = handler.get_dts_may_change(file.path().clone(), emit_kind);
         handler.handle_dts_may_change_of_affected_file(&dts_may_change, file);
     }
-
-    // Update the snapshot with the new state
-    handler.update_snapshot();
+    handler
 }

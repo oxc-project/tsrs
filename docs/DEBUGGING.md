@@ -103,7 +103,10 @@ files from the back of the busiest checker (notes/perf-checker-stealing.md). So 
 compilation (`incremental`, `composite`, build mode), which keeps the stolen result only when no checker found a new
 global diagnostic (one without a file, such as TS2318) and otherwise checks the files again on fresh checkers without
 stealing (notes/perf-incremental-pass-stealing.md); `TSRS_INCREMENTAL_STEAL=0` keeps that pass static, for A/B
-measurements. Counters can vary from run to run;
+measurements. The declaration signatures a warm incremental run computes for the files a change affects are emitted
+with stealing too, and the files then go back to their static checkers; if a signature emit reports a global
+diagnostic, the signatures are computed again statically on fresh checkers (notes/perf-signature-emit-stealing.md).
+`TSRS_SIGNATURE_STEAL=0` keeps those emits static. Counters can vary from run to run;
 naming an assignment (`--checkerAssignment locality`) turns stealing off and fixes the file placement and visit
 order. The scheduling gate checks output stability; this does not remove the known history-dependent cases.
 Work stealing can change assignment and visit order between identical fast-mode invocations, exposing those
@@ -123,7 +126,8 @@ then moves groups while that lowers the modules held per checker
 At the same checker/file thresholds, a thief also keeps stealing from the checker it stole from last while that
 checker has at least half the busiest one's work left; `TSRS_STEAL_STICKY=0` picks the busiest checker for every file. From 8 to 15
 checkers at most a quarter of the checkers take files from any one checker at a time (notes/perf-icount-assign.md);
-`TSRS_STEAL_MAX_THIEVES=<m>` sets that limit at every checker count, `0` for none.
+The declaration-signature emits of an incremental build have no such limit. `TSRS_STEAL_MAX_THIEVES=<m>` sets the
+limit at every checker count and in every pass, `0` for none.
 
 ## Why a TS2590 comes and goes: `TSRS_TRACE_UNION_REDUCTION`
 

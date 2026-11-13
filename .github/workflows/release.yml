@@ -463,7 +463,10 @@ jobs:
 
       - run: cargo check --locked
 
-  # Musl uses static dist builds without PGO/BOLT.
+  # Musl uses static builds with PGO but without BOLT. The profile is trained on musl builds (static, so they run on the
+  # glibc runner): an instrumented build of tsrs + tsrs-test and `pgo-train.sh --musl`, which is `build`'s workload
+  # without the Go fourslash suite. The glibc job's profile does not fit: cargo hashes the target into every symbol
+  # name PGO matches. Numbers: notes/perf-musl-pgo.md.
   build-musl:
     needs: version
     if: needs.version.outputs.release == 'true'
@@ -480,9 +483,26 @@ jobs:
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
+      # The training's conformance suite reads its fixtures from the pinned TypeScript commit.
+      - name: Check out TypeScript testdata
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: microsoft/TypeScript
+          ref: ${{ needs.version.outputs.ts_commit }}
+          path: ts-ref
+          fetch-depth: 1
+          sparse-checkout: tsc/testdata
+          persist-credentials: false
+
+      # The training's bench projects install with their pinned package managers (as in `build`, no .npmrc).
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+        with:
+          registry-url: ""
+
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
           restore-cache: false
+          components: llvm-tools
 
       - uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2.87.30
         with:
@@ -493,11 +513,42 @@ jobs:
         with:
           version: 0.13.0
 
+      - run: rustup target add ${{ matrix.target }}
+
+      # Same flags as `build`'s instrumented build; both builds keep the profile's strip setting, so symbol names match.
+      # The linker wrapper passes rustc's `-u __llvm_profile_runtime` in a form zig cc accepts.
+      - name: Instrumented build
+        env:
+          RUSTFLAGS: -Cprofile-generate=${{ runner.temp }}/pgo/raw -Clto=thin -Clinker=${{ github.workspace }}/.github/scripts/zigbuild-profile-linker.sh
+          CARGO_TARGET_DIR: ${{ runner.temp }}/pgo/target
+        run: cargo zigbuild --release --locked -p tsrs_cli -p tsrs_testrunner --bins --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
+
+      - name: Training run
+        env:
+          TSRS_LIB_PATH: ${{ github.workspace }}/crates/tsrs_vfs/libs
+        run: .github/scripts/pgo-train.sh --musl "$RUNNER_TEMP/pgo/target/${{ matrix.target }}/release" "$RUNNER_TEMP/pgo/raw" "$RUNNER_TEMP/pgo/bench"
+
+      # Fails rather than building without a profile when the merged profile is missing or has no functions.
+      - name: Merge profiles
+        id: profile
+        run: |
+          profdata="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/^host: //p')/bin/llvm-profdata"
+          "$profdata" merge -o "$RUNNER_TEMP/pgo/merged.profdata" "$RUNNER_TEMP"/pgo/raw/*.profraw
+          "$profdata" show "$RUNNER_TEMP/pgo/merged.profdata" | tee "$RUNNER_TEMP/pgo/profile.txt" | tail -5
+          test -s "$RUNNER_TEMP/pgo/merged.profdata"
+          functions=$(sed -n 's/^Total functions: //p' "$RUNNER_TEMP/pgo/profile.txt")
+          [ "${functions:-0}" -gt 0 ] || { echo "::error::the merged musl profile has no functions"; exit 1; }
+          sum=$(sha256sum "$RUNNER_TEMP/pgo/merged.profdata" | cut -c1-16)
+          mv "$RUNNER_TEMP/pgo/merged.profdata" "$RUNNER_TEMP/pgo/$sum.profdata"
+          echo "path=$RUNNER_TEMP/pgo/$sum.profdata" >> "$GITHUB_OUTPUT"
+
       - name: Build and stage musl binary
         env:
           TSRS_LIB_PATH: ${{ github.workspace }}/crates/tsrs_vfs/libs
+          PROFILE: ${{ steps.profile.outputs.path }}
+          RUSTFLAGS: -Cprofile-use=${{ steps.profile.outputs.path }}
         run: |
-          rustup target add ${{ matrix.target }}
+          test -s "$PROFILE" || { echo "::error::missing PGO profile '$PROFILE'"; exit 1; }
           cargo zigbuild --release --locked -p tsrs_cli --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
           mkdir -p "out/${{ matrix.target }}"
           cp "target/${{ matrix.target }}/release/tsrs" "out/${{ matrix.target }}/tsrs"

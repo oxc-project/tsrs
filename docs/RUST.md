@@ -165,7 +165,7 @@ In place:
 
 | Technique | Evidence here | Also in |
 | --- | --- | --- |
-| Fat LTO, one codegen unit, PGO for release binaries | `notes/perf-pgo.md`: -13.5% instructions with PGO; fat LTO alone about -2% | oxc, Rolldown, swc (fat); Ruff (fat, PGO); Turborepo, rust-analyzer (thin) |
+| Fat LTO, one codegen unit, PGO for release binaries (musl: trained on musl builds, without the Go fourslash suite) | `notes/perf-pgo.md`: -13.5% instructions with PGO; fat LTO alone about -2%. `notes/perf-musl-pgo.md`: musl -7 to -16% instructions, -4 to -14% wall | oxc, Rolldown, swc (fat); Ruff (fat, PGO); Turborepo, rust-analyzer (thin) |
 | ThinLTO for the PGO instrumented build, through RUSTFLAGS so Cargo's profile and symbol metadata stay identical to the final fat-LTO build | `notes/perf-pgo.md`, 2026-10-10: recording build -37.5%, paired PGO comparison pipeline -18.5%; matching metadata and test outcomes, no consistent runtime regression observed | Charlie Marsh's PGO training-build experiment |
 | BOLT on top of PGO for the Linux release binaries (`.github/scripts/bolt.sh`, gates run on the BOLT-optimized binaries) | `notes/perf-build-level.md`: -2.7% / -3.2% / -1.0% wall at 1 / 4 / 8 checkers on the 38k-file codebase, -3.4 to -4.0% on vscode; instruction-cache misses -20% | rustc (its Linux toolchain builds), CPython (`--enable-bolt`) |
 | mimalloc as the global allocator | `notes/perf-build-level.md`: mimalloc v3 beats mimalloc v2, jemalloc and glibc by 3-14% wall; `notes/perf-mimalloc-safe.md` | oxc, Rolldown, Turborepo, Bun |

@@ -1,5 +1,19 @@
 //! Startup policy shared by the binaries that use mimalloc as their global allocator.
 
+static PARSE_END: std::sync::OnceLock<fn(usize)> = std::sync::OnceLock::new();
+
+/// Registers `f` to run when a check's parse phase ends, before its checker threads start. It gets the checker count.
+pub fn at_parse_end(f: fn(usize)) {
+    let _ = PARSE_END.set(f);
+}
+
+/// Called by the checker pool once the program is parsed, with the number of checkers it is about to create.
+pub fn parse_ended(checkers: usize) {
+    if let Some(f) = PARSE_END.get() {
+        f(checkers);
+    }
+}
+
 /// Restores transparent huge pages for the arena after mimalloc's startup constructor disables them.
 /// Call at the start of each mimalloc binary's `main`, before spawning worker threads.
 #[cfg(all(target_os = "linux", not(miri)))]

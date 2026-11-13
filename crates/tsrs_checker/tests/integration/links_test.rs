@@ -86,14 +86,21 @@ fn node_value_link_fork_copies_a_frozen_record_on_first_write() {
     assert_eq!(seed.try_get(node).unwrap().get().get(), 7);
 }
 
+/// Go's dense limit (`maxPageCount` pages of 256 ids), which the reserved range used to stop at.
+const GO_PAGE_LINK_COUNT: u64 = 0x100_0000;
+
 #[test]
 fn symbol_link_store_separates_reserved_and_ordinary_ids() {
+    // The dense range is every id the AST can store: Go's 16M cap would send the ids past it to a hash map.
+    assert_eq!(MAX_PAGE_LINK_COUNT, ast::BLOCK_ID_COUNT);
     assert_eq!(dense_link_key(ast::BLOCK_ID_OFFSET), Some(0));
+    assert_eq!(dense_link_key(ast::BLOCK_ID_OFFSET + GO_PAGE_LINK_COUNT), Some(GO_PAGE_LINK_COUNT));
     assert_eq!(
         dense_link_key(ast::BLOCK_ID_OFFSET + MAX_PAGE_LINK_COUNT - 1),
         Some(MAX_PAGE_LINK_COUNT - 1)
     );
     assert_eq!(dense_link_key(ast::BLOCK_ID_OFFSET + MAX_PAGE_LINK_COUNT), None);
+    assert_eq!(dense_link_key(ast::BLOCK_ID_OFFSET - 1), None);
     let ordinary = Symbol::new(SymbolFlags::None, "");
     let ordinary_id = ast::get_symbol_id(ordinary).0;
     assert!(ordinary_id < ast::BLOCK_ID_OFFSET);
@@ -311,4 +318,55 @@ fn groups_map_ids_to_their_slots() {
     assert_eq!(store.try_get(1 << 40), None);
     store.get(1 << 40).set(7);
     assert_eq!(store.try_get(1 << 40).map(|v| (*v).get()), Some(7));
+}
+
+// A program past Go's 16M reserved ids (the counters are process-wide, so all its checkers' ids count) must keep
+// the dense path: each fresh generator takes a block of 256 ids for its first id, so 65,536 of them move the
+// counters past the old cap. Every store must then hand back the links it created, and the symbol store must
+// have indexed them densely instead of hashing them.
+#[test]
+fn ids_past_the_old_cap_stay_dense() {
+    if !crate::isolated::in_child("links_test::ids_past_the_old_cap_stay_dense") {
+        return;
+    }
+    let factory = ast::NodeFactory::default();
+    let blocks = GO_PAGE_LINK_COUNT / tsrs_core::LINK_PAGE_SIZE as u64;
+    for _ in 0..blocks {
+        ast::SymbolIdGenerator::default().get_symbol_id(Symbol::new(SymbolFlags::None, ""));
+        ast::NodeIdGenerator::default().get_node_id(factory.new_identifier("n"));
+    }
+
+    let mut symbols: SymbolArenaLinkStore<Cell<u32>> = SymbolArenaLinkStore::default();
+    let mut nodes: NodeLinkStore<Cell<u32>> = NodeLinkStore::default();
+    let mut values: NodeValueLinkStore<Cell<u32>> = NodeValueLinkStore::default();
+    let held: Vec<_> = (0..600u32)
+        .map(|i| {
+            let symbol = Symbol::new(SymbolFlags::None, "");
+            symbols.get(symbol).set(i + 1);
+            let node = factory.new_identifier("n");
+            nodes.get(node).set(i + 1);
+            values.get(node).set(i + 1);
+            (symbol, node, i + 1)
+        })
+        .collect();
+    for &(symbol, node, n) in &held {
+        let id = ast::get_symbol_id(symbol).0;
+        let key = dense_link_key(id).unwrap();
+        assert!(key >= GO_PAGE_LINK_COUNT, "symbol id {id} is below the old cap");
+        assert!(dense_link_key(ast::get_node_id(node).0).unwrap() >= GO_PAGE_LINK_COUNT);
+        let link = symbols.get(symbol);
+        assert_eq!(link.get().get(), n);
+        assert_eq!(symbols.try_get_if_id_assigned(symbol), Some(link));
+        assert_eq!(symbols.block_store.try_get(key), Some(link));
+        assert!(
+            symbols.block_store.index.len() as u64 > key >> 7,
+            "symbol key {key} was not indexed"
+        );
+        let cell = nodes.get(node);
+        assert_eq!(cell.get(), n);
+        assert!(std::ptr::eq(nodes.try_get_if_id_assigned(node).unwrap(), cell));
+        let value = values.get(node);
+        assert_eq!(value.get().get(), n);
+        assert_eq!(values.try_get(node), Some(value));
+    }
 }

@@ -25,8 +25,9 @@ repeated default-mode runs with identical inputs and settings.
 
 ## Command line
 
-Release 0.25.0 defaults to the pinned TypeScript checker settings. Its opt-in fast preset is enabled
-by `--fast` or `TSRS_FAST=1`. Both names refer to the same settings in this table. See
+Compilation defaults to the pinned TypeScript checker settings. Its opt-in fast preset is enabled
+by `--fast` or `TSRS_FAST=1`, which refer to the same settings in this table.
+The linter (`tsrs --lint` and `tsrs-lint`) enables the preset by default; `TSRS_FAST=0` disables it. See
 [side effects and precedence](USAGE.md#side-effects) before enabling it.
 
 | setting | tsgo | tsrs |
@@ -174,7 +175,7 @@ tsrs-only variables that change behavior:
 
 | variable | default | effect |
 | --- | --- | --- |
-| `TSRS_FAST` | off | Only `1` enables the fast preset; an explicit `--fast` value takes precedence. `--lsp` and `--api` processes that inherit it use lazy members and canonical history |
+| `TSRS_FAST` | on for linting; off elsewhere | Linting enables the fast preset unless set to `0`; elsewhere, only `1` enables it. An explicit `--fast` value takes precedence. `--lsp` and `--api` processes that inherit `TSRS_FAST=1` use lazy members and canonical history |
 | `TSRS_CHECKER_ASSIGNMENT` | `go`; `locality` in fast mode | Explicit assignments override the preset and disable stealing; `go` uses tsgo's file split and checker history |
 | `TSRS_MAX_MEMORY` | off | Same as `--maxMemory` |
 | `TSRS_LAZY_MEMBERS` | off; on in fast mode | Same as `--lazyMembers` / `--noLazyMembers`; explicit CLI flags win |

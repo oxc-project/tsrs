@@ -6,8 +6,11 @@ use std::io::{self, Read, Write};
 use crate::{engine, payload, protocol};
 
 /// Runs [`run`] on stdin and stdout on a thread with a large stack (checking recurses deeply), as both binaries do.
+///
+/// Enables the fast preset unless `TSRS_FAST=0`.
 /// `args` excludes the program name (and `--lint`). Returns the exit status.
 pub fn main(args: Vec<String>) -> i32 {
+    tsrs_core::fast::set_enabled(std::env::var_os("TSRS_FAST").is_none_or(|value| value != "0"));
     let result = std::thread::Builder::new()
         .name("tsrs-lint".into())
         .stack_size(512 * 1024 * 1024)

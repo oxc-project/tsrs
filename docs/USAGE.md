@@ -76,12 +76,15 @@ enable it. `TSRS_FREE_LEAVES=1` bypasses that count limit only. See the
 
 ### Precedence and scope
 
-Only `TSRS_FAST=1` enables the environment preset; unset, `0` and other values leave it off. An explicit `--fast`
-value overrides the environment. The flag accepts `true` or `false` and works in response files; it is a CLI
-option, not a `tsconfig.json` compiler option.
+For compilation, `--lsp` and `--api`, only `TSRS_FAST=1` enables the environment preset; unset, `0` and other values
+leave it off. An explicit `--fast` value overrides the environment. The flag accepts `true` or `false` and works
+in response files; it is a CLI option, not a `tsconfig.json` compiler option.
 `--lsp` and `--api` have no `--fast` option, but they read `TSRS_FAST` too: a language-server or API process that
 inherits `TSRS_FAST=1` uses lazy members, canonical checker history and its additional caches. Declaration parsing
 stays eager there, and finished files are not freed.
+
+The linter (`tsrs --lint` and `tsrs-lint`) enables the fast preset unless `TSRS_FAST=0`; all other values keep it
+enabled. Individual feature environment overrides still apply.
 
 ```sh
 TSRS_FAST=1 pnpm exec tsrs -p .                 # enable the preset

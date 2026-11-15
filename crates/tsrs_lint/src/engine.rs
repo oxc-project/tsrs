@@ -442,8 +442,7 @@ fn run_in_region(
 type Linted = (Result<(), String>, Vec<u8>, BTreeMap<String, (u64, u64)>);
 
 /// Programs linted at once. Each checks on its own checker pool, so a few at a time fill the machine without holding
-/// every program in memory: a quarter of the cores (t3code's ~40 tsconfigs on 8 cores: two at a time cut wall 29% for
-/// 29% more peak memory, four cut 35% for 44% more). A set `RAYON_NUM_THREADS` gives each program that many checkers
+/// every program in memory: a quarter of the cores. A set `RAYON_NUM_THREADS` gives each program that many checkers
 /// (`checker_count`), so programs then run one at a time.
 fn program_threads(programs: usize) -> usize {
     if checker_count().is_some() {

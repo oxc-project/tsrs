@@ -7018,7 +7018,7 @@ fn type_check_does_not_report_global_diagnostics() {
 
 // Every file is type-checked before rules run on its checker. Comparing `a.ts`'s assignment, the rule resolves the
 // union's `take` signatures, whose too-complex parameter union `tsrs --noEmit` reports at `b.ts`'s call. Were the
-// rule's query first, the error would have no location (reported on the tsconfig) and `b.ts` would miss it.
+// rule's query first, the error would have no location and would not be reported.
 #[test]
 fn type_check_reports_errors_before_rule_queries() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-before-rules");

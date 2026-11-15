@@ -750,7 +750,15 @@ fn report_config_error(
     program_diagnostic: bool,
     writer: &mut dyn Write,
 ) -> Result<(), String> {
-    let mut help = diagnostic.localize();
+    // The help has the message chain, as `tsc` prints it: the reason that a content mapper could not be initialized,
+    // for example, is in the chain of TS18099.
+    let mut message = Vec::new();
+    tsrs_compiler::diagnosticwriter::write_flattened_diagnostic_message(
+        &mut message,
+        diagnostic,
+        "\n",
+    );
+    let mut help = tsrs_core::utf8::into_string(message).map_err(|err| err.to_string())?;
     if program_diagnostic && help.contains("Please remove it from your configuration.") {
         help.push_str(
             "\nSee https://github.com/oxc-project/tsgolint/issues/351 for more information.",

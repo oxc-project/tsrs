@@ -7137,3 +7137,56 @@ fn run_external_code_lints_content_mapped_projects() {
         assert_eq!(actual, expected, "{flags:?} {env:?}");
     }
 }
+
+#[test]
+fn a_content_mapper_that_cannot_be_initialized_is_reported_with_the_reason() {
+    // The help of TS18099 had only its first line, "could not be initialized", so a mapper process that exited
+    // looked like a mapper that timed out. The help has the message chain, as `tsc` prints it. A command that is not
+    // in PATH gives the same reason in each run; a process that exits races with the close that records its exit
+    // code. Needs no `node`: the mapper never starts.
+    let fixtures =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/contentmapper");
+    let base = std::env::current_dir().unwrap().join("target/lint-uninitialized-content-mapper");
+    let _ = std::fs::remove_dir_all(&base);
+    let tsconfig = std::fs::read_to_string(fixtures.join("types/tsconfig.json"))
+        .unwrap()
+        .replace("header-mapper", "missing-command-mapper");
+    let package = r#"{"name":"missing-command-mapper","version":"1.0.0","typescript":{"contentMapper":{"exec":["tsrs-lint-test-missing-command"]}}}"#;
+    for (to, text) in [
+        ("tsconfig.json", tsconfig),
+        ("src/a.vue", std::fs::read_to_string(fixtures.join("types/src/a.vue")).unwrap()),
+        ("src/index.ts", std::fs::read_to_string(fixtures.join("types/src/index.ts")).unwrap()),
+        ("node_modules/missing-command-mapper/package.json", package.to_owned()),
+    ] {
+        let to = base.join(to);
+        std::fs::create_dir_all(to.parent().unwrap()).unwrap();
+        std::fs::write(to, text).unwrap();
+    }
+    let files = ["src/a.vue", "src/index.ts"]
+        .map(|file| Value::String(base.join(file).to_string_lossy().into_owned()));
+    let input = json::marshal(&protocol::object([
+        ("version", Value::Integer(2)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                ("file_paths", Value::Array(files.to_vec())),
+                ("rules", Value::Array(Vec::new())),
+            ])]),
+        ),
+    ]))
+    .unwrap();
+    let (status, frames) = run_raw(&input, &["--runExternalCode"]);
+    assert_eq!(status, 0, "{frames:?}");
+    let [(_, Value::Object(diagnostic))] = frames.as_slice() else { panic!("{frames:?}") };
+    let Value::Object(message) = &diagnostic["message"] else { panic!("{diagnostic:?}") };
+    assert_eq!(message["id"], Value::String("tsconfig-error".into()));
+    let path = if cfg!(windows) { "%PATH%" } else { "$PATH" };
+    assert_eq!(
+        message["help"],
+        Value::String(format!(
+            "The content mapper 'missing-command-mapper' could not be initialized.\n  \
+             The content mapper command 'tsrs-lint-test-missing-command' could not be started: \
+             exec: \"tsrs-lint-test-missing-command\": executable file not found in {path}"
+        ))
+    );
+}

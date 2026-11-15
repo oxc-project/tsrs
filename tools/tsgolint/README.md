@@ -71,27 +71,21 @@ oxlint runs `<path> headless ...`, which `tsrs` would read as a root file.
 
 ## Type checking in the lint run
 
-`oxlint --type-aware --type-check` asks the linter for compiler diagnostics too, with or without `TSRS_FAST=1`.
-Each tsconfig selected from the files oxlint sends checks eligible files across its whole program, including files
-oxlint did not send (ignored or generated files and declaration files). Oxlint ignores do not hide those files' type
-errors; compiler options such as `skipLibCheck` still control library and declaration checking. Configured-program
-global diagnostics without a source location, such as missing global types, are reported on the tsconfig. Listed
-files outside every tsconfig are linted and type-checked in an inferred program with the linter's default compiler
-options. That inferred program reports diagnostics only for those listed loose files.
-
-Shared files' type errors are reported once per request: a listed file by the program it maps to, any other file by
-the first selected configured program eligible to check it. This whole-program scope extends upstream tsgolint's requested-file
-reporting; the fast preset is not required to enable it.
+`oxlint --type-aware --type-check` asks the linter for compiler diagnostics too, with or without `TSRS_FAST=1`. As
+in tsgolint, they are reported only for the files oxlint sends: each is checked in the tsconfig program it maps to, and
+the program's other files supply types without their own diagnostics being reported. Oxlint ignores and command-line
+paths therefore limit type checking as well as lint rules. Global diagnostics without a source location, such as
+missing global types, are not reported. Listed files outside every tsconfig are linted and type-checked in an inferred
+program with the linter's default compiler options.
 
 ```sh
 OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware --type-check
 ```
 
-This can replace lint plus a separate no-emit typecheck only when the selected programs, compiler options and
-diagnostic scope match. Referenced projects need their own selected program for independent checking; this does not
-discover unrelated tsconfigs or run a solution build (`tsrs --build`). Checking shared files once also does not
-establish their diagnostics under every overlapping config's options. See the existing
-[measurements](../../notes/perf-tsgolint-check-program.md) for comparisons under specific lint/typecheck configurations.
+This does not replace a separate no-emit typecheck: files oxlint does not lint (ignored, generated and declaration
+files) and global diagnostics are checked only by `tsrs --noEmit` or `tsrs --build`. The
+[measurements](../../notes/perf-tsgolint-check-program.md) of one lint and typecheck run were taken when the lint run
+checked whole tsconfig programs.
 
 Run imported suites with:
 

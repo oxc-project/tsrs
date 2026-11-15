@@ -6,6 +6,10 @@ location; the linter reports them on the tsconfig). Listed files outside every t
 that several programs have is reported once: a listed file by the program it maps to, any other file by the first
 program that has it. The measurements below were taken with the variable.
 
+Update (2026-11-15): semantic reporting again covers only the files oxlint lints, as tsgolint does. Files oxlint did
+not send and program-wide global diagnostics are not reported, so the one-pass typecheck described here no longer
+applies.
+
 A project that runs type-aware lint and `tsrs --noEmit` builds the same program twice and resolves most of the same
 types twice: lint asks the checker about nearly every expression. With `report_semantic` (oxlint `--type-check`) the
 lint pass already reports compiler diagnostics on the checker that lints each file

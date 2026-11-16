@@ -264,7 +264,8 @@ jobs:
           name="LLVM-$LLVM_VERSION-Linux-$arch"
           mkdir -p "$RUNNER_TEMP/llvm"
           curl -fsSL "https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VERSION/$name.tar.zst" |
-            tar -x --zstd -C "$RUNNER_TEMP/llvm" --strip-components=1 --wildcards \
+            zstd -d --long=30 |
+            tar -x -C "$RUNNER_TEMP/llvm" --strip-components=1 --wildcards \
               "$name/bin/llvm-bolt" "$name/bin/merge-fdata" "$name/lib/libbolt_rt_instr.a"
 
       - name: Configure BOLT

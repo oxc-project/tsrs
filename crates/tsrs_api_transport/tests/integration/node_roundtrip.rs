@@ -29,16 +29,18 @@ fn pinned_node_clients_round_trip() {
          git -C ts-ref checkout FETCH_HEAD",
         client.display()
     );
-    // cargo test builds examples next to the test's deps directory.
+    // cargo test uplifts examples to `<profile>/examples`, an ancestor of the test binary's directory in both the
+    // `<profile>/deps` and the `<profile>/build/<package>/<hash>/out` build-dir layouts.
     let exe = std::env::current_exe().unwrap();
+    let server_name = format!("transport_test_server{}", std::env::consts::EXE_SUFFIX);
     let server = exe
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .join("examples")
-        .join(format!("transport_test_server{}", std::env::consts::EXE_SUFFIX));
-    assert!(server.exists(), "example server not built at {}", server.display());
+        .ancestors()
+        .skip(1)
+        .map(|dir| dir.join("examples").join(&server_name))
+        .find(|path| path.exists())
+        .unwrap_or_else(|| {
+            panic!("example server {server_name} not built above {}", exe.display())
+        });
     let output = Command::new("node")
         .args([
             "--conditions=@typescript/source",

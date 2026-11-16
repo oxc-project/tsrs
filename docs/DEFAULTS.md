@@ -209,7 +209,7 @@ and watch declarations were regenerated into scratch files and compared; all 174
 library files matched. Probes with source-built binaries on macOS covered help, version, unsupported commands,
 locale handling, statistics, incremental metadata, tracing, profiling, non-UTF-8 arguments and API startup errors. Direct Go/Rust
 probes confirmed the unknown `moduleDetection` and tsbuildinfo enum conversions. Platform-specific watcher
-behavior, runtime scheduling and the remaining server/API details were checked in source. The current 0.25.0
+behavior, runtime scheduling and the remaining server/API details were checked in source. The current 7.1.0-beta.tsrs2
 source pin is `3e9236361fa9`; its broader conformance evidence is in the
 [recorded suite results](COMPATIBILITY.md#conformance), [source-upgrade log](../notes/typescript-623-ports.md),
 and [beta follow-up log](../notes/typescript-7.1-beta-ports.md).

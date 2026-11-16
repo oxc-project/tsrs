@@ -1,6 +1,6 @@
 [package]
 name = "tsrs_spanmap"
-version = "7.1.0-beta.tsrs1"
+version = "7.1.0-beta.tsrs2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

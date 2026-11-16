@@ -54,7 +54,8 @@ These versions are all SemVer prereleases, including those targeting stable Type
 `docs/releases/<version>.md`. Build metadata such as `+tsrs1` cannot replace the prerelease identifier because
 SemVer ignores it when ordering releases.
 
-The first release under this scheme is `7.1.0-beta.tsrs1`, replacing `0.25.0-ts7.1.0-beta` for npm packages. Cargo uses
+The first release under this scheme is `7.1.0-beta.tsrs1`, published only to crates.io: its npm publication failed the
+installed-package smoke test. `7.1.0-beta.tsrs2` is the first npm release, replacing `0.25.0-ts7.1.0-beta`. Cargo uses
 the same version, and all native platform and WebAssembly npm packages move together. The pinned TypeScript version,
 matching npm compiler package and exact source commit remain in `[workspace.metadata.typescript]`; generated npm
 packages expose the version and commit through their `tsrs` metadata. Compiler compatibility uses that TypeScript

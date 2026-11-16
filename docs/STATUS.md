@@ -5,6 +5,15 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 7.1.0-beta.tsrs2
+
+Package version `7.1.0-beta.tsrs2`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`). This is the first npm release
+with TypeScript-aligned versions: `7.1.0-beta.tsrs1` reached crates.io, but its npm release stopped at the
+installed-package smoke test. Prereleases publish under npm's `next` tag, so `latest` stays on `0.25.0-ts7.1.0-beta`.
+The [release notes](releases/7.1.0-beta.tsrs2.md) cover the linter's default fast preset, diagnostics limited to
+linted files under `oxlint --type-check`, the `no-misused-promises` `flagUnions` option, a project-reference panic fix
+and PGO/BOLT training under `--fast`. Release binaries build with Rust 1.100.0, now the crates' minimum Rust version.
+
 ## 0.25.0
 
 Package version `0.25.0-ts7.1.0-beta`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`).

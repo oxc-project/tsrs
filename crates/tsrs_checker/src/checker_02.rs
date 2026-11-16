@@ -1503,7 +1503,7 @@ impl Checker {
         predicate_variable_node: P<Node>,
         predicate_variable_name: &str,
     ) -> bool {
-        if pattern.elements().iter().any(|&element| {
+        pattern.elements().iter().any(|&element| {
             let Some(name) = element.name() else {
                 return false;
             };
@@ -1515,21 +1515,13 @@ impl Checker {
                 );
                 return true;
             }
-            if (ast::is_array_binding_pattern(name) || ast::is_object_binding_pattern(name))
+            (ast::is_array_binding_pattern(name) || ast::is_object_binding_pattern(name))
                 && self.check_if_type_predicate_variable_is_declared_in_binding_pattern(
                     name,
                     predicate_variable_node,
                     predicate_variable_name,
                 )
-            {
-                return true;
-            }
-
-            false
-        }) {
-            return true;
-        }
-        false
+        })
     }
 
     // checker.go:3178
@@ -3272,7 +3264,7 @@ impl Checker {
                 let block_locals = node.as_catch_clause().block.locals();
                 if let Some(block_locals) = block_locals {
                     let caught_names: Vec<&'static str> =
-                        node.locals().map(|locals| locals.keys()).unwrap_or_default();
+                        node.locals().map_or_default(|locals| locals.keys());
                     for caught_name in caught_names {
                         if let Some(block_local) = block_locals.lookup(caught_name)
                             && let Some(value_declaration) = block_local.value_declaration()

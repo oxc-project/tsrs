@@ -264,8 +264,7 @@ fn test_progress_new_token_after_end() {
     let second_token = calls
         .iter()
         .find(|c| c.method == "create" && c.token != first_token)
-        .map(|c| c.token.clone())
-        .unwrap_or_default();
+        .map_or_default(|c| c.token.clone());
     assert!(
         !second_token.is_empty(),
         "expected a new token for second cycle, got calls: {calls:?}"

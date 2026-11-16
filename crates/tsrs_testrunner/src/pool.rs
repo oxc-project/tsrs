@@ -220,7 +220,7 @@ pub fn run_pool(items: &[TestItem], opts: &PoolOptions) -> Vec<Option<TestResult
                     // Died while running batch[w.done]: record a crash and re-queue the rest.
                     let crashed = w.batch[w.done];
                     let tail = stderr_tail(&w.stderr);
-                    let status_text = status.map(|s| format!("{s}")).unwrap_or_default();
+                    let status_text = status.map_or_default(|s| format!("{s}"));
                     let message = if tail.contains("overflowed its stack") {
                         "stack overflow".to_string()
                     } else if tail.is_empty() {

@@ -816,8 +816,7 @@ impl Checker {
         // Check if any property appears in more than one constituent type and reduces to 'never'.
         // Go in the order the properties were found so the combined properties are created in the same order every time.
         let mut result = false;
-        for i in 0..counts.entries.len() {
-            let (prop_name, _, count) = counts.entries[i];
+        for &(prop_name, _, count) in &counts.entries {
             if count > 1
                 && let Some(prop) = self.get_property_of_union_or_intersection_type(
                     t, prop_name, true, /*skipObjectFunctionPropertyAugment*/

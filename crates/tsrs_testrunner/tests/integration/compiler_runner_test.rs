@@ -40,8 +40,7 @@ fn units_match_go_harness() {
             items.iter().find(|i| i.name == stem).unwrap_or_else(|| panic!("no variant {stem}"));
         let mut config = find_configuration(&content, &table, &item.config)
             .unwrap()
-            .map(|c| c.config)
-            .unwrap_or_default();
+            .map_or_default(|c| c.config);
         let payload = test_case_parser::make_units_from_test(&content, path);
         if payload.global_options.get("runexternalcode").is_some_and(|v| v == "true") {
             // content-mapped files are baselined with their transformed text

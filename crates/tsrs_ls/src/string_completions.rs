@@ -1688,7 +1688,7 @@ impl LanguageService {
             let directory_name = tspath::get_base_file_name(&directory);
             if directory_name != "@types" {
                 result.add(ModuleCompletionNameAndKind {
-                    name: directory_name.clone(),
+                    name: directory_name,
                     kind: ModuleCompletionKind::Directory,
                     extension: String::new(),
                 });
@@ -1709,7 +1709,7 @@ impl LanguageService {
         paths: &OrderedMap<String, impl PathSubstitutions>,
     ) -> bool {
         let get_patterns_for_keys = |key: &str| -> Vec<String> {
-            paths.get(key).map(|v| v.substitutions().to_vec()).unwrap_or_default()
+            paths.get(key).map_or_default(|v| v.substitutions().to_vec())
         };
         let compare_paths = |a: &str, b: &str| -> Comparison {
             let length_a = a.find('*').unwrap_or(a.len());

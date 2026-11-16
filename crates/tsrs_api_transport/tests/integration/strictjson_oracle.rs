@@ -56,7 +56,7 @@ fn decoders_match_pinned_go() {
                 }
             }
             "readFile" => {
-                let ours = read_file_via_callback(input.clone());
+                let ours = read_file_via_callback(input);
                 if go_err.is_empty() {
                     let content = ours.unwrap_or_else(|e| panic!("{shown}: {e}")).unwrap();
                     assert_eq!(

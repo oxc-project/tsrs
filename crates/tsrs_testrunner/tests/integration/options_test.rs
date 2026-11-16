@@ -50,8 +50,7 @@ fn options_and_tsconfig_match_go_harness() {
                 let mut config =
                     compiler_runner::find_configuration(&content, &table, &item.config)
                         .unwrap()
-                        .map(|c| c.config)
-                        .unwrap_or_default();
+                        .map_or_default(|c| c.config);
                 let ts_config = parse_test_ts_config(&payload);
                 let split = compiler_runner::split_units(
                     &payload,

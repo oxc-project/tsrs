@@ -254,7 +254,7 @@ fn compose(
     if overlay.replaces_subtree() {
         base = None;
     }
-    let mut result: Node = base.map(|b| (**b).clone()).unwrap_or_default();
+    let mut result: Node = base.map_or_default(|b| (**b).clone());
     if overlay.fallback != Fallback::Inherit || overlay.replaces_subtree() {
         result.fallback = fallback;
     }

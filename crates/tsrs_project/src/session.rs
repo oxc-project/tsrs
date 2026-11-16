@@ -277,8 +277,7 @@ pub fn new_session(init: &SessionInit) -> Arc<Session> {
     let content_mapper_timings = snapshot_host
         .content_mapper_host
         .as_ref()
-        .map(|content_mapper_host| content_mapper_host.timings())
-        .unwrap_or_default();
+        .map_or_default(|content_mapper_host| content_mapper_host.timings());
     Arc::new_cyclic(|self_ref| Session {
         content_mapper_timings: Mutex::new(content_mapper_timings),
         options: Arc::clone(&init.options),

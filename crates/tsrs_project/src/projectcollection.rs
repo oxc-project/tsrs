@@ -265,7 +265,7 @@ impl ProjectCollection {
                     }
                 }
                 if first_configured_project.is_none() {
-                    first_configured_project = Some(p.clone());
+                    first_configured_project = Some(p);
                 }
             }
         }

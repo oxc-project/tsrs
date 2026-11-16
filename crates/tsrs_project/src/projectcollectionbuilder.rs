@@ -244,8 +244,7 @@ impl ProjectCollectionBuilder {
         }
 
         let file_default_projects = self.file_default_projects.borrow().clone();
-        let base_defaults =
-            base.file_default_projects.as_ref().map(|m| (**m).clone()).unwrap_or_default();
+        let base_defaults = base.file_default_projects.as_ref().map_or_default(|m| (**m).clone());
         if file_default_projects.clone().unwrap_or_default() != base_defaults {
             ensure_cloned!().file_default_projects = file_default_projects.map(Arc::new);
         }
@@ -1924,7 +1923,8 @@ impl ProjectCollectionBuilder {
             },
             config_file_parsing_diagnostics.clone(),
         );
-        let changed = self.inferred_project.change_if(
+
+        self.inferred_project.change_if(
             &mut |p: &Project| {
                 let command_line = p.command_line.unwrap();
                 command_line.file_names() != new_command_line.file_names()
@@ -1948,11 +1948,7 @@ impl ProjectCollectionBuilder {
                 }
                 p.set_command_line(Some(new_command_line));
             },
-        );
-        if !changed {
-            return false;
-        }
-        true
+        )
     }
 
     // projectcollectionbuilder.go:1428

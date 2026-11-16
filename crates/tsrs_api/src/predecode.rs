@@ -763,7 +763,7 @@ fn exact_i64(object: &Value, key: &str) -> Option<i64> {
 /// The raw `params` bytes of each element of the top-level `requests` array of the current request
 /// (batchRequests), indexed in one pass over the payload; `None` where an element has no `params`.
 pub(crate) fn current_batch_params() -> Vec<Option<Vec<u8>>> {
-    FRAMES.with(|f| f.borrow().last().map(|frame| batch_params(&frame.raw)).unwrap_or_default())
+    FRAMES.with(|f| f.borrow().last().map_or_default(|frame| batch_params(&frame.raw)))
 }
 
 pub fn batch_params(raw: &[u8]) -> Vec<Option<Vec<u8>>> {

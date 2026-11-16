@@ -697,11 +697,11 @@ pub(crate) fn find_first_non_whitespace_column(
 
 // indent.go:477
 /*
-* Character is the actual index of the character since the beginning of the line.
-* Column - position of the character after expanding tabs to spaces.
-* "0\t2$"
-* value of 'character' for '$' is 3
-* value of 'column' for '$' is 6 (assuming that tab size is 4)
+ * Character is the actual index of the character since the beginning of the line.
+ * Column - position of the character after expanding tabs to spaces.
+ * "0\t2$"
+ * value of 'character' for '$' is 3
+ * value of 'column' for '$' is 6 (assuming that tab size is 4)
  */
 pub(crate) fn find_first_non_whitespace_character_and_column(
     start_pos: u32,
@@ -903,8 +903,8 @@ fn is_control_flow_ending_statement(kind: Kind, parent_kind: Kind) -> bool {
 
 // indent.go:637
 /*
-* True when the parent node should indent the given child by an explicit rule.
-* @param isNextChild If true, we are judging indent of a hypothetical child *after* this one, not the current child.
+ * True when the parent node should indent the given child by an explicit rule.
+ * @param isNextChild If true, we are judging indent of a hypothetical child *after* this one, not the current child.
  */
 pub fn should_indent_child_node(
     settings: &FormatCodeSettings,

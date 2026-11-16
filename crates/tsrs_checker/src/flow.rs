@@ -3333,12 +3333,8 @@ impl Checker {
             return true;
         }
         let callee = expression.expression().unwrap();
-        if ast::is_property_access_expression(callee)
+        ast::is_property_access_expression(callee)
             && self.is_or_contains_matching_reference(reference, callee.expression().unwrap())
-        {
-            return true;
-        }
-        false
     }
 
     // flow.go:1898

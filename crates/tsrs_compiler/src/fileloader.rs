@@ -482,7 +482,7 @@ impl FileLoader {
                 let mut reason =
                     FileIncludeReason::new(FileIncludeKind::AutomaticTypeDirectiveFile);
                 reason.automatic_type_directive = Some(P::new(AutomaticTypeDirectiveFileData {
-                    type_reference: name.clone(),
+                    type_reference: name,
                     package_id: resolved.package_id,
                 }));
                 to_parse.push(ResolvedRef {
@@ -503,7 +503,7 @@ impl FileLoader {
                     file: None,
                     diagnostic_reason: Some(P::new(reason)),
                     message: &diagnostics::CANNOT_FIND_TYPE_DEFINITION_FILE_FOR_0,
-                    args: vec![name.clone()],
+                    args: vec![name],
                 }));
             }
         }

@@ -325,14 +325,9 @@ fn should_skip_node(node: P<Node>, parent: Option<P<Node>>) -> bool {
         }
     }
 
-    if ast::is_jsdoc_type_expression(node)
+    ast::is_jsdoc_type_expression(node)
         || ast::is_jsdoc_signature(node)
         || ast::is_jsdoc_type_literal(node)
-    {
-        return true;
-    }
-
-    false
 }
 
 // selectionranges.go:186

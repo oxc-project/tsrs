@@ -100,7 +100,7 @@ pub fn materialize(
         return Ok(Materialized { skipped: true, dropped: Vec::new() });
     }
     let ts_config = crate::options::parse_test_ts_config(&payload);
-    let mut harness_config: TestConfiguration = named.map(|c| c.config).unwrap_or_default();
+    let mut harness_config: TestConfiguration = named.map_or_default(|c| c.config);
     let split = compiler_runner::split_units(
         &payload,
         &mut harness_config,
@@ -128,10 +128,9 @@ pub fn materialize(
             .map_err(|e| e.to_string())?;
     }
 
-    let lib_files: Vec<String> = harness_config
-        .get("libfiles")
-        .map(|v| v.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect())
-        .unwrap_or_default();
+    let lib_files: Vec<String> = harness_config.get("libfiles").map_or_default(|v| {
+        v.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect()
+    });
     let no_lib = harness_config.get("nolib").is_some_and(|v| v == "true");
     let uses_libs = !lib_files.is_empty()
         || split.to_be_compiled.iter().any(|f| f.content.contains(&format!("{TEST_LIB_FOLDER}/")));

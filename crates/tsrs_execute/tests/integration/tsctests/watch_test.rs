@@ -29,9 +29,9 @@ fn content_mapper_output_extension_edit_reemits_imports() {
         )
     };
     let config = |override_extension: Option<&str>| {
-        let override_field = override_extension
-            .map(|extension| format!(r#", "outputExtensions": {{ ".vue": "{extension}" }}"#))
-            .unwrap_or_default();
+        let override_field = override_extension.map_or_default(|extension| {
+            format!(r#", "outputExtensions": {{ ".vue": "{extension}" }}"#)
+        });
         format!(
             r#"{{
                 "compilerOptions": {{ "composite": true, "module": "preserve", "rewriteRelativeImportExtensions": true, "outDir": "dist" }},

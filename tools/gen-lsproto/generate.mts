@@ -4026,7 +4026,7 @@ function generateCode() {
                             const refFields = structFields.get(type.name)!;
                             const resolveByValue = refFields.every(field => traitHolds(field.type, "copy", new Set([type.name])));
                             const resolve = f.type.el.k === "box" || resolveByValue ? `|v| v.resolve()` : `${type.name}::resolve`;
-                            lines.push(`${indent}${f.rust}: self.${f.rust}.as_ref().map(${resolve}).unwrap_or_default(),`);
+                            lines.push(`${indent}${f.rust}: self.${f.rust}.as_ref().map_or_default(${resolve}),`);
                         }
                         else {
                             lines.push(`${indent}${f.rust}: self.${f.rust}.resolve(),`);

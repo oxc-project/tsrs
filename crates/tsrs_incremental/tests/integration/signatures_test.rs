@@ -126,7 +126,7 @@ fn describe(diagnostics: &[P<Diagnostic>]) -> Vec<String> {
         .map(|d| {
             format!(
                 "{}:{:?} TS{} {}",
-                d.file().map(|f| f.file_name().to_string()).unwrap_or_default(),
+                d.file().map_or_default(|f| f.file_name().to_string()),
                 d.pos(),
                 d.code(),
                 d.message_text()

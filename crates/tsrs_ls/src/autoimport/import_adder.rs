@@ -182,11 +182,8 @@ impl ImportAdder for ImportAdderImpl {
                         entry.default_import.as_ref().is_none_or(|d| d.name == symbol_name),
                         "(Add to Existing) Default import should be missing or match symbolName"
                     );
-                    let prev_type_only = entry
-                        .default_import
-                        .as_ref()
-                        .map(|d| d.add_as_type_only)
-                        .unwrap_or_default();
+                    let prev_type_only =
+                        entry.default_import.as_ref().map_or_default(|d| d.add_as_type_only);
                     entry.default_import = Some(NewImportBinding {
                         kind: lsproto::ImportKind::DEFAULT,
                         name: symbol_name,
@@ -217,11 +214,8 @@ impl ImportAdder for ImportAdderImpl {
                             entry.default_import.as_ref().is_none_or(|d| d.name == symbol_name),
                             "(Add new) Default import should be missing or match symbolName"
                         );
-                        let prev_type_only = entry
-                            .default_import
-                            .as_ref()
-                            .map(|d| d.add_as_type_only)
-                            .unwrap_or_default();
+                        let prev_type_only =
+                            entry.default_import.as_ref().map_or_default(|d| d.add_as_type_only);
                         entry.default_import = Some(NewImportBinding {
                             kind: lsproto::ImportKind::DEFAULT,
                             name: symbol_name,

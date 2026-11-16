@@ -159,8 +159,7 @@ fn emit_through_the_host_matches_native() {
         tsrs_execute::execute::command_line(native, vec!["-p".into(), ".".into()]).status as i32;
     let (status, _, stdout) = run_captured(&root, 0, &["-p", "."]);
     let listing: Vec<_> = std::fs::read_dir(dir.join("out"))
-        .map(|r| r.map(|e| e.unwrap().file_name()).collect())
-        .unwrap_or_default();
+        .map_or_default(|r| r.map(|e| e.unwrap().file_name()).collect());
     assert_eq!((status, native_status), (0, 0), "{stdout} {listing:?}");
 
     let mut expected = Vec::new();

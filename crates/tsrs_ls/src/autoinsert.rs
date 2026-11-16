@@ -123,9 +123,5 @@ fn is_unclosed_fragment(node: P<Node>) -> bool {
     }
 
     let parent = node.parent().unwrap();
-    if ast::is_jsx_fragment(parent) && is_unclosed_fragment(parent) {
-        return true;
-    }
-
-    false
+    ast::is_jsx_fragment(parent) && is_unclosed_fragment(parent)
 }

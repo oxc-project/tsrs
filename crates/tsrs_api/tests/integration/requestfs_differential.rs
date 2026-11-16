@@ -24,7 +24,7 @@ fn sorted_uris(set: &tsrs_core::collections::Set<tsrs_lsproto::DocumentUri>) -> 
 
 fn query(fs: &dyn FS, q: &str) -> Value {
     let e = fs.get_accessible_entries(q);
-    let mut links: Vec<String> = e.symlinks.map(|s| s.into_iter().collect()).unwrap_or_default();
+    let mut links: Vec<String> = e.symlinks.map_or_default(|s| s.into_iter().collect());
     links.sort();
     let none_if_empty = |v: Vec<String>| if v.is_empty() { Value::Null } else { json!(v) };
     json!({

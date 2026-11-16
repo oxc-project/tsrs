@@ -127,7 +127,7 @@ impl CompilerHostImpl {
     }
 
     pub(crate) fn builder_ctx(&self) -> Context {
-        self.builder.read().unwrap().as_ref().map(|b| b.ctx.clone()).unwrap_or_default()
+        self.builder.read().unwrap().as_ref().map_or_default(|b| b.ctx.clone())
     }
 }
 

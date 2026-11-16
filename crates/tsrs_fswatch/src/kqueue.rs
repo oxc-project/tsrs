@@ -564,7 +564,7 @@ impl KqueueBackend {
             else {
                 continue;
             };
-            let watch_path = base_entry.watch_path.clone();
+            let watch_path = base_entry.watch_path;
             let watch_dir_start = format!("{watch_path}/");
 
             let snapshot = if let Some(s) = snapshots.get(&watch_path) {
@@ -576,7 +576,7 @@ impl KqueueBackend {
                 let current_display_paths =
                     disk_entries.iter().map(|(name, _)| format!("{dir_start}{name}")).collect();
                 let s = Arc::new(DiskSnapshot { entries: disk_entries, current_display_paths });
-                snapshots.insert(watch_path.clone(), Arc::clone(&s));
+                snapshots.insert(watch_path, Arc::clone(&s));
                 s
             };
 
@@ -676,16 +676,13 @@ impl KqueueBackend {
             for p in to_remove {
                 sub.dir_watch.events.remove(&p);
                 touch(touched, &sub.dir_watch);
-                let descendants: Vec<(String, Option<i32>)> = st
-                    .entry_maps
-                    .get(&map_id)
-                    .map(|m| {
+                let descendants: Vec<(String, Option<i32>)> =
+                    st.entry_maps.get(&map_id).map_or_default(|m| {
                         m.iter()
                             .filter(|(d, _)| *d == &p || is_descendant(d, &p))
                             .map(|(d, e)| (d.clone(), e.state))
                             .collect()
-                    })
-                    .unwrap_or_default();
+                    });
                 for (descendant, fd) in descendants {
                     if let Some(fd) = fd {
                         close_fd(fd);
@@ -827,16 +824,12 @@ impl KqState {
         include_root: bool,
         sub_id: u64,
     ) {
-        let paths: Vec<String> = self
-            .entry_maps
-            .get(&map_id)
-            .map(|m| {
-                m.keys()
-                    .filter(|d| if *d == path { include_root } else { is_descendant(d, path) })
-                    .cloned()
-                    .collect()
-            })
-            .unwrap_or_default();
+        let paths: Vec<String> = self.entry_maps.get(&map_id).map_or_default(|m| {
+            m.keys()
+                .filter(|d| if *d == path { include_root } else { is_descendant(d, path) })
+                .cloned()
+                .collect()
+        });
         for descendant in paths {
             self.close_entry_locked(map_id, &descendant);
             self.remove_subs_for_entries_locked(&descendant, sub_id);

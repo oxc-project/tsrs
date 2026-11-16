@@ -1123,7 +1123,7 @@ fn baseline_parse_config_with(
             &parsed_config_file_content.errors,
             "\r\n",
             &ComparePathsOptions {
-                current_directory: base_path.clone(),
+                current_directory: base_path,
                 use_case_sensitive_file_names: true,
             },
         ));

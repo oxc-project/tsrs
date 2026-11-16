@@ -37,10 +37,8 @@ pub struct PanicInfo {
 pub fn install_panic_hook(quiet: bool) {
     panic::set_hook(Box::new(move |info| {
         let message = info.payload_as_str().unwrap_or("<non-string panic payload>").to_string();
-        let location = info
-            .location()
-            .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
-            .unwrap_or_default();
+        let location =
+            info.location().map_or_default(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()));
         if !quiet {
             eprintln!("panic: {message} at {location}");
         }

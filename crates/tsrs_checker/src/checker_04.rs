@@ -1349,7 +1349,7 @@ impl Checker {
         // Go iterates a map-based set and a map here; insertion-ordered collections keep the port deterministic.
         let mut variable_parents: OrderedSet<P<Node>> = OrderedSet::default();
         let mut import_clauses: OrderedMap<P<Node>, Vec<P<Node>>> = OrderedMap::default();
-        let locals = node.locals().map(|l| l.values()).unwrap_or_default();
+        let locals = node.locals().map_or_default(|l| l.values());
         for local in locals {
             let reference_kinds = self.reference_kinds(local);
             if local.flags().intersects(SymbolFlags::TypeParameter)
@@ -1496,18 +1496,14 @@ impl Checker {
                 return false;
             }
         }
-        if (is_parameter_declaration(node)
+        !((is_parameter_declaration(node)
             || is_variable_declaration(node)
                 && (is_for_in_or_of_statement(node.parent().unwrap().parent())
                     || self.get_combined_node_flags_cached(node).intersects(NodeFlags::Using))
             || is_binding_element(node)
                 && !(is_object_binding_pattern(node.parent().unwrap())
                     && node.property_name().is_none()))
-            && is_identifier_that_starts_with_underscore(name)
-        {
-            return false;
-        }
-        true
+            && is_identifier_that_starts_with_underscore(name))
     }
 
     // checker.go:7420

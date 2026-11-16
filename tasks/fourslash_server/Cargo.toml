@@ -14,6 +14,8 @@ tsrs_core.workspace = true
 tsrs_vfs.workspace = true
 tsrs_tsoptions.workspace = true
 tsrs_project.workspace = true
+
+[target.'cfg(unix)'.dependencies]
 tsrs_lsp.workspace = true
 tsrs_contentmappertest.workspace = true
 

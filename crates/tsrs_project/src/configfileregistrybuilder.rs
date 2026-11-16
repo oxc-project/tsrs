@@ -319,7 +319,7 @@ impl ConfigFileRegistryBuilder {
                 }
             }
         }
-        for file_name in command_line.as_ref().map(|c| c.literal_file_names()).unwrap_or_default() {
+        for file_name in command_line.as_ref().map_or_default(|c| c.literal_file_names()) {
             if tspath::contains_path(
                 &self.session_options.current_directory,
                 file_name,
@@ -342,8 +342,7 @@ impl ConfigFileRegistryBuilder {
         globs.extend(
             command_line
                 .as_ref()
-                .map(|c| c.extended_source_files())
-                .unwrap_or_default()
+                .map_or_default(|c| c.extended_source_files())
                 .into_iter()
                 .filter_map(|file_name| {
                     if include_workspace
@@ -666,8 +665,7 @@ impl ConfigFileRegistryBuilder {
                     let retaining_configs: Vec<Path> = entry
                         .value()
                         .and_then(|v| v.retaining_configs.clone())
-                        .map(|r| r.into_iter().collect())
-                        .unwrap_or_default();
+                        .map_or_default(|r| r.into_iter().collect());
                     affected_projects = retaining_configs.into_iter().fold(
                         affected_projects,
                         |mut affected_projects, extending_config_path| {

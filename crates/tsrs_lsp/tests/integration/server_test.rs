@@ -444,11 +444,8 @@ fn bad_client_input_does_not_end_the_session() {
             },
         );
         assert!(is_invalid_params(&msg), "willRenameFiles {bad:?}: {:?}", msg.error);
-        let item = lsproto::CallHierarchyItem {
-            name: "abc".to_string(),
-            uri: uri.clone(),
-            ..Default::default()
-        };
+        let item =
+            lsproto::CallHierarchyItem { name: "abc".to_string(), uri, ..Default::default() };
         let (msg, _) = client.send_request(
             lsproto::CALL_HIERARCHY_OUTGOING_CALLS_INFO,
             lsproto::CallHierarchyOutgoingCallsParams { item, ..Default::default() },

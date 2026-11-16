@@ -122,14 +122,11 @@ impl ParseTask {
 
     /// The file's metadata (the default before `load_metadata` or the prefetch set it).
     pub(crate) fn metadata(&self) -> SourceFileMetaData {
-        self.data_ref().map(|d| d.metadata.clone()).unwrap_or_default()
+        self.data_ref().map_or_default(|d| d.metadata.clone())
     }
 
     fn take_processing_diagnostics(&mut self) -> Vec<ProcessingDiagnostic> {
-        self.data
-            .as_mut()
-            .map(|d| std::mem::take(&mut d.processing_diagnostics))
-            .unwrap_or_default()
+        self.data.as_mut().map_or_default(|d| std::mem::take(&mut d.processing_diagnostics))
     }
 
     /// `self.path` as an arena string shared by every include reason this task creates.

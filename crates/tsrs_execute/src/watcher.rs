@@ -205,8 +205,7 @@ pub(crate) fn run_watcher(
         signature_job: None,
         config_file_name: config
             .config_file
-            .map(|f| f.source_file.file_name().to_string())
-            .unwrap_or_default(),
+            .map_or_default(|f| f.source_file.file_name().to_string()),
         config,
         compiler_options_from_command_line,
         command_line_raw,

@@ -1113,7 +1113,7 @@ impl InlayHintState<'_> {
         // Go ranges over the (possibly nil) sequence; arguments are never JsxText.
         let ranges = get_leading_comment_ranges_of_node(node, self.file).unwrap();
         let file_text = self.file.text();
-        if ranges.into_iter().any(|r| {
+        ranges.into_iter().any(|r| {
             let comment_text =
                 file_text[r.text_range.pos().expect_source("comment ranges have source positions")
                     as usize
@@ -1121,11 +1121,7 @@ impl InlayHintState<'_> {
                         as usize]
                     .trim_matches(|r: char| r.is_whitespace() || r == '/' || r == '*');
             comment_text == name
-        }) {
-            return true;
-        }
-
-        false
+        })
     }
 
     // inlay_hints.go:937

@@ -1488,7 +1488,7 @@ impl RegistryBuilder<'_> {
                 let mut ch = tsrs_checker::new_checker(alias_resolver);
                 let sources = br.possible_failed_ambient_module_lookup_sources.to_map();
                 let bucket = br.bucket.as_mut().unwrap();
-                let mut index = bucket.index.as_ref().map(|i| (**i).clone()).unwrap_or_default();
+                let mut index = bucket.index.as_ref().map_or_default(|i| (**i).clone());
                 #[expect(
                     clippy::iter_over_hash_type,
                     reason = "order-independent: only fills the export index, whose searches are sorted by fix preference (View.GetCompletions, sortFixInfo); Go ranges the map too"
@@ -2082,7 +2082,7 @@ impl RegistryBuilder<'_> {
                 let symlink_path = (base.to_path)(&file_name);
                 symlinks.insert(
                     realpath_path.clone(),
-                    PathAndFileName { path: symlink_path, file_name: file_name.clone() },
+                    PathAndFileName { path: symlink_path, file_name },
                 );
                 result.is_symlinked = true;
             }
@@ -2408,7 +2408,7 @@ impl RegistryBuilder<'_> {
 
         // Clone PackageFiles, removing dirty packages
         let mut new_package_files: PackageFiles =
-            existing_bucket.package_files.as_ref().map(|p| (**p).clone()).unwrap_or_default();
+            existing_bucket.package_files.as_ref().map_or_default(|p| (**p).clone());
         #[expect(
             clippy::iter_over_hash_type,
             reason = "keys are only removed; Go ranges the set too"

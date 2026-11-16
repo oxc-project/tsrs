@@ -280,7 +280,7 @@ fn crash_key(e: &Entry) -> String {
     let short_loc =
         if e.loc.contains("/crates/") { format!("crates/{short_loc}") } else { short_loc };
     if is_todo(&e.panic) {
-        let f = enclosing_fn(&e.loc).map(|f| format!(" (fn {f})")).unwrap_or_default();
+        let f = enclosing_fn(&e.loc).map_or_default(|f| format!(" (fn {f})"));
         return format!("todo at {short_loc}{f}");
     }
     let mut msg: String = e.panic.chars().take(160).collect();

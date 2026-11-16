@@ -1016,13 +1016,9 @@ impl Program {
         }
         let is_java_script_file = ast::is_source_file_js(file);
         let is_external_module_file = ast::is_external_module(file);
-        if !is_java_script_file
+        !(!is_java_script_file
             && (file.is_declaration_file.get()
-                || (!options_for_file.get_isolated_modules() && !is_external_module_file))
-        {
-            return false;
-        }
-        true
+                || (!options_for_file.get_isolated_modules() && !is_external_module_file)))
     }
 
     // program.go:494
@@ -1609,7 +1605,7 @@ impl Program {
         let options = self.options();
 
         let source_file = self.opts.config.config_file.as_ref().map(|c| c.source_file);
-        let config_file_path = source_file.map(|f| f.file_name().to_string()).unwrap_or_default();
+        let config_file_path = source_file.map_or_default(|f| f.file_name().to_string());
 
         let compiler_options_property_syntax: Option<P<Node>> =
             tsoptions::for_each_ts_config_prop_array(source_file, "compilerOptions", Some);

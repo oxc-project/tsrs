@@ -76,7 +76,7 @@ fn written_files(
 fn codes_and_files(diagnostics: &[P<tsrs_ast::Diagnostic>]) -> Vec<(i32, String)> {
     diagnostics
         .iter()
-        .map(|d| (d.code(), d.file().map(|f| f.file_name().to_string()).unwrap_or_default()))
+        .map(|d| (d.code(), d.file().map_or_default(|f| f.file_name().to_string())))
         .collect()
 }
 

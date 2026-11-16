@@ -12,23 +12,19 @@ use tsrs_testrunner::harnessutil::TestFile;
 use tsrs_testrunner::tsbaseline;
 
 fn render_record(rec: &Value) -> String {
-    let files: Vec<TestFile> = rec["files"]
-        .as_array()
-        .map(|a| {
-            a.iter()
-                .map(|f| TestFile {
-                    unit_name: f["name"].as_str().unwrap().to_string(),
-                    content: f["content"].as_str().unwrap().to_string(),
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    let files: Vec<TestFile> = rec["files"].as_array().map_or_default(|a| {
+        a.iter()
+            .map(|f| TestFile {
+                unit_name: f["name"].as_str().unwrap().to_string(),
+                content: f["content"].as_str().unwrap().to_string(),
+            })
+            .collect()
+    });
     let mut file_cache: FxHashMap<String, Rc<FileLike>> = FxHashMap::default();
     let texts = &rec["texts"];
     let diags: Vec<Diag> = rec["diags"]
         .as_array()
-        .map(|a| a.iter().map(|d| to_diag(d, texts, &mut file_cache)).collect())
-        .unwrap_or_default();
+        .map_or_default(|a| a.iter().map(|d| to_diag(d, texts, &mut file_cache)).collect());
     tsbaseline::do_error_baseline(&files, &diags, rec["pretty"].as_bool().unwrap_or(false))
 }
 
@@ -61,13 +57,10 @@ fn to_diag(v: &Value, texts: &Value, cache: &mut FxHashMap<String, Rc<FileLike>>
     let key = v["key"].as_str().unwrap_or("");
     let strs = |k: &str| -> Vec<String> {
         v[k].as_array()
-            .map(|a| a.iter().map(|s| s.as_str().unwrap_or("").to_string()).collect())
-            .unwrap_or_default()
+            .map_or_default(|a| a.iter().map(|s| s.as_str().unwrap_or("").to_string()).collect())
     };
     let list = |k: &str, cache: &mut FxHashMap<String, Rc<FileLike>>| -> Vec<Diag> {
-        v[k].as_array()
-            .map(|a| a.iter().map(|d| to_diag(d, texts, cache)).collect())
-            .unwrap_or_default()
+        v[k].as_array().map_or_default(|a| a.iter().map(|d| to_diag(d, texts, cache)).collect())
     };
     let chain = list("chain", cache);
     let related = list("related", cache);

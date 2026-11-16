@@ -126,7 +126,7 @@ pub(crate) fn marshal_span_map(segments: &[Segment]) -> Result<Value, ipc::Error
 
 // Go's `string(raw)` of a json.Value: "" when it is empty (absent), else its compact JSON text.
 pub(crate) fn raw_text(raw: Option<&Value>) -> String {
-    raw.map(|value| json::marshal(value).unwrap_or_default()).unwrap_or_default()
+    raw.map_or_default(|value| json::marshal(value).unwrap_or_default())
 }
 
 // The handlers' error for a method they do not implement: Go's `fmt.Errorf("contentmappertest: unexpected method %q", method)`.

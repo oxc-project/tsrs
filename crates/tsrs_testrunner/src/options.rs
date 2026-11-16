@@ -180,11 +180,9 @@ pub fn tsoptions_option_table() -> OptionTable {
             name: o.name.to_string(),
             kind: match o.kind {
                 CommandLineOptionKind::Boolean => OptKind::Boolean,
-                CommandLineOptionKind::Enum => OptKind::Enum(
-                    o.enum_map()
-                        .map(|m| m.iter().map(|(k, v)| (k.to_string(), format!("{v:?}"))).collect())
-                        .unwrap_or_default(),
-                ),
+                CommandLineOptionKind::Enum => OptKind::Enum(o.enum_map().map_or_default(|m| {
+                    m.iter().map(|(k, v)| (k.to_string(), format!("{v:?}"))).collect()
+                })),
                 _ => OptKind::Other,
             },
         })
@@ -277,10 +275,9 @@ fn parse_harness_option(
         "includeBuiltFile" => harness_options.include_built_file = s(),
         "fileName" => harness_options.file_name = s(),
         "libFiles" => {
-            harness_options.lib_files = value
-                .as_array()
-                .map(|a| a.iter().map(|v| v.as_str().unwrap_or("").to_string()).collect())
-                .unwrap_or_default();
+            harness_options.lib_files = value.as_array().map_or_default(|a| {
+                a.iter().map(|v| v.as_str().unwrap_or("").to_string()).collect()
+            });
         }
         "noImplicitReferences" => harness_options.no_implicit_references = b(),
         "currentDirectory" => harness_options.current_directory = s(),
@@ -422,7 +419,7 @@ pub fn test_compiler_options(
     current_directory: &str,
 ) -> Result<(CompilerOptions, HarnessOptions), String> {
     let mut compiler_options: CompilerOptions =
-        tsconfig.and_then(|t| t.compiler_options()).map(|o| (*o).clone()).unwrap_or_default();
+        tsconfig.and_then(|t| t.compiler_options()).map_or_default(|o| (*o).clone());
     // Set default options for tests
     if compiler_options.new_line == NewLineKind::None {
         compiler_options.new_line = NewLineKind::CRLF;

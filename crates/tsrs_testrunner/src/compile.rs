@@ -300,7 +300,7 @@ fn compile_files_ex(
     };
 
     let config_file = tsconfig.and_then(|t| t.config_file);
-    let errors = tsconfig.map(|t| t.errors.clone()).unwrap_or_default();
+    let errors = tsconfig.map_or_default(|t| t.errors.clone());
     let base_directory = tsconfig
         .map(|t| t.get_current_directory().to_string())
         .filter(|directory| !directory.is_empty())
@@ -440,8 +440,7 @@ pub(crate) fn run(item: &TestItem, table: &OptionTable) -> Outcome {
     }
     let ts_config = parse_test_ts_config(&payload);
 
-    let mut harness_config: TestConfiguration =
-        named_configuration.map(|c| c.config).unwrap_or_default();
+    let mut harness_config: TestConfiguration = named_configuration.map_or_default(|c| c.config);
     let split = compiler_runner::split_units(
         &payload,
         &mut harness_config,

@@ -397,10 +397,7 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMap<K, T> {
         self.inner.dirty.range(|key, entry| {
             seen_in_dirty.insert(key.clone());
             let deleted = entry.mu.lock().unwrap().e.delete;
-            if !deleted && !f(entry) {
-                return false;
-            }
-            true
+            !(!deleted && !f(entry))
         });
         // Go continues with the base map even when the callback stopped the dirty map's Range.
         #[expect(

@@ -162,8 +162,7 @@ fn file_states(program: &Program) -> Vec<(Path, String, bool, Vec<String>)> {
             let mut references: Vec<String> = snapshot
                 .referenced_map
                 .get_references(&path)
-                .map(|refs| refs.iter().map(std::string::ToString::to_string).collect())
-                .unwrap_or_default();
+                .map_or_default(|refs| refs.iter().map(std::string::ToString::to_string).collect());
             references.sort();
             (path, info.version, info.affects_global_scope, references)
         })

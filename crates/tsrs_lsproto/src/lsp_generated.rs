@@ -30434,8 +30434,7 @@ impl WorkspaceEditClientCapabilities {
             change_annotation_support: self
                 .change_annotation_support
                 .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
+                .map_or_default(|v| v.resolve()),
             metadata_support: self.metadata_support.unwrap_or_default(),
             snippet_edit_support: self.snippet_edit_support.unwrap_or_default(),
         }
@@ -30565,21 +30564,12 @@ impl WorkspaceSymbolClientCapabilities {
     fn resolve(&self) -> ResolvedWorkspaceSymbolClientCapabilities {
         ResolvedWorkspaceSymbolClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
-            symbol_kind: self
-                .symbol_kind
-                .as_ref()
-                .map(ClientSymbolKindOptions::resolve)
-                .unwrap_or_default(),
-            tag_support: self
-                .tag_support
-                .as_ref()
-                .map(ClientSymbolTagOptions::resolve)
-                .unwrap_or_default(),
+            symbol_kind: self.symbol_kind.as_ref().map_or_default(ClientSymbolKindOptions::resolve),
+            tag_support: self.tag_support.as_ref().map_or_default(ClientSymbolTagOptions::resolve),
             resolve_support: self
                 .resolve_support
                 .as_ref()
-                .map(ClientSymbolResolveOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientSymbolResolveOptions::resolve),
         }
     }
 }
@@ -30891,38 +30881,30 @@ impl WorkspaceClientCapabilities {
             workspace_edit: self
                 .workspace_edit
                 .as_ref()
-                .map(WorkspaceEditClientCapabilities::resolve)
-                .unwrap_or_default(),
+                .map_or_default(WorkspaceEditClientCapabilities::resolve),
             did_change_configuration: self
                 .did_change_configuration
                 .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
+                .map_or_default(|v| v.resolve()),
             did_change_watched_files: self
                 .did_change_watched_files
                 .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
-            symbol: self
-                .symbol
-                .as_ref()
-                .map(WorkspaceSymbolClientCapabilities::resolve)
-                .unwrap_or_default(),
-            execute_command: self.execute_command.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+                .map_or_default(|v| v.resolve()),
+            symbol: self.symbol.as_ref().map_or_default(WorkspaceSymbolClientCapabilities::resolve),
+            execute_command: self.execute_command.as_ref().map_or_default(|v| v.resolve()),
             workspace_folders: self.workspace_folders.unwrap_or_default(),
             configuration: self.configuration.unwrap_or_default(),
-            semantic_tokens: self.semantic_tokens.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            code_lens: self.code_lens.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            file_operations: self.file_operations.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            inline_value: self.inline_value.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            inlay_hint: self.inlay_hint.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            diagnostics: self.diagnostics.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            folding_range: self.folding_range.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+            semantic_tokens: self.semantic_tokens.as_ref().map_or_default(|v| v.resolve()),
+            code_lens: self.code_lens.as_ref().map_or_default(|v| v.resolve()),
+            file_operations: self.file_operations.as_ref().map_or_default(|v| v.resolve()),
+            inline_value: self.inline_value.as_ref().map_or_default(|v| v.resolve()),
+            inlay_hint: self.inlay_hint.as_ref().map_or_default(|v| v.resolve()),
+            diagnostics: self.diagnostics.as_ref().map_or_default(|v| v.resolve()),
+            folding_range: self.folding_range.as_ref().map_or_default(|v| v.resolve()),
             text_document_content: self
                 .text_document_content
                 .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
+                .map_or_default(|v| v.resolve()),
         }
     }
 }
@@ -31083,19 +31065,16 @@ impl ClientCompletionItemOptions {
             tag_support: self
                 .tag_support
                 .as_ref()
-                .map(CompletionItemTagOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(CompletionItemTagOptions::resolve),
             insert_replace_support: self.insert_replace_support.unwrap_or_default(),
             resolve_support: self
                 .resolve_support
                 .as_ref()
-                .map(ClientCompletionItemResolveOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientCompletionItemResolveOptions::resolve),
             insert_text_mode_support: self
                 .insert_text_mode_support
                 .as_ref()
-                .map(ClientCompletionItemInsertTextModeOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientCompletionItemInsertTextModeOptions::resolve),
             label_details_support: self.label_details_support.unwrap_or_default(),
         }
     }
@@ -31203,20 +31182,17 @@ impl CompletionClientCapabilities {
             completion_item: self
                 .completion_item
                 .as_ref()
-                .map(ClientCompletionItemOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientCompletionItemOptions::resolve),
             completion_item_kind: self
                 .completion_item_kind
                 .as_ref()
-                .map(ClientCompletionItemOptionsKind::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientCompletionItemOptionsKind::resolve),
             insert_text_mode: self.insert_text_mode.unwrap_or_default(),
             context_support: self.context_support.unwrap_or_default(),
             completion_list: self
                 .completion_list
                 .as_ref()
-                .map(CompletionListCapabilities::resolve)
-                .unwrap_or_default(),
+                .map_or_default(CompletionListCapabilities::resolve),
         }
     }
 }
@@ -31293,8 +31269,7 @@ impl ClientSignatureInformationOptions {
             parameter_information: self
                 .parameter_information
                 .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
+                .map_or_default(|v| v.resolve()),
             active_parameter_support: self.active_parameter_support.unwrap_or_default(),
             no_active_parameter_support: self.no_active_parameter_support.unwrap_or_default(),
         }
@@ -31328,8 +31303,7 @@ impl SignatureHelpClientCapabilities {
             signature_information: self
                 .signature_information
                 .as_ref()
-                .map(ClientSignatureInformationOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientSignatureInformationOptions::resolve),
             context_support: self.context_support.unwrap_or_default(),
         }
     }
@@ -31497,19 +31471,11 @@ impl DocumentSymbolClientCapabilities {
     fn resolve(&self) -> ResolvedDocumentSymbolClientCapabilities {
         ResolvedDocumentSymbolClientCapabilities {
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
-            symbol_kind: self
-                .symbol_kind
-                .as_ref()
-                .map(ClientSymbolKindOptions::resolve)
-                .unwrap_or_default(),
+            symbol_kind: self.symbol_kind.as_ref().map_or_default(ClientSymbolKindOptions::resolve),
             hierarchical_document_symbol_support: self
                 .hierarchical_document_symbol_support
                 .unwrap_or_default(),
-            tag_support: self
-                .tag_support
-                .as_ref()
-                .map(ClientSymbolTagOptions::resolve)
-                .unwrap_or_default(),
+            tag_support: self.tag_support.as_ref().map_or_default(ClientSymbolTagOptions::resolve),
             label_support: self.label_support.unwrap_or_default(),
         }
     }
@@ -31643,23 +31609,17 @@ impl CodeActionClientCapabilities {
             code_action_literal_support: self
                 .code_action_literal_support
                 .as_ref()
-                .map(ClientCodeActionLiteralOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientCodeActionLiteralOptions::resolve),
             is_preferred_support: self.is_preferred_support.unwrap_or_default(),
             disabled_support: self.disabled_support.unwrap_or_default(),
             data_support: self.data_support.unwrap_or_default(),
             resolve_support: self
                 .resolve_support
                 .as_ref()
-                .map(ClientCodeActionResolveOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientCodeActionResolveOptions::resolve),
             honors_change_annotations: self.honors_change_annotations.unwrap_or_default(),
             documentation_support: self.documentation_support.unwrap_or_default(),
-            tag_support: self
-                .tag_support
-                .as_ref()
-                .map(CodeActionTagOptions::resolve)
-                .unwrap_or_default(),
+            tag_support: self.tag_support.as_ref().map_or_default(CodeActionTagOptions::resolve),
         }
     }
 }
@@ -31702,8 +31662,7 @@ impl CodeLensClientCapabilities {
             resolve_support: self
                 .resolve_support
                 .as_ref()
-                .map(ClientCodeLensResolveOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientCodeLensResolveOptions::resolve),
         }
     }
 }
@@ -31927,9 +31886,8 @@ impl FoldingRangeClientCapabilities {
             folding_range_kind: self
                 .folding_range_kind
                 .as_ref()
-                .map(ClientFoldingRangeKindOptions::resolve)
-                .unwrap_or_default(),
-            folding_range: self.folding_range.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+                .map_or_default(ClientFoldingRangeKindOptions::resolve),
+            folding_range: self.folding_range.as_ref().map_or_default(|v| v.resolve()),
         }
     }
 }
@@ -32005,8 +31963,7 @@ impl PublishDiagnosticsClientCapabilities {
             tag_support: self
                 .tag_support
                 .as_ref()
-                .map(ClientDiagnosticsTagOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientDiagnosticsTagOptions::resolve),
             code_description_support: self.code_description_support.unwrap_or_default(),
             data_support: self.data_support.unwrap_or_default(),
             version_support: self.version_support.unwrap_or_default(),
@@ -32244,8 +32201,7 @@ impl InlayHintClientCapabilities {
             resolve_support: self
                 .resolve_support
                 .as_ref()
-                .map(ClientInlayHintResolveOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientInlayHintResolveOptions::resolve),
         }
     }
 }
@@ -32294,8 +32250,7 @@ impl DiagnosticClientCapabilities {
             tag_support: self
                 .tag_support
                 .as_ref()
-                .map(ClientDiagnosticsTagOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(ClientDiagnosticsTagOptions::resolve),
             code_description_support: self.code_description_support.unwrap_or_default(),
             data_support: self.data_support.unwrap_or_default(),
             dynamic_registration: self.dynamic_registration.unwrap_or_default(),
@@ -32433,98 +32388,68 @@ pub struct ResolvedTextDocumentClientCapabilities {
 impl TextDocumentClientCapabilities {
     fn resolve(&self) -> ResolvedTextDocumentClientCapabilities {
         ResolvedTextDocumentClientCapabilities {
-            synchronization: self.synchronization.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            filters: self.filters.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+            synchronization: self.synchronization.as_ref().map_or_default(|v| v.resolve()),
+            filters: self.filters.as_ref().map_or_default(|v| v.resolve()),
             completion: self
                 .completion
                 .as_ref()
-                .map(CompletionClientCapabilities::resolve)
-                .unwrap_or_default(),
-            hover: self.hover.as_ref().map(HoverClientCapabilities::resolve).unwrap_or_default(),
+                .map_or_default(CompletionClientCapabilities::resolve),
+            hover: self.hover.as_ref().map_or_default(HoverClientCapabilities::resolve),
             signature_help: self
                 .signature_help
                 .as_ref()
-                .map(SignatureHelpClientCapabilities::resolve)
-                .unwrap_or_default(),
-            declaration: self.declaration.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            definition: self.definition.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            type_definition: self.type_definition.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            implementation: self.implementation.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            references: self.references.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            document_highlight: self
-                .document_highlight
-                .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
+                .map_or_default(SignatureHelpClientCapabilities::resolve),
+            declaration: self.declaration.as_ref().map_or_default(|v| v.resolve()),
+            definition: self.definition.as_ref().map_or_default(|v| v.resolve()),
+            type_definition: self.type_definition.as_ref().map_or_default(|v| v.resolve()),
+            implementation: self.implementation.as_ref().map_or_default(|v| v.resolve()),
+            references: self.references.as_ref().map_or_default(|v| v.resolve()),
+            document_highlight: self.document_highlight.as_ref().map_or_default(|v| v.resolve()),
             document_symbol: self
                 .document_symbol
                 .as_ref()
-                .map(DocumentSymbolClientCapabilities::resolve)
-                .unwrap_or_default(),
+                .map_or_default(DocumentSymbolClientCapabilities::resolve),
             code_action: self
                 .code_action
                 .as_ref()
-                .map(CodeActionClientCapabilities::resolve)
-                .unwrap_or_default(),
-            code_lens: self
-                .code_lens
-                .as_ref()
-                .map(CodeLensClientCapabilities::resolve)
-                .unwrap_or_default(),
-            document_link: self.document_link.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            color_provider: self.color_provider.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            formatting: self.formatting.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            range_formatting: self
-                .range_formatting
-                .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
-            on_type_formatting: self
-                .on_type_formatting
-                .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
-            rename: self.rename.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+                .map_or_default(CodeActionClientCapabilities::resolve),
+            code_lens: self.code_lens.as_ref().map_or_default(CodeLensClientCapabilities::resolve),
+            document_link: self.document_link.as_ref().map_or_default(|v| v.resolve()),
+            color_provider: self.color_provider.as_ref().map_or_default(|v| v.resolve()),
+            formatting: self.formatting.as_ref().map_or_default(|v| v.resolve()),
+            range_formatting: self.range_formatting.as_ref().map_or_default(|v| v.resolve()),
+            on_type_formatting: self.on_type_formatting.as_ref().map_or_default(|v| v.resolve()),
+            rename: self.rename.as_ref().map_or_default(|v| v.resolve()),
             folding_range: self
                 .folding_range
                 .as_ref()
-                .map(FoldingRangeClientCapabilities::resolve)
-                .unwrap_or_default(),
-            selection_range: self.selection_range.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+                .map_or_default(FoldingRangeClientCapabilities::resolve),
+            selection_range: self.selection_range.as_ref().map_or_default(|v| v.resolve()),
             publish_diagnostics: self
                 .publish_diagnostics
                 .as_ref()
-                .map(PublishDiagnosticsClientCapabilities::resolve)
-                .unwrap_or_default(),
-            call_hierarchy: self.call_hierarchy.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+                .map_or_default(PublishDiagnosticsClientCapabilities::resolve),
+            call_hierarchy: self.call_hierarchy.as_ref().map_or_default(|v| v.resolve()),
             semantic_tokens: self
                 .semantic_tokens
                 .as_ref()
-                .map(SemanticTokensClientCapabilities::resolve)
-                .unwrap_or_default(),
+                .map_or_default(SemanticTokensClientCapabilities::resolve),
             linked_editing_range: self
                 .linked_editing_range
                 .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
-            moniker: self.moniker.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            type_hierarchy: self.type_hierarchy.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            inline_value: self.inline_value.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+                .map_or_default(|v| v.resolve()),
+            moniker: self.moniker.as_ref().map_or_default(|v| v.resolve()),
+            type_hierarchy: self.type_hierarchy.as_ref().map_or_default(|v| v.resolve()),
+            inline_value: self.inline_value.as_ref().map_or_default(|v| v.resolve()),
             inlay_hint: self
                 .inlay_hint
                 .as_ref()
-                .map(InlayHintClientCapabilities::resolve)
-                .unwrap_or_default(),
+                .map_or_default(InlayHintClientCapabilities::resolve),
             diagnostic: self
                 .diagnostic
                 .as_ref()
-                .map(DiagnosticClientCapabilities::resolve)
-                .unwrap_or_default(),
-            inline_completion: self
-                .inline_completion
-                .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
+                .map_or_default(DiagnosticClientCapabilities::resolve),
+            inline_completion: self.inline_completion.as_ref().map_or_default(|v| v.resolve()),
         }
     }
 }
@@ -32562,11 +32487,7 @@ pub struct ResolvedShowMessageRequestClientCapabilities {
 impl ShowMessageRequestClientCapabilities {
     fn resolve(self) -> ResolvedShowMessageRequestClientCapabilities {
         ResolvedShowMessageRequestClientCapabilities {
-            message_action_item: self
-                .message_action_item
-                .as_ref()
-                .map(|v| v.resolve())
-                .unwrap_or_default(),
+            message_action_item: self.message_action_item.as_ref().map_or_default(|v| v.resolve()),
         }
     }
 }
@@ -32618,8 +32539,8 @@ impl WindowClientCapabilities {
     fn resolve(self) -> ResolvedWindowClientCapabilities {
         ResolvedWindowClientCapabilities {
             work_done_progress: self.work_done_progress.unwrap_or_default(),
-            show_message: self.show_message.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            show_document: self.show_document.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+            show_message: self.show_message.as_ref().map_or_default(|v| v.resolve()),
+            show_document: self.show_document.as_ref().map_or_default(|v| v.resolve()),
         }
     }
 }
@@ -32749,18 +32670,12 @@ impl GeneralClientCapabilities {
             stale_request_support: self
                 .stale_request_support
                 .as_ref()
-                .map(StaleRequestSupportOptions::resolve)
-                .unwrap_or_default(),
+                .map_or_default(StaleRequestSupportOptions::resolve),
             regular_expressions: self
                 .regular_expressions
                 .as_ref()
-                .map(RegularExpressionsClientCapabilities::resolve)
-                .unwrap_or_default(),
-            markdown: self
-                .markdown
-                .as_ref()
-                .map(MarkdownClientCapabilities::resolve)
-                .unwrap_or_default(),
+                .map_or_default(RegularExpressionsClientCapabilities::resolve),
+            markdown: self.markdown.as_ref().map_or_default(MarkdownClientCapabilities::resolve),
             position_encodings: self.position_encodings.clone().unwrap_or_default(),
         }
     }
@@ -32818,23 +32733,14 @@ pub struct ResolvedClientCapabilities {
 impl ClientCapabilities {
     pub fn resolve(&self) -> ResolvedClientCapabilities {
         ResolvedClientCapabilities {
-            workspace: self
-                .workspace
-                .as_ref()
-                .map(WorkspaceClientCapabilities::resolve)
-                .unwrap_or_default(),
+            workspace: self.workspace.as_ref().map_or_default(WorkspaceClientCapabilities::resolve),
             text_document: self
                 .text_document
                 .as_ref()
-                .map(TextDocumentClientCapabilities::resolve)
-                .unwrap_or_default(),
-            window: self.window.as_ref().map(|v| v.resolve()).unwrap_or_default(),
-            general: self
-                .general
-                .as_ref()
-                .map(GeneralClientCapabilities::resolve)
-                .unwrap_or_default(),
-            experimental: self.experimental.as_ref().map(|v| v.resolve()).unwrap_or_default(),
+                .map_or_default(TextDocumentClientCapabilities::resolve),
+            window: self.window.as_ref().map_or_default(|v| v.resolve()),
+            general: self.general.as_ref().map_or_default(GeneralClientCapabilities::resolve),
+            experimental: self.experimental.as_ref().map_or_default(|v| v.resolve()),
             vs_supports_visual_studio_extensions: self
                 .vs_supports_visual_studio_extensions
                 .unwrap_or_default(),

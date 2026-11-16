@@ -662,10 +662,7 @@ impl SymbolExtractor<'_> {
 
 // extract.go:410
 fn should_ignore_symbol(symbol: P<Symbol>) -> bool {
-    if symbol.flags().intersects(SymbolFlags::Prototype) {
-        return true;
-    }
-    false
+    symbol.flags().intersects(SymbolFlags::Prototype)
 }
 
 // extract.go:417

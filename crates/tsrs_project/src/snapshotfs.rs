@@ -846,8 +846,7 @@ impl SnapshotFSBuilder {
         let Some(dir_entry) = self.cache_directories.get(dir_path) else {
             return;
         };
-        let children: Vec<Path> =
-            dir_entry.value().map(|v| v.keys().cloned().collect()).unwrap_or_default();
+        let children: Vec<Path> = dir_entry.value().map_or_default(|v| v.keys().cloned().collect());
         for child_path in children {
             if let Some(entry) = self.cache_files.load(&child_path)
                 && let Some(file) = entry.value()
@@ -901,7 +900,7 @@ impl SnapshotFSBuilder {
                 if let Some(previous_open_file) = previous_open_files.get(&path)
                     && fh.hash() != previous_open_file.hash()
                 {
-                    change.changed.add(uri.clone());
+                    change.changed.add(uri);
                 }
                 continue;
             }

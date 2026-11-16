@@ -1241,7 +1241,7 @@ impl Orchestrator {
                 resolved.reload_file_names_of_parsed_command_line(CompilerHost::fs(self.host())),
             );
             if resolved.file_names() != new_config.file_names() {
-                self.host().resolved_references.store(path.clone(), Some(new_config));
+                self.host().resolved_references.store(path, Some(new_config));
                 *task.resolved.lock().unwrap() = Some(new_config);
                 task.set_watch_changes(None);
                 task.reset_status();

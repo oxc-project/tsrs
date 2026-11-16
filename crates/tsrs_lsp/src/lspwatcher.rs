@@ -634,7 +634,7 @@ fn watch_pattern_string(file_system_watcher: &lsproto::FileSystemWatcher) -> Str
         return pattern.clone();
     }
     if let Some(relative_pattern) = &file_system_watcher.glob_pattern.relative_pattern {
-        let base = relative_pattern.base_uri.uri.as_ref().map(|u| u.0.clone()).unwrap_or_default();
+        let base = relative_pattern.base_uri.uri.as_ref().map_or_default(|u| u.0.clone());
         return format!("{}/{}", base, relative_pattern.pattern);
     }
     String::new()

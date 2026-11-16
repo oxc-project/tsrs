@@ -876,6 +876,7 @@ impl<'r> ResolutionState<'r> {
         self.create_resolved_type_reference_directive(resolved, false /*primary*/)
     }
 
+    // resolver.go:659
     fn get_candidate_from_type_root(&mut self, type_root: &str) -> String {
         let mut name_for_lookup = self.name.clone();
         if type_root.ends_with("/node_modules/@types")
@@ -884,7 +885,13 @@ impl<'r> ResolutionState<'r> {
             let name = self.name.clone();
             name_for_lookup = self.mangle_scoped_package_name(&name);
         }
-        tspath::combine_paths(type_root, &[&name_for_lookup])
+        // Go `resolutionCandidateFromDirectoryPath`: the candidate is normalized, so a relative name such as
+        // `../../node_modules/foo/index.d.ts` does not keep `..` segments. The dts faking host relies on it.
+        resolve_path_for_module(
+            type_root,
+            &name_for_lookup,
+            tspath::has_trailing_directory_separator(&name_for_lookup),
+        )
     }
 
     fn mangle_scoped_package_name(&mut self, name: &str) -> String {

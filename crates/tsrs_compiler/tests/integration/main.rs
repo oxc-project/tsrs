@@ -8,3 +8,4 @@ mod program_test;
 mod programregions_test;
 mod projectreferencedtsfakinghost_region_tests;
 mod transformer_emit_test;
+mod typeroot_candidate_test;

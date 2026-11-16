@@ -1,9 +1,9 @@
 # Using tsrs
 
-Install 0.25.0 in your project, then run it in place of `tsc`:
+Install 7.1.0-beta.tsrs2 in your project, then run it in place of `tsc`:
 
 ```sh
-pnpm add -D tsrs@0.25.0-ts7.1.0-beta
+pnpm add -D tsrs@7.1.0-beta.tsrs2
 pnpm exec tsrs -p path/to/project           # compile
 pnpm exec tsrs -p path/to/project --noEmit  # type check only
 pnpm exec tsrs -p path/to/project --fast    # opt into tsrs performance modes
@@ -11,7 +11,7 @@ pnpm exec tsrs -p . --extendedDiagnostics   # counters and timings
 pnpm exec tsrs --version
 ```
 
-You can also run it without installing it in the project: `pnpm dlx tsrs@0.25.0-ts7.1.0-beta -p .`.
+You can also run it without installing it in the project: `pnpm dlx tsrs@7.1.0-beta.tsrs2 -p .`.
 Your existing `tsconfig.json` controls compilation. tsrs emits JavaScript and declarations according to those
 options by default, just like `tsc`; pass `--noEmit` when you only want type checking.
 
@@ -29,7 +29,7 @@ per watched file; tsrs raises its descriptor limit as far as the system allows a
 
 ## Performance options
 
-**0.25.0** defaults to pinned TypeScript's four checkers, file assignment and checker history, with
+**7.1.0-beta.tsrs2** defaults to pinned TypeScript's four checkers, file assignment and checker history, with
 eager members. Internal optimizations that preserve compiler behavior, including control-flow memoization and
 parallel parsing, remain enabled in both modes.
 
@@ -126,8 +126,9 @@ The launcher installs the appropriate optional `@tsrs/<os>-<arch>[-<libc>]` depe
 See the [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do) for platform support and limitations.
 Set `TSRS_BINARY=/path/to/tsrs` to run a locally built binary through the same launcher.
 
-The package version includes the TypeScript version it ports: `0.25.0-ts7.1.0-beta` means tsrs 0.25.0 following
-TypeScript `7.1.0-beta`. For a source checkout, `Cargo.toml` records the exact TypeScript commit. Follow
+The package version starts with the TypeScript version it ports: `7.1.0-beta.tsrs2` is the second tsrs release
+following TypeScript `7.1.0-beta` ([versioning](RELEASING_CRATES.md#versioning)). For a source checkout, `Cargo.toml`
+records the exact TypeScript commit. Follow
 [the reference compiler workflow](../CONTRIBUTING.md#reference-compiler) when reproducing bugs or checking fixes.
 
 ## Other ways to use tsrs

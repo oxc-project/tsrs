@@ -10,7 +10,7 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const root = require("tsrs");
-assert.match(root.version, /^\d+\.\d+\.\d+.*-ts/);
+assert.match(root.version, /^\d+\.\d+\.\d+-(?:[0-9A-Za-z-]+\.)*tsrs[1-9]\d*$/);
 assert.match(root.typescriptCommit, /^[0-9a-f]{40}$/);
 
 const sync = await import("tsrs/sync");

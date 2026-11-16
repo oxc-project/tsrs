@@ -120,6 +120,11 @@ At the same checker/file thresholds, a thief also keeps stealing from the checke
 checker has at least half the busiest one's work left; `TSRS_STEAL_STICKY=0` picks the busiest checker for every file. From 8 to 15
 checkers at most a quarter of the checkers take files from any one checker at a time (notes/perf-icount-assign.md);
 `TSRS_STEAL_MAX_THIEVES=<m>` sets that limit at every checker count, `0` for none.
+The type-aware linter (`tsrs --lint`, oxlint's backend) checks and lints each program in one pass: every checker
+type-checks its files, stealing as above while no other tsconfig program runs, then runs the rules on the files it
+checked (notes/perf-lint-check-one-run.md). Without type checking (lint only) the rule visits are stolen instead;
+`TSRS_STEAL_VISITS=0` keeps them on their checkers. `TSRS_LINT_TRACE=<file>` writes the request's phases and a span per checked and linted file;
+`node bench/lint-typecheck/trace.mjs <file> [cores]` summarizes them.
 
 ## Why a TS2590 comes and goes: `TSRS_TRACE_UNION_REDUCTION`
 

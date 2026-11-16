@@ -1198,6 +1198,33 @@ impl Program {
         true
     }
 
+    /// tsrs-only: checks and then visits `files` on the program's checkers in one pass, each checker running its checks
+    /// before `between` and its visits after it (`checkerPool::for_each_checker_check_then_visit`). False, without
+    /// calling anything, when the program has no checker pool of its own.
+    pub fn for_each_checker_check_then_visit(
+        &self,
+        files: &[P<SourceFile>],
+        needs: &[crate::CheckAndVisit],
+        may_steal: impl Fn() -> bool + Sync,
+        check: impl Fn(&mut Checker, usize, P<SourceFile>) + Sync,
+        between: impl Fn(usize, &mut Checker) + Sync,
+        visit: impl Fn(&mut Checker, usize, P<SourceFile>) + Sync,
+    ) -> bool {
+        let Some(pool) = self.compiler_checker_pool() else {
+            return false;
+        };
+        pool.for_each_checker_check_then_visit(
+            files,
+            needs,
+            self.single_threaded(),
+            &may_steal,
+            &check,
+            &between,
+            &visit,
+        );
+        true
+    }
+
     // program.go:615
     // Return a checker for the given file. We may have multiple checkers in concurrent scenarios and this
     // method returns the checker that was tasked with checking the file. Note that it isn't possible to mix

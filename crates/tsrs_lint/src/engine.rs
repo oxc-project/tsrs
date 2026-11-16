@@ -1,10 +1,9 @@
 //! Program construction and headless lint execution.
 
-use std::cell::Cell;
 use std::collections::{BTreeMap, VecDeque};
 use std::io::Write;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -314,22 +313,9 @@ fn run_in_region(
             crate::registry::require_implemented(&rule.name)?;
         }
     }
-    // tsrs-only: semantic reporting (oxlint `--type-check`) reports what `tsrs --noEmit` does for each tsconfig program:
-    // every file it checks and the program's global diagnostics, where tsgolint reports only the files oxlint sent. One
-    // `oxlint --type-aware --type-check` run can then replace a separate typecheck. Files oxlint sent that no tsconfig
-    // includes are checked in an inferred program. Each file's type errors are reported once: a listed file by the
-    // program it maps to, any other file by the first program that has it.
-    let mut type_checked = FxHashSet::default();
     let mut config_cache = FxHashMap::default();
     for path in file_configs.keys() {
         let resolved = tspath::get_normalized_absolute_path(path, cwd);
-        if payload.report_semantic {
-            type_checked.insert(tspath::to_path(
-                &resolved,
-                cwd,
-                fs.use_case_sensitive_file_names(),
-            ));
-        }
         if let Some(config_path) = find_tsconfig(&resolved, host, &mut config_cache) {
             programs.entry(config_path).or_default().push(path.clone());
         } else {
@@ -339,7 +325,6 @@ fn run_in_region(
     drop(config_cache);
     let shared = Arc::default();
     let programs: Vec<(String, Vec<String>)> = programs.into_iter().collect();
-    let claims = Claims { state: Mutex::new((0, type_checked)), passed: Condvar::new() };
     let next = AtomicUsize::new(0);
     let linted: Vec<Mutex<Option<Linted>>> = programs.iter().map(|_| Mutex::new(None)).collect();
     // Each worker's tsconfigs are parsed into a scratch region of its own, kept until the request ends as the
@@ -360,13 +345,11 @@ fn run_in_region(
                         let Some((config_path, files)) = programs.get(index) else {
                             break;
                         };
-                        let turn = Turn { claims: &claims, index, taken: Cell::new(false) };
                         let mut output = Vec::new();
                         let mut program_timings = BTreeMap::new();
                         let result = lint_program(
                             config_path,
                             files,
-                            payload.report_semantic.then_some(&turn),
                             payload,
                             options,
                             &mut output,
@@ -376,7 +359,6 @@ fn run_in_region(
                             &file_configs,
                             &mut program_timings,
                         );
-                        drop(turn);
                         *linted[index].lock().unwrap() = Some((result, output, program_timings));
                     }
                     drop(entered);
@@ -420,7 +402,6 @@ fn run_in_region(
         run_program(
             program.program,
             &unmatched,
-            None,
             payload,
             options,
             writer,
@@ -460,52 +441,8 @@ fn run_in_region(
 /// A program's result, output and rule timings.
 type Linted = (Result<(), String>, Vec<u8>, BTreeMap<String, (u64, u64)>);
 
-/// Files with type errors to report, claimed by the tsconfig programs in their order (`run_in_region`): the next
-/// program's index and the files claimed so far.
-struct Claims {
-    state: Mutex<(usize, FxHashSet<tspath::Path>)>,
-    passed: Condvar,
-}
-
-/// A program's turn to claim files. Programs run at once but claim one after another in their order, so each file
-/// still goes to the first program that has it; a program that ends before claiming passes its turn on drop.
-struct Turn<'a> {
-    claims: &'a Claims,
-    index: usize,
-    taken: Cell<bool>,
-}
-
-impl Turn<'_> {
-    fn claim(&self, f: impl FnOnce(&mut FxHashSet<tspath::Path>)) {
-        let mut state = self.wait();
-        f(&mut state.1);
-        self.pass(&mut state);
-    }
-
-    fn wait(&self) -> std::sync::MutexGuard<'_, (usize, FxHashSet<tspath::Path>)> {
-        let state = self.claims.state.lock().unwrap();
-        self.claims.passed.wait_while(state, |state| state.0 != self.index).unwrap()
-    }
-
-    fn pass(&self, state: &mut (usize, FxHashSet<tspath::Path>)) {
-        state.0 += 1;
-        self.taken.set(true);
-        self.claims.passed.notify_all();
-    }
-}
-
-impl Drop for Turn<'_> {
-    fn drop(&mut self) {
-        if !self.taken.get() {
-            let mut state = self.wait();
-            self.pass(&mut state);
-        }
-    }
-}
-
 /// Programs linted at once. Each checks on its own checker pool, so a few at a time fill the machine without holding
-/// every program in memory: a quarter of the cores (t3code's ~40 tsconfigs on 8 cores: two at a time cut wall 29% for
-/// 29% more peak memory, four cut 35% for 44% more). A set `RAYON_NUM_THREADS` gives each program that many checkers
+/// every program in memory: a quarter of the cores. A set `RAYON_NUM_THREADS` gives each program that many checkers
 /// (`checker_count`), so programs then run one at a time.
 fn program_threads(programs: usize) -> usize {
     if checker_count().is_some() {
@@ -515,12 +452,11 @@ fn program_threads(programs: usize) -> usize {
     (cores / 4).clamp(1, programs.max(1))
 }
 
-/// Lints one tsconfig program into `writer`: its config errors, or its files and global diagnostics.
+/// Lints one tsconfig program into `writer`: its config errors, or its files.
 #[expect(clippy::too_many_arguments, reason = "the request state each program reads")]
 fn lint_program(
     config_path: &str,
     files: &[String],
-    turn: Option<&Turn<'_>>,
     payload: &Payload,
     options: Options,
     writer: &mut dyn Write,
@@ -568,12 +504,7 @@ fn lint_program(
         }
         return Ok(());
     }
-    let global_diagnostics =
-        run_program(program_ref, files, turn, payload, options, writer, file_configs, timings)?;
-    for diagnostic in global_diagnostics {
-        report_global_error(diagnostic, config_path, writer)?;
-    }
-    Ok(())
+    run_program(program_ref, files, payload, options, writer, file_configs, timings)
 }
 
 fn create_program(
@@ -619,21 +550,16 @@ fn checker_count() -> Option<i64> {
 // Lints the files on the program's checker pool: one thread per checker, each over the files the pool assigned to
 // it (by import-graph locality under the fast preset), so a checker resolves the types of its own corner of the
 // program instead of nearly all of it. Output keeps the order of `files`.
-// `whole` (with semantic reporting): the files that already have a program to report their type errors. Also
-// report the compiler diagnostics of the program's files outside that set, after `files`, add them to it, and return
-// the program's global diagnostics.
 fn run_program(
     program: &'static Program,
     files: &[String],
-    whole: Option<&Turn<'_>>,
     payload: &Payload,
     options: Options,
     writer: &mut dyn Write,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
-) -> Result<Vec<P<TsDiagnostic>>, String> {
+) -> Result<(), String> {
     program.bind_source_files();
-    let report_global = whole.is_some();
     let mut work = Vec::with_capacity(files.len());
     for name in files {
         let file = program
@@ -644,25 +570,13 @@ fn run_program(
             work.push((file, configured));
         }
     }
-    if let Some(turn) = whole {
-        turn.claim(|type_checked| {
-            for &file in program.get_source_files() {
-                if !program.skip_type_checking(file, false)
-                    && type_checked.insert(file.path().clone())
-                {
-                    work.push((file, &[]));
-                }
-            }
-        });
-    }
     if work.is_empty() {
-        return Ok(Vec::new());
+        return Ok(());
     }
     let lint_files: Vec<P<SourceFile>> = work.iter().map(|&(file, _)| file).collect();
     let outputs: Vec<Mutex<Vec<u8>>> = work.iter().map(|_| Mutex::new(Vec::new())).collect();
     let errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
     let pool_timings: Mutex<BTreeMap<String, (u64, u64)>> = Mutex::new(BTreeMap::new());
-    let mut global_diagnostics = Vec::new();
     // Every file is type-checked before any rule runs: a rule's type query could otherwise hit an error before the
     // checking `tsrs --noEmit` does, and record it without a location (a global diagnostic) instead.
     for rules in [false, true] {
@@ -691,9 +605,6 @@ fn run_program(
         if !pooled {
             return Err("the program has no checker pool".into());
         }
-        if !rules && report_global {
-            global_diagnostics = program.get_global_diagnostics(&Context::default());
-        }
     }
     if let Some(error) = errors.into_inner().unwrap().into_iter().next() {
         return Err(error);
@@ -702,7 +613,7 @@ fn run_program(
         writer.write_all(&output.into_inner().unwrap()).map_err(|error| error.to_string())?;
     }
     merge_timings(timings, pool_timings.into_inner().unwrap());
-    Ok(global_diagnostics)
+    Ok(())
 }
 
 fn lint_one(
@@ -827,32 +738,6 @@ fn report_type_error(
                 help: String::new(),
             },
             file_path: Some(file.file_name().into()),
-            ..Default::default()
-        },
-        writer,
-    )
-}
-
-// A diagnostic of the whole program, such as a missing global type, which `tsrs --noEmit` reports without a location:
-// reported on the program's tsconfig, like a configuration error.
-fn report_global_error(
-    diagnostic: P<TsDiagnostic>,
-    config_path: &str,
-    writer: &mut dyn Write,
-) -> Result<(), String> {
-    emit(
-        &Diagnostic {
-            range: diagnostic_range(diagnostic),
-            message: RuleMessage {
-                id: format!("TS{}", diagnostic.code()),
-                description: diagnostic.localize(),
-                help: String::new(),
-            },
-            file_path: Some(
-                diagnostic
-                    .file()
-                    .map_or_else(|| config_path.to_owned(), |f| f.file_name().to_owned()),
-            ),
             ..Default::default()
         },
         writer,

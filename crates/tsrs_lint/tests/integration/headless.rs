@@ -6930,10 +6930,10 @@ fn type_check_uses_inferred_options_for_files_outside_referenced_configs() {
     }
 }
 
-// With or without the fast preset, semantic reporting covers the tsconfig program's files that the payload did not
-// list, as `tsrs --noEmit` does, and a listed file outside every tsconfig.
+// With or without the fast preset, semantic reporting covers only the files the payload lists, including a listed
+// file outside every tsconfig, as tsgolint does.
 #[test]
-fn type_check_reports_type_errors_like_no_emit() {
+fn type_check_reports_only_listed_files() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-program");
     std::fs::create_dir_all(root.join("sub")).unwrap();
     std::fs::write(
@@ -6949,15 +6949,14 @@ fn type_check_reports_type_errors_like_no_emit() {
     for fast in ["0", "1"] {
         assert_eq!(
             reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program"),
-            vec!["listed.ts no-floating-promises", "sub/outside.ts TS2322", "unlisted.ts TS2322"]
+            vec!["listed.ts no-floating-promises", "sub/outside.ts TS2322"]
         );
     }
 }
 
-// Each file's type errors are reported once, though the root program imports every file here.
-// A listed file is reported by the program it maps to: `sub/b.ts` by `sub/tsconfig.json`, and `other/loose.ts`, which
-// no tsconfig includes, by the inferred program. The unlisted `lib/u.ts`, which both tsconfig programs import, is
-// reported by one of them, the same one whether the programs are linted at once or one at a time.
+// Each listed file's type errors are reported once, though the root program imports every file here: by the program
+// it maps to, `sub/b.ts` by `sub/tsconfig.json` and `other/loose.ts`, which no tsconfig includes, by the inferred
+// program. The unlisted `lib/u.ts`, which both tsconfig programs import, is not reported.
 #[test]
 fn type_check_reports_each_file_once() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-program-once");
@@ -6985,7 +6984,7 @@ fn type_check_reports_each_file_once() {
     for fast in ["0", "1"] {
         assert_eq!(
             reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program-once"),
-            vec!["lib/u.ts TS2322", "other/loose.ts TS2322", "sub/b.ts TS2322"]
+            vec!["other/loose.ts TS2322", "sub/b.ts TS2322"]
         );
         assert_eq!(
             run_raw_with_env(&input, &[], &[("TSRS_FAST", fast)]),
@@ -6996,9 +6995,9 @@ fn type_check_reports_each_file_once() {
 }
 
 // The program's global diagnostics (here `noLib`'s missing global types, which `tsrs --noEmit` prints without a
-// location) are reported on its tsconfig.
+// location) belong to no listed file and are not reported.
 #[test]
-fn type_check_reports_global_diagnostics_on_the_tsconfig() {
+fn type_check_does_not_report_global_diagnostics() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-program-global");
     std::fs::create_dir_all(&root).unwrap();
     std::fs::write(
@@ -7009,18 +7008,17 @@ fn type_check_reports_global_diagnostics_on_the_tsconfig() {
     std::fs::write(root.join("a.ts"), "export const x = 1;\n").unwrap();
     let input =
         type_check_payload(vec![Value::String(root.join("a.ts").to_string_lossy().into_owned())]);
-    let global: Vec<String> = std::iter::repeat_n("tsconfig.json TS2318".to_string(), 10).collect();
     for fast in ["0", "1"] {
         assert_eq!(
             reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program-global"),
-            global
+            Vec::<String>::new()
         );
     }
 }
 
 // Every file is type-checked before rules run on its checker. Comparing `a.ts`'s assignment, the rule resolves the
 // union's `take` signatures, whose too-complex parameter union `tsrs --noEmit` reports at `b.ts`'s call. Were the
-// rule's query first, the error would have no location (reported on the tsconfig) and `b.ts` would miss it.
+// rule's query first, the error would have no location and would not be reported.
 #[test]
 fn type_check_reports_errors_before_rule_queries() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-before-rules");
@@ -7040,10 +7038,9 @@ fn type_check_reports_errors_before_rule_queries() {
     .unwrap();
     std::fs::write(root.join("b.ts"), "import { box } from './a';\nbox.take({ a: 1 } as never);\n")
         .unwrap();
-    let input = type_check_payload_with_rule(
-        vec![Value::String(root.join("a.ts").to_string_lossy().into_owned())],
-        "no-unsafe-enum-assignment",
-    );
+    let file = |name: &str| Value::String(root.join(name).to_string_lossy().into_owned());
+    let input =
+        type_check_payload_with_rule(vec![file("a.ts"), file("b.ts")], "no-unsafe-enum-assignment");
     for fast in ["0", "1"] {
         assert_eq!(
             reported_ids(

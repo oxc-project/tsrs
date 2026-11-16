@@ -1,10 +1,14 @@
 # One lint pass instead of lint plus a separate typecheck (2026-11-04)
 
-Update: semantic reporting now always works as below, with or without the fast preset and without
-`TSRS_LINT_CHECK_PROGRAM`, and it also reports each program's global diagnostics (`tsrs --noEmit` prints them without a
-location; the linter reports them on the tsconfig). Listed files outside every tsconfig are type-checked, and a file
-that several programs have is reported once: a listed file by the program it maps to, any other file by the first
-program that has it. The measurements below were taken with the variable.
+Update (2026-11-06, #930): semantic reporting then always worked as below, with or without the fast preset and without
+`TSRS_LINT_CHECK_PROGRAM`, and it also reported each program's global diagnostics (`tsrs --noEmit` prints them without
+a location; the linter reported them on the tsconfig). Listed files outside every tsconfig were type-checked, and a
+file that several programs had was reported once: a listed file by the program it maps to, any other file by the first
+program that had it. The measurements below were taken with the variable.
+
+Update (2026-11-15): semantic reporting again covers only the files oxlint lints, as tsgolint does. Files oxlint did
+not send and program-wide global diagnostics are not reported, so the one-pass typecheck described here no longer
+applies.
 
 A project that runs type-aware lint and `tsrs --noEmit` builds the same program twice and resolves most of the same
 types twice: lint asks the checker about nearly every expression. With `report_semantic` (oxlint `--type-check`) the

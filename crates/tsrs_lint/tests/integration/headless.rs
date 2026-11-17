@@ -1229,6 +1229,51 @@ fn jsconfig_controls_javascript_checking() {
 }
 
 #[test]
+fn a_type_error_is_reported_with_its_message_chain() {
+    // The description of a type error had only its first line, so the reason that the types are not assignable was
+    // lost. The description now has the message chain, one line for each message, as `tsc` prints it.
+    let base = std::env::current_dir().unwrap().join("target/lint-type-error-message-chain");
+    let file = base.join("a.ts").to_string_lossy().into_owned();
+    let config = base.join("tsconfig.json").to_string_lossy().into_owned();
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        ("configs", Value::Array(vec![protocol::object([
+            ("file_paths", Value::Array(vec![Value::String(file.clone())])),
+            ("rules", Value::Array(Vec::new())),
+        ])])),
+        ("source_overrides", Value::Object([
+            (file, Value::String("const n: number = \"text\";\nconst f: (a: number) => void = (a: string) => {};\nexport { n, f };\n".into())),
+            (config, Value::String(r#"{"compilerOptions":{"strict":true,"noEmit":true,"types":[]},"files":["a.ts"]}"#.into())),
+        ].into_iter().collect())),
+        ("report_semantic", Value::Bool(true)),
+    ]);
+    let (status, frames) = run(&payload, &[]);
+    assert_eq!(status, 0, "{frames:?}");
+    let messages: Vec<_> = frames
+        .iter()
+        .map(|(_, value)| {
+            let Value::Object(diagnostic) = value else { panic!("{value:?}") };
+            let Value::Object(message) = &diagnostic["message"] else { panic!("{value:?}") };
+            (message["id"].clone(), message["description"].clone(), message.get("help").cloned())
+        })
+        .collect();
+    let ts2322 = |description: &str| {
+        (Value::String("TS2322".into()), Value::String(description.into()), None)
+    };
+    assert_eq!(
+        messages,
+        [
+            ts2322("Type 'string' is not assignable to type 'number'."),
+            ts2322(
+                "Type '(a: string) => void' is not assignable to type '(a: number) => void'.\n  \
+                 Types of parameters 'a' and 'a' are incompatible.\n    \
+                 Type 'number' is not assignable to type 'string'."
+            ),
+        ]
+    );
+}
+
+#[test]
 fn excluded_files_use_inferred_programs_and_node_modules_stops_config_search() {
     for (relative, config, code, expected_count) in [
         ("a.ts", r#"{"files":["b.ts"]}"#, "const x: string = 1;", 1),

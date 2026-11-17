@@ -2180,9 +2180,10 @@ impl Program {
                 })
                 .map(|f| f.file_name().to_string())
                 .collect();
+            // program.go:1252 passes p.BaseDirectory(), the config's base directory, not the working directory.
             let dir59 = outputpaths::get_computed_common_source_directory(
                 &emitted_files,
-                self.get_current_directory(),
+                self.opts.config.get_current_directory(),
                 self.use_case_sensitive_file_names(),
             );
             if !dir59.is_empty()

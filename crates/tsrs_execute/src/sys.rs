@@ -1,6 +1,6 @@
 // Port of cmd/tsc/sys.go (osSys).
 
-use std::io::{IsTerminal, Write};
+use std::io::{ErrorKind, IsTerminal, Write};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -9,8 +9,80 @@ use tsrs_vfs::{FS, bundled, osvfs};
 
 use crate::tsc::System;
 
+/// Wrapper around [`std::io::Stdout`] that retries operations which fail
+/// because the underlying descriptor is non-blocking (`WouldBlock`) or
+/// because the syscall was interrupted (`Interrupted`).
+///
+/// Go's `os.Stdout.Write` parks the goroutine on `EAGAIN` until the runtime
+/// reports the fd is writable, so `fmt.Fprint(os.Stdout, ...)` appears to
+/// block. Rust just returns [`ErrorKind::WouldBlock`], which must be polled
+/// and retried to avoid silently dropping output on a non-blocking pipe.
+#[derive(Debug)]
+struct StdoutWriter(std::io::Stdout);
+
+impl Write for StdoutWriter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        #[cfg(unix)]
+        {
+            use std::os::unix::io::AsRawFd;
+
+            let fd = self.0.as_raw_fd();
+            loop {
+                match self.0.write(buf) {
+                    Ok(0) => return Ok(0),
+                    Ok(n) => return Ok(n),
+                    Err(ref e)
+                        if e.kind() == ErrorKind::WouldBlock
+                            || e.kind() == ErrorKind::Interrupted =>
+                    {
+                        poll_out(fd)?;
+                    }
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+        #[cfg(not(unix))]
+        self.0.write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        #[cfg(unix)]
+        {
+            use std::os::unix::io::AsRawFd;
+
+            let fd = self.0.as_raw_fd();
+            loop {
+                match self.0.flush() {
+                    Ok(()) => return Ok(()),
+                    Err(ref e)
+                        if e.kind() == ErrorKind::WouldBlock
+                            || e.kind() == ErrorKind::Interrupted =>
+                    {
+                        poll_out(fd)?;
+                    }
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+        #[cfg(not(unix))]
+        self.0.flush()
+    }
+}
+
+#[cfg(unix)]
+fn poll_out(fd: std::os::unix::io::RawFd) -> std::io::Result<()> {
+    let mut pollfd = libc::pollfd { fd, events: libc::POLLOUT, revents: 0 };
+    // SAFETY: `pollfd` is a valid, mutable local `pollfd`; `fd` is a live,
+    // open file descriptor owned by the caller.
+    let ret = unsafe { libc::poll(std::ptr::addr_of_mut!(pollfd), 1, -1) };
+    if ret < 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    Ok(())
+}
+
 pub struct OsSys {
-    writer: Mutex<std::io::BufWriter<std::io::Stdout>>,
+    writer: Mutex<std::io::BufWriter<StdoutWriter>>,
     fs: Arc<dyn FS>,
     default_library_path: String,
     cwd: String,
@@ -96,7 +168,7 @@ pub fn new_system() -> OsSys {
         cwd: tspath::normalize_path(&cwd.to_string_lossy()),
         fs: Arc::new(bundled::wrap_fs(osvfs::fs())),
         default_library_path: bundled::default_lib_path(),
-        writer: Mutex::new(std::io::BufWriter::new(std::io::stdout())),
+        writer: Mutex::new(std::io::BufWriter::new(StdoutWriter(std::io::stdout()))),
         start: Instant::now(),
     }
 }

@@ -17,6 +17,7 @@ mod generate_trace;
 mod invalid_utf8_argument;
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 mod isolated;
+mod nonblocking_stdout;
 mod lazy_dts_build;
 mod lint_mode;
 mod lsp_edit_resolutions;

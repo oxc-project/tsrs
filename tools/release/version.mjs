@@ -38,7 +38,8 @@ export function compareVersions(left, right) {
 }
 
 export function distTag(version) {
-    return parseVersion(version).prerelease.length ? "next" : "latest";
+    parseVersion(version);
+    return "latest";
 }
 
 export function validateReleaseVersion(version, typescriptVersion) {

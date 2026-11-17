@@ -85,6 +85,22 @@ fn resolve_path_for_module(directory: &str, path: &str, directory_only: bool) ->
     if directory_only { tspath::ensure_trailing_directory_separator(&resolved) } else { resolved }
 }
 
+// resolver.go:48 `resolutionCandidate`, as the type root lookups use it. `path` keeps the trailing separator of a
+// directory-only candidate, like the other string candidates in this file. Go's `directoryPath` is not ported here.
+struct ResolutionCandidate {
+    path: String,
+    directory_only: bool,
+}
+
+impl ResolutionCandidate {
+    // resolver.go:77 `resolutionCandidateFromDirectoryPath`: a path written with a trailing separator gives a
+    // directory-only candidate, and the callers skip the file lookup for it.
+    fn from_directory_path(directory: &str, path: &str) -> Self {
+        let directory_only = tspath::has_trailing_directory_separator(path);
+        Self { path: resolve_path_for_module(directory, path, directory_only), directory_only }
+    }
+}
+
 fn resolve_dynamic_logical_path(directory: &str, path: &str, directory_only: bool) -> String {
     let path = if directory_only && !path.is_empty() {
         tspath::remove_trailing_directory_separator(path)
@@ -820,10 +836,10 @@ impl<'r> ResolutionState<'r> {
                     );
                     continue;
                 }
-                if from_config {
+                if from_config && !candidate.directory_only {
                     // Custom typeRoots resolve as file or directory just like we do modules
                     let mut resolved_from_file =
-                        self.load_module_from_file(Extensions::Declaration, &candidate);
+                        self.load_module_from_file(Extensions::Declaration, &candidate.path);
                     if let Some(resolved) = resolved_from_file.as_mut() {
                         let package_directory = node_module_package_root_for_file(&resolved.path);
                         if !package_directory.is_empty() {
@@ -838,7 +854,7 @@ impl<'r> ResolutionState<'r> {
                 }
                 let resolved_from_directory = self.load_node_module_from_directory(
                     Extensions::Declaration,
-                    &candidate,
+                    &candidate.path,
                     true, /*considerPackageJson*/
                 );
                 if !resolved_from_directory.should_continue_searching() {
@@ -877,7 +893,7 @@ impl<'r> ResolutionState<'r> {
     }
 
     // resolver.go:659
-    fn get_candidate_from_type_root(&mut self, type_root: &str) -> String {
+    fn get_candidate_from_type_root(&mut self, type_root: &str) -> ResolutionCandidate {
         let mut name_for_lookup = self.name.clone();
         if type_root.ends_with("/node_modules/@types")
             || type_root.ends_with("/node_modules/@types/")
@@ -887,11 +903,7 @@ impl<'r> ResolutionState<'r> {
         }
         // Go `resolutionCandidateFromDirectoryPath`: the candidate is normalized, so a relative name such as
         // `../../node_modules/foo/index.d.ts` does not keep `..` segments. The dts faking host relies on it.
-        resolve_path_for_module(
-            type_root,
-            &name_for_lookup,
-            tspath::has_trailing_directory_separator(&name_for_lookup),
-        )
+        ResolutionCandidate::from_directory_path(type_root, &name_for_lookup)
     }
 
     fn mangle_scoped_package_name(&mut self, name: &str) -> String {
@@ -919,19 +931,21 @@ impl<'r> ResolutionState<'r> {
                 );
                 continue;
             }
-            let mut resolved_from_file =
-                self.load_module_from_file(Extensions::Declaration, &candidate);
-            if let Some(resolved) = resolved_from_file.as_mut() {
-                let package_directory = node_module_package_root_for_file(&resolved.path);
-                if !package_directory.is_empty() {
-                    let info = self.get_package_json_info(&package_directory);
-                    resolved.package_id = self.get_package_id(&resolved.path, info);
+            if !candidate.directory_only {
+                let mut resolved_from_file =
+                    self.load_module_from_file(Extensions::Declaration, &candidate.path);
+                if let Some(resolved) = resolved_from_file.as_mut() {
+                    let package_directory = node_module_package_root_for_file(&resolved.path);
+                    if !package_directory.is_empty() {
+                        let info = self.get_package_json_info(&package_directory);
+                        resolved.package_id = self.get_package_id(&resolved.path, info);
+                    }
+                    return resolved_from_file;
                 }
-                return resolved_from_file;
             }
             let resolved = self.load_node_module_from_directory(
                 Extensions::Declaration,
-                &candidate,
+                &candidate.path,
                 true, /*considerPackageJson*/
             );
             if !resolved.should_continue_searching() {

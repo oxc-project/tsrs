@@ -1,0 +1,7 @@
+======== Resolving type reference directive '../pkg/', containing file '<dir>/a.ts', root directory '<dir>/types'. ========
+Resolving with primary search path '<dir>/types'.
+File '<dir>/pkg/package.json' does not exist.
+File '<dir>/pkg/index.d.ts' exists - use it as a name resolution result.
+Resolving real path for '<dir>/pkg/index.d.ts', result '<dir>/pkg/index.d.ts'.
+======== Type reference directive '../pkg/' was successfully resolved to '<dir>/pkg/index.d.ts', primary: true. ========
+a.ts(3,1): error TS2304: Cannot find name 'fromFile'.

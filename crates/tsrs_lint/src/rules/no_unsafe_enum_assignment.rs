@@ -378,6 +378,22 @@ impl NoUnsafeEnumAssignment {
         if direct_mismatch(checker, sender, receiver) {
             return true;
         }
+        // These pairs resolve to the same primitive wrapper, including any user augmentations. The direct comparison
+        // above handles their enum identities; their index and property types would compare equal below.
+        let sender_flags = sender.flags();
+        let receiver_flags = receiver.flags();
+        if [
+            TypeFlags::String | TypeFlags::StringLiteral,
+            TypeFlags::NumberLike,
+            TypeFlags::BigIntLike,
+            TypeFlags::BooleanLike,
+            TypeFlags::ESSymbolLike,
+        ]
+        .into_iter()
+        .any(|flags| sender_flags.intersects(flags) && receiver_flags.intersects(flags))
+        {
+            return false;
+        }
         let sender_arguments = type_arguments(checker, sender);
         let receiver_arguments = type_arguments(checker, receiver);
         if sender_arguments.len() == receiver_arguments.len() {

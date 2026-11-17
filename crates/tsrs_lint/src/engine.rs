@@ -807,8 +807,7 @@ fn original_range(diagnostic: P<TsDiagnostic>, file: P<SourceFile>) -> Option<Ra
 }
 
 pub(crate) fn emit(diagnostic: &Diagnostic, writer: &mut dyn Write) -> Result<(), String> {
-    protocol::write_message(writer, MessageType::Diagnostic, &diagnostic.to_json())
-        .map_err(|e| e.to_string())
+    protocol::write_diagnostic(writer, diagnostic).map_err(|e| e.to_string())
 }
 
 #[expect(clippy::implicit_hasher, reason = "Public for the integration tests.")]

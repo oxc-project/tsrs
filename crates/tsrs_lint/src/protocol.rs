@@ -62,6 +62,15 @@ impl Range {
     pub fn to_json(self) -> Value {
         object([("pos", Value::Integer(self.pos.into())), ("end", Value::Integer(self.end.into()))])
     }
+
+    fn write_json(self, out: &mut String) {
+        let Self { pos, end } = self;
+        out.push_str("{\"pos\":");
+        json::write_compact_int(out, pos.into());
+        out.push_str(",\"end\":");
+        json::write_compact_int(out, end.into());
+        out.push('}');
+    }
 }
 
 impl RuleMessage {
@@ -75,12 +84,67 @@ impl RuleMessage {
         }
         Value::Object(fields)
     }
+
+    fn write_json(&self, out: &mut String) {
+        let Self { id, description, help } = self;
+        out.push_str("{\"id\":");
+        json::write_compact_string(out, id);
+        out.push_str(",\"description\":");
+        json::write_compact_string(out, description);
+        if !help.is_empty() {
+            out.push_str(",\"help\":");
+            json::write_compact_string(out, help);
+        }
+        out.push('}');
+    }
 }
 
 impl Fix {
     pub fn to_json(&self) -> Value {
         object([("text", Value::String(self.text.clone())), ("range", self.range.to_json())])
     }
+
+    fn write_json(&self, out: &mut String) {
+        let Self { text, range } = self;
+        out.push_str("{\"text\":");
+        json::write_compact_string(out, text);
+        out.push_str(",\"range\":");
+        range.write_json(out);
+        out.push('}');
+    }
+}
+
+impl Suggestion {
+    fn write_json(&self, out: &mut String) {
+        let Self { message, fixes } = self;
+        out.push_str("{\"message\":");
+        message.write_json(out);
+        out.push_str(",\"fixes\":");
+        write_array(out, fixes, Fix::write_json);
+        out.push('}');
+    }
+}
+
+impl LabeledRange {
+    fn write_json(&self, out: &mut String) {
+        let Self { label, range } = self;
+        out.push_str("{\"label\":");
+        json::write_compact_string(out, label);
+        out.push_str(",\"range\":");
+        range.write_json(out);
+        out.push('}');
+    }
+}
+
+fn write_array<T>(out: &mut String, items: &[T], write: impl Fn(&T, &mut String)) {
+    out.push('[');
+    for (index, item) in items.iter().enumerate() {
+        if index != 0 {
+            out.push(',');
+        }
+        write(item, out);
+    }
+    out.push(']');
 }
 
 impl Diagnostic {
@@ -141,6 +205,50 @@ impl Diagnostic {
         }
         Value::Object(fields)
     }
+
+    fn write_json(&self, out: &mut String) {
+        let Self { range, message, file_path, labeled_ranges, rule, fixes, suggestions } = self;
+        out.push_str(if rule.is_none() {
+            "{\"kind\":1,\"message\":"
+        } else {
+            "{\"kind\":0,\"message\":"
+        });
+        message.write_json(out);
+        out.push_str(",\"file_path\":");
+        if let Some(file_path) = file_path {
+            json::write_compact_string(out, file_path);
+        } else {
+            out.push_str("null");
+        }
+        if let Some(range) = range {
+            out.push_str(",\"range\":");
+            range.write_json(out);
+        }
+        if let Some(rule) = rule {
+            out.push_str(",\"rule\":");
+            json::write_compact_string(out, rule);
+        }
+        if !labeled_ranges.is_empty() {
+            out.push_str(",\"labeled_ranges\":");
+            write_array(out, labeled_ranges, LabeledRange::write_json);
+        }
+        if !fixes.is_empty() {
+            out.push_str(",\"fixes\":");
+            write_array(out, fixes, Fix::write_json);
+        }
+        if !suggestions.is_empty() {
+            out.push_str(",\"suggestions\":");
+            write_array(out, suggestions, Suggestion::write_json);
+        }
+        out.push('}');
+    }
+}
+
+/// Writes a diagnostic frame directly from its borrowed fields.
+pub fn write_diagnostic(writer: &mut dyn Write, diagnostic: &Diagnostic) -> io::Result<()> {
+    let mut payload = String::new();
+    diagnostic.write_json(&mut payload);
+    write_frame(writer, MessageType::Diagnostic, payload.as_bytes())
 }
 
 pub fn write_message(
@@ -149,10 +257,14 @@ pub fn write_message(
     payload: &Value,
 ) -> io::Result<()> {
     let bytes = json::marshal(payload).map_err(io::Error::other)?.into_bytes();
+    write_frame(writer, message_type, &bytes)
+}
+
+fn write_frame(writer: &mut dyn Write, message_type: MessageType, bytes: &[u8]) -> io::Result<()> {
     let length = u32::try_from(bytes.len()).map_err(io::Error::other)?;
     writer.write_all(&length.to_le_bytes())?;
     writer.write_all(&[message_type as u8])?;
-    writer.write_all(&bytes)
+    writer.write_all(bytes)
 }
 
 pub fn write_error(writer: &mut dyn Write, error: &str) -> io::Result<()> {

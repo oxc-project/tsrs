@@ -734,7 +734,7 @@ fn report_type_error(
             range: original_range(diagnostic, file),
             message: RuleMessage {
                 id: format!("TS{}", diagnostic.code()),
-                description: diagnostic.localize(),
+                description: message_text(diagnostic)?,
                 help: String::new(),
             },
             file_path: Some(file.file_name().into()),
@@ -744,13 +744,26 @@ fn report_type_error(
     )
 }
 
+// The message of a diagnostic with its message chain, one line for each message, as `tsc` prints it.
+fn message_text(diagnostic: P<TsDiagnostic>) -> Result<String, String> {
+    let mut message = Vec::new();
+    tsrs_compiler::diagnosticwriter::write_flattened_diagnostic_message(
+        &mut message,
+        diagnostic,
+        "\n",
+    );
+    tsrs_core::utf8::into_string(message).map_err(|err| err.to_string())
+}
+
 fn report_config_error(
     diagnostic: P<TsDiagnostic>,
     config_path: &str,
     program_diagnostic: bool,
     writer: &mut dyn Write,
 ) -> Result<(), String> {
-    let mut help = diagnostic.localize();
+    // The help has the message chain, as `tsc` prints it: the reason that a content mapper could not be initialized,
+    // for example, is in the chain of TS18099.
+    let mut help = message_text(diagnostic)?;
     if program_diagnostic && help.contains("Please remove it from your configuration.") {
         help.push_str(
             "\nSee https://github.com/oxc-project/tsgolint/issues/351 for more information.",

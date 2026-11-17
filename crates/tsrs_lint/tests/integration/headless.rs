@@ -1229,6 +1229,51 @@ fn jsconfig_controls_javascript_checking() {
 }
 
 #[test]
+fn a_type_error_is_reported_with_its_message_chain() {
+    // The description of a type error had only its first line, so the reason that the types are not assignable was
+    // lost. The description now has the message chain, one line for each message, as `tsc` prints it.
+    let base = std::env::current_dir().unwrap().join("target/lint-type-error-message-chain");
+    let file = base.join("a.ts").to_string_lossy().into_owned();
+    let config = base.join("tsconfig.json").to_string_lossy().into_owned();
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        ("configs", Value::Array(vec![protocol::object([
+            ("file_paths", Value::Array(vec![Value::String(file.clone())])),
+            ("rules", Value::Array(Vec::new())),
+        ])])),
+        ("source_overrides", Value::Object([
+            (file, Value::String("const n: number = \"text\";\nconst f: (a: number) => void = (a: string) => {};\nexport { n, f };\n".into())),
+            (config, Value::String(r#"{"compilerOptions":{"strict":true,"noEmit":true,"types":[]},"files":["a.ts"]}"#.into())),
+        ].into_iter().collect())),
+        ("report_semantic", Value::Bool(true)),
+    ]);
+    let (status, frames) = run(&payload, &[]);
+    assert_eq!(status, 0, "{frames:?}");
+    let messages: Vec<_> = frames
+        .iter()
+        .map(|(_, value)| {
+            let Value::Object(diagnostic) = value else { panic!("{value:?}") };
+            let Value::Object(message) = &diagnostic["message"] else { panic!("{value:?}") };
+            (message["id"].clone(), message["description"].clone(), message.get("help").cloned())
+        })
+        .collect();
+    let ts2322 = |description: &str| {
+        (Value::String("TS2322".into()), Value::String(description.into()), None)
+    };
+    assert_eq!(
+        messages,
+        [
+            ts2322("Type 'string' is not assignable to type 'number'."),
+            ts2322(
+                "Type '(a: string) => void' is not assignable to type '(a: number) => void'.\n  \
+                 Types of parameters 'a' and 'a' are incompatible.\n    \
+                 Type 'number' is not assignable to type 'string'."
+            ),
+        ]
+    );
+}
+
+#[test]
 fn excluded_files_use_inferred_programs_and_node_modules_stops_config_search() {
     for (relative, config, code, expected_count) in [
         ("a.ts", r#"{"files":["b.ts"]}"#, "const x: string = 1;", 1),
@@ -7136,4 +7181,57 @@ fn run_external_code_lints_content_mapped_projects() {
             .collect::<Vec<_>>();
         assert_eq!(actual, expected, "{flags:?} {env:?}");
     }
+}
+
+#[test]
+fn a_content_mapper_that_cannot_be_initialized_is_reported_with_the_reason() {
+    // The help of TS18099 had only its first line, "could not be initialized", so a mapper process that exited
+    // looked like a mapper that timed out. The help has the message chain, as `tsc` prints it. A command that is not
+    // in PATH gives the same reason in each run; a process that exits races with the close that records its exit
+    // code. Needs no `node`: the mapper never starts.
+    let fixtures =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/contentmapper");
+    let base = std::env::current_dir().unwrap().join("target/lint-uninitialized-content-mapper");
+    let _ = std::fs::remove_dir_all(&base);
+    let tsconfig = std::fs::read_to_string(fixtures.join("types/tsconfig.json"))
+        .unwrap()
+        .replace("header-mapper", "missing-command-mapper");
+    let package = r#"{"name":"missing-command-mapper","version":"1.0.0","typescript":{"contentMapper":{"exec":["tsrs-lint-test-missing-command"]}}}"#;
+    for (to, text) in [
+        ("tsconfig.json", tsconfig),
+        ("src/a.vue", std::fs::read_to_string(fixtures.join("types/src/a.vue")).unwrap()),
+        ("src/index.ts", std::fs::read_to_string(fixtures.join("types/src/index.ts")).unwrap()),
+        ("node_modules/missing-command-mapper/package.json", package.to_owned()),
+    ] {
+        let to = base.join(to);
+        std::fs::create_dir_all(to.parent().unwrap()).unwrap();
+        std::fs::write(to, text).unwrap();
+    }
+    let files = ["src/a.vue", "src/index.ts"]
+        .map(|file| Value::String(base.join(file).to_string_lossy().into_owned()));
+    let input = json::marshal(&protocol::object([
+        ("version", Value::Integer(2)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                ("file_paths", Value::Array(files.to_vec())),
+                ("rules", Value::Array(Vec::new())),
+            ])]),
+        ),
+    ]))
+    .unwrap();
+    let (status, frames) = run_raw(&input, &["--runExternalCode"]);
+    assert_eq!(status, 0, "{frames:?}");
+    let [(_, Value::Object(diagnostic))] = frames.as_slice() else { panic!("{frames:?}") };
+    let Value::Object(message) = &diagnostic["message"] else { panic!("{diagnostic:?}") };
+    assert_eq!(message["id"], Value::String("tsconfig-error".into()));
+    let path = if cfg!(windows) { "%PATH%" } else { "$PATH" };
+    assert_eq!(
+        message["help"],
+        Value::String(format!(
+            "The content mapper 'missing-command-mapper' could not be initialized.\n  \
+             The content mapper command 'tsrs-lint-test-missing-command' could not be started: \
+             exec: \"tsrs-lint-test-missing-command\": executable file not found in {path}"
+        ))
+    );
 }

@@ -380,10 +380,11 @@ fn kinds_and_flags() {
             .intersects(SymbolFlags::FunctionScopedVariable)
     );
     assert_eq!(std::mem::size_of::<Node>(), 24);
+    assert_eq!(std::mem::align_of::<Node>(), std::mem::align_of::<u64>());
 }
 
 #[test]
-fn node_header_word_keeps_kind_tag_and_parent() {
+fn node_header_keeps_metadata_parent_markers_and_rare_fields() {
     let f = NodeFactory::default();
     let parent = f.new_keyword_expression(Kind::ThisKeyword);
     let child = f.new_token(Kind::Unknown);
@@ -402,4 +403,22 @@ fn node_header_word_keeps_kind_tag_and_parent() {
     );
     child.set_parent(None);
     assert_eq!((child.kind(), child.parent()), (Kind::Unknown, None));
+
+    let question = f.new_token(Kind::QuestionDotToken);
+    let access = f.new_property_access_expression(
+        parent,
+        Some(question),
+        f.new_identifier("field"),
+        NodeFlags::OptionalChain,
+    );
+    assert!(!access.has_trailing_comma_marker());
+    for target in [Some(parent), None] {
+        access.set_parent(target);
+        access.mark_trailing_comma();
+        assert_eq!(access.kind(), Kind::PropertyAccessExpression);
+        assert_eq!(access.data_tag(), NodeDataTag::PropertyAccessExpression);
+        assert_eq!(access.parent(), target);
+        assert!(access.has_trailing_comma_marker());
+        assert_eq!(access.as_property_access_expression().question_dot_token(), Some(question));
+    }
 }

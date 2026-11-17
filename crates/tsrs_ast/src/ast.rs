@@ -130,7 +130,7 @@ pub fn new_node_factory_ex(hooks: NodeFactoryHooks, scratch: bool) -> NodeFactor
 
 fn node_header(kind: Kind, data_tag: NodeDataTag) -> Node {
     Node {
-        header: OwnedCell::new(NodeHeaderWord::new(kind, data_tag)),
+        header: NodeHeader::new(kind, data_tag),
         flags: OwnedCell::new(NodeFlags::None),
         id: AtomicU32::new(0),
         loc: OwnedCell::new(undefined_text_range()),
@@ -182,7 +182,7 @@ fn new_node_with_rare_hooked<T: NodeRareTail>(
 ) -> P<Node> {
     let () = T::SAME_OFFSET;
     let mut header = node_header(kind, T::TAG);
-    header.header = OwnedCell::new(header.header.get().with_rare_tail());
+    header.header = header.header.with_rare_tail();
     // SAFETY: as in `new_node` (`NodeAllocRare` is `repr(C)` with the header first).
     let n = unsafe { P::new(NodeAllocRare { node: header, data, rare }).cast::<Node>() };
     if let Some(on_create) = &hooks.on_create {
@@ -200,7 +200,7 @@ fn new_node_with_rare_scratch<T: NodeRareTail>(
 ) -> P<Node> {
     let () = T::SAME_OFFSET;
     let mut header = node_header(kind, T::TAG);
-    header.header = OwnedCell::new(header.header.get().with_rare_tail());
+    header.header = header.header.with_rare_tail();
     // SAFETY: as in `new_node_with_rare_hooked`, but this allocation is owned by the active scratch region.
     let n = unsafe { P::new_scratch(NodeAllocRare { node: header, data, rare }).cast::<Node>() };
     if let Some(on_create) = &hooks.on_create {
@@ -213,7 +213,7 @@ fn new_node_with_rare_scratch<T: NodeRareTail>(
 fn new_node_with_rare_plain<T: NodeRareTail>(kind: Kind, data: T, rare: T::Rare) -> P<Node> {
     let () = T::SAME_OFFSET;
     let mut header = node_header(kind, T::TAG);
-    header.header = OwnedCell::new(header.header.get().with_rare_tail());
+    header.header = header.header.with_rare_tail();
     // SAFETY: as in `new_node_plain` (`NodeAllocRare` is `repr(C)` with the header first).
     unsafe { P::new(NodeAllocRare { node: header, data, rare }).cast::<Node>() }
 }
@@ -227,7 +227,7 @@ pub(crate) fn rare_tail<T: NodeRareTail>(data: &T) -> Option<&'static T::Rare> {
     let node: &Node = unsafe {
         tsrs_core::ptr::arena_neighbor(data, -(std::mem::offset_of!(NodeAlloc<T>, data) as isize))
     };
-    if !node.header.get().has_rare_tail() {
+    if !node.header.has_rare_tail() {
         return None;
     }
     let off = std::mem::offset_of!(NodeAllocRare<T, T::Rare>, rare)
@@ -529,17 +529,163 @@ impl ModifierList {
 /// `NodeData`, `as_*()` and the generated accessors read it in place. Data structs without fields (`Token`,
 /// `KeywordTypeNode`, ...) allocate only the header.
 ///
-/// The header is 24 bytes: the kind, the data tag and the parent pointer share one word (`NodeHeaderWord`),
-/// and the id is stored in 32 bits (ordinary ids are 31-bit; the high bit tags ids from a checker's reserved
+/// The header is 24 bytes. Four-byte parent handles share eight bytes with separately stored kind, data tag
+/// and marker fields; eight-byte pointers use the packed `NodeHeaderWord`. The id is stored in 32 bits
+/// (ordinary ids are 31-bit; the high bit tags ids from a checker's reserved
 /// 64-bit block range, decoded by `get_node_id`).
 pub struct Node {
-    header: OwnedCell<NodeHeaderWord>,
+    header: NodeHeader,
     pub flags: OwnedCell<NodeFlags>,
     pub(crate) id: AtomicU32,
     pub(crate) loc: OwnedCell<TextRange>, // set_loc() (compact identifiers derive their text from the end)
 }
 
 const _: () = assert!(std::mem::size_of::<Node>() == 24);
+
+/// Separates immutable metadata from four-byte parents while retaining the packed form for eight-byte pointers.
+type NodeHeader = <[(); std::mem::size_of::<P<()>>()] as NodeHeaderLayout>::Header;
+
+trait NodeHeaderLayout {
+    type Header: NodeHeaderAccess;
+}
+
+impl NodeHeaderLayout for [(); 4] {
+    type Header = HandleNodeHeader;
+}
+
+impl NodeHeaderLayout for [(); 8] {
+    type Header = PointerNodeHeader;
+}
+
+trait NodeHeaderAccess: Sized {
+    fn new(kind: Kind, data_tag: NodeDataTag) -> Self;
+    fn kind(&self) -> Kind;
+    fn data_tag(&self) -> NodeDataTag;
+    fn parent(&self) -> Option<P<Node>>;
+    fn set_parent(&self, parent: Option<P<Node>>);
+    fn with_rare_tail(self) -> Self;
+    fn has_rare_tail(&self) -> bool;
+    fn has_trailing_comma(&self) -> bool;
+    fn mark_trailing_comma(&self);
+}
+
+#[repr(C)]
+struct HandleNodeHeader {
+    parent: OwnedCell<Option<P<Node>>>,
+    kind: Kind,
+    data_tag: NodeDataTag,
+    markers: OwnedCell<u8>,
+    _word_alignment: [u64; 0],
+}
+
+impl NodeHeaderAccess for HandleNodeHeader {
+    #[inline]
+    fn new(kind: Kind, data_tag: NodeDataTag) -> Self {
+        Self {
+            parent: OwnedCell::new(None),
+            kind,
+            data_tag,
+            markers: OwnedCell::new(0),
+            _word_alignment: [],
+        }
+    }
+
+    #[inline]
+    fn kind(&self) -> Kind {
+        self.kind
+    }
+
+    #[inline]
+    fn data_tag(&self) -> NodeDataTag {
+        self.data_tag
+    }
+
+    #[inline]
+    fn parent(&self) -> Option<P<Node>> {
+        self.parent.get()
+    }
+
+    #[inline]
+    fn set_parent(&self, parent: Option<P<Node>>) {
+        self.parent.set(parent);
+    }
+
+    #[inline]
+    fn with_rare_tail(mut self) -> Self {
+        self.markers = OwnedCell::new(self.markers.get() | 1);
+        self
+    }
+
+    #[inline]
+    fn has_rare_tail(&self) -> bool {
+        self.markers.get() & 1 != 0
+    }
+
+    #[inline]
+    fn has_trailing_comma(&self) -> bool {
+        self.markers.get() & 2 != 0
+    }
+
+    #[inline]
+    fn mark_trailing_comma(&self) {
+        self.markers.set(self.markers.get() | 2);
+    }
+}
+
+struct PointerNodeHeader {
+    word: OwnedCell<NodeHeaderWord>,
+}
+
+impl NodeHeaderAccess for PointerNodeHeader {
+    #[inline]
+    fn new(kind: Kind, data_tag: NodeDataTag) -> Self {
+        Self { word: OwnedCell::new(NodeHeaderWord::new(kind, data_tag)) }
+    }
+
+    #[inline]
+    fn kind(&self) -> Kind {
+        self.word.get().kind()
+    }
+
+    #[inline]
+    fn data_tag(&self) -> NodeDataTag {
+        self.word.get().data_tag()
+    }
+
+    #[inline]
+    fn parent(&self) -> Option<P<Node>> {
+        self.word.get().parent()
+    }
+
+    #[inline]
+    fn set_parent(&self, parent: Option<P<Node>>) {
+        self.word.set(self.word.get().with_parent(parent));
+    }
+
+    #[inline]
+    fn with_rare_tail(mut self) -> Self {
+        self.word = OwnedCell::new(self.word.get().with_rare_tail());
+        self
+    }
+
+    #[inline]
+    fn has_rare_tail(&self) -> bool {
+        self.word.get().has_rare_tail()
+    }
+
+    #[inline]
+    fn has_trailing_comma(&self) -> bool {
+        self.word.get().has_trailing_comma()
+    }
+
+    #[inline]
+    fn mark_trailing_comma(&self) {
+        self.word.set(self.word.get().with_trailing_comma());
+    }
+}
+
+const _: () = assert!(std::mem::size_of::<NodeHeader>() == 8);
+const _: () = assert!(std::mem::align_of::<NodeHeader>() == std::mem::align_of::<NodeHeaderWord>());
 
 /// A node's kind, data tag and parent in one word: the parent in the low 45 bits (`P::pack`), the kind in the next 9 bits, the data
 /// tag in the 8 above, the rare bit (the data struct is followed by its rare tail, `NodeRareTail`) and the
@@ -664,13 +810,13 @@ pub(crate) trait NodeRareTail: NodePayload {
 impl Node {
     #[inline]
     pub fn kind(&self) -> Kind {
-        self.header.get().kind()
+        self.header.kind()
     }
 
     /// Which data struct follows this node's header.
     #[inline]
     pub fn data_tag(&self) -> NodeDataTag {
-        self.header.get().data_tag()
+        self.header.data_tag()
     }
 
     /// The data struct after this node's header. Callers check `data_tag() == T::TAG` first.
@@ -722,21 +868,21 @@ impl Node {
     }
     #[inline]
     pub fn parent(&self) -> Option<P<Node>> {
-        self.header.get().parent()
+        self.header.parent()
     }
     #[inline]
     pub fn set_parent(&self, parent: Option<P<Node>>) {
-        self.header.set(self.header.get().with_parent(parent));
+        self.header.set_parent(parent);
     }
 
     #[inline]
     pub fn has_trailing_comma_marker(&self) -> bool {
-        self.header.get().has_trailing_comma()
+        self.header.has_trailing_comma()
     }
 
     #[inline]
     pub fn mark_trailing_comma(&self) {
-        self.header.set(self.header.get().with_trailing_comma());
+        self.header.mark_trailing_comma();
     }
 
     /// Go `IterChildren`: the children in `for_each_child` order.

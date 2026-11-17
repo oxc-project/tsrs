@@ -7100,6 +7100,73 @@ fn type_check_reports_errors_before_rule_queries() {
 }
 
 #[test]
+fn enum_assignments_keep_primitive_augmentations_and_enum_identities() {
+    let root = std::env::current_dir().unwrap().join("target/lint-enum-primitive-members");
+    std::fs::create_dir_all(&root).unwrap();
+    std::fs::write(
+        root.join("tsconfig.json"),
+        r#"{"compilerOptions":{"strict":true,"target":"esnext","types":[],"noEmit":true},"include":["*.ts"]}"#,
+    )
+    .unwrap();
+    let file = root.join("a.ts");
+    let source = "enum First { One = 'one' }\n\
+        enum Second { One = 'one' }\n\
+        enum NumberFirst { One = 1 }\n\
+        enum NumberSecond { One = 1 }\n\
+        interface Number { readonly marker: First; }\n\
+        interface String { readonly marker: Second; }\n\
+        declare const n: number;\n\
+        const cross: string = n;\n\
+        const first: First = Second.One;\n\
+        const numeric: NumberFirst = NumberSecond.One;\n\
+        const stringLiteral: 'a' = 'b';\n\
+        const numberLiteral: 1 = 2;\n\
+        const booleanLiteral: true = false;\n\
+        const bigintLiteral: 1n = 2n;\n\
+        declare const symbolValue: unique symbol;\n\
+        const symbolTarget: unique symbol = symbolValue;\n";
+    std::fs::write(&file, source).unwrap();
+    for fast in ["0", "1"] {
+        for semantic in [false, true] {
+            let mut payload = json::unmarshal(&type_check_payload_with_rule(
+                vec![Value::String(file.to_string_lossy().into_owned())],
+                "no-unsafe-enum-assignment",
+            ))
+            .unwrap();
+            let Value::Object(fields) = &mut payload else { panic!() };
+            fields.insert("report_semantic", Value::Bool(semantic));
+            let (status, frames) =
+                run_raw_with_env(&json::marshal(&payload).unwrap(), &[], &[("TSRS_FAST", fast)]);
+            assert_eq!(status, 0, "{frames:?}");
+            let diagnostics: Vec<_> = frames
+                .iter()
+                .filter_map(|(_, value)| {
+                    let Value::Object(diagnostic) = value else { panic!() };
+                    (diagnostic.get("rule")
+                        == Some(&Value::String("no-unsafe-enum-assignment".into())))
+                    .then_some(diagnostic)
+                })
+                .collect();
+            assert_eq!(diagnostics.len(), 3, "fast={fast}, semantic={semantic}: {frames:?}");
+            for (diagnostic, text) in diagnostics.iter().zip([
+                "cross: string = n",
+                "first: First = Second.One",
+                "numeric: NumberFirst = NumberSecond.One",
+            ]) {
+                let start = source.find(text).unwrap();
+                let end = start + text.len();
+                assert_eq!(
+                    diagnostic["range"],
+                    json::unmarshal(&format!(r#"{{"pos":{start},"end":{end}}}"#)).unwrap(),
+                );
+                let Value::Object(message) = &diagnostic["message"] else { panic!() };
+                assert_eq!(message["id"], Value::String("unsafeEnumAssignment".into()));
+            }
+        }
+    }
+}
+
+#[test]
 fn run_external_code_lints_content_mapped_projects() {
     // testdata/contentmapper/types with its mapper installed, as tools/contentmapper-e2e.sh runs it. The mapper puts a
     // synthesized header before a.vue's text, so a.vue's error has another position in the virtual text, and

@@ -4,6 +4,7 @@ mod packagejson {
     mod json_test;
     mod packagejson_test;
 }
+mod resolver_drive_root_test;
 mod resolver_last_path_component_test;
 mod resolver_match_pattern_or_exact_test;
 mod resolver_test;

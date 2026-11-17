@@ -1,0 +1,14 @@
+======== Resolving type reference directive 'C:', containing file '<dir>/a.ts', root directory '<dir>/types'. ========
+Resolving with primary search path '<dir>/types'.
+Looking up in 'node_modules' folder, initial location '<dir>'.
+Loading module as file / folder, candidate module location 'C:/', target file types: Declaration.
+Directory 'C:/' does not exist, skipping all lookups in it.
+======== Type reference directive 'C:' was not resolved. ========
+======== Resolving type reference directive '//server', containing file '<dir>/a.ts', root directory '<dir>/types'. ========
+Resolving with primary search path '<dir>/types'.
+Looking up in 'node_modules' folder, initial location '<dir>'.
+Loading module as file / folder, candidate module location '//server/', target file types: Declaration.
+Directory '//server/' does not exist, skipping all lookups in it.
+======== Type reference directive '//server' was not resolved. ========
+a.ts(1,23): error TS2688: Cannot find type definition file for 'C:'.
+a.ts(2,23): error TS2688: Cannot find type definition file for '//server'.

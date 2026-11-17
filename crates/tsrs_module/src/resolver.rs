@@ -79,9 +79,14 @@ fn path_for_dynamic_resolution(directory: &str, path: &str, directory_only: bool
     path.to_string()
 }
 
-fn resolve_path_for_module(directory: &str, path: &str, directory_only: bool) -> String {
+// Go builds these candidates with `RootedDirectoryPath.ResolveFile` and `ResolveDirectory` (`rooted_path.go:727`),
+// which end a path that is only a root with a separator: the name `C:` gives `C:/`. `normalize_path` keeps `C:`, as
+// Go's `NormalizePath` does, and the file probe `C:.d.ts` is not an absolute path.
+pub fn resolve_path_for_module(directory: &str, path: &str, directory_only: bool) -> String {
     let encoded = path_for_dynamic_resolution(directory, path, directory_only);
-    let resolved = tspath::normalize_path(&tspath::combine_paths(directory, &[&encoded]));
+    let resolved = tspath::ensure_rooted_path_root_separator(tspath::normalize_path(
+        &tspath::combine_paths(directory, &[&encoded]),
+    ));
     if directory_only { tspath::ensure_trailing_directory_separator(&resolved) } else { resolved }
 }
 
@@ -3301,7 +3306,9 @@ fn normalize_path_for_cjs_resolution(containing_directory: &str, module_name: &s
     if last_part == "." || last_part == ".." {
         return tspath::ensure_trailing_directory_separator(&tspath::normalize_path(&combined));
     }
-    tspath::normalize_path(&combined)
+    // Go's candidate keeps the root separator (`resolve_path_for_module`), and a candidate that ends with a
+    // separator is directory-only: a module name `C:` is the directory `C:/`.
+    tspath::ensure_rooted_path_root_separator(tspath::normalize_path(&combined))
 }
 
 // tsrs-only: the last element of `tspath::get_path_components(path, "")` for a path with forward slashes (as

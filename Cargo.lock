@@ -1215,6 +1215,7 @@ version = "7.1.0-beta.tsrs5"
 dependencies = [
  "libc",
  "rustc-hash",
+ "rustix",
  "similar",
  "tsrs_ast",
  "tsrs_compiler",

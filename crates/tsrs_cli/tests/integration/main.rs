@@ -34,6 +34,7 @@ mod ls_resolve_file_not_normalized;
 mod lsp_edit_resolutions;
 mod maproot_not_resolved;
 mod merged_interface_check_site;
+mod nonblocking_stdout;
 mod npm_lib_path;
 mod outdir_drive_like_segment;
 mod overlay_files_missing_from_path_completions;

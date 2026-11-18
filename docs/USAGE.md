@@ -47,6 +47,7 @@ preserves this upstream behavior; see the [known cases](../notes/open-history-de
 | Type members | Eager | Lazy resolution and instantiation, including tuples, conditional/inference mappers and property-cache optimizations |
 | Declaration parsing | Eager | Lazy `.d.ts` member parsing in batch/incremental compilation and non-watch builds when declaration checking is skipped |
 | Finished leaf files | Retained | Freed on eligible non-incremental, non-watch `--noEmit` runs |
+| Memory at exit (Linux) | Freed by the kernel before the caller sees the exit | Freed by a helper process after it; `TSRS_EXIT_HELPER=0` turns this off ([details](../notes/perf-exit-teardown.md)) |
 
 The preset keeps compiler options such as `strict`, `skipLibCheck` and `noCheck` as configured. Lazy declaration
 parsing requires `skipLibCheck` or `noCheck`; in build mode every built project must qualify. Memory targets and

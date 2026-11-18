@@ -261,6 +261,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [perf-build-identity](perf-build-identity.md)
 - [perf-build-level](perf-build-level.md)
 - [perf-excalidraw-typefest](perf-excalidraw-typefest.md)
+- [perf-exit-teardown](perf-exit-teardown.md)
 - [perf-icount-hillclimb](perf-icount-hillclimb.md)
 - [perf-icount-round4](perf-icount-round4.md)
 - [perf-mimalloc-safe](perf-mimalloc-safe.md)

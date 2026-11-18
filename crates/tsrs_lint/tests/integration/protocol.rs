@@ -2,7 +2,9 @@ use std::io::{self, Write};
 
 use tsrs_core::json::{self, Value};
 use tsrs_lint::payload::deserialize_payload;
-use tsrs_lint::protocol::{self, Diagnostic, Fix, MessageType, Range, RuleMessage, Suggestion};
+use tsrs_lint::protocol::{
+    self, Diagnostic, Fix, LabeledRange, MessageType, Range, RuleMessage, Suggestion,
+};
 
 #[test]
 fn v1_conversion_and_v2_options() {
@@ -141,6 +143,100 @@ fn diagnostic_omissions_labels_and_suggestions() {
     let Value::Object(value) = diagnostic.to_json() else { panic!() };
     assert_eq!(value["kind"], Value::Integer(0));
     assert!(value.contains_key("suggestions"));
+}
+
+#[test]
+fn borrowed_diagnostic_frames_match_value_encoding() {
+    let controls: String = (0..32).map(char::from).collect();
+    let unicode = format!("é中😀\u{2028}\u{2029}<>&\"\\/{controls}");
+    for text in ["", "ordinary text", unicode.as_str()] {
+        for mask in 0..128 {
+            let message = RuleMessage {
+                id: text.into(),
+                description: text.into(),
+                help: if mask & 8 == 0 { String::new() } else { text.into() },
+            };
+            let fixes = vec![
+                Fix { text: String::new(), range: Range { pos: 0, end: 0 } },
+                Fix { text: text.into(), range: Range { pos: 17, end: u32::MAX } },
+            ];
+            let diagnostic = Diagnostic {
+                range: (mask & 1 != 0).then_some(Range { pos: u32::MAX, end: 0 }),
+                message: message.clone(),
+                file_path: (mask & 2 != 0).then(|| text.into()),
+                rule: (mask & 4 != 0).then(|| text.into()),
+                labeled_ranges: if mask & 16 == 0 {
+                    vec![]
+                } else {
+                    vec![
+                        LabeledRange { label: String::new(), range: Range { pos: 0, end: 0 } },
+                        LabeledRange { label: text.into(), range: Range { pos: 1, end: u32::MAX } },
+                    ]
+                },
+                fixes: if mask & 32 == 0 { vec![] } else { fixes.clone() },
+                suggestions: if mask & 64 == 0 {
+                    vec![]
+                } else {
+                    vec![
+                        Suggestion { message: RuleMessage::default(), fixes: vec![] },
+                        Suggestion { message, fixes },
+                    ]
+                },
+            };
+            let mut expected = Vec::new();
+            protocol::write_message(&mut expected, MessageType::Diagnostic, &diagnostic.to_json())
+                .unwrap();
+            let mut actual = ShortWriter(Vec::new());
+            protocol::write_diagnostic(&mut actual, &diagnostic).unwrap();
+            assert_eq!(actual.0, expected, "mask {mask}, text {text:?}");
+        }
+    }
+}
+
+struct FailingWriter {
+    bytes: Vec<u8>,
+    remaining: usize,
+}
+
+impl Write for FailingWriter {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        if self.remaining == 0 {
+            return Err(io::ErrorKind::BrokenPipe.into());
+        }
+        let count = bytes.len().min(self.remaining).min(2);
+        self.bytes.extend_from_slice(&bytes[..count]);
+        self.remaining -= count;
+        Ok(count)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+#[test]
+fn borrowed_diagnostic_frames_preserve_write_errors() {
+    let diagnostic = Diagnostic {
+        message: RuleMessage {
+            id: "id".into(), description: "é😀\n".into(), help: "help".into()
+        },
+        ..Default::default()
+    };
+    let value = diagnostic.to_json();
+    let mut frame = Vec::new();
+    protocol::write_message(&mut frame, MessageType::Diagnostic, &value).unwrap();
+    for remaining in [0, 1, 4, 5, 6, frame.len() / 2, frame.len() - 1, frame.len()] {
+        let mut before = FailingWriter { bytes: Vec::new(), remaining };
+        let mut after = FailingWriter { bytes: Vec::new(), remaining };
+        let before_error = protocol::write_message(&mut before, MessageType::Diagnostic, &value)
+            .err()
+            .map(|error| error.kind());
+        let after_error =
+            protocol::write_diagnostic(&mut after, &diagnostic).err().map(|error| error.kind());
+        assert_eq!(after_error, before_error);
+        assert_eq!(after.bytes, before.bytes);
+        assert_eq!(after.bytes, frame[..remaining]);
+    }
 }
 
 #[test]

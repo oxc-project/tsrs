@@ -176,7 +176,8 @@ pub fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &str) -> 
             }
             ro.set("original", original.marshal_json());
             ro.done()
-        }),
+        })
+        .or_else(|| build_info.root_non_nil.then(Vec::new)),
     );
     if let Some(p) = build_info.package_jsons.as_ref().filter(|p| !p.is_empty()) {
         o.set("packageJsons", strings(p));

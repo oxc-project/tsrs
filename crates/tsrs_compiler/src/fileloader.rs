@@ -271,16 +271,9 @@ pub(crate) fn process_all_program_files(
     let roots_start = tsrs_core::phases::Timer::new(compiler_options.diagnostics_enabled());
     // The lookups (a file_exists per root file) are independent; tasks are still created in root order.
     let curr_dir = host.get_current_directory().to_string();
-    let containing_file = match &loader.opts.config.config_file {
-        Some(config_file) => {
-            tspath::get_normalized_absolute_path(config_file.source_file.file_name(), &curr_dir)
-        }
-        None => curr_dir.clone(),
-    };
     let lookup = |root_file: &String| {
         let _regions = crate::programregions::enter(opts.regions.as_deref());
         let abs_path = tspath::get_normalized_absolute_path(root_file, &curr_dir);
-        // A root file reason is never a referenced-file reason, which is all the lookup asks of it.
         let looked_up = source_file_from_reference(
             &compiler_options,
             host.fs(),
@@ -288,8 +281,6 @@ pub(crate) fn process_all_program_files(
             &loader.supported_extensions_with_json_if_resolve_json_module,
             &abs_path,
             root_file,
-            &containing_file,
-            false,
         );
         // The task's path, which `filesParser::start` would otherwise compute from the task's file name on this thread.
         let name = if looked_up.1.is_some() { &abs_path } else { &looked_up.0 };
@@ -1219,7 +1210,6 @@ fn tripleslash_reference_lookup(
         referenced_file_name = tspath::combine_paths(&base_path, &[module_name]);
     }
     let normalized_file_name = tspath::normalize_path(&referenced_file_name);
-    // The include reason of a triple-slash reference is a referenced-file reason.
     let looked_up = source_file_from_reference(
         &ctx.opts.config.compiler_options().unwrap(),
         ctx.host.fs(),
@@ -1227,8 +1217,6 @@ fn tripleslash_reference_lookup(
         ctx.supported_extensions_with_json,
         &normalized_file_name,
         module_name,
-        containing_file,
-        true,
     );
     (normalized_file_name, looked_up)
 }
@@ -1410,9 +1398,10 @@ impl FileLoader {
         index: usize,
         prefetched: Option<(String, Option<SourceFileFromReferenceDiagnostic>)>,
     ) -> Result<ResolvedRef, ProcessingDiagnostic> {
+        let containing_path = self.to_path(containing_file);
         let include_reason = FileIncludeReason::new_referenced(
             FileIncludeKind::ReferenceFile,
-            tsrs_core::alloc_str(self.to_path(containing_file).as_str()),
+            tsrs_core::alloc_str(containing_path.as_str()),
             Some(index),
             None,
         );
@@ -1430,6 +1419,16 @@ impl FileLoader {
                 diagnostic_reason: Some(include_reason),
                 message: diagnostic.message,
                 args: diagnostic.args,
+            }));
+        }
+        // Go compares the paths after every successful lookup, including a name that got its extension from the
+        // supported-extensions loop.
+        if self.to_path(&resolved_file_name) == containing_path {
+            return Err(ProcessingDiagnostic::explaining(IncludeExplainingDiagnostic {
+                file: None,
+                diagnostic_reason: Some(include_reason),
+                message: &diagnostics::A_FILE_CANNOT_HAVE_A_REFERENCE_TO_ITSELF,
+                args: vec![],
             }));
         }
 
@@ -1925,7 +1924,7 @@ fn resolved_import_sub_task(
     (should_add_file, is_js_file_from_node_modules)
 }
 
-// fileLoader.getSourceFileFromReference; `is_referenced_file_reason` is what it asks of the include reason.
+// fileLoader.getSourceFileFromReference.
 fn source_file_from_reference(
     options: &CompilerOptions,
     fs: &dyn tsrs_vfs::FS,
@@ -1933,8 +1932,6 @@ fn source_file_from_reference(
     supported_extensions_with_json: &[Vec<String>],
     file_name: &str,
     reference_text: &str,
-    containing_file: &str,
-    is_referenced_file_reason: bool,
 ) -> (String, Option<SourceFileFromReferenceDiagnostic>) {
     let allow_non_ts_extensions = options.allow_non_ts_extensions.is_true();
     let diagnostic_file_name = tspath::normalize_slashes(reference_text);
@@ -1977,19 +1974,6 @@ fn source_file_from_reference(
                 Some(SourceFileFromReferenceDiagnostic {
                     message: &diagnostics::FILE_0_NOT_FOUND,
                     args: vec![diagnostic_file_name],
-                }),
-            );
-        }
-
-        if is_referenced_file_reason
-            && tspath::get_canonical_file_name(containing_file, fs.use_case_sensitive_file_names())
-                == canonical_file_name
-        {
-            return (
-                String::new(),
-                Some(SourceFileFromReferenceDiagnostic {
-                    message: &diagnostics::A_FILE_CANNOT_HAVE_A_REFERENCE_TO_ITSELF,
-                    args: vec![],
                 }),
             );
         }

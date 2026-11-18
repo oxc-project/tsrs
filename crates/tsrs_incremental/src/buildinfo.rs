@@ -643,6 +643,8 @@ pub struct BuildInfo {
     pub errors: bool,
     pub check_pending: bool,
     pub root: Vec<BuildInfoRoot>,
+    // Go marshals a non-nil empty `Root` (a non-incremental program without root files) as `[]`; omitzero drops only nil.
+    pub root_non_nil: bool,
     pub package_jsons: Option<Vec<String>>,
     pub missing_package_jsons: Option<Vec<String>>,
     pub content_mapper_identities: Option<Vec<String>>,
@@ -689,7 +691,12 @@ impl BuildInfo {
         o.str("version", &self.version);
         o.bool("errors", self.errors);
         o.bool("checkPending", self.check_pending);
-        o.list("root", &self.root, BuildInfoRoot::marshal_json);
+        if self.root_non_nil || !self.root.is_empty() {
+            o.set(
+                "root",
+                Value::Array(self.root.iter().map(BuildInfoRoot::marshal_json).collect()),
+            );
+        }
         o.opt_strings("packageJsons", self.package_jsons.as_deref());
         o.opt_strings("missingPackageJsons", self.missing_package_jsons.as_deref());
         o.opt_strings("contentMapperIdentities", self.content_mapper_identities.as_deref());
@@ -763,6 +770,7 @@ impl BuildInfo {
             errors: get_bool(o, "errors")?,
             check_pending: get_bool(o, "checkPending")?,
             root: get_array(o, "root", BuildInfoRoot::unmarshal_json)?,
+            root_non_nil: matches!(o.get("root"), Some(Value::Array(_))),
             package_jsons: get_opt_string_array(o, "packageJsons")?,
             missing_package_jsons: get_opt_string_array(o, "missingPackageJsons")?,
             content_mapper_identities: get_opt_string_array(o, "contentMapperIdentities")?,
@@ -838,7 +846,10 @@ impl BuildInfo {
         w.str("version", &self.version);
         w.bool("errors", self.errors);
         w.bool("checkPending", self.check_pending);
-        w.values("root", &self.root, BuildInfoRoot::marshal_json);
+        if self.root_non_nil || !self.root.is_empty() {
+            w.key("root");
+            write_array(w.out, &self.root, |out, root| write_compact(out, &root.marshal_json()));
+        }
         w.opt_strings("packageJsons", self.package_jsons.as_deref());
         w.opt_strings("missingPackageJsons", self.missing_package_jsons.as_deref());
         w.opt_strings("contentMapperIdentities", self.content_mapper_identities.as_deref());

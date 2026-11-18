@@ -115,11 +115,15 @@ pub(crate) fn compile_files_with_host_emit(
     let mut pre_errors = Vec::new();
     let mut pre_compiler_options: CompilerOptions = (*config.compiler_options().unwrap()).clone();
     pre_compiler_options.trace_resolution = Tristate::False;
+    // harnessutil.go passes the config's base directory and case sensitivity to the pre-emit program.
     let mut pre_config = tsrs_tsoptions::new_parsed_command_line(
         P::new(pre_compiler_options),
         config.file_names().to_vec(),
         Vec::new(),
-        tsrs_core::tspath::ComparePathsOptions::default(),
+        tsrs_core::tspath::ComparePathsOptions {
+            current_directory: config.get_current_directory().to_string(),
+            use_case_sensitive_file_names: config.use_case_sensitive_file_names(),
+        },
     );
     pre_config.config_file = config.config_file;
     pre_config.errors.clone_from(&config.errors);

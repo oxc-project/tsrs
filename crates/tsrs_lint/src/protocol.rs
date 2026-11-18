@@ -52,6 +52,8 @@ pub struct Diagnostic {
     pub rule: Option<String>,
     pub fixes: Vec<Fix>,
     pub suggestions: Vec<Suggestion>,
+    // Type-check diagnostic category ("error", "warning", or "message"). Present only on `kind: 1` frames.
+    pub category: Option<String>,
 }
 
 pub fn object(fields: impl IntoIterator<Item = (&'static str, Value)>) -> Value {
@@ -157,6 +159,11 @@ impl Diagnostic {
                 self.file_path.as_ref().map_or(Value::Null, |s| Value::String(s.clone())),
             ),
         ]);
+        if self.rule.is_none()
+            && let Some(category) = &self.category
+        {
+            fields.insert("category", Value::String(category.clone()));
+        }
         if let Some(range) = self.range {
             fields.insert("range", range.to_json());
         }
@@ -207,7 +214,8 @@ impl Diagnostic {
     }
 
     fn write_json(&self, out: &mut String) {
-        let Self { range, message, file_path, labeled_ranges, rule, fixes, suggestions } = self;
+        let Self { range, message, file_path, labeled_ranges, rule, fixes, suggestions, category } =
+            self;
         out.push_str(if rule.is_none() {
             "{\"kind\":1,\"message\":"
         } else {
@@ -219,6 +227,12 @@ impl Diagnostic {
             json::write_compact_string(out, file_path);
         } else {
             out.push_str("null");
+        }
+        if rule.is_none()
+            && let Some(category) = category
+        {
+            out.push_str(",\"category\":");
+            json::write_compact_string(out, category);
         }
         if let Some(range) = range {
             out.push_str(",\"range\":");

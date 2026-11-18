@@ -50,6 +50,7 @@ fn marshal_streams_the_marshal_json_document() {
             BuildInfoRoot { start: 1, end: 3, ..Default::default() },
             BuildInfoRoot { start: 5, end: 5, ..Default::default() },
         ],
+        root_non_nil: true,
         package_jsons: Some(vec!["../package.json".into()]),
         missing_package_jsons: Some(vec![]),
         content_mapper_identities: None,
@@ -100,6 +101,7 @@ fn marshal_streams_the_marshal_json_document() {
     };
     let empty = BuildInfo {
         version: "7.1.0".into(),
+        root_non_nil: true,
         tsrs_interface_files: Some(Vec::new()),
         file_infos_non_nil: true,
         ..Default::default()

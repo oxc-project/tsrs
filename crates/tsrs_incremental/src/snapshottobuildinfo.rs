@@ -633,6 +633,8 @@ impl ToBuildInfo<'_> {
                 ..Default::default()
             })
             .collect();
+        // Go `core.Map` keeps a non-nil empty list non-nil, so a program without root files writes `"root":[]`.
+        self.build_info.root_non_nil = true;
     }
 
     // snapshottobuildinfo.go:379

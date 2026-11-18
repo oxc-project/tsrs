@@ -5,6 +5,13 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 7.1.0-beta.tsrs3
+
+Package version `7.1.0-beta.tsrs3`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`). This is the first
+TypeScript-aligned release under npm's `latest` tag, replacing `0.25.0-ts7.1.0-beta` as the default install. The
+[release notes](releases/7.1.0-beta.tsrs3.md) cover suggestion diagnostics no longer failing `oxlint --type-check`,
+message chains in lint type errors, two lint performance changes and six compiler fixes that match tsgo.
+
 ## 7.1.0-beta.tsrs2
 
 Package version `7.1.0-beta.tsrs2`; TypeScript stays at `7.1.0-beta` (`3e9236361fa9`). This is the first npm release

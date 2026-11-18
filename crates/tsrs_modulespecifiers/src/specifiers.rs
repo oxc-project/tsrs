@@ -1024,7 +1024,13 @@ fn try_get_module_name_as_node_module(
     }
 
     // If the module was found in @types, get the actual Node package name
-    let node_modules_directory_name = &module_specifier[parts.top_level_package_name_index + 1..];
+    // As in Go, a specifier that no longer starts with `<top>/node_modules/` has no package name (`processEnding` turns
+    // `<top>/node_modules/index.d.ts` into `<top>/node_modules`).
+    let node_modules_prefix = &path_obj.file_name[..=parts.top_level_package_name_index];
+    let Some(node_modules_directory_name) = module_specifier.strip_prefix(node_modules_prefix)
+    else {
+        return String::new();
+    };
     tsrs_module::get_package_name_from_types_package_name(node_modules_directory_name)
 }
 

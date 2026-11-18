@@ -27,10 +27,15 @@ impl DocumentUri {
             let Ok((host, path)) = parse_file_url(uri) else {
                 panic!("invalid file URI: {uri}");
             };
-            if !host.is_empty() {
-                return format!("//{host}{path}");
-            }
-            return fix_windows_uri_path(&path).to_string();
+            let path = if host.is_empty() {
+                fix_windows_uri_path(&path).to_string()
+            } else {
+                format!("//{host}{path}")
+            };
+            // Go `RootedPathFromAbsolute` normalizes the path: it resolves `.` and `..` segments and drops a
+            // trailing separator. Go panics on a path that is not absolute; `check` rejects such a URI before the
+            // server uses it, and other callers keep the decoded path.
+            return tspath::try_rooted_path_from_absolute(&path).unwrap_or(path);
         }
 
         // Leave all other URIs escaped so we can round-trip them.

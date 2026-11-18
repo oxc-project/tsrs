@@ -12,6 +12,8 @@ mod build_free_programs;
 mod buildinfo_root_empty_array_omitted;
 mod default_emit;
 mod deferred_type_argument_check;
+#[cfg(all(target_os = "linux", target_env = "gnu", not(feature = "system-alloc")))]
+mod fast_heap_huge_pages;
 mod flow_memo;
 mod free_leaf_files;
 mod generate_trace;

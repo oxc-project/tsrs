@@ -10,6 +10,7 @@ mod base_type_cycle_entry;
 mod broken_pipe;
 mod build_free_programs;
 mod buildinfo_root_empty_array_omitted;
+mod common_source_dir_config_dir;
 mod default_emit;
 mod deferred_type_argument_check;
 mod flow_memo;

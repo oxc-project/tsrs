@@ -747,6 +747,7 @@ fn report_type_error(
                 help: String::new(),
             },
             file_path: Some(file.file_name().into()),
+            category: Some(diagnostic.category().name().to_owned()),
             ..Default::default()
         },
         writer,

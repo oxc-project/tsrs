@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "src",
+    "types": []
+  },
+  "files": ["a.ts"],
+  "include": ["**/*.ts"]
+}

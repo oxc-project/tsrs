@@ -43,7 +43,6 @@ The linter (`tsrs --lint` and `tsrs-lint`) enables the preset by default; `TSRS_
 | tsbuildinfo contents | tsgo's fields | The same by default. Opt-in modes add `tsrsPerformance`; canonical history also adds `tsrsCanonicalCheckSignature` and `tsrsInterfaceFiles`. Changing history or lazy members invalidates incompatible cached diagnostics |
 | `--version` | `Version <TypeScript version>` | Appends `(tsrs <release>, microsoft/TypeScript@<commit>)`. Unstamped source builds use `7.1.0-beta`; npm builds use the pinned package version on both sides |
 | `--init` | Writes a tsconfig.json | `error: --init is not supported by tsrs.` on stderr, exit status 5, no file written |
-| `--showConfig` | Prints the resolved config as JSON | `error: --showConfig is not supported by tsrs.` on stderr, exit status 5 |
 | `--help`, `--all`, `-b --help` | Full option help | A version line and short usage, exit status 0 |
 | No tsconfig.json and no files | Version and full help, exit status 1 | Version and one usage line, exit status 1 |
 | `--locale` | Translates messages | Accepted; messages stay in English |

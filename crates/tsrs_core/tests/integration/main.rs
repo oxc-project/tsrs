@@ -55,4 +55,5 @@ mod tspath {
     mod extension_test;
     mod extensionrewrite_test;
     mod path_test;
+    mod typed_paths_test;
 }

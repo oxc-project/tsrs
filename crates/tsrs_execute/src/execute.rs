@@ -1,5 +1,5 @@
-// Port of Go's execute/tsc.go (no --init, --showConfig or --generateTrace; --help prints a short usage instead of
-// tsc's option list).
+// Port of Go's execute/tsc.go (no --init or --generateTrace; --help prints a short usage instead of tsc's option
+// list).
 
 use std::sync::Arc;
 
@@ -38,8 +38,7 @@ impl ParseConfigHost for SysParseConfigHost {
     }
 }
 
-// tsrs-only, so on stderr: tsgo has no such message, and `tsrs --showConfig > tsconfig.out.json` writes no error into
-// the file.
+// tsrs-only, so on stderr: tsgo has no such message, and a script that captures stdout gets no error text.
 fn not_supported(sys: &dyn System, what: &str) -> CommandLineResult {
     sys.write_error(&format!("error: {what} is not supported by tsrs.\n"));
     CommandLineResult { watcher: None, status: ExitStatus::NotImplemented }
@@ -326,7 +325,8 @@ fn tsc_compilation(
     let config_options = config_for_compilation.compiler_options().unwrap();
     let report_error_summary = create_report_error_summary(sys, &config_options);
     if compiler_options_from_command_line.show_config.is_true() {
-        return not_supported(sys, "--showConfig");
+        show_config(sys, &config_for_compilation, &config_file_name);
+        return CommandLineResult { watcher: None, status: ExitStatus::Success };
     }
     if config_options.watch.is_true() {
         if testing.is_none() && !tsrs_fswatch::default().available() {
@@ -619,6 +619,14 @@ pub(crate) fn get_content_mapper_project(
         mappers: config.content_mappers().iter().collect(),
         compiler_options: config.compiler_options(),
     })
+}
+
+// tsc.go:422
+fn show_config(sys: &dyn System, config: &ParsedCommandLine, config_file_name: &str) {
+    let ts_config = tsoptions::convert_to_tsconfig(config, config_file_name);
+    if let Ok(text) = tsrs_core::json::marshal_indent(&ts_config.to_json(), "", "    ") {
+        sys.write(&text);
+    }
 }
 
 // tsc.go:93

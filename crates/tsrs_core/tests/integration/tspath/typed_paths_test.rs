@@ -18,6 +18,48 @@ fn encoded_dynamic_paths_preserve_opaque_identity() {
     );
 }
 
+// Under a common encoded dynamic root, the root matches with or without its trailing separator and the other
+// components compare case-sensitively. The expected values are Go's on the pinned commit.
+#[test]
+fn encoded_dynamic_paths_with_a_common_root() {
+    assert_eq!(
+        relative_path_from_path(
+            "^/~ts-uri~/custom/Authority/SRC",
+            "^/~ts-uri~/custom/Authority/src/x.ts",
+            CASE_INSENSITIVE,
+        )
+        .as_deref(),
+        Some("../src/x.ts")
+    );
+    assert_eq!(
+        relative_path_from_path(
+            "^/~ts-uri~/custom/Authority",
+            "^/~ts-uri~/custom/Authority/x.ts",
+            CASE_SENSITIVE,
+        )
+        .as_deref(),
+        Some("x.ts")
+    );
+    assert_eq!(
+        relative_path_from_path(
+            "^/~ts-uri~/custom/Authority/",
+            "^/~ts-uri~/custom/Authority/x.ts",
+            CASE_SENSITIVE,
+        )
+        .as_deref(),
+        Some("x.ts")
+    );
+    assert_eq!(
+        relative_path_from_file_to_path(
+            "^/~ts-uri~/custom/Authority/src/index.ts",
+            "^/~ts-uri~/custom/Authority/lib/x.ts",
+            CASE_INSENSITIVE,
+        )
+        .as_deref(),
+        Some("../lib/x.ts")
+    );
+}
+
 #[test]
 fn try_relative_path_between_file_paths() {
     assert_eq!(

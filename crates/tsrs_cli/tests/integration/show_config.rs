@@ -62,3 +62,41 @@ fn show_config_omits_unknown_options() {
 }"#,
     );
 }
+
+// The working directory keeps the $PWD spelling of a directory reached through a symlink, as Go's os.Getwd does.
+#[cfg(unix)]
+#[test]
+fn show_config_keeps_the_pwd_spelling_of_the_working_directory() {
+    let root = std::env::temp_dir().join(format!("tsrs-show-config-pwd-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join("real/src")).unwrap();
+    std::os::unix::fs::symlink(root.join("real"), root.join("link")).unwrap();
+    std::fs::write(root.join("real/tsconfig.json"), r#"{"compilerOptions":{"outDir":"dist"}}"#)
+        .unwrap();
+    std::fs::write(root.join("real/src/index.ts"), "export const a = 1;\n").unwrap();
+    let link = root.join("link");
+    let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
+        .arg("--showConfig")
+        .current_dir(&link)
+        .env("PWD", &link)
+        .output()
+        .unwrap();
+    let _ = std::fs::remove_dir_all(&root);
+    assert_shows(
+        &out,
+        &format!(
+            r#"{{
+    "compilerOptions": {{
+        "outDir": "./dist"
+    }},
+    "files": [
+        "./src/index.ts"
+    ],
+    "exclude": [
+        "{}/dist"
+    ]
+}}"#,
+            link.display()
+        ),
+    );
+}

@@ -84,7 +84,7 @@ fn exit_on_broken_pipe(result: &std::io::Result<()>) {
 }
 
 pub fn new_system() -> OsSys {
-    let cwd = match std::env::current_dir() {
+    let cwd = match osvfs::getwd() {
         Ok(cwd) => cwd,
         Err(err) => {
             eprintln!("Error getting current directory: {err}");
@@ -93,7 +93,7 @@ pub fn new_system() -> OsSys {
     };
 
     OsSys {
-        cwd: tspath::normalize_path(&cwd.to_string_lossy()),
+        cwd: tspath::normalize_path(&cwd),
         fs: Arc::new(bundled::wrap_fs(osvfs::fs())),
         default_library_path: bundled::default_lib_path(),
         writer: Mutex::new(std::io::BufWriter::new(std::io::stdout())),

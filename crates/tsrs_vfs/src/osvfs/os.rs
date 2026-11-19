@@ -355,12 +355,34 @@ fn walk_symlinks(path: &str) -> io::Result<String> {
     Ok(clean(&dest))
 }
 
+// os.Getwd: on Unix, $PWD when it is an absolute name of the current directory, so a directory reached through a
+// symlink keeps the shell's spelling; otherwise the operating system's (resolved) working directory.
+pub fn getwd() -> io::Result<String> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+
+        if let Some(dir) =
+            std::env::var_os("PWD").filter(|dir| dir.as_encoded_bytes().first() == Some(&b'/'))
+        {
+            let dot = fs::metadata(".")?;
+            if let Ok(info) = fs::metadata(&dir)
+                && info.dev() == dot.dev()
+                && info.ino() == dot.ino()
+            {
+                return Ok(dir.to_string_lossy().into_owned());
+            }
+        }
+    }
+    Ok(std::env::current_dir()?.to_string_lossy().into_owned())
+}
+
 // filepath.Abs
 fn abs(path: &str) -> io::Result<String> {
     if std::path::Path::new(path).is_absolute() {
         return Ok(clean(path));
     }
-    let wd = std::env::current_dir()?.to_string_lossy().into_owned();
+    let wd = getwd()?;
     Ok(clean(&format!("{wd}/{path}")))
 }
 

@@ -134,6 +134,30 @@ test("JSON diagnostics with -b are refused", async () => {
     assert.equal(r.stdout, "error: diagnostics as JSON are not supported with --build\n");
 });
 
+// Regression: in-memory `-b` with outputs passed back must notice an edited source file.
+test("in-memory build detects an edited source file on the second run", async () => {
+    const args = ["-b", ".", "--pretty", "false"];
+    const files = {
+        "/src/tsconfig.json": JSON.stringify({
+            compilerOptions: { composite: true, outDir: "dist", types: [], skipLibCheck: true },
+            files: ["a.ts"],
+        }),
+        "/src/a.ts": "export const x: number = 1;\n",
+    };
+    const first = await tsc(args, { cwd: "/src", files });
+    assert.equal(first.exitCode, 0);
+    assert.ok("/src/dist/tsconfig.tsbuildinfo" in first.files);
+
+    const edited = {
+        ...files,
+        ...first.files,
+        "/src/a.ts": 'export const x: number = "wrong";\n',
+    };
+    const second = await tsc(args, { cwd: "/src", files: edited });
+    assert.equal(second.exitCode, 2);
+    assert.match(second.stdout, /TS2322/);
+});
+
 // Regression: a symlinked current directory prints other paths than native tsrs (native uses the real cwd).
 test("a symlinked cwd prints the same paths as native", () => {
     const dir = project({ "real/tsconfig.json": JSON.stringify({ compilerOptions: { noEmit: true }, files: ["a.ts"] }), "real/a.ts": "const s: string = 1;\n" });

@@ -289,6 +289,20 @@ export function memoryFileSystem(files = {}, { caseInsensitive = false } = {}) {
         put(normalize(path), typeof data === "string" ? encoder.encode(data) : data);
     }
     const written = new Map();
+    let nextMtime = nowNs(false);
+    const bumpMtime = () => {
+        nextMtime += 1n;
+        return nextMtime;
+    };
+    const mtimes = new Map();
+    const fileMtime = (p) => {
+        const f = fold(normalize(p));
+        if (!mtimes.has(f)) mtimes.set(f, bumpMtime());
+        return mtimes.get(f);
+    };
+    const setMtime = (p, time) => {
+        mtimes.set(fold(normalize(p)), time);
+    };
     const isDir = (folded) => {
         if (folded === "/") return true;
         const prefix = folded + "/";
@@ -308,7 +322,7 @@ export function memoryFileSystem(files = {}, { caseInsensitive = false } = {}) {
         stat(path) {
             const p = fold(normalize(path));
             const entry = map.get(p);
-            if (entry !== undefined) return { kind: "f", size: entry.data.length, mtimeNs: 0n };
+            if (entry !== undefined) return { kind: "f", size: entry.data.length, mtimeNs: fileMtime(entry.path) };
             if (isDir(p)) return { kind: "d", size: 0, mtimeNs: 0n };
             throw new NotFoundError(path);
         },
@@ -335,19 +349,24 @@ export function memoryFileSystem(files = {}, { caseInsensitive = false } = {}) {
             const next = new Uint8Array(prev.length + data.length);
             next.set(prev);
             next.set(data, prev.length);
-            put(map.get(fold(p))?.path ?? p, next);
-            written.set(map.get(fold(p)).path, decoder.decode(next));
+            const storedPath = map.get(fold(p))?.path ?? p;
+            put(storedPath, next);
+            setMtime(storedPath, bumpMtime());
+            written.set(storedPath, decoder.decode(next));
         },
         remove(path) {
             const p = fold(normalize(path));
             for (const [key, entry] of [...map]) {
                 if (key === p || key.startsWith(p + "/")) {
                     map.delete(key);
+                    mtimes.delete(key);
                     written.delete(entry.path);
                 }
             }
         },
-        chtimes() {},
+        chtimes(path, atimeNs, mtimeNs) {
+            setMtime(path, mtimeNs);
+        },
     };
 }
 

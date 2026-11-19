@@ -14,6 +14,7 @@ mod buildinfo_root_empty_array_omitted;
 mod common_source_dir_config_dir;
 mod default_emit;
 mod deferred_type_argument_check;
+mod document_uri_trailing_slash_not_normalized;
 mod flow_memo;
 mod free_leaf_files;
 mod generate_trace;

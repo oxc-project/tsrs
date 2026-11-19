@@ -2,7 +2,7 @@ file:///home/user/a.ts	/home/user/a.ts
 file:///c%3A/Users/a/b.ts	c:/Users/a/b.ts
 file:///C:/Users/a/b.ts	C:/Users/a/b.ts
 file:///c:/x	c:/x
-file:///d%3A	d:
+file:///d%3A	d:/
 file:///	/
 file://server/share/a.ts	//server/share/a.ts
 file://server:8080/share/a.ts	//server:8080/share/a.ts

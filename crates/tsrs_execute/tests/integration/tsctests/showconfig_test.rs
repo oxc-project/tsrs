@@ -396,7 +396,15 @@ fn scenarios() -> Vec<Scenario> {
 fn show_config_baselines() {
     let reference = repo_root().join("ts-ref/tsc/testdata/baselines/reference");
     let scenarios = scenarios();
-    assert_eq!(scenarios.len(), 22);
+    let mut upstream: Vec<String> = std::fs::read_dir(reference.join("tsc/showConfig"))
+        .unwrap()
+        .map(|entry| format!("tsc/showConfig/{}", entry.unwrap().file_name().to_string_lossy()))
+        .chain(["tsc/extends/configDir-template-showConfig.js".to_string()])
+        .collect();
+    upstream.sort();
+    let mut ported: Vec<String> = scenarios.iter().map(|test| test.baseline.clone()).collect();
+    ported.sort();
+    assert_eq!(ported, upstream, "the ported scenarios differ from the upstream baselines");
     let mut failures = Vec::new();
     for test in &scenarios {
         let expected = tsrs_core::utf8::read_to_string(reference.join(&test.baseline))

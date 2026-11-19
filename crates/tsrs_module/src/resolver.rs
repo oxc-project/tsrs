@@ -155,6 +155,38 @@ fn resolve_dynamic_logical_path(directory: &str, path: &str, directory_only: boo
     if directory_only { tspath::ensure_trailing_directory_separator(&resolved) } else { resolved }
 }
 
+// Go `RootedPath.RelativeTo` (`CaseSensitive.trimContainedPath(directory, path)` in `rooted_path.go`): the part of
+// `path` after `directory`, or `None` when `path` is not `directory` or under it.
+fn relative_to_directory<'a>(path: &'a str, directory: &str) -> Option<&'a str> {
+    if directory.is_empty() || path.is_empty() {
+        return None;
+    }
+    let directory_root_length = tspath::get_root_length(directory);
+    let path_root_length = tspath::get_root_length(path);
+    let directory_root = &directory[..directory_root_length];
+    let path_root = &path[..path_root_length];
+    let roots_equal = if tspath::is_encoded_dynamic_file_name(directory)
+        || tspath::is_encoded_dynamic_file_name(path)
+    {
+        directory_root.strip_suffix('/').unwrap_or(directory_root)
+            == path_root.strip_suffix('/').unwrap_or(path_root)
+    } else {
+        tsrs_core::stringutil::equate_string_case_insensitive(directory_root, path_root)
+    };
+    if !roots_equal {
+        return None;
+    }
+    let relative = path[path_root_length..].strip_prefix(&directory[directory_root_length..])?;
+    if !relative.is_empty()
+        && !tspath::has_trailing_directory_separator(directory)
+        && directory.len() != directory_root_length
+        && !relative.starts_with('/')
+    {
+        return None;
+    }
+    Some(relative.strip_prefix('/').unwrap_or(relative))
+}
+
 fn dynamic_directory_candidate(candidate: &str) -> String {
     if !tspath::is_encoded_dynamic_file_name(candidate) {
         return candidate.to_string();
@@ -3032,10 +3064,10 @@ impl<'r> ResolutionState<'r> {
                 && let Some(version) = package_json_content.version.get_value()
             {
                 let mut sub_module_name = "";
-                if resolved_file_name.len() > package_info.package_directory.len() {
-                    sub_module_name = tsrs_core::alloc_str(
-                        &resolved_file_name[package_info.package_directory.len() + 1..],
-                    );
+                if let Some(relative) =
+                    relative_to_directory(resolved_file_name, package_info.package_directory)
+                {
+                    sub_module_name = tsrs_core::alloc_str(relative);
                 }
                 return PackageId {
                     name: name.as_str(),

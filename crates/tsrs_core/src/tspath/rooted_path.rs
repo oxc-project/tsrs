@@ -7,7 +7,8 @@ fn rooted_path_from_absolute(path: &str) -> String {
     try_rooted_path_from_absolute(path).unwrap_or_else(|| panic!("path must be absolute"))
 }
 
-fn try_rooted_path_from_absolute(path: &str) -> Option<String> {
+// rooted_path.go:58
+pub fn try_rooted_path_from_absolute(path: &str) -> Option<String> {
     if has_rooted_url_suffix(path) || !path_is_absolute(path) {
         return None;
     }

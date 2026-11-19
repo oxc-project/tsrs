@@ -34,7 +34,7 @@ fn test_document_uri_to_file_name() {
         ("file:///c:/test %25/path", "c:/test %/path"),
         // {"file:?q", "/"},
         ("file:///_:/path", "/_:/path"),
-        ("file:///users/me/c%23-projects/", "/users/me/c#-projects/"),
+        ("file:///users/me/c%23-projects/", "/users/me/c#-projects"),
         ("file://localhost/c%24/GitDevelopment/express", "//localhost/c$/GitDevelopment/express"),
         ("file:///c%3A/test%20with%20%2525/c%23code", "c:/test with %25/c#code"),
         ("untitled:Untitled-1", "^/~ts-uri~/untitled/ts-nul-authority/Untitled-1"),

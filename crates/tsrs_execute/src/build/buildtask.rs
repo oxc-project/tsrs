@@ -621,6 +621,19 @@ impl BuildTask {
         compiler_host: &Arc<dyn tsrs_compiler::CompilerHost>,
     ) -> Option<&'static tsrs_compiler::Program> {
         let changed = self.single_changed_file(orchestrator, previous, compiler_host.fs())?;
+        // The config of a referenced project was read again since `previous` was built (`reset_config`, or a new file
+        // list): `reuse_program` keeps the references and the diagnostics of `previous`, so build a new program, which
+        // checks the references again (Go `verifyProjectReferences`) and maps their outputs with the new config.
+        let mut reference_changed = false;
+        previous.range_resolved_project_reference(|path, config, parent, index| {
+            let file_name = &parent.resolved_project_reference_paths()[index];
+            reference_changed =
+                compiler_host.get_resolved_project_reference(file_name, path.clone()) != config;
+            !reference_changed
+        });
+        if reference_changed {
+            return None;
+        }
         match previous.reuse_program(&changed, Arc::clone(compiler_host), None, None) {
             (Some(program), _, true) => Some(program),
             _ => None,

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "typeRoots": ["./types"],
+    "types": []
+  },
+  "files": ["a.ts"]
+}

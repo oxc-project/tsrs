@@ -101,7 +101,7 @@ static IMPLIED_OPTIONS: &[ImpliedOption] = &[
     },
 ];
 
-// TSConfig: the `--showConfig` output. Empty lists and an unset or false `compileOnSave` are omitted (`omitzero`).
+// TSConfig: the `--showConfig` output. Empty lists and an unset `compileOnSave` are omitted (`omitzero`).
 pub struct TsConfig {
     pub compiler_options: JsonMap,
     pub references: Vec<Value>,

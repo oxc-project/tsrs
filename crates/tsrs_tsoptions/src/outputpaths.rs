@@ -510,23 +510,19 @@ pub fn get_build_info_file_name(options: &CompilerOptions, opts: &ComparePathsOp
     if options.config_file_path.is_empty() {
         return String::new();
     }
-    let config_file_extension_less = tspath::remove_file_extension(&options.config_file_path);
-    let build_info_extension_less = if options.out_dir.is_empty() {
-        config_file_extension_less.to_string()
+    // outputpaths.go:253: join the config file name with its extension, then remove the extension. A name such as
+    // `c:.json` is relative, but its stem `c:` is a drive root that would replace `outDir`.
+    let config_file_name = &options.config_file_path;
+    let build_info_file_name = if options.out_dir.is_empty() {
+        config_file_name.clone()
     } else if options.root_dir.is_empty() {
-        tspath::combine_paths(
-            &options.out_dir,
-            &[&tspath::get_base_file_name(config_file_extension_less)],
-        )
+        tspath::combine_paths(&options.out_dir, &[&tspath::get_base_file_name(config_file_name)])
     } else {
         tspath::resolve_path(
             &options.out_dir,
-            &[&tspath::get_relative_path_from_directory(
-                &options.root_dir,
-                config_file_extension_less,
-                opts,
-            )],
+            &[&tspath::get_relative_path_from_directory(&options.root_dir, config_file_name, opts)],
         )
     };
-    build_info_extension_less + tspath::EXTENSION_TS_BUILD_INFO
+    tspath::remove_file_extension(&build_info_file_name).to_string()
+        + tspath::EXTENSION_TS_BUILD_INFO
 }

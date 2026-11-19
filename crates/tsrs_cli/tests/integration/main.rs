@@ -9,6 +9,7 @@ mod api_test;
 mod base_type_cycle_entry;
 mod broken_pipe;
 mod build_free_programs;
+mod buildinfo_name_config_drive_stem;
 mod buildinfo_root_empty_array_omitted;
 mod common_source_dir_config_dir;
 mod default_emit;

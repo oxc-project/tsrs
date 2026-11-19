@@ -345,8 +345,8 @@ fn serialize_implied_option_value(
     }
 }
 
-// options_generated.go serializeCompilerOptions: the options with a declaration whose category is neither
-// Command_line_Options nor Output_Formatting, in the field order of core.CompilerOptions.
+// options_generated.go serializeCompilerOptions: the options not marked `showConfig: false` with a declaration whose
+// category is neither Command_line_Options nor Output_Formatting, in the field order of core.CompilerOptions.
 pub fn serialize_compiler_options(
     options: &CompilerOptions,
     config_file_path: &str,

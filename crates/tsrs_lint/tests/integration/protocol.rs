@@ -165,6 +165,7 @@ fn borrowed_diagnostic_frames_match_value_encoding() {
                 message: message.clone(),
                 file_path: (mask & 2 != 0).then(|| text.into()),
                 rule: (mask & 4 != 0).then(|| text.into()),
+                category: None,
                 labeled_ranges: if mask & 16 == 0 {
                     vec![]
                 } else {

@@ -1306,6 +1306,58 @@ fn a_type_error_with_the_message_category_is_reported() {
 }
 
 #[test]
+fn type_check_diagnostic_includes_category() {
+    let base = std::env::current_dir().unwrap().join("target/lint-category-field");
+    let file = base.join("a.ts").to_string_lossy().into_owned();
+    let config = base.join("tsconfig.json").to_string_lossy().into_owned();
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        ("configs", Value::Array(vec![protocol::object([
+            ("file_paths", Value::Array(vec![Value::String(file.clone())])),
+            ("rules", Value::Array(Vec::new())),
+        ])])),
+        ("source_overrides", Value::Object([
+            (file, Value::String("const x: string = 1;\n".into())),
+            (config, Value::String(r#"{"compilerOptions":{"strict":true,"noEmit":true,"types":[]},"files":["a.ts"]}"#.into())),
+        ].into_iter().collect())),
+        ("report_semantic", Value::Bool(true)),
+    ]);
+    let (status, frames) = run(&payload, &[]);
+    assert_eq!(status, 0, "{frames:?}");
+    assert_eq!(frames.len(), 1, "{frames:?}");
+    let Value::Object(ref diagnostic) = frames[0].1 else { panic!("{frames:?}") };
+    assert_eq!(diagnostic["kind"], Value::Number(1.0));
+    assert_eq!(diagnostic["category"], Value::String("error".into()));
+    let Value::Object(ref message) = diagnostic["message"] else { panic!("{frames:?}") };
+    assert_eq!(message["id"], Value::String("TS2322".into()));
+}
+
+#[test]
+fn message_category_diagnostic_includes_category() {
+    let base = std::env::current_dir().unwrap().join("target/lint-message-category-field");
+    let file = base.join("a.ts").to_string_lossy().into_owned();
+    let config = base.join("tsconfig.json").to_string_lossy().into_owned();
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        ("configs", Value::Array(vec![protocol::object([
+            ("file_paths", Value::Array(vec![Value::String(file.clone())])),
+            ("rules", Value::Array(Vec::new())),
+        ])])),
+        ("source_overrides", Value::Object([
+            (file, Value::String("export const p = import();\n".into())),
+            (config, Value::String(r#"{"compilerOptions":{"module":"esnext","strict":true,"noEmit":true,"types":[]},"files":["a.ts"]}"#.into())),
+        ].into_iter().collect())),
+        ("report_semantic", Value::Bool(true)),
+    ]);
+    let (status, frames) = run(&payload, &[]);
+    assert_eq!(status, 0, "{frames:?}");
+    assert_eq!(frames.len(), 1, "{frames:?}");
+    let Value::Object(ref diagnostic) = frames[0].1 else { panic!("{frames:?}") };
+    assert_eq!(diagnostic["kind"], Value::Number(1.0));
+    assert_eq!(diagnostic["category"], Value::String("message".into()));
+}
+
+#[test]
 fn excluded_files_use_inferred_programs_and_node_modules_stops_config_search() {
     for (relative, config, code, expected_count) in [
         ("a.ts", r#"{"files":["b.ts"]}"#, "const x: string = 1;", 1),

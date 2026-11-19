@@ -1,0 +1,2 @@
+index.ts(4,1): error TS2322: Type 'import("<dir>/node_modules/b/node_modules/pkg/x/index").C' is not assignable to type 'import("<dir>/node_modules/a/node_modules/pkg-x/index").C'.
+  Types have separate declarations of a private property 'p'.

@@ -3,7 +3,8 @@ use super::{
     relative_path_from_normalized_paths,
 };
 
-// RelativePathFromPath: `None` when the paths have different roots.
+// RelativePathFromPath: `None` when the paths have different roots. Both are normalized rooted paths (Go's
+// RootedDirectoryPath and RootedPath types); `.` and `..` components are compared as names, not resolved.
 pub fn relative_path_from_path(
     directory: &str,
     path: &str,
@@ -17,7 +18,7 @@ pub fn relative_path_from_path(
     Some(relative)
 }
 
-// RelativePathFromFileToPath
+// RelativePathFromFileToPath: as relative_path_from_path, from the directory of `file`.
 pub fn relative_path_from_file_to_path(
     file: &str,
     path: &str,

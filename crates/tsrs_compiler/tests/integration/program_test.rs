@@ -547,8 +547,10 @@ fn repeated_js_and_declaration_emit_with_shared_context() {
     assert_eq!(*written.lock().unwrap(), first);
 }
 
-// Go lists wildcard type roots with the compiler host's file system, not the project-reference dts faking host whose
-// `get_accessible_entries` panics (fileloader.go:293).
+// With project references and the source of referenced projects (the linter and the language server), module
+// resolution goes through the dts faking host, whose file system panics in `get_accessible_entries`. tsrs listed the
+// `types: ["*"]` type roots through that host and panicked with "should not be called by resolver"; Go lists them
+// with the compiler host's file system (fileloader.go:293).
 #[test]
 fn wildcard_types_with_project_reference_sources() {
     let files = [

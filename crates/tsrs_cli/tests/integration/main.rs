@@ -24,6 +24,7 @@ mod invalid_utf8_argument;
 mod isolated;
 mod lazy_dts_build;
 mod lint_mode;
+mod lone_surrogate_path_valid_utf8;
 mod lsp_edit_resolutions;
 mod merged_interface_check_site;
 mod npm_lib_path;

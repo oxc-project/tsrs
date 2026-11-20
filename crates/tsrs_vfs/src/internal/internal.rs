@@ -43,6 +43,11 @@ pub struct IoDirEntry {
 
 // ValidPath is fs.ValidPath.
 pub fn valid_path(name: &str) -> bool {
+    // A path built from a lone surrogate escape holds its WTF-8 bytes, which are not UTF-8: Go's
+    // `!utf8.ValidString(name)` check rejects it, so no file system finds a file with that name.
+    if tsrs_core::utf8::basic::from_utf8(name.as_bytes()).is_err() {
+        return false;
+    }
     if name == "." {
         // special case
         return true;

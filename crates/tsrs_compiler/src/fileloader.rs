@@ -271,7 +271,7 @@ pub(crate) fn process_all_program_files(
     let roots_start = tsrs_core::phases::Timer::new(compiler_options.diagnostics_enabled());
     // The lookups (a file_exists per root file) are independent; tasks are still created in root order.
     let curr_dir = host.get_current_directory().to_string();
-    let lookup = |root_file: &String| {
+    let lookup = |(index, root_file): (usize, &String)| {
         let _regions = crate::programregions::enter(opts.regions.as_deref());
         let abs_path = tspath::get_normalized_absolute_path(root_file, &curr_dir);
         let looked_up = source_file_from_reference(
@@ -280,7 +280,7 @@ pub(crate) fn process_all_program_files(
             &loader.supported_extensions,
             &loader.supported_extensions_with_json_if_resolve_json_module,
             &abs_path,
-            root_file,
+            opts.config.root_file_name_for_diagnostic(index),
         );
         // The task's path, which `filesParser::start` would otherwise compute from the task's file name on this thread.
         let name = if looked_up.1.is_some() { &abs_path } else { &looked_up.0 };
@@ -293,10 +293,11 @@ pub(crate) fn process_all_program_files(
     };
     let looked_up: Vec<(String, (String, Option<SourceFileFromReferenceDiagnostic>), Path)> =
         if single_threaded {
-            root_files.iter().map(lookup).collect()
+            root_files.iter().enumerate().map(lookup).collect()
         } else {
             use rayon::prelude::*;
-            crate::program::worker_pool().install(|| root_files.par_iter().map(lookup).collect())
+            crate::program::worker_pool()
+                .install(|| root_files.par_iter().enumerate().map(lookup).collect())
         };
     for (index, (abs_path, (resolved_file, diagnostic), path)) in looked_up.into_iter().enumerate()
     {

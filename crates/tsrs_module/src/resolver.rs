@@ -90,8 +90,9 @@ pub fn resolve_path_for_module(directory: &str, path: &str, directory_only: bool
     if directory_only { tspath::ensure_trailing_directory_separator(&resolved) } else { resolved }
 }
 
-// resolver.go:48 `resolutionCandidate`. Only the type root lookups use it. File lookups use `as_string`, and
-// directory lookups use `as_directory_path`.
+// resolver.go:48 `resolutionCandidate`. The type root and `node_modules` lookups build it. The other lookups pass a
+// path string that keeps the trailing separator, and read the candidate back with
+// `resolution_candidate_from_normalized`. File lookups use `as_string`, and directory lookups use `as_directory_path`.
 struct ResolutionCandidate {
     path: String,
     // Set when the directory encoding of a name in a dynamic directory differs from its file encoding in `path`.
@@ -113,6 +114,18 @@ impl ResolutionCandidate {
     fn as_directory_path(&self) -> &str {
         self.directory_path.as_deref().unwrap_or(&self.path)
     }
+}
+
+// resolver.go:54 `resolutionCandidateFromNormalized`: a path that ends with a separator is directory-only, and its
+// `path` has no trailing separator unless it is a root. This is the inverse of `as_string`.
+fn resolution_candidate_from_normalized(path: &str) -> ResolutionCandidate {
+    let directory_only = tspath::has_trailing_directory_separator(path);
+    let path = if directory_only && path.len() > tspath::get_root_length(path) {
+        tspath::remove_trailing_directory_separator(path)
+    } else {
+        path
+    };
+    ResolutionCandidate { path: path.to_string(), directory_path: None, directory_only }
 }
 
 // resolver.go:77 `resolutionCandidateFromDirectoryPath` and resolver.go:113 `resolutionCandidateFromEncodedPaths`.
@@ -1634,6 +1647,9 @@ impl<'r> ResolutionState<'r> {
         package_path: &str,
         is_imports: bool,
     ) -> Option<Resolved> {
+        if resolution_candidate_from_normalized(final_path).directory_only {
+            return continue_searching();
+        }
         let compiler_options = self.compiler_options.get();
         // Replace any references to outputs for files in the program with the input files to support package self-names used with outDir
         if !self.is_config_lookup
@@ -1894,12 +1910,10 @@ impl<'r> ResolutionState<'r> {
         // causing `loadNodeModuleFromDirectoryWorker`'s `ComparePaths(candidate, ...)`
         // check to fail and skip loading the package's `main`/`types` entry.
         // https://github.com/microsoft/TypeScript/tsc/issues/3526
-        let candidate = resolve_path_for_module(
-            node_modules_directory,
-            tspath::remove_trailing_directory_separator(module_name),
-            false,
-        );
-        let candidate_directory = dynamic_directory_candidate(&candidate);
+        let candidate =
+            resolution_candidate_from_directory_path(node_modules_directory, module_name);
+        let candidate_directory = candidate.as_directory_path().to_string();
+        let candidate = candidate.as_string();
         let (package_name, rest) = parse_package_name(module_name);
         let rest = rest.to_string();
         let mut package_directory =
@@ -1951,7 +1965,9 @@ impl<'r> ResolutionState<'r> {
                       candidate: &str,
                       package_info: Option<P<InfoCacheEntry>>|
          -> Option<Resolved> {
-            let loader_candidate_directory = dynamic_directory_candidate(candidate);
+            // Go `candidate.AsDirectoryPath()`: the path without the trailing separator of a directory-only candidate.
+            let loader_candidate_directory =
+                dynamic_directory_candidate(&resolution_candidate_from_normalized(candidate).path);
             if !rest.is_empty() || !r.esm_mode {
                 let mut from_file = r.load_module_from_file(extensions, candidate);
                 if let Some(f) = from_file.as_mut() {
@@ -2431,7 +2447,13 @@ impl<'r> ResolutionState<'r> {
 
         // ./foo -> ./foo.ts
         if !self.esm_mode {
-            return self.try_adding_extensions(candidate, extensions, "");
+            let path = resolution_candidate_from_normalized(candidate).path;
+            return self.try_adding_extensions(
+                &path,
+                &tspath::get_directory_path(&path),
+                extensions,
+                "",
+            );
         }
 
         continue_searching()
@@ -2442,41 +2464,51 @@ impl<'r> ResolutionState<'r> {
         extensions: Extensions,
         candidate: &str,
     ) -> Option<Resolved> {
-        let base = tspath::get_base_file_name_cow(candidate);
+        // Go splits the extension from `candidate.path`, which has no trailing separator. The trace prints the
+        // candidate with its separator.
+        let path = resolution_candidate_from_normalized(candidate).path;
+        let base = tspath::get_base_file_name_cow(&path);
         if !base.contains('.') {
             return continue_searching(); // extensionless import, no lookups performed, since we don't support extensionless files
         }
-        let mut extensionless = tspath::remove_file_extension(candidate);
-        if extensionless == candidate {
+        let mut extensionless = tspath::remove_file_extension(&path);
+        if extensionless == path {
             // Once TS native extensions are handled, handle arbitrary extensions for declaration file mapping
             let extra_extensions: Vec<&str> =
                 self.resolver.extra_extensions.iter().map(std::string::String::as_str).collect();
             let mut extension =
-                tspath::get_longest_extension_from_path(candidate, &extra_extensions, false);
+                tspath::get_longest_extension_from_path(&path, &extra_extensions, false);
             if extension.is_empty() {
-                extension = candidate[candidate.rfind('.').unwrap()..].to_string();
+                extension = path[path.rfind('.').unwrap()..].to_string();
             }
-            extensionless = tspath::remove_extension(candidate, &extension);
+            extensionless = tspath::remove_extension(&path, &extension);
         }
 
-        let extension = &candidate[extensionless.len()..];
+        let extension = &path[extensionless.len()..];
         trace!(
             self.tracer,
             diagnostics::FILE_NAME_0_HAS_A_1_EXTENSION_STRIPPING_IT,
             candidate,
             extension
         );
-        self.try_adding_extensions(extensionless, extensions, extension)
+        self.try_adding_extensions(
+            extensionless,
+            &tspath::get_directory_path(&path),
+            extensions,
+            extension,
+        )
     }
 
+    // Go passes `candidate.Directory()`. It differs from the directory of `extensionless` when the file name starts
+    // with the extension: `dir/.d.ts` has the stem `dir/`.
     fn try_adding_extensions(
         &mut self,
         extensionless: &str,
+        directory: &str,
         extensions: Extensions,
         original_extension: &str,
     ) -> Option<Resolved> {
-        let directory = tspath::get_directory_path(extensionless);
-        if !directory.is_empty() && !self.fs().directory_exists(&directory) {
+        if !directory.is_empty() && !self.fs().directory_exists(directory) {
             return continue_searching();
         }
 
@@ -2908,6 +2940,9 @@ impl<'r> ResolutionState<'r> {
         candidate: &str,
         package_json_value: &str,
     ) -> Option<Resolved> {
+        if resolution_candidate_from_normalized(candidate).directory_only {
+            return continue_searching();
+        }
         if extensions.intersects(Extensions::TypeScript)
             && tspath::has_implementation_ts_file_extension(candidate)
             || extensions.intersects(Extensions::Declaration)

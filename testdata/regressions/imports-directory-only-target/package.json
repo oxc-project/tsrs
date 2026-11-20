@@ -1,0 +1,1 @@
+{ "name": "pkg", "type": "module", "imports": { "#js/": "./dist.js/" } }

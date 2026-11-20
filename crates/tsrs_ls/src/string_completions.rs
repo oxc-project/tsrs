@@ -1605,7 +1605,8 @@ impl LanguageService {
 
         fragment = tspath::ensure_trailing_directory_separator(&fragment);
 
-        let base_directory = tspath::resolve_path(script_directory, &[&fragment]);
+        // Go: scriptDirectory.ResolveDirectory(fragment)
+        let base_directory = tspath::resolve_file(script_directory, &fragment);
         if !module_specifier_is_relative {
             // Check for a version redirect.
             let package_json_directory =
@@ -1620,12 +1621,21 @@ impl LanguageService {
                     let version_paths = contents.get_version_paths(None);
                     let paths = version_paths.get_paths();
                     if let Some(paths) = paths.filter(|p| !p.is_empty()) {
-                        let path_in_package = base_directory
-                            [tspath::ensure_trailing_directory_separator(
-                                &package_json_directory,
-                            )
-                            .len()..]
-                            .to_string();
+                        // Go: `baseDirectory.AsPath().RelativeTo(packageJsonDirectory)`, then a trailing
+                        // separator if the relative path is not empty.
+                        let Some(relative) =
+                            base_directory.strip_prefix(package_json_directory.as_str())
+                        else {
+                            panic!(
+                                "package json directory must be an ancestor of the completion directory"
+                            );
+                        };
+                        let relative = relative.strip_prefix('/').unwrap_or(relative);
+                        let path_in_package = if relative.is_empty() {
+                            String::new()
+                        } else {
+                            tspath::ensure_trailing_directory_separator(relative)
+                        };
                         if self.add_completion_entries_from_paths(
                             result,
                             program,

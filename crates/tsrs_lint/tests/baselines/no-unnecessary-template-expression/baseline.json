@@ -1192,9 +1192,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "'a';"
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -1202,7 +1200,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "'a';"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1222,13 +1225,21 @@
                 "pos": 1,
                 "end": 11
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "'a'",
-                  "range": {
-                    "end": 16,
-                    "pos": 0
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'a'",
+                      "range": {
+                        "pos": 0,
+                        "end": 16
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -1239,9 +1250,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\"a\";"
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -1249,7 +1258,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\"a\";"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1258,15 +1272,6 @@
           "Files": {},
           "Diagnostics": [
             {
-              "fixes": [
-                {
-                  "text": "\"a\"",
-                  "range": {
-                    "end": 16,
-                    "pos": 0
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "no-unnecessary-template-expression",
               "message": {
@@ -1277,7 +1282,24 @@
               "range": {
                 "pos": 1,
                 "end": 11
-              }
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\"a\"",
+                      "range": {
+                        "pos": 0,
+                        "end": 16
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -2521,9 +2543,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "'`';"
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -2531,7 +2551,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "'`';"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -2551,13 +2576,21 @@
                 "pos": 1,
                 "end": 7
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "'`'",
-                  "range": {
-                    "pos": 0,
-                    "end": 8
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'`'",
+                      "range": {
+                        "pos": 0,
+                        "end": 8
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -6269,7 +6302,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "` $${`${''}${``}`}${`{a}`} `;"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -6278,6 +6316,17 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
+              "rule": "no-unnecessary-template-expression",
+              "message": {
+                "id": "noUnnecessaryTemplateExpression",
+                "description": "Template literal expression is unnecessary and can be simplified."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 23,
+                "end": 31
+              },
               "fixes": [
                 {
                   "text": "",
@@ -6300,7 +6349,9 @@
                     "end": 30
                   }
                 }
-              ],
+              ]
+            },
+            {
               "kind": 0,
               "rule": "no-unnecessary-template-expression",
               "message": {
@@ -6308,12 +6359,6 @@
                 "description": "Template literal expression is unnecessary and can be simplified."
               },
               "file_path": "file.ts",
-              "range": {
-                "end": 31,
-                "pos": 23
-              }
-            },
-            {
               "range": {
                 "pos": 3,
                 "end": 23
@@ -6350,20 +6395,20 @@
                 {
                   "text": "\\$",
                   "range": {
-                    "end": 3,
-                    "pos": 2
+                    "pos": 2,
+                    "end": 3
                   }
                 }
-              ],
+              ]
+            },
+            {
               "kind": 0,
               "rule": "no-unnecessary-template-expression",
               "message": {
                 "id": "noUnnecessaryTemplateExpression",
                 "description": "Template literal expression is unnecessary and can be simplified."
               },
-              "file_path": "file.ts"
-            },
-            {
+              "file_path": "file.ts",
               "range": {
                 "pos": 11,
                 "end": 21
@@ -6397,14 +6442,7 @@
                     "end": 20
                   }
                 }
-              ],
-              "kind": 0,
-              "rule": "no-unnecessary-template-expression",
-              "message": {
-                "id": "noUnnecessaryTemplateExpression",
-                "description": "Template literal expression is unnecessary and can be simplified."
-              },
-              "file_path": "file.ts"
+              ]
             },
             {
               "kind": 0,
@@ -6454,13 +6492,21 @@
                 "pos": 14,
                 "end": 19
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "``",
-                  "range": {
-                    "pos": 13,
-                    "end": 20
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "``",
+                      "range": {
+                        "pos": 13,
+                        "end": 20
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -7288,9 +7334,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "'\\u00E5';"
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -7298,7 +7342,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "'\\u00E5';"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -7307,6 +7356,8 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
+              "rule": "no-unnecessary-template-expression",
               "message": {
                 "id": "noUnnecessaryTemplateExpression",
                 "description": "Template literal expression is unnecessary and can be simplified."
@@ -7316,17 +7367,23 @@
                 "pos": 1,
                 "end": 12
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "'\\u00E5'",
-                  "range": {
-                    "pos": 0,
-                    "end": 13
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'\\u00E5'",
+                      "range": {
+                        "pos": 0,
+                        "end": 13
+                      }
+                    }
+                  ]
                 }
-              ],
-              "kind": 0,
-              "rule": "no-unnecessary-template-expression"
+              ]
             }
           ]
         },
@@ -7335,9 +7392,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "'\\n';"
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -7345,7 +7400,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "'\\n';"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -7354,6 +7414,7 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
               "rule": "no-unnecessary-template-expression",
               "message": {
                 "id": "noUnnecessaryTemplateExpression",
@@ -7364,16 +7425,23 @@
                 "pos": 1,
                 "end": 8
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "'\\n'",
-                  "range": {
-                    "pos": 0,
-                    "end": 9
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'\\n'",
+                      "range": {
+                        "pos": 0,
+                        "end": 9
+                      }
+                    }
+                  ]
                 }
-              ],
-              "kind": 0
+              ]
             }
           ]
         },
@@ -8105,9 +8173,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function func<T extends string>(arg: T) {\n          arg;\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -8115,7 +8181,12 @@
               "Column": 12,
               "EndLine": 0,
               "EndColumn": 18,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        function func<T extends string>(arg: T) {\n          arg;\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -8124,6 +8195,7 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
               "rule": "no-unnecessary-template-expression",
               "message": {
                 "id": "noUnnecessaryTemplateExpression",
@@ -8134,16 +8206,23 @@
                 "pos": 62,
                 "end": 68
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "arg",
-                  "range": {
-                    "pos": 61,
-                    "end": 69
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "arg",
+                      "range": {
+                        "pos": 61,
+                        "end": 69
+                      }
+                    }
+                  ]
                 }
-              ],
-              "kind": 0
+              ]
             }
           ]
         },
@@ -8281,9 +8360,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const string: 'a';\n        string;\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -8291,7 +8368,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        declare const string: 'a';\n        string;\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -8300,26 +8382,34 @@
           "Files": {},
           "Diagnostics": [
             {
-              "file_path": "file.ts",
-              "range": {
-                "pos": 45,
-                "end": 57
-              },
-              "fixes": [
-                {
-                  "text": "string",
-                  "range": {
-                    "pos": 44,
-                    "end": 61
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "no-unnecessary-template-expression",
               "message": {
                 "id": "noUnnecessaryTemplateExpression",
                 "description": "Template literal expression is unnecessary and can be simplified."
-              }
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 57
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "string",
+                      "range": {
+                        "pos": 44,
+                        "end": 61
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -8328,9 +8418,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const string: 'a';\n        string;\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -8338,7 +8426,12 @@
               "Column": 10,
               "EndLine": 0,
               "EndColumn": 19,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        declare const string: 'a';\n        string;\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -8358,13 +8451,21 @@
                 "pos": 45,
                 "end": 54
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "string",
-                  "range": {
-                    "pos": 44,
-                    "end": 55
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "string",
+                      "range": {
+                        "pos": 44,
+                        "end": 55
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -8375,9 +8476,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const intersection: string & { _brand: 'test-brand' };\n        intersection;\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -8385,7 +8484,12 @@
               "Column": 10,
               "EndLine": 0,
               "EndColumn": 25,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        declare const intersection: string & { _brand: 'test-brand' };\n        intersection;\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -8402,16 +8506,24 @@
               },
               "file_path": "file.ts",
               "range": {
-                "end": 96,
-                "pos": 81
+                "pos": 81,
+                "end": 96
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "intersection",
-                  "range": {
-                    "pos": 80,
-                    "end": 97
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "intersection",
+                      "range": {
+                        "pos": 80,
+                        "end": 97
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -8422,9 +8534,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "true ? ('test' || '').trim() : undefined;"
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -8432,7 +8542,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "true ? ('test' || '').trim() : undefined;"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -8441,26 +8556,34 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
+              "rule": "no-unnecessary-template-expression",
               "message": {
                 "id": "noUnnecessaryTemplateExpression",
                 "description": "Template literal expression is unnecessary and can be simplified."
               },
               "file_path": "file.ts",
               "range": {
-                "end": 23,
-                "pos": 8
+                "pos": 8,
+                "end": 23
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "('test' || '')",
-                  "range": {
-                    "pos": 7,
-                    "end": 24
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "('test' || '')",
+                      "range": {
+                        "pos": 7,
+                        "end": 24
+                      }
+                    }
+                  ]
                 }
-              ],
-              "kind": 0,
-              "rule": "no-unnecessary-template-expression"
+              ]
             }
           ]
         },
@@ -9162,9 +9285,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "('abc' || 'def')[0];"
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -9172,7 +9293,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "('abc' || 'def')[0];"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -9181,6 +9307,7 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
               "rule": "no-unnecessary-template-expression",
               "message": {
                 "id": "noUnnecessaryTemplateExpression",
@@ -9191,16 +9318,23 @@
                 "pos": 1,
                 "end": 18
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "('abc' || 'def')",
-                  "range": {
-                    "pos": 0,
-                    "end": 19
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "('abc' || 'def')",
+                      "range": {
+                        "pos": 0,
+                        "end": 19
+                      }
+                    }
+                  ]
                 }
-              ],
-              "kind": 0
+              ]
             }
           ]
         },
@@ -9209,9 +9343,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "const value = \"foo\" + (cond ? \"bar\" : \"baz\");"
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -9219,7 +9351,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "const value = \"foo\" + (cond ? \"bar\" : \"baz\");"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -9228,26 +9365,34 @@
           "Files": {},
           "Diagnostics": [
             {
-              "range": {
-                "pos": 23,
-                "end": 46
-              },
-              "fixes": [
-                {
-                  "text": "(cond ? \"bar\" : \"baz\")",
-                  "range": {
-                    "pos": 22,
-                    "end": 47
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "no-unnecessary-template-expression",
               "message": {
                 "id": "noUnnecessaryTemplateExpression",
                 "description": "Template literal expression is unnecessary and can be simplified."
               },
-              "file_path": "file.ts"
+              "file_path": "file.ts",
+              "range": {
+                "pos": 23,
+                "end": 46
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(cond ? \"bar\" : \"baz\")",
+                      "range": {
+                        "pos": 22,
+                        "end": 47
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -9303,9 +9448,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "declare const b: string;\n'a' ?? (b && 'c');"
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "noUnnecessaryTemplateExpression",
@@ -9313,7 +9456,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "declare const b: string;\n'a' ?? (b && 'c');"
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -9322,6 +9470,8 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
+              "rule": "no-unnecessary-template-expression",
               "message": {
                 "id": "noUnnecessaryTemplateExpression",
                 "description": "Template literal expression is unnecessary and can be simplified."
@@ -9331,17 +9481,139 @@
                 "pos": 33,
                 "end": 44
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "(b && 'c')",
-                  "range": {
-                    "end": 45,
-                    "pos": 32
-                  }
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(b && 'c')",
+                      "range": {
+                        "pos": 32,
+                        "end": 45
+                      }
+                    }
+                  ]
                 }
-              ],
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const mode: 'light' | 'dark';\n\nlet label = `${mode}`;\nlabel = 'auto';\nexport {};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noUnnecessaryTemplateExpression",
+              "Line": 4,
+              "Column": 14,
+              "EndLine": 0,
+              "EndColumn": 21,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\ndeclare const mode: 'light' | 'dark';\n\nlet label = mode;\nlabel = 'auto';\nexport {};\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
               "kind": 0,
-              "rule": "no-unnecessary-template-expression"
+              "rule": "no-unnecessary-template-expression",
+              "message": {
+                "id": "noUnnecessaryTemplateExpression",
+                "description": "Template literal expression is unnecessary and can be simplified."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 60
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "mode",
+                      "range": {
+                        "pos": 52,
+                        "end": 61
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype UserId = string & { readonly __brand: 'UserId' };\ndeclare const id: UserId;\n\nlet label = `${id}`;\nlabel = 'guest';\nexport {};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noUnnecessaryTemplateExpression",
+              "Line": 5,
+              "Column": 14,
+              "EndLine": 0,
+              "EndColumn": 19,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\ntype UserId = string & { readonly __brand: 'UserId' };\ndeclare const id: UserId;\n\nlet label = id;\nlabel = 'guest';\nexport {};\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-template-expression",
+              "message": {
+                "id": "noUnnecessaryTemplateExpression",
+                "description": "Template literal expression is unnecessary and can be simplified."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 96,
+                "end": 101
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the template literal."
+                  },
+                  "fixes": [
+                    {
+                      "text": "id",
+                      "range": {
+                        "pos": 95,
+                        "end": 102
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }

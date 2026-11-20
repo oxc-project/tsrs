@@ -4,4 +4,5 @@ Binary SHA-256: 5dbb48dc8fbc66c580e0e56f9b8091536ccf4f0b46a37a3e6ffeec92a5fe5a7e
 Original integration source preserved; all 61 current baseline rules run together.
 Strict ESNext/CommonJS, esnext+dom libs, no ambient types, include *.ts.
 Physical fixture tree with matching overrides. Complete diagnostic multisets verified
-independently for all four fix-flag combinations; expected records are unchanged.
+independently for all four fix-flag combinations.
+prefer-includes records from tsgolint c0c11eaa08cb3995f5b7d4e95cf7ac15ebc05805.

@@ -2,15 +2,23 @@ use tsrs_ast::{self as ast, Kind, Node, Symbol};
 use tsrs_checker::Checker;
 use tsrs_core::P;
 
-use crate::protocol::{Fix, Range, RuleMessage};
+use crate::protocol::{Fix, Range, RuleMessage, Suggestion};
 use crate::rule::{Listener, Rule, RuleContext, trim_node_range};
-use crate::utils::{get_constrained_type_at_location, quote_single_string_literal};
+use crate::utils::{get_constrained_type_at_location, get_type_name, quote_single_string_literal};
 
 pub struct PreferIncludes;
 
 fn build_prefer_includes_message() -> RuleMessage {
     RuleMessage {
         id: "preferIncludes".into(),
+        description: "Use 'includes()' method instead.".into(),
+        ..Default::default()
+    }
+}
+
+fn build_prefer_includes_suggestion_message() -> RuleMessage {
+    RuleMessage {
+        id: "preferIncludesSuggestion".into(),
         description: "Use 'includes()' method instead.".into(),
         ..Default::default()
     }
@@ -336,7 +344,8 @@ impl PreferIncludes {
         if expression.kind() != Kind::PropertyAccessExpression {
             return;
         }
-        let name = expression.as_property_access_expression().name();
+        let property = expression.as_property_access_expression();
+        let name = property.name();
         if !ast::is_identifier(name) || name.text() != "indexOf" {
             return;
         }
@@ -352,7 +361,7 @@ impl PreferIncludes {
             return;
         }
         let file = context.source_file;
-        context.report_node_with_fixes(node, build_prefer_includes_message(), || {
+        let build_fixes = || {
             let mut fixes = vec![
                 Fix { range: trim_node_range(file, name), text: "includes".into() },
                 Fix {
@@ -368,7 +377,19 @@ impl PreferIncludes {
                 fixes.push(Fix { range: Range { pos: start, end: start }, text: "!".into() });
             }
             fixes
-        });
+        };
+        let receiver_type = context.checker.get_type_at_location(property.expression);
+        let use_auto_fix = get_type_name(context.checker, receiver_type) == "string";
+        if use_auto_fix {
+            context.report_node_with_fixes(node, build_prefer_includes_message(), build_fixes);
+        } else {
+            context.report_node_with_suggestions(node, build_prefer_includes_message(), || {
+                vec![Suggestion {
+                    message: build_prefer_includes_suggestion_message(),
+                    fixes: build_fixes(),
+                }]
+            });
+        }
     }
 }
 

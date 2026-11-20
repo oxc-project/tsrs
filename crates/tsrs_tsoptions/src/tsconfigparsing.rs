@@ -194,8 +194,11 @@ impl ConfigFileSpecs {
         );
         if let Some(result) =
             self.validated_files_spec.iter().enumerate().find_map(|(index, spec)| {
+                // Go keys `fileSpecByPath` with `tspath.ToRootedFilePath`.
+                let spec_file_name =
+                    tspath::to_rooted_path(spec, &compare_paths_options.current_directory);
                 if tspath::to_path(
-                    spec,
+                    &spec_file_name,
                     &compare_paths_options.current_directory,
                     compare_paths_options.use_case_sensitive_file_names,
                 ) == file_path

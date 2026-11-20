@@ -9,6 +9,7 @@ mod api_test;
 mod base_type_cycle_entry;
 mod broken_pipe;
 mod build_free_programs;
+mod build_project_path_trailing_slash;
 mod buildinfo_name_config_drive_stem;
 mod buildinfo_root_empty_array_omitted;
 mod buildinfo_tuple_array_length;

@@ -24,9 +24,9 @@ impl ParsedBuildCommandLine {
             self.projects
                 .iter()
                 .map(|project| {
-                    resolve_config_file_name_of_project_reference(&tspath::resolve_path(
+                    resolve_config_file_name_of_project_reference(&tspath::resolve_file(
                         &self.compare_paths_options.current_directory,
-                        &[project],
+                        project,
                     ))
                 })
                 .collect()

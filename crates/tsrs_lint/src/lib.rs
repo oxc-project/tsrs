@@ -44,6 +44,7 @@ mod rules {
     pub mod no_unsafe_argument;
     pub mod no_unsafe_assignment;
     pub mod no_unsafe_call;
+    pub mod no_unsafe_class_instance_assignment;
     pub mod no_unsafe_enum_assignment;
     pub mod no_unsafe_enum_comparison;
     pub mod no_unsafe_member_access;

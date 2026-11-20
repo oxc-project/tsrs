@@ -34,6 +34,7 @@ pub const BASELINE_RULES: &[&str] = &[
     "no-unsafe-argument",
     "no-unsafe-assignment",
     "no-unsafe-call",
+    "no-unsafe-class-instance-assignment",
     "no-unsafe-enum-assignment",
     "no-unsafe-enum-comparison",
     "no-unsafe-member-access",
@@ -100,6 +101,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-unsafe-argument"
             | "no-unsafe-assignment"
             | "no-unsafe-call"
+            | "no-unsafe-class-instance-assignment"
             | "no-unsafe-enum-assignment"
             | "no-unsafe-enum-comparison"
             | "no-unsafe-member-access"
@@ -213,6 +215,9 @@ pub fn create_rule(
         "no-unsafe-argument" => Ok(Box::new(crate::rules::no_unsafe_argument::NoUnsafeArgument)),
         "no-unsafe-assignment" => Ok(Box::new(crate::rules::no_unsafe_assignment::NoUnsafeAssignment)),
         "no-unsafe-call" => Ok(Box::new(crate::rules::no_unsafe_call::NoUnsafeCall)),
+        "no-unsafe-class-instance-assignment" => Ok(Box::new(
+            crate::rules::no_unsafe_class_instance_assignment::NoUnsafeClassInstanceAssignment,
+        )),
         "no-unsafe-enum-assignment" => Ok(Box::new(crate::rules::no_unsafe_enum_assignment::NoUnsafeEnumAssignment::default())),
         "no-unsafe-enum-comparison" => Ok(Box::new(crate::rules::no_unsafe_enum_comparison::NoUnsafeEnumComparison)),
         "no-unsafe-member-access" => Ok(Box::new(crate::rules::no_unsafe_member_access::NoUnsafeMemberAccess::new(&config.options)?)),

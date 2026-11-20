@@ -1,0 +1,8 @@
+tsgolint 71c8fc2140e34d1c764cd0bd27dd90d29da31dce
+typescript-go 2bd066d87f5bafd315be9f40889d0a60b9e58e0b
+
+Scoped rule addition for 71c8fc2140e34d1c764cd0bd27dd90d29da31dce (#1372).
+All seven compiler patches; Go 1.26.10; @types/node 24.13.2; undici-types 7.18.2.
+Exported with tools/tsgolint/export.mts --reference 71c8fc2140e34d1c764cd0bd27dd90d29da31dce
+in a disposable checkout. The shared corpus REFERENCE, fixtures and other rules retain
+their existing provenance.

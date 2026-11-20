@@ -1,8 +1,7 @@
-Expected records from tsgolint v7.0.2005 4ebf80fd2b166cba4890c6896220fec4a1462b29,
-compiler 2bd066d87f5bafd315be9f40889d0a60b9e58e0b with all six shipped patches; Go 1.27.1.
-Binary SHA-256: 5dbb48dc8fbc66c580e0e56f9b8091536ccf4f0b46a37a3e6ffeec92a5fe5a7e
-Original integration source preserved; all 61 current baseline rules run together.
+Expected records from tsgolint 71c8fc2140e34d1c764cd0bd27dd90d29da31dce (#1372),
+compiler 2bd066d87f5bafd315be9f40889d0a60b9e58e0b with all seven shipped patches; Go 1.26.10.
+Binary SHA-256: cc7254a99c8c59482735047456eec33e168a975e322ee8ab09779b292277d61c
+Original integration source preserved; all 62 current baseline rules run together.
 Strict ESNext/CommonJS, esnext+dom libs, no ambient types, include *.ts.
 Physical fixture tree with matching overrides. Complete diagnostic multisets verified
-independently for all four fix-flag combinations.
-prefer-includes records from tsgolint c0c11eaa08cb3995f5b7d4e95cf7ac15ebc05805.
+independently for all four fix-flag combinations; expected records are unchanged.

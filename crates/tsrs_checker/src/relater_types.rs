@@ -184,17 +184,31 @@ pub struct ErrorChain {
     pub(crate) args: Vec<String>,
 }
 
-/// An entry of a relater's source or target stack: the type, and the recursion identity of its recursion identity
-/// target once a deeply-nested test has computed it (`is_deeply_nested_on_stack`; 0 before).
+/// An entry of a relater's or an inference state's source or target stack.
+///
+/// Besides the type, it keeps the recursion identity of the type's recursion identity target once a deeply-nested
+/// test has computed it (`is_deeply_nested_on_stack`; 0 before) and, when that target is an intersection, the
+/// `IntersectionRecursionIds::bloom` of its constituents once a test has looked them up (0 before).
 pub struct RelaterStackEntry {
     pub(crate) t: P<Type>,
     pub(crate) identity_key: Cell<u64>,
+    pub(crate) bloom: Cell<u64>,
 }
 
 impl RelaterStackEntry {
     pub(crate) fn new(t: P<Type>) -> RelaterStackEntry {
-        RelaterStackEntry { t, identity_key: Cell::new(0) }
+        RelaterStackEntry { t, identity_key: Cell::new(0), bloom: Cell::new(0) }
     }
+}
+
+/// The recursion identities of an intersection recursion identity target's constituents, with a Bloom filter.
+///
+/// `keys` are the `recursion_key`s of the constituents' identities (nested intersections' included); `bloom` is
+/// the union of their `recursion_bloom_bits`, so a key whose bits are not all set is not among them.
+#[derive(Clone, Copy)]
+pub struct IntersectionRecursionIds {
+    pub(crate) bloom: u64,
+    pub(crate) keys: &'static [u64],
 }
 
 /// Go `Relater`. An arena handle (`P<Relater>`, pooled through `Checker::free_relater` like Go); the `c` field is

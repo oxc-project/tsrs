@@ -1649,6 +1649,17 @@ impl Checker {
                         e.t.id.0
                     );
                 }
+                let bloom = e.bloom.get();
+                if bloom != 0 {
+                    let target = get_recursion_identity_target(self, e.t);
+                    let keys = intersection_recursion_ids(self, target).keys;
+                    let fresh = keys.iter().fold(0, |b, &k| b | recursion_bloom_bits(k));
+                    assert!(
+                        bloom == fresh,
+                        "TSRS_DEEP_NESTED=shadow: the kept recursion Bloom filter of type {} changed",
+                        e.t.id.0
+                    );
+                }
             }
         }
         result
@@ -1675,6 +1686,9 @@ impl Checker {
         }
         let identity = get_recursion_identity_from_target(target);
         let key = recursion_key(identity);
+        // The key's filter bits, computed at the first intersection entry met (most scans meet none; the bits are
+        // never 0).
+        let mut key_bits = 0;
         if let Some(top) = top {
             top.identity_key.set(key);
         }
@@ -1692,12 +1706,15 @@ impl Checker {
                 e.identity_key.set(entry_key);
             }
             let matches = if entry_key & RECURSION_KEY_TAG == RECURSION_KEY_INTERSECTION {
-                // SAFETY: the low bits are `pack` of the entry's recursion identity target, a live type.
-                intersection_has_matching_recursion_identity(
-                    self,
-                    unsafe { P::unpack(entry_key) },
-                    identity,
-                )
+                // The entry's kept Bloom filter answers most tests without the constituent list: a key with a
+                // bit the filter lacks is not among the constituents' keys. The first test on the entry (filter
+                // 0) looks the list up, as before, and keeps its filter.
+                if key_bits == 0 {
+                    key_bits = recursion_bloom_bits(key);
+                }
+                let bloom = e.bloom.get();
+                (bloom == 0 || bloom & key_bits == key_bits)
+                    && intersection_entry_has_recursion_key(self, e, entry_key, key)
             } else {
                 entry_key == key
             };
@@ -1732,6 +1749,28 @@ fn recursion_key(identity: RecursionId) -> u64 {
     }
 }
 
+/// The two bits a `recursion_key` sets in an `IntersectionRecursionIds::bloom` filter.
+#[inline]
+fn recursion_bloom_bits(key: u64) -> u64 {
+    let h = key.wrapping_mul(0x9e37_79b9_7f4a_7c15);
+    (1 << (h >> 58)) | (1 << ((h >> 52) & 63))
+}
+
+/// Whether `key` is a constituent recursion key of a stack entry whose recursion identity target is the
+/// intersection packed in `entry_key`, keeping the intersection's Bloom filter on the entry.
+#[inline(never)]
+fn intersection_entry_has_recursion_key(
+    c: &mut Checker,
+    e: &RelaterStackEntry,
+    entry_key: u64,
+    key: u64,
+) -> bool {
+    // SAFETY: the low bits are `pack` of the entry's recursion identity target, a live type.
+    let ids = intersection_recursion_ids(c, unsafe { P::unpack(entry_key) });
+    e.bloom.set(ids.bloom);
+    ids.keys.contains(&key)
+}
+
 // relater.go:797
 #[expect(
     clippy::inline_always,
@@ -1753,26 +1792,27 @@ fn intersection_has_matching_recursion_identity(
     target: P<Type>,
     identity: RecursionId,
 ) -> bool {
-    intersection_recursion_keys(c, target).contains(&recursion_key(identity))
+    intersection_recursion_ids(c, target).keys.contains(&recursion_key(identity))
 }
 
 /// The `recursion_key`s of the identities of an intersection recursion identity target's constituents (nested
-/// intersections' included). tsrs: kept per intersection; the deeply-nested tests ask about them again and again, and
-/// they never change.
-fn intersection_recursion_keys(c: &mut Checker, target: P<Type>) -> &'static [u64] {
-    if let Some(&keys) = c.intersection_recursion_ids.get(&target) {
-        return keys;
+/// intersections' included) and their Bloom filter. tsrs: kept per intersection; the deeply-nested tests ask about
+/// them again and again, and they never change.
+fn intersection_recursion_ids(c: &mut Checker, target: P<Type>) -> IntersectionRecursionIds {
+    if let Some(&ids) = c.intersection_recursion_ids.get(&target) {
+        return ids;
     }
-    create_intersection_recursion_keys(c, target)
+    create_intersection_recursion_ids(c, target)
 }
 
 #[inline(never)]
-fn create_intersection_recursion_keys(c: &mut Checker, target: P<Type>) -> &'static [u64] {
+fn create_intersection_recursion_ids(c: &mut Checker, target: P<Type>) -> IntersectionRecursionIds {
     let mut keys = Vec::new();
     collect_intersection_recursion_keys(c, target, &mut keys);
-    let keys = alloc_slice(&keys);
-    c.intersection_recursion_ids.insert(target, keys);
-    keys
+    let bloom = keys.iter().fold(0, |b, &k| b | recursion_bloom_bits(k));
+    let ids = IntersectionRecursionIds { bloom, keys: alloc_slice(&keys) };
+    c.intersection_recursion_ids.insert(target, ids);
+    ids
 }
 
 fn collect_intersection_recursion_keys(c: &mut Checker, target: P<Type>, keys: &mut Vec<u64>) {

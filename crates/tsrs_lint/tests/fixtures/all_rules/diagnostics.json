@@ -459,23 +459,7 @@
         "id": "preferIncludes",
         "description": "Use 'includes()' method instead."
       },
-      "rule": "prefer-includes",
-      "fixes": [
-        {
-          "text": "includes",
-          "range": {
-            "pos": 414,
-            "end": 421
-          }
-        },
-        {
-          "text": "",
-          "range": {
-            "pos": 424,
-            "end": 429
-          }
-        }
-      ]
+      "rule": "prefer-includes"
     },
     {
       "kind": 0,
@@ -895,7 +879,31 @@
         "id": "preferIncludes",
         "description": "Use 'includes()' method instead."
       },
-      "rule": "prefer-includes"
+      "rule": "prefer-includes",
+      "suggestions": [
+        {
+          "message": {
+            "id": "preferIncludesSuggestion",
+            "description": "Use 'includes()' method instead."
+          },
+          "fixes": [
+            {
+              "text": "includes",
+              "range": {
+                "pos": 414,
+                "end": 421
+              }
+            },
+            {
+              "text": "",
+              "range": {
+                "pos": 424,
+                "end": 429
+              }
+            }
+          ]
+        }
+      ]
     },
     {
       "kind": 0,
@@ -1375,20 +1383,28 @@
         "description": "Use 'includes()' method instead."
       },
       "rule": "prefer-includes",
-      "fixes": [
+      "suggestions": [
         {
-          "text": "includes",
-          "range": {
-            "pos": 414,
-            "end": 421
-          }
-        },
-        {
-          "text": "",
-          "range": {
-            "pos": 424,
-            "end": 429
-          }
+          "message": {
+            "id": "preferIncludesSuggestion",
+            "description": "Use 'includes()' method instead."
+          },
+          "fixes": [
+            {
+              "text": "includes",
+              "range": {
+                "pos": 414,
+                "end": 421
+              }
+            },
+            {
+              "text": "",
+              "range": {
+                "pos": 424,
+                "end": 429
+              }
+            }
+          ]
         }
       ]
     },

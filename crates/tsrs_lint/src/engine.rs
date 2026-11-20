@@ -575,26 +575,15 @@ fn run_program(
     }
     let lint_files: Vec<P<SourceFile>> = work.iter().map(|&(file, _)| file).collect();
     let outputs: Vec<Mutex<Vec<u8>>> = work.iter().map(|_| Mutex::new(Vec::new())).collect();
+    let semantic: Vec<Mutex<Vec<P<TsDiagnostic>>>> =
+        work.iter().map(|_| Mutex::new(Vec::new())).collect();
     let errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
     let pool_timings: Mutex<BTreeMap<String, (u64, u64)>> = Mutex::new(BTreeMap::new());
-    // Every file is type-checked before any rule runs: a rule's type query could otherwise hit an error before the
-    // checking `tsrs --noEmit` does, and record it without a location (a global diagnostic) instead.
-    for rules in [false, true] {
+    let for_each_file = |visit: &FileVisitor| -> Result<(), String> {
         let pooled = program.for_each_checker_group(&lint_files, |checker, index, file| {
             let mut output = Vec::new();
             let mut file_timings = BTreeMap::new();
-            let result = lint_one(
-                program,
-                file,
-                if rules { work[index].1 } else { &[] },
-                !rules,
-                payload,
-                options,
-                checker,
-                &mut output,
-                &mut file_timings,
-            );
-            if let Err(error) = result {
+            if let Err(error) = visit(checker, index, file, &mut output, &mut file_timings) {
                 errors.lock().unwrap().push(error);
             }
             outputs[index].lock().unwrap().extend(output);
@@ -602,53 +591,80 @@ fn run_program(
                 merge_timings(&mut pool_timings.lock().unwrap(), file_timings);
             }
         });
-        if !pooled {
-            return Err("the program has no checker pool".into());
+        if pooled { Ok(()) } else { Err("the program has no checker pool".into()) }
+    };
+    let declarations = payload.report_semantic && program.options().get_emit_declarations();
+    // Every file is type-checked before any rule runs: a rule's type query could otherwise hit an error before the
+    // checking `tsrs --noEmit` does, and record it without a location (a global diagnostic) instead.
+    for_each_file(&|checker, index, file, output, _| {
+        let context = Context::default();
+        if payload.report_syntactic {
+            for diagnostic in program.get_syntactic_diagnostics(&context, Some(file)) {
+                report_type_error(diagnostic, file, output)?;
+            }
+        }
+        if payload.report_semantic {
+            let diagnostics =
+                program.get_semantic_diagnostics_with_checker(&context, checker, file);
+            if declarations {
+                *semantic[index].lock().unwrap() = diagnostics;
+            } else {
+                report_type_errors(&diagnostics, file, output)?;
+            }
+        }
+        Ok(())
+    })?;
+    // As in tsgolint, declaration diagnostics are collected once every listed file is checked.
+    if declarations {
+        for_each_file(&|checker, index, file, output, _| {
+            let mut diagnostics = std::mem::take(&mut *semantic[index].lock().unwrap());
+            diagnostics.extend(program.get_declaration_diagnostics_with_checker(
+                &Context::default(),
+                checker,
+                file,
+            ));
+            report_type_errors(&diagnostics, file, output)
+        })?;
+    }
+    let mut global_output = Vec::new();
+    if payload.report_semantic {
+        let config_file_path = &program.options().config_file_path;
+        for diagnostic in program.get_global_diagnostics(&Context::default()) {
+            report_global_error(diagnostic, config_file_path, &mut global_output)?;
         }
     }
+    for_each_file(&|checker, index, file, output, file_timings| {
+        let configured = work[index].1;
+        // Rules see a content-mapped file's virtual text, whose ranges and fixes do not apply to the file on disk.
+        // oxlint does not send such files.
+        if configured.is_empty() || file.is_content_mapped() {
+            return Ok(());
+        }
+        for diagnostic in lint_file(program, file, configured, options, checker, file_timings)? {
+            emit(&diagnostic, output)?;
+        }
+        Ok(())
+    })?;
     if let Some(error) = errors.into_inner().unwrap().into_iter().next() {
         return Err(error);
     }
     for output in outputs {
         writer.write_all(&output.into_inner().unwrap()).map_err(|error| error.to_string())?;
     }
+    writer.write_all(&global_output).map_err(|error| error.to_string())?;
     merge_timings(timings, pool_timings.into_inner().unwrap());
     Ok(())
 }
 
-fn lint_one(
-    program: &'static Program,
-    file: P<SourceFile>,
-    configured: &[ConfiguredRule],
-    check: bool,
-    payload: &Payload,
-    options: Options,
-    checker: &mut tsrs_checker::Checker,
-    output: &mut Vec<u8>,
-    timings: &mut BTreeMap<String, (u64, u64)>,
-) -> Result<(), String> {
-    let context = Context::default();
-    if check && payload.report_syntactic {
-        for diagnostic in program.get_syntactic_diagnostics(&context, Some(file)) {
-            report_type_error(diagnostic, file, output)?;
-        }
-    }
-    if check && payload.report_semantic {
-        let diagnostics = program.get_semantic_diagnostics_with_checker(&context, checker, file);
-        for diagnostic in tsrs_compiler::sort_and_deduplicate_diagnostics(&diagnostics) {
-            report_type_error(diagnostic, file, output)?;
-        }
-    }
-    // Rules see a content-mapped file's virtual text, whose ranges and fixes do not apply to the file on disk.
-    // oxlint does not send such files.
-    if configured.is_empty() || file.is_content_mapped() {
-        return Ok(());
-    }
-    for diagnostic in lint_file(program, file, configured, options, checker, timings)? {
-        emit(&diagnostic, output)?;
-    }
-    Ok(())
-}
+type FileVisitor<'a> = dyn Fn(
+        &mut tsrs_checker::Checker,
+        usize,
+        P<SourceFile>,
+        &mut Vec<u8>,
+        &mut BTreeMap<String, (u64, u64)>,
+    ) -> Result<(), String>
+    + Sync
+    + 'a;
 
 fn merge_timings(into: &mut BTreeMap<String, (u64, u64)>, from: BTreeMap<String, (u64, u64)>) {
     for (name, (duration, calls)) in from {
@@ -728,6 +744,17 @@ fn is_suggestion(diagnostic: P<TsDiagnostic>) -> bool {
     diagnostic.category() == tsrs_diagnostics::Category::Suggestion
 }
 
+fn report_type_errors(
+    diagnostics: &[P<TsDiagnostic>],
+    file: P<SourceFile>,
+    writer: &mut dyn Write,
+) -> Result<(), String> {
+    for diagnostic in tsrs_compiler::sort_and_deduplicate_diagnostics(diagnostics) {
+        report_type_error(diagnostic, file, writer)?;
+    }
+    Ok(())
+}
+
 fn report_type_error(
     diagnostic: P<TsDiagnostic>,
     file: P<SourceFile>,
@@ -747,6 +774,29 @@ fn report_type_error(
                 help: String::new(),
             },
             file_path: Some(file.file_name().into()),
+            ..Default::default()
+        },
+        writer,
+    )
+}
+
+// Global diagnostics have no file, so tsgolint reports them against the program's tsconfig, without a range.
+fn report_global_error(
+    diagnostic: P<TsDiagnostic>,
+    config_file_path: &str,
+    writer: &mut dyn Write,
+) -> Result<(), String> {
+    if is_suggestion(diagnostic) {
+        return Ok(());
+    }
+    emit(
+        &Diagnostic {
+            message: RuleMessage {
+                id: format!("TS{}", diagnostic.code()),
+                description: message_text(diagnostic)?,
+                help: String::new(),
+            },
+            file_path: (!config_file_path.is_empty()).then(|| config_file_path.to_owned()),
             ..Default::default()
         },
         writer,

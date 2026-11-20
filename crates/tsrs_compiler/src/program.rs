@@ -2615,6 +2615,22 @@ impl Program {
         filter_and_sort_diagnostics(&result)
     }
 
+    // tsgolint patches/0007 GetDeclarationDiagnosticsForFiles: one file's `GetDeclarationDiagnostics`, with the
+    // checker that owns it.
+    /// Collects a file's declaration diagnostics using an exclusively borrowed checker for this program.
+    pub fn get_declaration_diagnostics_with_checker(
+        &'static self,
+        ctx: &Context,
+        c: &mut Checker,
+        source_file: P<SourceFile>,
+    ) -> Vec<P<Diagnostic>> {
+        filter_and_sort_diagnostics(&self.get_declaration_diagnostics_for_file(
+            ctx,
+            Some(c),
+            source_file,
+        ))
+    }
+
     // program.go:1626. `c` is the file's checker when the caller already holds it (Go `newEmitHost` takes it from
     // the pool); with `None` it is taken here.
     fn get_declaration_diagnostics_for_file(

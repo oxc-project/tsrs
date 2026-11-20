@@ -1,0 +1,20 @@
+a.ts(9,17): error TS2344: Type 'T' does not satisfy the constraint 'string'.
+a.ts(15,44): error TS2344: Type 'T' does not satisfy the constraint 'string'.
+  Type 'T' is not assignable to type 'string'.
+a.ts(33,71): error TS2344: Type 'K' does not satisfy the constraint 'Num'.
+  Type 'keyof T' is not assignable to type 'Num'.
+    Type 'string | number | symbol' is not assignable to type 'Num'.
+      Type 'string' is not assignable to type 'Num'.
+a.ts(36,70): error TS2344: Type 'K' does not satisfy the constraint 'Num'.
+  Type 'keyof T' is not assignable to type 'Num'.
+    Type 'string | number | symbol' is not assignable to type 'Num'.
+      Type 'string' is not assignable to type 'Num'.
+a.ts(42,30): error TS2344: Type 'T' does not satisfy the constraint 'string'.
+a.ts(46,43): error TS2344: Type 'T' does not satisfy the constraint 'string'.
+a.ts(46,52): error TS2454: Variable 'v' is used before being assigned.
+a.ts(49,7): error TS2322: Type '1' is not assignable to type '"AB"'.
+a.ts(50,7): error TS2322: Type '1' is not assignable to type '"AB" | "xy"'.
+a.ts(51,7): error TS2322: Type 'number' is not assignable to type '(x: "AB") => void'.
+a.ts(52,7): error TS2322: Type 'number' is not assignable to type '["0", "1"]'.
+a.ts(53,7): error TS2322: Type 'number' is not assignable to type '["0"]'.
+a.ts(54,7): error TS2322: Type '1' is not assignable to type '"AB"'.

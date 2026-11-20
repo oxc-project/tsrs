@@ -119,8 +119,14 @@ impl ResolutionCandidate {
 // The candidate is normalized, so a relative name such as `../../node_modules/foo/index.d.ts` does not keep `..`
 // segments. The dts faking host relies on it.
 fn resolution_candidate_from_directory_path(directory: &str, path: &str) -> ResolutionCandidate {
-    let resolve =
-        |encoded: &str| tspath::normalize_path(&tspath::combine_paths(directory, &[encoded]));
+    // Go `ResolveFile` and `ResolveDirectory` keep the root separator, as in `resolve_path_for_module`: the name `C:`
+    // gives `C:/`, not `C:`, whose file probe `C:.d.ts` is not an absolute path.
+    let resolve = |encoded: &str| {
+        tspath::ensure_rooted_path_root_separator(tspath::normalize_path(&tspath::combine_paths(
+            directory,
+            &[encoded],
+        )))
+    };
     let file_path = path_for_dynamic_resolution(directory, path, false);
     let directory_path = path_for_dynamic_resolution(directory, path, true);
     if tspath::has_trailing_directory_separator(path) {

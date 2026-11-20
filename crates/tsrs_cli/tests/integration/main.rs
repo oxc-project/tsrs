@@ -27,6 +27,7 @@ mod lsp_edit_resolutions;
 mod merged_interface_check_site;
 mod npm_lib_path;
 mod process_ending_index_directory;
+mod program_path_case_sensitivity;
 mod recycle_checkers;
 mod server_signals;
 mod split_check;

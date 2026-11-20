@@ -47,7 +47,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | non-nullable-type-assertion-style | Updated to Go HEAD | 26 current cases; UTF-8 suggestion ranges, independent flags, ignored options, assertion precedence and generic constraints |
 | only-throw-error | Updated to Go HEAD | 112 current cases; UTF-8 ranges, per-file options, null defaults, invalid options, rethrow boundaries and independent flags |
 | prefer-find | Updated to Go HEAD | 47 current cases; constant/coercion evaluation, constrained array unions/intersections, conditional/comma suggestions, UTF-8 comment ranges and independent suggestion flags |
-| prefer-includes | Updated to Go HEAD | 65 current cases; parameter-text compatibility, regexp patterns, UTF-8 ranges, ignored options and independent fix flags |
+| prefer-includes | Updated to c0c11eaa | 81 current cases; parameter-text compatibility, regexp patterns, UTF-8 ranges, ignored options and independent fix flags |
 | prefer-optional-chain | Updated to Go HEAD | 1178 current cases at tsgolint `6b043c5f3dd19e3a162b7f0edf587a9ae83bfe81`; structural chains, nullish guards, comment-preserving fixes, UTF-8 ranges, per-file options/state and independent fix/suggestion flags; 3 direct JSX-context controls and 5 callback cases from upstream #1335 |
 | prefer-nullish-coalescing | Updated to Go HEAD | 184 current cases, 2 upstream skips; UTF-8 suggestion ranges, independent flags, per-file options, Boolean shadowing, raw generic types and strictness diagnostics |
 | prefer-promise-reject-errors | Updated to Go HEAD | 161 current cases, 1 upstream skips; UTF-8 call ranges, per-file options, null defaults, invalid options, computed accesses, executor boundaries, readonly constraints and independent flags |

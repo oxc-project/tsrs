@@ -702,9 +702,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a?: string): void {\n          !a?.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -712,68 +710,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
-            }
-          ],
-          "TSConfig": "",
-          "Options": null,
-          "Tsx": false,
-          "Files": {},
-          "Diagnostics": [
-            {
-              "message": {
-                "id": "preferIncludes",
-                "description": "Use 'includes()' method instead."
-              },
-              "file_path": "file.ts",
-              "range": {
-                "end": 70,
-                "pos": 50
-              },
-              "fixes": [
+              "Suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 53,
-                    "end": 60
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 63,
-                    "end": 70
-                  }
-                },
-                {
-                  "text": "!",
-                  "range": {
-                    "pos": 50,
-                    "end": 50
-                  }
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a?: string): void {\n          !a?.includes(b);\n        }\n      "
                 }
-              ],
-              "kind": 0,
-              "rule": "prefer-includes"
-            }
-          ]
-        },
-        {
-          "Code": "\n        function f(a?: string): void {\n          a?.indexOf(b) !== -1;\n        }\n      ",
-          "Only": false,
-          "Skip": false,
-          "FileName": "",
-          "Output": [
-            "\n        function f(a?: string): void {\n          a?.includes(b);\n        }\n      "
-          ],
-          "Errors": [
-            {
-              "MessageId": "preferIncludes",
-              "Line": 0,
-              "Column": 0,
-              "EndLine": 0,
-              "EndColumn": 0,
-              "Suggestions": []
+              ]
             }
           ],
           "TSConfig": "",
@@ -793,20 +735,100 @@
                 "pos": 50,
                 "end": 70
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "end": 60,
-                    "pos": 53
-                  }
-                },
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 53,
+                        "end": 60
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 63,
+                        "end": 70
+                      }
+                    },
+                    {
+                      "text": "!",
+                      "range": {
+                        "pos": 50,
+                        "end": 50
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a?: string): void {\n          a?.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
                 {
-                  "text": "",
-                  "range": {
-                    "pos": 63,
-                    "end": 70
-                  }
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a?: string): void {\n          a?.includes(b);\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 70
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 53,
+                        "end": 60
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 63,
+                        "end": 70
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -1136,9 +1158,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: any[]): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1146,7 +1166,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: any[]): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1155,6 +1180,7 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
               "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
@@ -1165,23 +1191,30 @@
                 "pos": 48,
                 "end": 67
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 50,
-                    "end": 57
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 60,
-                    "end": 67
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 50,
+                        "end": 57
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 60,
+                        "end": 67
+                      }
+                    }
+                  ]
                 }
-              ],
-              "kind": 0
+              ]
             }
           ]
         },
@@ -1190,9 +1223,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: ReadonlyArray<any>): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1200,7 +1231,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: ReadonlyArray<any>): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1209,6 +1245,8 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
+              "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
@@ -1218,24 +1256,30 @@
                 "pos": 61,
                 "end": 80
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 63,
-                    "end": 70
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 73,
-                    "end": 80
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 63,
+                        "end": 70
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 73,
+                        "end": 80
+                      }
+                    }
+                  ]
                 }
-              ],
-              "kind": 0,
-              "rule": "prefer-includes"
+              ]
             }
           ]
         },
@@ -1244,9 +1288,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: Int8Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1254,7 +1296,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: Int8Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1263,33 +1310,41 @@
           "Files": {},
           "Diagnostics": [
             {
-              "file_path": "file.ts",
-              "range": {
-                "pos": 52,
-                "end": 71
-              },
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "end": 61,
-                    "pos": 54
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 64,
-                    "end": 71
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
-              }
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 52,
+                "end": 71
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 54,
+                        "end": 61
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 64,
+                        "end": 71
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1298,9 +1353,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: Int16Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1308,7 +1361,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: Int16Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1328,20 +1386,28 @@
                 "pos": 53,
                 "end": 72
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 55,
-                    "end": 62
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 65,
-                    "end": 72
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 55,
+                        "end": 62
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 65,
+                        "end": 72
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -1352,9 +1418,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: Int32Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1362,7 +1426,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: Int32Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1371,33 +1440,41 @@
           "Files": {},
           "Diagnostics": [
             {
-              "file_path": "file.ts",
-              "range": {
-                "pos": 53,
-                "end": 72
-              },
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 55,
-                    "end": 62
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 65,
-                    "end": 72
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
-              }
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 72
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 55,
+                        "end": 62
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 65,
+                        "end": 72
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1406,9 +1483,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: Uint8Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1416,7 +1491,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: Uint8Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1425,33 +1505,41 @@
           "Files": {},
           "Diagnostics": [
             {
-              "file_path": "file.ts",
-              "range": {
-                "pos": 53,
-                "end": 72
-              },
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 55,
-                    "end": 62
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 65,
-                    "end": 72
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
-              }
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 72
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 55,
+                        "end": 62
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 65,
+                        "end": 72
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1460,9 +1548,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: Uint16Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1470,7 +1556,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: Uint16Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1479,33 +1570,41 @@
           "Files": {},
           "Diagnostics": [
             {
-              "file_path": "file.ts",
-              "range": {
-                "pos": 54,
-                "end": 73
-              },
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 56,
-                    "end": 63
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 66,
-                    "end": 73
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
-              }
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 73
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 56,
+                        "end": 63
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 66,
+                        "end": 73
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1514,9 +1613,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: Uint32Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1524,7 +1621,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: Uint32Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1533,33 +1635,41 @@
           "Files": {},
           "Diagnostics": [
             {
-              "file_path": "file.ts",
-              "range": {
-                "pos": 54,
-                "end": 73
-              },
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 56,
-                    "end": 63
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 66,
-                    "end": 73
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
-              }
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 73
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 56,
+                        "end": 63
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 66,
+                        "end": 73
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1568,9 +1678,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: Float32Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1578,7 +1686,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: Float32Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1587,33 +1700,41 @@
           "Files": {},
           "Diagnostics": [
             {
-              "file_path": "file.ts",
-              "range": {
-                "pos": 55,
-                "end": 74
-              },
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "end": 64,
-                    "pos": 57
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 67,
-                    "end": 74
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
-              }
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 55,
+                "end": 74
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 57,
+                        "end": 64
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 67,
+                        "end": 74
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1622,9 +1743,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: Float64Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1632,7 +1751,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: Float64Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1649,23 +1773,31 @@
               },
               "file_path": "file.ts",
               "range": {
-                "end": 74,
-                "pos": 55
+                "pos": 55,
+                "end": 74
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 57,
-                    "end": 64
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 67,
-                    "end": 74
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 57,
+                        "end": 64
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 67,
+                        "end": 74
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -1676,9 +1808,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1686,7 +1816,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1695,22 +1830,6 @@
           "Files": {},
           "Diagnostics": [
             {
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 70,
-                    "end": 77
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 80,
-                    "end": 87
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
@@ -1721,7 +1840,31 @@
               "range": {
                 "pos": 68,
                 "end": 87
-              }
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 70,
+                        "end": 77
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 80,
+                        "end": 87
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1730,9 +1873,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f<\n          T,\n          U extends\n            | T[]\n            | ReadonlyArray<T>\n            | Int8Array\n            | Uint8Array\n            | Int16Array\n            | Uint16Array\n            | Int32Array\n            | Uint32Array\n            | Float32Array\n            | Float64Array,\n        >(a: U): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1740,7 +1881,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f<\n          T,\n          U extends\n            | T[]\n            | ReadonlyArray<T>\n            | Int8Array\n            | Uint8Array\n            | Int16Array\n            | Uint16Array\n            | Int32Array\n            | Uint32Array\n            | Float32Array\n            | Float64Array,\n        >(a: U): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1749,22 +1895,6 @@
           "Files": {},
           "Diagnostics": [
             {
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 345,
-                    "end": 352
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 355,
-                    "end": 362
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
@@ -1775,7 +1905,31 @@
               "range": {
                 "pos": 343,
                 "end": 362
-              }
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 345,
+                        "end": 352
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 355,
+                        "end": 362
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1784,9 +1938,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1794,7 +1946,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1803,6 +1960,8 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
+              "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
@@ -1812,24 +1971,30 @@
                 "pos": 166,
                 "end": 185
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 168,
-                    "end": 175
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 178,
-                    "end": 185
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 168,
+                        "end": 175
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 178,
+                        "end": 185
+                      }
+                    }
+                  ]
                 }
-              ],
-              "kind": 0,
-              "rule": "prefer-includes"
+              ]
             }
           ]
         },
@@ -1838,9 +2003,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        function f(a: Readonly<any[]>): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1848,7 +2011,12 @@
               "Column": 0,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        function f(a: Readonly<any[]>): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1857,33 +2025,41 @@
           "Files": {},
           "Diagnostics": [
             {
-              "file_path": "file.ts",
-              "range": {
-                "pos": 58,
-                "end": 77
-              },
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 60,
-                    "end": 67
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "end": 77,
-                    "pos": 70
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
-              }
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 77
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 60,
+                        "end": 67
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 70,
+                        "end": 77
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1892,9 +2068,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const b: any;\n        function f(a: any[]): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1902,7 +2076,12 @@
               "Column": 11,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        declare const b: any;\n        function f(a: any[]): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1911,22 +2090,6 @@
           "Files": {},
           "Diagnostics": [
             {
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 80,
-                    "end": 87
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "end": 97,
-                    "pos": 90
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
@@ -1937,7 +2100,31 @@
               "range": {
                 "pos": 78,
                 "end": 97
-              }
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 80,
+                        "end": 87
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 90,
+                        "end": 97
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1946,9 +2133,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const b: any;\n        function f(a: ReadonlyArray<any>): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -1956,7 +2141,12 @@
               "Column": 11,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        declare const b: any;\n        function f(a: ReadonlyArray<any>): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -1976,20 +2166,28 @@
                 "pos": 91,
                 "end": 110
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 93,
-                    "end": 100
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 103,
-                    "end": 110
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 93,
+                        "end": 100
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 103,
+                        "end": 110
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -2000,9 +2198,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const b: any;\n        function f(a: Int8Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -2010,7 +2206,12 @@
               "Column": 11,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        declare const b: any;\n        function f(a: Int8Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -2030,20 +2231,28 @@
                 "pos": 82,
                 "end": 101
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 84,
-                    "end": 91
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "end": 101,
-                    "pos": 94
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 84,
+                        "end": 91
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 94,
+                        "end": 101
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -2054,9 +2263,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const b: any;\n        function f(a: Uint32Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -2064,7 +2271,12 @@
               "Column": 11,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        declare const b: any;\n        function f(a: Uint32Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -2073,6 +2285,8 @@
           "Files": {},
           "Diagnostics": [
             {
+              "kind": 0,
+              "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
@@ -2082,24 +2296,30 @@
                 "pos": 84,
                 "end": 103
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 86,
-                    "end": 93
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 96,
-                    "end": 103
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 86,
+                        "end": 93
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 96,
+                        "end": 103
+                      }
+                    }
+                  ]
                 }
-              ],
-              "kind": 0,
-              "rule": "prefer-includes"
+              ]
             }
           ]
         },
@@ -2108,9 +2328,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const b: any;\n        function f(a: Float64Array): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -2118,7 +2336,12 @@
               "Column": 11,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        declare const b: any;\n        function f(a: Float64Array): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -2138,20 +2361,28 @@
                 "pos": 85,
                 "end": 104
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "pos": 87,
-                    "end": 94
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 97,
-                    "end": 104
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 87,
+                        "end": 94
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 97,
+                        "end": 104
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -2162,9 +2393,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const b: any;\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -2172,7 +2401,12 @@
               "Column": 11,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        declare const b: any;\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -2181,33 +2415,41 @@
           "Files": {},
           "Diagnostics": [
             {
-              "file_path": "file.ts",
-              "range": {
-                "pos": 98,
-                "end": 117
-              },
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 100,
-                    "end": 107
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 110,
-                    "end": 117
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
                 "id": "preferIncludes",
                 "description": "Use 'includes()' method instead."
-              }
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 98,
+                "end": 117
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 100,
+                        "end": 107
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 110,
+                        "end": 117
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -2216,9 +2458,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const b: any;\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -2226,7 +2466,12 @@
               "Column": 11,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        declare const b: any;\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -2246,20 +2491,28 @@
                 "pos": 196,
                 "end": 215
               },
-              "fixes": [
+              "suggestions": [
                 {
-                  "text": "includes",
-                  "range": {
-                    "end": 205,
-                    "pos": 198
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "end": 215,
-                    "pos": 208
-                  }
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 198,
+                        "end": 205
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 208,
+                        "end": 215
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -2270,9 +2523,7 @@
           "Only": false,
           "Skip": false,
           "FileName": "",
-          "Output": [
-            "\n        declare const b: any;\n        function f(a: Readonly<any[]>): void {\n          a.includes(b);\n        }\n      "
-          ],
+          "Output": [],
           "Errors": [
             {
               "MessageId": "preferIncludes",
@@ -2280,7 +2531,12 @@
               "Column": 11,
               "EndLine": 0,
               "EndColumn": 0,
-              "Suggestions": []
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        declare const b: any;\n        function f(a: Readonly<any[]>): void {\n          a.includes(b);\n        }\n      "
+                }
+              ]
             }
           ],
           "TSConfig": "",
@@ -2289,22 +2545,6 @@
           "Files": {},
           "Diagnostics": [
             {
-              "fixes": [
-                {
-                  "text": "includes",
-                  "range": {
-                    "pos": 90,
-                    "end": 97
-                  }
-                },
-                {
-                  "text": "",
-                  "range": {
-                    "pos": 100,
-                    "end": 107
-                  }
-                }
-              ],
               "kind": 0,
               "rule": "prefer-includes",
               "message": {
@@ -2315,7 +2555,31 @@
               "range": {
                 "pos": 88,
                 "end": 107
-              }
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 90,
+                        "end": 97
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 100,
+                        "end": 107
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -3586,6 +3850,256 @@
                 "pos": 62,
                 "end": 71
               }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const xs: number[] = [NaN];\n        xs.indexOf(NaN) !== -1;\n\n        const ys: (string | undefined)[] = [, 'a'];\n        ys.indexOf(undefined) !== -1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        const xs: number[] = [NaN];\n        xs.includes(NaN);\n\n        const ys: (string | undefined)[] = [, 'a'];\n        ys.indexOf(undefined) !== -1;\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "preferIncludes",
+              "Line": 6,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "preferIncludesSuggestion",
+                  "Output": "\n        const xs: number[] = [NaN];\n        xs.indexOf(NaN) !== -1;\n\n        const ys: (string | undefined)[] = [, 'a'];\n        ys.includes(undefined);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 67
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 48,
+                        "end": 55
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 60,
+                        "end": 67
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 130,
+                "end": 158
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "preferIncludesSuggestion",
+                    "description": "Use 'includes()' method instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "includes",
+                      "range": {
+                        "pos": 133,
+                        "end": 140
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 151,
+                        "end": 158
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        type Id = string & { __brand: 'Id' };\n        function f<T extends string>(a: 'foo' | 'bar', b: Id, c: T): void {\n          a.indexOf('o') !== -1;\n          b.indexOf('x') === -1;\n          c.indexOf('y') >= 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        type Id = string & { __brand: 'Id' };\n        function f<T extends string>(a: 'foo' | 'bar', b: Id, c: T): void {\n          a.includes('o');\n          !b.includes('x');\n          c.includes('y');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "preferIncludes",
+              "Line": 5,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "preferIncludes",
+              "Line": 6,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 133,
+                "end": 154
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 135,
+                    "end": 142
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 147,
+                    "end": 154
+                  }
+                }
+              ]
+            },
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 166,
+                "end": 187
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 168,
+                    "end": 175
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 180,
+                    "end": 187
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 166,
+                    "end": 166
+                  }
+                }
+              ]
+            },
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 199,
+                "end": 218
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 201,
+                    "end": 208
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 213,
+                    "end": 218
+                  }
+                }
+              ]
             }
           ]
         }

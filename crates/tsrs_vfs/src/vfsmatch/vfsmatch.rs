@@ -53,7 +53,11 @@ fn get_include_base_path(absolute: &str) -> String {
         return tspath::remove_trailing_directory_separator(&tspath::get_directory_path(absolute))
             .to_string();
     };
-    let end = absolute[..wildcard_offset].rfind(tspath::DIRECTORY_SEPARATOR as char).unwrap_or(0);
+    // Go keeps at least the root: `max(strings.LastIndex(...), tspath.GetRootLength(absolute))`.
+    let end = absolute[..wildcard_offset]
+        .rfind(tspath::DIRECTORY_SEPARATOR as char)
+        .unwrap_or(0)
+        .max(tspath::get_root_length(absolute));
     absolute[..end].to_string()
 }
 
@@ -80,12 +84,16 @@ pub fn get_base_paths(
             // We also need to check the relative paths by converting them to absolute and normalizing
             // in case they escape the base path (e.g "..\somedirectory")
             let absolute = if tspath::is_rooted_disk_path(include) {
-                include.to_string()
+                tspath::normalize_path(include)
             } else {
                 tspath::normalize_path(&tspath::combine_paths(path, &[include]))
             };
             // Append the literal and canonical candidate base paths.
-            get_include_base_path(&absolute)
+            // Go: `tspath.ToRootedDirectoryPath(getIncludeBasePath(absolute), path)`.
+            tspath::ensure_rooted_path_root_separator(tspath::get_normalized_absolute_path(
+                &get_include_base_path(&absolute),
+                path,
+            ))
         }));
 
         // Sort the offsets array using either the literal or canonical path representations.

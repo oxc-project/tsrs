@@ -27,6 +27,7 @@ mod lazy_dts_build;
 mod lint_mode;
 mod lone_surrogate_path_valid_utf8;
 mod lsp_edit_resolutions;
+mod maproot_not_resolved;
 mod merged_interface_check_site;
 mod npm_lib_path;
 mod process_ending_index_directory;

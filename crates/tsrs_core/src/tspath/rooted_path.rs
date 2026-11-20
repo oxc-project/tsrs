@@ -15,7 +15,8 @@ pub fn try_rooted_path_from_absolute(path: &str) -> Option<String> {
     Some(ensure_rooted_path_root_separator(get_normalized_absolute_path(path, "")))
 }
 
-fn ensure_rooted_path_root_separator(mut path: String) -> String {
+// rooted_path.go:65
+pub fn ensure_rooted_path_root_separator(mut path: String) -> String {
     if get_root_length(&path) == path.len() && !has_trailing_directory_separator(&path) {
         path.push('/');
     }

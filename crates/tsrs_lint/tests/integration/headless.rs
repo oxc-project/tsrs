@@ -7071,8 +7071,8 @@ fn type_check_reports_each_file_once() {
     }
 }
 
-// The program's global diagnostics (here `noLib`'s missing global types, which `tsrs --noEmit` prints without a
-// location) belong to no listed file and are not reported.
+// The program's global diagnostics (here `noLib`'s missing global types) are reported once on its tsconfig, without a
+// range, and declaration diagnostics only for the listed files.
 #[test]
 fn type_check_reports_global_and_declaration_diagnostics() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-program-global");

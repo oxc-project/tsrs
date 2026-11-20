@@ -532,9 +532,12 @@ pub fn new_program(opts: ProgramOptions) -> &'static Program {
     let host = Arc::clone(&opts.host);
     let mut p = Program {
         opts: opts.program_config(),
-        // Go's NewProgram never sets `comparePathsOptions`: it is the zero value (no current directory,
-        // case-insensitive), which e.g. makes IsGlobalTypingsFile false when no typings location is set.
-        compare_paths_options: tsrs_core::tspath::ComparePathsOptions::default(),
+        // Go's NewProgram compares paths with the host's case sensitivity (`caseSensitivity`), which has no current
+        // directory. So IsGlobalTypingsFile is false when no typings location is set.
+        compare_paths_options: tsrs_core::tspath::ComparePathsOptions {
+            use_case_sensitive_file_names: host.fs().use_case_sensitive_file_names(),
+            current_directory: String::new(),
+        },
         resolution_host: crate::projectreferencefilemapper::resolution_host_for(Arc::clone(&host)),
         host,
         resolution_data,

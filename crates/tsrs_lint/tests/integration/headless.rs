@@ -2928,6 +2928,55 @@ fn template_expression_handles_unterminated_utf8_literals_like_pinned_go() {
 }
 
 #[test]
+fn template_expression_separates_narrowing_suggestions_from_exact_string_fixes() {
+    let file = std::env::current_dir()
+        .unwrap()
+        .join("target/lint-template/narrowing.ts")
+        .to_string_lossy()
+        .into_owned();
+    let source = "declare const mode: 'light' | 'dark'; declare const exact: string; let label = `${mode}`; label = `${exact}`; export {};";
+    let payload = protocol::object([
+        ("version", Value::Integer(2)),
+        (
+            "configs",
+            Value::Array(vec![protocol::object([
+                ("file_paths", Value::Array(vec![Value::String(file.clone())])),
+                (
+                    "rules",
+                    Value::Array(vec![protocol::object([(
+                        "name",
+                        Value::String("no-unnecessary-template-expression".into()),
+                    )])]),
+                ),
+            ])]),
+        ),
+        (
+            "source_overrides",
+            Value::Object(std::iter::once((file, Value::String(source.into()))).collect()),
+        ),
+    ]);
+    for flags in [vec![], vec!["-fix"], vec!["-fix-suggestions"], vec!["-fix", "-fix-suggestions"]]
+    {
+        let (status, frames) = run(&payload, &flags);
+        assert_eq!(status, 0);
+        assert_eq!(frames.len(), 2);
+        for (index, (_, value)) in frames.iter().enumerate() {
+            let Value::Object(diagnostic) = value else { panic!() };
+            assert_eq!(diagnostic.contains_key("fixes"), index == 1 && flags.contains(&"-fix"));
+            assert_eq!(
+                diagnostic.contains_key("suggestions"),
+                index == 0 && flags.contains(&"-fix-suggestions")
+            );
+            if let Some(Value::Array(suggestions)) = diagnostic.get("suggestions") {
+                let Value::Object(suggestion) = &suggestions[0] else { panic!() };
+                let Value::Object(message) = &suggestion["message"] else { panic!() };
+                assert_eq!(message["id"], Value::String("suggestRemove".into()));
+            }
+        }
+    }
+}
+
+#[test]
 fn type_conversion_gates_suggestions_and_keeps_unicode_labels_and_replacements() {
     let file = std::env::current_dir()
         .unwrap()

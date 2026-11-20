@@ -4,7 +4,7 @@ use tsrs_ast::{self as ast, Kind, Node};
 use tsrs_checker::{Type, TypeFlags};
 use tsrs_core::{P, jsnum};
 
-use crate::protocol::{Diagnostic, Fix, Range, RuleMessage};
+use crate::protocol::{Diagnostic, Fix, Range, RuleMessage, Suggestion};
 use crate::rule::{Listener, Rule, RuleContext, replace_node, trim_node_range};
 use crate::utils::{self, union_type_parts};
 
@@ -14,6 +14,14 @@ fn message() -> RuleMessage {
     RuleMessage {
         id: "noUnnecessaryTemplateExpression".into(),
         description: "Template literal expression is unnecessary and can be simplified.".into(),
+        ..Default::default()
+    }
+}
+
+fn suggest_remove_message() -> RuleMessage {
+    RuleMessage {
+        id: "suggestRemove".into(),
+        description: "Remove the template literal.".into(),
         ..Default::default()
     }
 }
@@ -116,33 +124,56 @@ fn report_single_interpolation(
     template: P<Node>,
     expression: P<Node>,
     literal: P<Node>,
+    fix: bool,
 ) {
-    let mut text = node_text(context, expression).to_string();
-    let needs_parentheses = template.parent().is_some_and(|parent| {
-        let parent_is_nullish_coalescing = parent.kind() == Kind::BinaryExpression
-            && parent.as_binary_expression().operator_token.kind() == Kind::QuestionQuestionToken;
-        let interpolation_is_logical = expression.kind() == Kind::BinaryExpression
-            && matches!(
-                expression.as_binary_expression().operator_token.kind(),
-                Kind::BarBarToken | Kind::AmpersandAmpersandToken
-            );
-        parent_is_nullish_coalescing && interpolation_is_logical
-            || ast::is_expression(parent)
-                && ast::get_expression_precedence(expression)
-                    <= ast::get_expression_precedence(parent)
-    });
-    if needs_parentheses {
-        text = format!("({text})");
+    let range = Range {
+        pos: expression.pos().expect_source("parsed lint node") - 2,
+        end: literal.pos().expect_source("parsed lint node") + 1,
+    };
+    let build_fixes = |context: &RuleContext<'_>| {
+        let mut text = node_text(context, expression).to_string();
+        let needs_parentheses = template.parent().is_some_and(|parent| {
+            let parent_is_nullish_coalescing = parent.kind() == Kind::BinaryExpression
+                && parent.as_binary_expression().operator_token.kind()
+                    == Kind::QuestionQuestionToken;
+            let interpolation_is_logical = expression.kind() == Kind::BinaryExpression
+                && matches!(
+                    expression.as_binary_expression().operator_token.kind(),
+                    Kind::BarBarToken | Kind::AmpersandAmpersandToken
+                );
+            parent_is_nullish_coalescing && interpolation_is_logical
+                || ast::is_expression(parent)
+                    && ast::get_expression_precedence(expression)
+                        <= ast::get_expression_precedence(parent)
+        });
+        if needs_parentheses {
+            text = format!("({text})");
+        }
+        vec![replace_node(context.source_file, template, text)]
+    };
+
+    if fix {
+        let fixes = if context.options.fix { build_fixes(context) } else { Vec::new() };
+        context.report_diagnostic(Diagnostic {
+            range: Some(range),
+            message: message(),
+            fixes,
+            ..Default::default()
+        });
+        return;
     }
-    let fixes = vec![replace_node(context.source_file, template, text)];
-    report_with_fixes(
-        context,
-        Range {
-            pos: expression.pos().expect_source("parsed lint node") - 2,
-            end: literal.pos().expect_source("parsed lint node") + 1,
-        },
-        Some(fixes),
-    );
+
+    let suggestions = if context.options.fix_suggestions {
+        vec![Suggestion { message: suggest_remove_message(), fixes: build_fixes(context) }]
+    } else {
+        Vec::new()
+    };
+    context.report_diagnostic(Diagnostic {
+        range: Some(range),
+        message: message(),
+        suggestions,
+        ..Default::default()
+    });
 }
 
 fn is_unnecessary_value_interpolation(
@@ -324,7 +355,9 @@ impl Rule for NoUnnecessaryTemplateExpression {
                 && (node.kind() == Kind::TemplateExpression
                     || !parameter && !is_enum_member_type(constraint))
             {
-                report_single_interpolation(context, node, expression, literal);
+                let fix = node.kind() == Kind::TemplateLiteralType
+                    || t.flags().intersects(TypeFlags::String);
+                report_single_interpolation(context, node, expression, literal, fix);
                 return;
             }
         }

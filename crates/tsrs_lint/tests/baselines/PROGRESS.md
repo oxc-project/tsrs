@@ -29,7 +29,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | no-unnecessary-boolean-literal-compare | Updated to Go HEAD | 50 current cases; nullable options, unary/precedence fixes and strictNullChecks diagnostics |
 | no-unnecessary-condition | Updated to Go HEAD | 384 current cases; truthiness, nullish checks, optional chains, comparisons, loops and predicates |
 | no-unnecessary-qualifier | Updated to Go HEAD | 18 current cases; namespace/enum scope, alias resolution, shadowing and qualifier fixes |
-| no-unnecessary-template-expression | Updated to Go HEAD | 183 current cases; string constraints, type templates, comments, canonical literals and raw escaping fixes |
+| no-unnecessary-template-expression | Updated to fc051153 | 185 current cases; exact-string autofixes and narrowing removal suggestions from upstream #1367, string constraints, type templates, comments, canonical literals and raw escaping fixes |
 | no-unnecessary-type-conversion | Updated to Go HEAD | 77 current cases; primitive calls, unary/concatenation conversions, enum exclusions and satisfies suggestions |
 | no-unnecessary-type-arguments | Updated to Go HEAD | 110 current cases, 1 upstream skips; default type identity, constructor inference, calls, heritage and JSX fixes |
 | no-unnecessary-type-parameters | Updated to Go HEAD | 187 current cases; signature/class usage counts, generic type argument reuse, recursive types, predicates and constraint replacement suggestions; upstream terminal-reference fix plus five regression/control sources in all four fix modes |

@@ -42,8 +42,8 @@ pub fn run_lsp(args: &[String]) -> i32 {
     let on_signal = stop.clone();
     crate::signals::on_interrupt(move || on_signal.call());
 
-    let cwd = match std::env::current_dir() {
-        Ok(cwd) => cwd.to_string_lossy().into_owned(),
+    let cwd = match osvfs::getwd() {
+        Ok(cwd) => cwd,
         Err(err) => panic!("{}", err),
     };
 

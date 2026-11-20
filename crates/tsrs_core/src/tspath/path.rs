@@ -202,7 +202,7 @@ pub fn get_path_components(path: &str, current_directory: &str) -> Vec<String> {
     path_components(&path, get_root_length(&path))
 }
 
-fn path_components(path: &str, root_length: usize) -> Vec<String> {
+pub(super) fn path_components(path: &str, root_length: usize) -> Vec<String> {
     let root = &path[..root_length];
     let mut rest: Vec<&str> = path[root_length..].split('/').collect();
     if !rest.is_empty() && rest[rest.len() - 1].is_empty() {
@@ -939,14 +939,22 @@ pub fn get_path_components_relative_to(
     to: &str,
     options: &ComparePathsOptions,
 ) -> Vec<String> {
-    let from_components =
-        reduce_path_components(&get_path_components(from, &options.current_directory));
-    let to_components =
-        reduce_path_components(&get_path_components(to, &options.current_directory));
+    path_components_relative_to(
+        &reduce_path_components(&get_path_components(from, &options.current_directory)),
+        reduce_path_components(&get_path_components(to, &options.current_directory)),
+        options.use_case_sensitive_file_names,
+    )
+}
 
+// path.go getPathComponentsRelativeTo
+pub(super) fn path_components_relative_to(
+    from_components: &[String],
+    to_components: Vec<String>,
+    use_case_sensitive_file_names: bool,
+) -> Vec<String> {
     let mut start = 0;
     let max_common_components = from_components.len().min(to_components.len());
-    let string_equaler = options.get_equality_comparer();
+    let string_equaler = stringutil::get_string_equality_comparer(!use_case_sensitive_file_names);
     while start < max_common_components {
         let from_component = &from_components[start];
         let to_component = &to_components[start];

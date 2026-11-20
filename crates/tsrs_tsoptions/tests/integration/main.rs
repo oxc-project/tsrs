@@ -5,6 +5,7 @@ mod gojson_test;
 mod parsedcommandline_common_source_directory_region_test;
 mod parsedoptions_test;
 mod parsinghelpers_test;
+mod showconfig_test;
 mod testutil;
 mod tsconfigparsing_test;
 mod wildcarddirectories_test;

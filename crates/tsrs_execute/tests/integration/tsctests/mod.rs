@@ -14,6 +14,7 @@
 
 mod mockwatch;
 mod readablebuildinfo;
+mod showconfig_test;
 mod sys;
 mod watch_test;
 

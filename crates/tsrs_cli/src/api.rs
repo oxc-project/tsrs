@@ -46,9 +46,7 @@ pub fn parse_api_flags(args: &[String]) -> Result<ApiFlags, ()> {
     // Go defaults: cwd = os.Getwd(), useCaseSensitiveFileNames = the OS filesystem's sensitivity.
     let cwd = match flags.string_value("cwd") {
         c if !c.is_empty() => c,
-        _ => std::env::current_dir()
-            .map(|d| d.to_string_lossy().replace('\\', "/"))
-            .map_err(|_| ())?,
+        _ => osvfs::getwd().map(|d| d.replace('\\', "/")).map_err(|_| ())?,
     };
     let case_flag_given = args.iter().any(|a| {
         let a = a.trim_start_matches('-');

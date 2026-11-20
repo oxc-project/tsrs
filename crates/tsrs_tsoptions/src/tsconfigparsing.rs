@@ -1878,7 +1878,7 @@ fn apply_extended_config(
     );
 }
 
-const DEFAULT_INCLUDE_SPEC: &str = "**/*";
+pub(crate) const DEFAULT_INCLUDE_SPEC: &str = "**/*";
 
 struct PropOfRaw {
     slice_value: Option<Vec<CompilerOptionsValue>>,

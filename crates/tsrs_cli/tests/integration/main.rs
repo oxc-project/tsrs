@@ -33,6 +33,7 @@ mod process_ending_index_directory;
 mod program_path_case_sensitivity;
 mod recycle_checkers;
 mod server_signals;
+mod show_config;
 mod split_check;
 mod symbol_name_literal_clone;
 mod trace_resolution_order;

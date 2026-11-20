@@ -16,6 +16,7 @@ pub mod parsedbuildcommandline;
 pub mod parsedcommandline;
 pub mod parsedoptions;
 pub mod parsinghelpers;
+pub mod showconfig;
 pub mod tsconfigparsing;
 pub mod wildcarddirectories;
 
@@ -36,4 +37,5 @@ pub use parsedbuildcommandline::*;
 pub use parsedcommandline::*;
 pub use parsedoptions::*;
 pub use parsinghelpers::*;
+pub use showconfig::*;
 pub use tsconfigparsing::*;

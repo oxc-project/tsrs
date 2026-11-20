@@ -1287,14 +1287,15 @@ fn as_uint_list(v: &Value) -> Option<Vec<u32>> {
 }
 
 fn as_uint_tuple<const N: usize>(v: &Value) -> Option<[u32; N]> {
-    // Go unmarshals a JSON array into a [N]int by position: missing elements stay zero, extra ones are dropped.
+    // Go `json` (encoding/json/v2) unmarshals a JSON array into a [N]int only when the array has exactly N elements;
+    // another length is an error, so the whole tsbuildinfo cannot be read.
     let Value::Array(items) = v else { return None };
+    if items.len() != N {
+        return None;
+    }
     let mut out = [0; N];
-    for (i, item) in items.iter().enumerate() {
-        let n = as_uint(item)?;
-        if i < N {
-            out[i] = n;
-        }
+    for (slot, item) in out.iter_mut().zip(items) {
+        *slot = as_uint(item)?;
     }
     Some(out)
 }

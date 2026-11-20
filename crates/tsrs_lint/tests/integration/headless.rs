@@ -7071,10 +7071,10 @@ fn type_check_reports_each_file_once() {
     }
 }
 
-// The program's global diagnostics (here `noLib`'s missing global types, which `tsrs --noEmit` prints without a
-// location) belong to no listed file and are not reported.
+// The program's global diagnostics (here `noLib`'s missing global types) are reported once on its tsconfig, without a
+// range, and declaration diagnostics only for the listed files.
 #[test]
-fn type_check_does_not_report_global_diagnostics() {
+fn type_check_reports_global_and_declaration_diagnostics() {
     let root = std::env::current_dir().unwrap().join("target/lint-check-program-global");
     std::fs::create_dir_all(&root).unwrap();
     std::fs::write(
@@ -7088,7 +7088,26 @@ fn type_check_does_not_report_global_diagnostics() {
     for fast in ["0", "1"] {
         assert_eq!(
             reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program-global"),
-            Vec::<String>::new()
+            vec!["tsconfig.json TS2318"; 10]
+        );
+    }
+
+    let root = std::env::current_dir().unwrap().join("target/lint-check-program-declarations");
+    std::fs::create_dir_all(&root).unwrap();
+    std::fs::write(
+        root.join("tsconfig.json"),
+        r#"{"compilerOptions":{"declaration":true,"noEmit":true,"types":[]},"include":["*.ts"]}"#,
+    )
+    .unwrap();
+    let source = "export const make = () => new class {\n  private value = 1;\n};\n";
+    std::fs::write(root.join("a.ts"), source).unwrap();
+    std::fs::write(root.join("b.ts"), source).unwrap();
+    let input =
+        type_check_payload(vec![Value::String(root.join("a.ts").to_string_lossy().into_owned())]);
+    for fast in ["0", "1"] {
+        assert_eq!(
+            reported_ids(&input, &[("TSRS_FAST", fast)], "lint-check-program-declarations"),
+            vec!["a.ts TS4094"]
         );
     }
 }

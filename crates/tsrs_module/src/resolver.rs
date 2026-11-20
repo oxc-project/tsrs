@@ -3454,7 +3454,8 @@ pub fn resolve_config(
 
 pub fn get_automatic_type_directive_names(
     options: &CompilerOptions,
-    host: &dyn ResolutionHost,
+    current_directory: &str,
+    fs: &dyn tsrs_vfs::FS,
 ) -> Vec<String> {
     if !options.uses_wildcard_types() {
         if let Some(types) = &options.types {
@@ -3465,19 +3466,18 @@ pub fn get_automatic_type_directive_names(
 
     // Walk the primary type lookup locations
     let mut wildcard_matches = Vec::new();
-    let (type_roots, _) = options.get_effective_type_roots(host.get_current_directory());
+    let (type_roots, _) = options.get_effective_type_roots(current_directory);
     for root in &type_roots {
-        if host.fs().directory_exists(root) {
+        if fs.directory_exists(root) {
             wildcard_matches.extend(
-                host.fs().get_accessible_entries(root).directories.into_iter().filter_map(
+                fs.get_accessible_entries(root).directories.into_iter().filter_map(
                     |type_directive_path| {
                         let normalized = tspath::normalize_path(&type_directive_path);
                         let package_json_path =
                             tspath::combine_paths(root, &[&normalized, "package.json"]);
                         let mut is_not_needed_package = false;
-                        if host.fs().file_exists(&package_json_path) {
-                            let contents =
-                                host.fs().read_file(&package_json_path).unwrap_or_default();
+                        if fs.file_exists(&package_json_path) {
+                            let contents = fs.read_file(&package_json_path).unwrap_or_default();
                             let package_json_content =
                                 packagejson::parse(&contents).unwrap_or_default();
                             // `types-publisher` sometimes creates packages with `"typings": null` for packages that don't provide their own types.

@@ -452,7 +452,8 @@ impl FileLoader {
         let mut p_diagnostics = Vec::new();
         let automatic_type_directive_names = module::get_automatic_type_directive_names(
             &self.opts.config.compiler_options().unwrap(),
-            self.project_references.host,
+            self.host.get_current_directory(),
+            self.host.fs(),
         );
         for name in automatic_type_directive_names {
             // Under node16/nodenext module resolution, load `types`/ata include names as cjs resolution results by passing an `undefined` mode.

@@ -284,7 +284,7 @@ fn hold_tag(request_id: &str) -> String {
 pub struct CheckerPoolHandle(pub(crate) Arc<CheckerPoolImpl>);
 
 impl CheckerPool for CheckerPoolHandle {
-    fn get_checker(&self, ctx: &Context, file: Option<P<SourceFile>>) -> CheckerHandle {
+    fn get_checker(&self, ctx: &Context, file: Option<P<SourceFile>>) -> CheckerHandle<'_> {
         self.0.get_checker(ctx, file)
     }
 }
@@ -414,7 +414,7 @@ impl CheckerPoolImpl {
     }
 
     // checkerpool.go:123
-    pub fn get_checker(&self, ctx: &Context, file: Option<P<SourceFile>>) -> CheckerHandle {
+    pub fn get_checker(&self, ctx: &Context, file: Option<P<SourceFile>>) -> CheckerHandle<'_> {
         drop(self.live_owner());
         let lifetime = get_checker_lifetime(ctx);
         let mut request_id = get_request_id(ctx).to_string();
@@ -454,7 +454,7 @@ impl CheckerPoolImpl {
         request_id: &str,
         sem: &Semaphore,
         is_diag: bool,
-    ) -> Option<CheckerHandle> {
+    ) -> Option<CheckerHandle<'_>> {
         sem.acquire();
         if request_id.is_empty() {
             return None;
@@ -486,7 +486,7 @@ impl CheckerPoolImpl {
     // checkerpool.go:194
     // getDiagnosticsChecker returns the dedicated diagnostics checker (index 0).
     // Creates it on first use. Blocks on diagSem if it's currently in use.
-    fn get_diagnostics_checker(&self, ctx: &Context, request_id: &str) -> CheckerHandle {
+    fn get_diagnostics_checker(&self, ctx: &Context, request_id: &str) -> CheckerHandle<'_> {
         const DIAG_INDEX: usize = 0;
 
         if let Some(handle) = self.try_reacquire_for_request(ctx, request_id, &self.diag_sem, true)
@@ -523,7 +523,7 @@ impl CheckerPoolImpl {
         ctx: &Context,
         request_id: &str,
         file: Option<P<SourceFile>>,
-    ) -> CheckerHandle {
+    ) -> CheckerHandle<'_> {
         if let Some(handle) =
             self.try_reacquire_for_request(ctx, request_id, &self.query_sem, false)
         {
@@ -589,7 +589,7 @@ impl CheckerPoolImpl {
     }
 
     // checkerpool.go:289
-    fn get_persistent_checker(&self) -> CheckerHandle {
+    fn get_persistent_checker(&self) -> CheckerHandle<'_> {
         self.persistent_sem.acquire();
         let mut st = self.mu.lock().unwrap();
 
@@ -630,7 +630,7 @@ impl CheckerPoolImpl {
         };
         // SAFETY: the persistent checker is held (`persistentHeld`, one semaphore slot) until `release` runs; the
         // pool keeps it alive in `persistent_checker` until then.
-        unsafe { CheckerHandle::from_raw(c, release) }
+        unsafe { CheckerHandle::from_raw(self, c, release) }
     }
 
     // checkerpool.go:319 (`ctx`: the holder's context, for its lease)
@@ -640,7 +640,7 @@ impl CheckerPoolImpl {
         st: &mut CheckerPoolState,
         request_id: &str,
         index: usize,
-    ) -> CheckerHandle {
+    ) -> CheckerHandle<'_> {
         let c = st.checkers[index].as_mut().unwrap().as_non_null();
         let (region_scope, owner) = self.enter_checker_region(Some(ctx), c);
         let p = self.arc();
@@ -693,7 +693,7 @@ impl CheckerPoolImpl {
         };
         // SAFETY: checker `index` is marked held (`heldBy[index]`) until `release` runs, and held checkers are never
         // disposed by anyone else, so the pointer stays valid.
-        unsafe { CheckerHandle::from_raw(c, release) }
+        unsafe { CheckerHandle::from_raw(self, c, release) }
     }
 
     // checkerpool.go:361

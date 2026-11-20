@@ -1,10 +1,2 @@
 tsgolint fc05115324e37b2bb72ca22ac2b3d16fa88686df
 typescript-go 2bd066d87f5bafd315be9f40889d0a60b9e58e0b
-
-Scoped rule refresh for fc05115324e37b2bb72ca22ac2b3d16fa88686df (#1367).
-All six compiler patches; Go 1.26.10; @types/node 24.13.2; undici-types 7.18.2.
-Exported with tools/tsgolint/export.mts --reference fc05115324e37b2bb72ca22ac2b3d16fa88686df
-in a disposable checkout. The shared corpus REFERENCE, fixtures and other rules retain
-their existing provenance.
-The headless narrowing-suggestion regression was checked against this oracle in all
-four fix modes.

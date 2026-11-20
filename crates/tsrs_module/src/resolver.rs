@@ -907,7 +907,7 @@ impl<'r> ResolutionState<'r> {
                     );
                     continue;
                 }
-                if from_config {
+                if from_config && !candidate.directory_only {
                     // Custom typeRoots resolve as file or directory just like we do modules
                     let mut resolved_from_file =
                         self.load_module_from_file(Extensions::Declaration, &candidate.as_string());
@@ -1000,15 +1000,17 @@ impl<'r> ResolutionState<'r> {
                 );
                 continue;
             }
-            let mut resolved_from_file =
-                self.load_module_from_file(Extensions::Declaration, &candidate.as_string());
-            if let Some(resolved) = resolved_from_file.as_mut() {
-                let package_directory = node_module_package_root_for_file(&resolved.path);
-                if !package_directory.is_empty() {
-                    let info = self.get_package_json_info(&package_directory);
-                    resolved.package_id = self.get_package_id(&resolved.path, info);
+            if !candidate.directory_only {
+                let mut resolved_from_file =
+                    self.load_module_from_file(Extensions::Declaration, &candidate.as_string());
+                if let Some(resolved) = resolved_from_file.as_mut() {
+                    let package_directory = node_module_package_root_for_file(&resolved.path);
+                    if !package_directory.is_empty() {
+                        let info = self.get_package_json_info(&package_directory);
+                        resolved.package_id = self.get_package_id(&resolved.path, info);
+                    }
+                    return resolved_from_file;
                 }
-                return resolved_from_file;
             }
             let resolved = self.load_node_module_from_directory(
                 Extensions::Declaration,

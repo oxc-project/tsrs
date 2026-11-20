@@ -1,0 +1,1 @@
+a.ts(1,25): error TS2305: Module '"trailing-separator-lib/"' has no exported member 'fromFile'.

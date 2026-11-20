@@ -30,7 +30,7 @@ pub fn resolve_source_file(
     file: &DocumentIdentifier,
 ) -> ApiResult<P<SourceFile>> {
     program
-        .get_source_file(&file.to_file_name())
+        .get_source_file(&file.to_file_name(program.get_current_directory()))
         .ok_or_else(|| ApiError::client(format!("source file not found: {file}")))
 }
 
@@ -258,7 +258,9 @@ impl Session {
     pub(crate) fn handle_get_source_file_metadata(&self, p: Params) -> ApiResult<Value> {
         let (_sd, program) = self.program_of(p)?;
         let file = p.document("file")?;
-        let Some(source_file) = program.get_source_file(&file.to_file_name()) else {
+        let Some(source_file) =
+            program.get_source_file(&file.to_file_name(program.get_current_directory()))
+        else {
             return Ok(Value::Null);
         };
         let path = source_file.path();

@@ -21,7 +21,8 @@ threads with tail work stealing, and forked checker processes pulling from share
   checked it, as before.
 - Only the full type-check pass (`get_semantic_diagnostics` for all files) steals. Declaration diagnostics, emit and
   the incremental pass do not: the incremental pass attributes a newly found global diagnostic to the first file of
-  that checker that produced it.
+  that checker that produced it. (Status 2026-11-12: in fast mode the incremental pass steals too, and checks again
+  statically when a checker finds a new global diagnostic; notes/perf-incremental-pass-stealing.md.)
 - Off, so the run is fully deterministic, when an assignment is named (`--checkerAssignment` /
   `TSRS_CHECKER_ASSIGNMENT`: `locality`, `go`, `file:`, `random:`) and under Go's check history. The tsgo-baseline
   harnesses are therefore unchanged.

@@ -1828,9 +1828,9 @@ pub fn get_reference_at_position(
     if let Some(resolution) = program.get_resolved_module_from_module_specifier(source_file, node) {
         let mut file_name = resolution.resolved_file_name.to_string();
         if file_name.is_empty() {
-            file_name = tspath::resolve_path(
+            file_name = tspath::resolve_file(
                 &tspath::get_directory_path(source_file.file_name()),
-                &[node.text()],
+                node.text(),
             );
         }
         return Some(RefInfo {

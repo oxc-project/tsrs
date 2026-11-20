@@ -546,3 +546,36 @@ fn repeated_js_and_declaration_emit_with_shared_context() {
     program.emit(&Context::default(), &options);
     assert_eq!(*written.lock().unwrap(), first);
 }
+
+// With project references and the source of referenced projects (the linter and the language server), module
+// resolution goes through the dts faking host, whose file system panics in `get_accessible_entries`. tsrs listed the
+// `types: ["*"]` type roots through that host and panicked with "should not be called by resolver"; Go lists them
+// with the compiler host's file system (fileloader.go:293).
+#[test]
+fn wildcard_types_with_project_reference_sources() {
+    let files = [
+        (
+            "/src/tsconfig.json",
+            r#"{"compilerOptions":{"noLib":true,"types":["*"]},"files":["index.ts"],"references":[{"path":"./ref"}]}"#,
+        ),
+        ("/src/index.ts", "export const value: number = fake;"),
+        (
+            "/src/ref/tsconfig.json",
+            r#"{"compilerOptions":{"composite":true,"noLib":true},"files":["index.ts"]}"#,
+        ),
+        ("/src/ref/index.ts", "export const reference = 1;"),
+        ("/src/node_modules/@types/fake/index.d.ts", "declare const fake: number;"),
+        (
+            "/src/node_modules/@types/fake/package.json",
+            r#"{"name":"@types/fake","version":"1.0.0","types":"index.d.ts"}"#,
+        ),
+    ];
+    let mut options = ProgramOptions::new(config_for(&files), host_for(&files));
+    options.use_source_of_project_reference = true;
+    let program = new_program(options);
+    let mut file_names: Vec<_> =
+        program.get_source_files().iter().map(|file| file.file_name()).collect();
+    file_names.sort_unstable();
+    assert_eq!(file_names, ["/src/index.ts", "/src/node_modules/@types/fake/index.d.ts"]);
+    assert_eq!(program.get_program_diagnostics(), [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
+}

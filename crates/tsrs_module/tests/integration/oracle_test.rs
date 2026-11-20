@@ -265,7 +265,8 @@ fn run(scenario: &Json) -> Vec<(String, String, String)> {
             Some(Json::Array(items)) => items.iter().map(|i| str_of(Some(i))).collect(),
             _ => Vec::new(),
         };
-    let mut got_types = get_automatic_type_directive_names(&options, host);
+    let mut got_types =
+        get_automatic_type_directive_names(&options, host.get_current_directory(), host.fs());
     got_types.sort();
     if want_types != got_types {
         mismatches.push((

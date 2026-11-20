@@ -24,6 +24,23 @@ pub fn ensure_rooted_path_root_separator(mut path: String) -> String {
     path
 }
 
+// rooted_path.go:29 `ToRootedPath`. Unlike `resolve_path`, it removes a trailing separator, and a path that is only
+// a root ends with one (`C:` becomes `C:/`). Go also panics for an empty path, a URL query or fragment, and a result
+// that is not rooted; those assertions are not ported.
+pub fn to_rooted_path(path: &str, current_directory: &str) -> String {
+    ensure_rooted_path_root_separator(get_normalized_absolute_path(path, current_directory))
+}
+
+// rooted_path.go:727 `RootedDirectoryPath.ResolveFile`. Go first tries two shortcuts for a relative path; with a
+// normalized directory they give the same result as `ToRootedFilePath`, so they are not ported. `ToRootedFilePath`,
+// `ToRootedDirectoryPath`, and `ResolveDirectory` differ from these functions only in the Go type.
+pub fn resolve_file(directory: &str, path: &str) -> String {
+    if path.is_empty() {
+        return directory.to_string();
+    }
+    to_rooted_path(path, directory)
+}
+
 fn has_rooted_url_suffix(path: &str) -> bool {
     if !has_url_root(path) {
         return false;

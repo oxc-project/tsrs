@@ -1,0 +1,1 @@
+a.ts(3,22): error TS6053: File 'z.ts/' not found.

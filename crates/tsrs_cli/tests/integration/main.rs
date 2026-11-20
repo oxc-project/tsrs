@@ -32,6 +32,7 @@ mod npm_lib_path;
 mod process_ending_index_directory;
 mod program_path_case_sensitivity;
 mod recycle_checkers;
+mod reference_path_resolve_file;
 mod server_signals;
 mod split_check;
 mod symbol_name_literal_clone;

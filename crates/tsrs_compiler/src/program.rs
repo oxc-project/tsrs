@@ -425,10 +425,8 @@ impl Program {
         origin: P<SourceFile>,
         ref_: P<FileReference>,
     ) -> Option<P<SourceFile>> {
-        let file_name = tspath::resolve_path(
-            &tspath::get_directory_path(origin.file_name()),
-            &[&ref_.file_name],
-        );
+        let file_name =
+            tspath::resolve_file(&tspath::get_directory_path(origin.file_name()), &ref_.file_name);
         let supported_extensions_base = tsoptions::get_supported_extensions(
             Some(&self.options()),
             &self.command_line().content_mapper_extensions(),

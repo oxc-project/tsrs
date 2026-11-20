@@ -1204,13 +1204,8 @@ fn tripleslash_reference_lookup(
     module_name: &str,
     containing_file: &str,
 ) -> (String, (String, Option<SourceFileFromReferenceDiagnostic>)) {
-    let base_path = tspath::get_directory_path_cow(containing_file);
-    let mut referenced_file_name = module_name.to_string();
-
-    if !tspath::is_rooted_disk_path(module_name) {
-        referenced_file_name = tspath::combine_paths(&base_path, &[module_name]);
-    }
-    let normalized_file_name = tspath::normalize_path(&referenced_file_name);
+    let normalized_file_name =
+        tspath::resolve_file(&tspath::get_directory_path_cow(containing_file), module_name);
     let looked_up = source_file_from_reference(
         &ctx.opts.config.compiler_options().unwrap(),
         ctx.host.fs(),

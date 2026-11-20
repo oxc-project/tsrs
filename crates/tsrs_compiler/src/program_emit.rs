@@ -44,6 +44,9 @@ pub struct EmitOptions<'a> {
     pub emit_only: EmitOnly,
     pub force_emit: bool,
     pub write_file: Option<WriteFile<'a>>,
+    /// tsrs-only (notes/perf-signature-emit-stealing.md): files may move between checkers while they are emitted
+    /// (`GroupPass::SignatureEmit`); their owners move with them. Only declaration signatures are emitted this way.
+    pub steal: bool,
 }
 
 // program.go:1862
@@ -305,16 +308,28 @@ impl Program {
             // projects, and every waiting file keeps its region.
             Some(pool) if !self.single_threaded() => {
                 let pending = PendingPrints::default();
+                let pass = if options.steal {
+                    crate::checkerpool::GroupPass::SignatureEmit
+                } else {
+                    crate::checkerpool::GroupPass::Static
+                };
                 crate::program::worker_pool().in_place_scope(|scope| {
-                    pool.for_each_checker_group_do(&source_files, false, |c, index, file| {
-                        let e = transform(c, file);
-                        pending.acquire();
-                        let (print, pending) = (&print, &pending);
-                        scope.spawn(move |_| {
-                            print(e, index);
-                            pending.release();
-                        });
-                    });
+                    pool.for_each_checker_group_do_ex(
+                        &source_files,
+                        false,
+                        pass,
+                        None,
+                        None,
+                        |c, index, file| {
+                            let e = transform(c, file);
+                            pending.acquire();
+                            let (print, pending) = (&print, &pending);
+                            scope.spawn(move |_| {
+                                print(e, index);
+                                pending.release();
+                            });
+                        },
+                    );
                 });
             }
             Some(pool) => pool.for_each_checker_group_do(&source_files, true, |c, index, file| {

@@ -30,6 +30,7 @@ mod npm_lib_path;
 mod process_ending_index_directory;
 mod recycle_checkers;
 mod server_signals;
+mod signature_emit_stealing;
 mod split_check;
 mod symbol_name_literal_clone;
 mod trace_resolution_order;

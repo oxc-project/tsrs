@@ -1030,6 +1030,26 @@ impl CheckerPoolImpl {
             && incremental_steal_enabled()
     }
 
+    /// Whether emits with `EmitOptions::steal` may move files between checkers: stealing is on (fast mode, no named
+    /// assignment), `TSRS_SIGNATURE_STEAL` does not turn it off and there are several checkers.
+    pub(crate) fn signature_emits_steal(&self, single_threaded: bool) -> bool {
+        !single_threaded
+            && !self.single_threaded
+            && self.checker_count > 1
+            && stealing_enabled()
+            && signature_steal_enabled()
+    }
+
+    /// Gives every program file back its owner in the static assignment (`PoolState::associations`), undoing what
+    /// stealing moved.
+    pub(crate) fn reset_owners_static(&self) {
+        let state = self.create_checkers();
+        for (owner, &o) in state.owners.iter().zip(&state.associations) {
+            // Read by the next work group, which starts after this.
+            owner.store(o as u32, std::sync::atomic::Ordering::Relaxed);
+        }
+    }
+
     /// Each checker's global diagnostics (diagnostics without a file), in checker order.
     pub(crate) fn checker_global_diagnostics(&self) -> Vec<Vec<P<Diagnostic>>> {
         let state = self.create_checkers();
@@ -1045,26 +1065,16 @@ impl CheckerPoolImpl {
             .collect()
     }
 
-    /// The checker that runs each program file now (`PoolState::owners`), for `restart_static`.
-    pub(crate) fn owners(&self) -> Vec<u32> {
-        let state = self.create_checkers();
-        // Written by stealing inside a work group, read between work groups.
-        state.owners.iter().map(|o| o.load(std::sync::atomic::Ordering::Relaxed)).collect()
-    }
-
     /// tsrs-only (notes/perf-incremental-pass-stealing.md): replaces every checker by a fresh one, keeping the global
-    /// diagnostics and counters of the old ones (`retire_checker`), and gives every file back the owner it had in
-    /// `owners`. A pass that runs next sees checkers in the state of a pool that has not checked anything yet.
-    pub(crate) fn restart_static(&self, owners: &[u32]) {
+    /// diagnostics and counters of the old ones (`retire_checker`), and gives every file back its owner in the static
+    /// assignment. A pass that runs next sees checkers in the state of a pool that has not checked anything yet.
+    pub(crate) fn restart_static(&self) {
         let state = self.create_checkers();
         run_work_group(self.single_threaded, state.checkers.len(), |i| {
             let mut guard = state.checkers[i].0.lock().unwrap();
             self.retire_checker(state, &mut guard);
         });
-        for (owner, &o) in state.owners.iter().zip(owners) {
-            // Read by the next work group, which starts after this.
-            owner.store(o, std::sync::atomic::Ordering::Relaxed);
-        }
+        self.reset_owners_static();
     }
 
     // Share the scheduling body across callbacks; dispatch happens once per file, outside the checker walk.
@@ -1104,7 +1114,7 @@ impl CheckerPoolImpl {
         let steal = pass != GroupPass::Static && !single && stealing_enabled();
         // Like the module affinity (affinity.rs `applies`; steal_sticky).
         let sticky = steal && crate::affinity::applies(n, files.len()) && steal_sticky();
-        let max_thieves = max_thieves_per_queue(n);
+        let max_thieves = max_thieves_per_queue(n, pass);
         let file_weight = |i: u32| {
             index_of[i as usize]
                 .map_or(1, |fi| state.weights.get(fi).copied().unwrap_or(1).max(0) as u64)
@@ -1364,6 +1374,19 @@ pub(crate) enum GroupPass {
     /// first and file splitting, and nothing else. The caller checks that no checker found a new global diagnostic,
     /// which the pass attributes to a file by checker (`Program::get_semantic_diagnostics_for_incremental`).
     IncrementalCheck,
+    /// tsrs-only (notes/perf-signature-emit-stealing.md): the declaration signatures an incremental build computes
+    /// for the files a change affects, in fast mode: with stealing and heavy files first, and nothing else (no file
+    /// splitting: a piece of a file has no declaration output of its own).
+    SignatureEmit,
+}
+
+// `TSRS_SIGNATURE_STEAL=0` (or `off`): the declaration signatures of an incremental build keep the static
+// assignment in fast mode, as before notes/perf-signature-emit-stealing.md (the A/B switch).
+fn signature_steal_enabled() -> bool {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ON.get_or_init(|| {
+        !matches!(std::env::var("TSRS_SIGNATURE_STEAL").as_deref().map(str::trim), Ok("0" | "off"))
+    })
 }
 
 // `TSRS_INCREMENTAL_STEAL=0` (or `off`): the incremental pass keeps the static assignment in fast mode, as before
@@ -1666,19 +1689,24 @@ fn steal_sticky() -> bool {
 // -4%), mui-docs 92 G against 92-98 G (-6%), cal-diy and the large private monorepo -0.3% to -0.6%, vscode and
 // supabase-studio unchanged. One thief at a time saves more (t3code-server 86 G, cal-diy -4%) but cost vscode 2% of
 // check time at 9 and 12 checkers. From 16 checkers on the sticky thief applies (steal_sticky) and this limit was not
-// measured. TSRS_STEAL_MAX_THIEVES=<m> sets the limit at every checker count, `0` for none.
+// measured. The signature emits of an incremental build have no limit (notes/perf-signature-emit-stealing.md): a level
+// of the referenced-by walk puts most of its files on a few checkers, and with two thieves per queue at 8 checkers the
+// step took 9.9% less time on the large private monorepo where it took 28.5% less at 4 checkers, which have no limit.
+// TSRS_STEAL_MAX_THIEVES=<m> sets the limit at every checker count and in every pass, `0` for none.
 const THIEF_LIMIT_CHECKERS: std::ops::Range<usize> = 8..crate::affinity::MIN_CHECKERS;
 const CHECKERS_PER_THIEF: usize = 4;
 
-fn max_thieves_per_queue(checker_count: usize) -> u32 {
+fn max_thieves_per_queue(checker_count: usize, pass: GroupPass) -> u32 {
     static VALUE: OnceLock<Option<u32>> = OnceLock::new();
     let configured =
         *VALUE.get_or_init(|| std::env::var("TSRS_STEAL_MAX_THIEVES").ok()?.parse().ok());
-    configured.unwrap_or(if THIEF_LIMIT_CHECKERS.contains(&checker_count) {
-        (checker_count / CHECKERS_PER_THIEF) as u32
-    } else {
-        0
-    })
+    configured.unwrap_or(
+        if pass != GroupPass::SignatureEmit && THIEF_LIMIT_CHECKERS.contains(&checker_count) {
+            (checker_count / CHECKERS_PER_THIEF) as u32
+        } else {
+            0
+        },
+    )
 }
 
 // The next position for checker `me` and whether it came from another checker's queue. A thief takes only from queues

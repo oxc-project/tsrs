@@ -448,7 +448,9 @@ impl Session {
         let sd = self.snapshot_data(p.u64("snapshot")?)?;
         let program = sd.get_program(&tsrs_project::ID(p.str("project")?.to_string()))?;
         let file = p.document("file")?;
-        let r = self.encode_source_file_response(program.get_source_file(&file.to_file_name()));
+        let r = self.encode_source_file_response(
+            program.get_source_file(&file.to_file_name(program.get_current_directory())),
+        );
         drop(sd);
         r
     }
@@ -463,7 +465,7 @@ impl Session {
         };
         let cs = self.use_case_sensitive_file_names();
         let cwd = program.get_current_directory();
-        let requested = tspath::to_path(&file.to_file_name(), cwd, cs);
+        let requested = tspath::to_path(&file.to_file_name(cwd), cwd, cs);
         if *config.source_file.path() == requested {
             return self.encode_source_file_response(Some(config.source_file));
         }

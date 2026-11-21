@@ -187,10 +187,10 @@ impl DocumentIdentifier {
     pub(crate) fn parse_list(v: &[Value], key: &str) -> ApiResult<Vec<DocumentIdentifier>> {
         v.iter().map(|d| DocumentIdentifier::parse(d, key)).collect()
     }
-    /// Go `ToFileName`.
-    pub(crate) fn to_file_name(&self) -> String {
+    /// Go `ToFileName`: a file name is rooted with `tspath.ToRootedFilePath(fileName, cwd)`.
+    pub(crate) fn to_file_name(&self, cwd: &str) -> String {
         match self {
-            DocumentIdentifier::FileName(f) => f.clone(),
+            DocumentIdentifier::FileName(f) => tsrs_core::tspath::to_rooted_path(f, cwd),
             DocumentIdentifier::Uri(u) => tsrs_lsproto::DocumentUri(u.clone()).file_name(),
         }
     }

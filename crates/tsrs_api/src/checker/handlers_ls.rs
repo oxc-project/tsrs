@@ -121,7 +121,6 @@ pub fn get_completions_at_position(host: &dyn CheckerHost, p: &Params) -> Checke
     }
     let sd = snapshot_ctx(host, p)?;
     let file = p.document("file")?;
-    let file_name = file.to_file_name();
     let position = p.u32("position")?;
     let trigger = match p.raw("triggerCharacter") {
         None => None,
@@ -134,7 +133,9 @@ pub fn get_completions_at_position(host: &dyn CheckerHost, p: &Params) -> Checke
                program: &'static Program,
                ctx: &Context|
      -> CheckerResult<Result<Option<tsrs_ls::CompletionList>, tsrs_lsproto::Error>> {
-        let Some(source_file) = program.get_source_file(&file_name) else {
+        let Some(source_file) =
+            program.get_source_file(&file.to_file_name(program.get_current_directory()))
+        else {
             return Ok(Ok(None));
         };
         let ls = language_service(snapshot, program, &sd.project, source_file.file_name())?;
@@ -154,7 +155,9 @@ pub fn get_completions_at_position(host: &dyn CheckerHost, p: &Params) -> Checke
                 file.display()
             )));
         }
-        let Some(source_file) = program.get_source_file(&file_name) else {
+        let Some(source_file) =
+            program.get_source_file(&file.to_file_name(program.get_current_directory()))
+        else {
             return Ok(Value::Null);
         };
         let snapshot =
@@ -261,8 +264,8 @@ pub fn get_import_adder_edits(host: &dyn CheckerHost, p: &Params) -> CheckerResu
 
     let sd = snapshot_ctx(host, p)?;
     let file = p.document("file")?;
-    let file_name = file.to_file_name();
     let mut program = sd.program()?;
+    let file_name = file.to_file_name(program.get_current_directory());
     let mut source_file = program.get_source_file(&file_name).ok_or_else(|| {
         CheckerError::client(format!("source file not found: {}", file.display()))
     })?;

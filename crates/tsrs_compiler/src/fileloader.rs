@@ -171,21 +171,18 @@ fn add_project_reference_tasks(
 ) -> ProjectReferenceFileMapperBuilder {
     let mut mapper =
         ProjectReferenceFileMapper::new(opts.config, opts.can_use_project_reference_source());
-    let resolution_host = resolution_host_for(Arc::clone(host));
-    mapper.loader_host = Some(resolution_host);
+    mapper.loader_host = Some(resolution_host_for(Arc::clone(host)));
     let project_references = opts.config.resolved_project_reference_paths();
-    if project_references.is_empty() {
-        return ProjectReferenceFileMapperBuilder {
-            mapper: Box::leak(Box::new(mapper)),
-            host: resolution_host,
-        };
+    if !project_references.is_empty() {
+        let mut parser = ProjectReferenceParser::new(&**host);
+        let mut root_tasks = parser.create_project_reference_parse_tasks(project_references);
+        parser.parse(&mut root_tasks, &mut mapper);
     }
-
-    let mut parser = ProjectReferenceParser::new(&**host);
-    let mut root_tasks = parser.create_project_reference_parse_tasks(project_references);
-    parser.parse(&mut root_tasks, &mut mapper);
     let mapper: &'static ProjectReferenceFileMapper = Box::leak(Box::new(mapper));
-    ProjectReferenceFileMapperBuilder { mapper, host: mapper.resolution_host(resolution_host) }
+    ProjectReferenceFileMapperBuilder {
+        mapper,
+        host: mapper.resolution_host(mapper.loader_host.as_deref().unwrap()),
+    }
 }
 
 pub(crate) fn process_all_program_files(

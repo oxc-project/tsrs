@@ -152,7 +152,11 @@ struct TestPool {
 }
 
 impl CheckerPool for TestPool {
-    fn get_checker(&self, _ctx: &Context, _file: Option<P<tsrs_ast::SourceFile>>) -> CheckerHandle {
+    fn get_checker(
+        &self,
+        _ctx: &Context,
+        _file: Option<P<tsrs_ast::SourceFile>>,
+    ) -> CheckerHandle<'_> {
         self.acquired.fetch_add(1, Ordering::Relaxed);
         let mut checker = self
             .idle

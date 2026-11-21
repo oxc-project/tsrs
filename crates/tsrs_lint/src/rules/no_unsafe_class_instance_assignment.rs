@@ -103,11 +103,28 @@ fn is_instance_of(checker: &mut Checker, source: P<Type>, class_type: P<Type>) -
     })
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+struct ClassInstanceComparison {
+    source: P<Type>,
+    target: P<Type>,
+    shallow: bool,
+}
+
 fn find_violation(
     checker: &mut Checker,
     source: P<Type>,
     target: P<Type>,
     shallow: bool,
+) -> Option<P<Type>> {
+    find_violation_worker(checker, source, target, shallow, &mut FxHashSet::default())
+}
+
+fn find_violation_worker(
+    checker: &mut Checker,
+    source: P<Type>,
+    target: P<Type>,
+    shallow: bool,
+    active: &mut FxHashSet<ClassInstanceComparison>,
 ) -> Option<P<Type>> {
     let resolved_source = resolve_constraint(checker, source);
     let resolved_target = resolve_constraint(checker, target);
@@ -123,12 +140,32 @@ fn find_violation(
         return None;
     }
 
+    let comparison =
+        ClassInstanceComparison { source: resolved_source, target: resolved_target, shallow };
+    if !active.insert(comparison) {
+        return None;
+    }
+    let violation = find_active_violation(checker, comparison, active);
+    active.remove(&comparison);
+    violation
+}
+
+fn find_active_violation(
+    checker: &mut Checker,
+    comparison: ClassInstanceComparison,
+    active: &mut FxHashSet<ClassInstanceComparison>,
+) -> Option<P<Type>> {
+    let ClassInstanceComparison { source: resolved_source, target: resolved_target, shallow } =
+        comparison;
+
     if resolved_source.is_union() {
         for &part in resolved_source.types() {
             if !checker.is_type_assignable_to(part, resolved_target) {
                 continue;
             }
-            if let Some(violation) = find_violation(checker, part, resolved_target, shallow) {
+            if let Some(violation) =
+                find_violation_worker(checker, part, resolved_target, shallow, active)
+            {
                 return Some(violation);
             }
         }
@@ -157,17 +194,17 @@ fn find_violation(
         }
         let mut first_violation = None;
         for candidate in candidates {
-            let violation = find_violation(checker, resolved_source, candidate, shallow)?;
+            let violation =
+                find_violation_worker(checker, resolved_source, candidate, shallow, active)?;
             first_violation.get_or_insert(violation);
         }
         return first_violation;
     }
 
     if resolved_target.is_intersection() {
-        return resolved_target
-            .types()
-            .iter()
-            .find_map(|&part| find_violation(checker, resolved_source, part, shallow));
+        return resolved_target.types().iter().find_map(|&part| {
+            find_violation_worker(checker, resolved_source, part, shallow, active)
+        });
     }
 
     if let Some(nominal_class) = get_nominal_class(checker, resolved_target)
@@ -188,7 +225,7 @@ fn find_violation(
         let target_arguments = checker.get_type_arguments(resolved_target);
         return source_arguments.iter().zip(target_arguments).find_map(
             |(&source_argument, &target_argument)| {
-                find_violation(checker, source_argument, target_argument, false)
+                find_violation_worker(checker, source_argument, target_argument, false, active)
             },
         );
     }
@@ -201,11 +238,12 @@ fn find_violation(
         else {
             continue;
         };
-        if let Some(violation) = find_violation(
+        if let Some(violation) = find_violation_worker(
             checker,
             source_index_info.value_type(),
             target_index_info.value_type(),
             false,
+            active,
         ) {
             return Some(violation);
         }

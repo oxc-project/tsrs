@@ -623,6 +623,50 @@
             "react-jsx.d.ts": "declare namespace JSX {\n  interface ElementChildrenAttribute {\n    children: {};\n  }\n}\n"
           },
           "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = { [key: string]: Source };\ntype Target = { [key: string]: Target | Point };\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = { [key: number]: Source };\ntype Target = { [key: number]: Target | Point };\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = { [key: string]: SourceChild };\ntype SourceChild = { [key: number]: Source };\ntype Target = { [key: string]: TargetChild | Point };\ntype TargetChild = { [key: number]: Target | Point };\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = Source[];\ntype Target = (Target | Point)[];\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [
@@ -3579,6 +3623,135 @@
                 "end": 94
               },
               "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = { [key: number]: Source; [key: string]: Source | { x: number } };\ntype Target = { [key: number]: Target; [key: string]: Target | Point };\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 6,
+              "Column": 24,
+              "EndLine": 6,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 229,
+                "end": 235
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = [Source, { x: number }];\ntype Target = [Target, Point];\ndeclare const source: Source;\nconst target: Target = source;\nconst another: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 6,
+              "Column": 24,
+              "EndLine": 6,
+              "EndColumn": 30,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonInstance",
+              "Line": 7,
+              "Column": 25,
+              "EndLine": 7,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 147,
+                "end": 153
+              },
+              "kind": 0
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 179,
+                "end": 185
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\nclass OtherPoint { x = 0; }\ntype Source = [Source, OtherPoint, OtherPoint];\ntype Target = [Target, Point | OtherPoint, Point];\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 7,
+              "Column": 24,
+              "EndLine": 7,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 204,
+                "end": 210
+              }
             }
           ]
         }

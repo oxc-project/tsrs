@@ -1,6 +1,6 @@
-Expected records from tsgolint 71c8fc2140e34d1c764cd0bd27dd90d29da31dce (#1372),
+Expected records from tsgolint eac99bdcc87d40667bcb68bcd746c99e8943731a (#1373),
 compiler 2bd066d87f5bafd315be9f40889d0a60b9e58e0b with all seven shipped patches; Go 1.26.10.
-Binary SHA-256: cc7254a99c8c59482735047456eec33e168a975e322ee8ab09779b292277d61c
+Binary SHA-256: c34cabfa85c198b29c4cd971c4720ea9ced4ae5b49cc0c7be204b9e9949291ae
 Original integration source preserved; all 62 current baseline rules run together.
 Strict ESNext/CommonJS, esnext+dom libs, no ambient types, include *.ts.
 Physical fixture tree with matching overrides. Complete diagnostic multisets verified

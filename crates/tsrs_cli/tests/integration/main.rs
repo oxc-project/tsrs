@@ -25,6 +25,7 @@ mod include_rooted_dot_segments;
 mod invalid_utf8_argument;
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 mod isolated;
+mod nonblocking_stdout;
 mod lazy_dts_build;
 mod lint_mode;
 mod lone_surrogate_path_valid_utf8;

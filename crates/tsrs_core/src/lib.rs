@@ -1,5 +1,6 @@
 pub mod allocator;
 pub mod arena;
+pub mod hugealloc;
 pub mod ptr;
 #[cfg(compressed_ptrs)]
 pub mod reserve;

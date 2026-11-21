@@ -1,9 +1,2 @@
 tsgolint eac99bdcc87d40667bcb68bcd746c99e8943731a
 typescript-go 2bd066d87f5bafd315be9f40889d0a60b9e58e0b
-
-Scoped rule addition from 05d3725d849300c7e50ffdef397e669791652931 (#1372), with
-the recursive comparison fix from eac99bdcc87d40667bcb68bcd746c99e8943731a (#1373).
-All seven compiler patches; Go 1.26.10; @types/node 24.13.2; undici-types 7.18.2.
-Exported with tools/tsgolint/export.mts --reference eac99bdcc87d40667bcb68bcd746c99e8943731a
-in a disposable checkout. The shared corpus REFERENCE, fixtures and other rules retain
-their existing provenance.

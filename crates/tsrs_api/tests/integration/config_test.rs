@@ -1,5 +1,5 @@
 use crate::common::*;
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::Value;
 
 #[test]
 fn initialize_and_unknown_methods() {
@@ -75,7 +75,8 @@ fn parse_json_config_file_content_and_command_line() {
         call(&s, "parseCommandLine", r#"{"commandLine":["--strict","--target","es2022","x.ts"]}"#);
     assert_eq!(get(&r, "options.strict"), &Value::Bool(true));
     assert_eq!(get(&r, "options.target"), &Value::Number(9.0));
-    assert_eq!(json::marshal(get(&r, "fileNames")).unwrap(), "[\"x.ts\"]");
+    // Go `tsoptions.ParseCommandLine` roots the file names at the current directory.
+    assert_eq!(get(&r, "fileNames"), &Value::Array(vec![Value::String(dir.path("x.ts"))]));
 }
 
 #[test]

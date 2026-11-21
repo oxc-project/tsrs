@@ -273,12 +273,13 @@ impl DocumentIdentifier {
         )))
     }
 
-    /// Go `DocumentIdentifier.ToFileName`.
-    pub(crate) fn to_file_name(&self) -> String {
+    /// Go `DocumentIdentifier.ToFileName`: a file name is rooted with
+    /// `tspath.ToRootedFilePath(fileName, cwd)`.
+    pub(crate) fn to_file_name(&self, cwd: &str) -> String {
         if !self.uri.is_empty() {
             return DocumentUri(self.uri.clone()).file_name();
         }
-        self.file_name.clone()
+        tsrs_core::tspath::to_rooted_path(&self.file_name, cwd)
     }
 
     /// Go `DocumentIdentifier.String` (used in error messages).

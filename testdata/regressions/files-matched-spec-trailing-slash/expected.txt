@@ -1,0 +1,6 @@
+error TS6231: Could not resolve the path '/x' with the extensions: '.ts', '.tsx', '.d.ts', '.cts', '.d.cts', '.mts', '.d.mts'.
+  The file is in the program because:
+    Part of 'files' list in tsconfig.json
+error TS6231: Could not resolve the path 'C:/' with the extensions: '.ts', '.tsx', '.d.ts', '.cts', '.d.cts', '.mts', '.d.mts'.
+  The file is in the program because:
+    Part of 'files' list in tsconfig.json

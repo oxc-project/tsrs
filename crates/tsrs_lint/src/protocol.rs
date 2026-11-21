@@ -10,6 +10,8 @@ pub enum MessageType {
     Error = 0,
     Diagnostic = 1,
     Timing = 2,
+    /// Server mode (`server.rs`): the end of a lint request.
+    ServerLintDone = 3,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -249,6 +251,39 @@ pub fn write_diagnostic(writer: &mut dyn Write, diagnostic: &Diagnostic) -> io::
     let mut payload = String::new();
     diagnostic.write_json(&mut payload);
     write_frame(writer, MessageType::Diagnostic, payload.as_bytes())
+}
+
+/// Writes a diagnostic frame of a server-mode request: the headless payload with the request's `id` first.
+pub fn write_diagnostic_with_id(
+    writer: &mut dyn Write,
+    id: u64,
+    diagnostic: &Diagnostic,
+) -> io::Result<()> {
+    let mut payload = String::from("{\"id\":");
+    json::write_compact_int(&mut payload, i64::try_from(id).map_err(io::Error::other)?);
+    payload.push(',');
+    let start = payload.len();
+    diagnostic.write_json(&mut payload);
+    // Drop the diagnostic object's own opening brace: its fields follow the id.
+    payload.remove(start);
+    write_frame(writer, MessageType::Diagnostic, payload.as_bytes())
+}
+
+/// Reads one frame: its message type and JSON bytes, or `None` at the end of the input.
+pub fn read_frame(reader: &mut dyn io::Read) -> io::Result<Option<(u8, Vec<u8>)>> {
+    let mut header = [0u8; 5];
+    let mut filled = 0;
+    while filled < header.len() {
+        match reader.read(&mut header[filled..])? {
+            0 if filled == 0 => return Ok(None),
+            0 => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
+            n => filled += n,
+        }
+    }
+    let length = u32::from_le_bytes([header[0], header[1], header[2], header[3]]) as usize;
+    let mut payload = vec![0u8; length];
+    reader.read_exact(&mut payload)?;
+    Ok(Some((header[4], payload)))
 }
 
 pub fn write_message(

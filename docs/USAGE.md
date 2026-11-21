@@ -139,6 +139,7 @@ records the exact TypeScript commit. Follow
   `oxlint --type-aware --type-check` also reports TypeScript diagnostics for the files Oxlint selects and global
   diagnostics on each configured program's tsconfig
   ([details](../tools/tsgolint/README.md#type-checking-in-the-lint-run)).
+  `tsrs-lint server` is a long-lived linter for oxlint's language server ([protocol](LINT_SERVER.md)).
 - [JavaScript API](NODE_API.md#javascript-api): TypeScript 7's synchronous and asynchronous APIs.
 - [WebAssembly](../npm/tsrs-wasm/README.md): single-threaded compilation in Node and browsers.
 - [Build from source](../CONTRIBUTING.md#build): native and WebAssembly builds and the development workflow.

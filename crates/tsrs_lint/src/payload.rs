@@ -83,8 +83,8 @@ fn deserialize_v2(value: &JsonMap) -> Result<Payload, String> {
     })
 }
 
-/// The V2 `configs` array.
-fn deserialize_configs(value: Option<&Value>) -> Result<Vec<Config>, String> {
+/// The V2 `configs` array, which server-mode lint requests share (`server.rs`).
+pub(crate) fn deserialize_configs(value: Option<&Value>) -> Result<Vec<Config>, String> {
     let mut configs = Vec::new();
     for config in array(value)? {
         let config = object(config)?;
@@ -112,7 +112,7 @@ pub(crate) fn object(value: &Value) -> Result<&JsonMap, String> {
     }
 }
 
-fn array(value: Option<&Value>) -> Result<&[Value], String> {
+pub(crate) fn array(value: Option<&Value>) -> Result<&[Value], String> {
     match value {
         None | Some(Value::Null) => Ok(&[]),
         Some(Value::Array(array)) => Ok(array),
@@ -120,7 +120,7 @@ fn array(value: Option<&Value>) -> Result<&[Value], String> {
     }
 }
 
-fn string(value: Option<&Value>) -> Result<String, String> {
+pub(crate) fn string(value: Option<&Value>) -> Result<String, String> {
     match value {
         None | Some(Value::Null) => Ok(String::new()),
         Some(Value::String(string)) => Ok(string.clone()),
@@ -128,7 +128,7 @@ fn string(value: Option<&Value>) -> Result<String, String> {
     }
 }
 
-fn boolean(value: Option<&Value>) -> Result<bool, String> {
+pub(crate) fn boolean(value: Option<&Value>) -> Result<bool, String> {
     match value {
         None | Some(Value::Null) => Ok(false),
         Some(Value::Bool(value)) => Ok(*value),

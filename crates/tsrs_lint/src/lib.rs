@@ -5,6 +5,7 @@ mod go_quote;
 pub mod payload;
 pub mod protocol;
 pub mod registry;
+pub mod server;
 
 pub mod engine;
 

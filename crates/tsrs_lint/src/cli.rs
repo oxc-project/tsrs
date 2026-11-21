@@ -1,5 +1,7 @@
-//! The headless command line shared by `tsrs-lint` and `tsrs --lint`: oxlint runs `<binary> headless [flags]` with the
-//! payload on stdin and reads protocol frames from stdout.
+//! The command line shared by `tsrs-lint` and `tsrs --lint`.
+//!
+//! oxlint runs `<binary> headless [flags]` with the payload on stdin and reads protocol frames from stdout. Its language
+//! server runs `<binary> server` (`server.rs`).
 
 use std::io::{self, Read, Write};
 
@@ -15,6 +17,9 @@ pub fn main(args: Vec<String>) -> i32 {
         .name("tsrs-lint".into())
         .stack_size(512 * 1024 * 1024)
         .spawn(move || {
+            if args.first().is_some_and(|arg| arg == "server" || arg == "--server") {
+                return run_server(&args[1..], &mut io::stdin().lock());
+            }
             run(args, &mut io::stdin().lock(), &mut io::BufWriter::new(io::stdout().lock()))
         });
     match result {
@@ -33,7 +38,7 @@ pub fn main(args: Vec<String>) -> i32 {
     }
 }
 
-/// The options read from the environment: oxlint passes its own flags only.
+/// The options both modes read from the environment: oxlint passes its own flags only.
 fn environment_options() -> engine::Options {
     engine::Options {
         suppress_program_diagnostics: std::env::var(
@@ -45,6 +50,26 @@ fn environment_options() -> engine::Options {
             .is_ok_and(|value| value == "1"),
         ..Default::default()
     }
+}
+
+/// Parses `server [--runExternalCode]` and runs the long-lived server (`server.rs`) on `input` and stdout until the
+/// input ends. Fix flags come with each lint request.
+pub fn run_server(args: &[String], input: &mut dyn Read) -> i32 {
+    let mut options = environment_options();
+    for arg in args {
+        match arg.as_str() {
+            "-runExternalCode" | "--runExternalCode" => options.run_external_code = true,
+            "--help" | "-h" => {
+                eprintln!("Usage: tsrs-lint server [--runExternalCode]");
+                return 0;
+            }
+            _ => {
+                eprintln!("unknown option: {arg}");
+                return 1;
+            }
+        }
+    }
+    crate::server::run(options, input, crate::server::stdout())
 }
 
 /// Parses `headless [--fix] [--fix-suggestions] [--runExternalCode] [--debug timings]`.

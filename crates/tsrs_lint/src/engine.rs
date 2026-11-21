@@ -425,7 +425,7 @@ fn run_in_region(
 }
 
 /// The compiler options of files outside every tsconfig: they are linted in one inferred program with these options.
-fn inferred_compiler_options() -> CompilerOptions {
+pub fn inferred_compiler_options() -> CompilerOptions {
     CompilerOptions {
         allow_js: Tristate::True,
         module: ModuleKind::ES_NEXT,
@@ -679,7 +679,7 @@ fn merge_timings(into: &mut BTreeMap<String, (u64, u64)>, from: BTreeMap<String,
     }
 }
 
-fn lint_file(
+pub(crate) fn lint_file(
     program: &'static Program,
     file: P<SourceFile>,
     configured: &[ConfiguredRule],
@@ -829,7 +829,7 @@ fn report_config_error(
 }
 
 /// A tsconfig or program error, reported in place of the program's lint diagnostics.
-fn config_error(
+pub(crate) fn config_error(
     diagnostic: P<TsDiagnostic>,
     config_path: &str,
     program_diagnostic: bool,

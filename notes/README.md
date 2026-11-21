@@ -264,6 +264,7 @@ Every note is listed once below by subject. The links above are suggested starti
 - [perf-icount-hillclimb](perf-icount-hillclimb.md)
 - [perf-icount-round4](perf-icount-round4.md)
 - [perf-mimalloc-safe](perf-mimalloc-safe.md)
+- [perf-musl-pgo](perf-musl-pgo.md)
 - [perf-pgo](perf-pgo.md)
 - [perf-pgo-fast-training](perf-pgo-fast-training.md)
 - [perf-probes-2026-10-05](perf-probes-2026-10-05.md)

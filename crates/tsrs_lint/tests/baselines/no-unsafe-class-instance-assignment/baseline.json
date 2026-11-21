@@ -1,0 +1,3761 @@
+{
+  "Name": "no-unsafe-class-instance-assignment",
+  "Suites": {
+    "TestNoUnsafeClassInstanceAssignmentRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point = new Point(1, 2);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point = new Point(1, 2);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Point {\n  x: number;\n  y: number;\n}\nconst point: Point = { x: 1, y: 2 };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Point = { x: number; y: number };\nconst point: Point = { x: 1, y: 2 };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst point = { x: 1, y: 2 };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Partial<Point> = { x: 1 };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Pick<Point, 'x'> = { x: 1 };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point | { x: number; y: number } = { x: 1, y: 2 };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point = { x: 1, y: 2 } as unknown as Point;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: typeof Point = class {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst points: Point[] = [new Point(1, 2)];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare function draw(point: Point): void;\ndraw(new Point(1, 2));\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nfunction make(): Point {\n  return new Point(1, 2);\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst shape: { origin: Point } = { origin: new Point(1, 2) };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point = { ...new Point(1, 2) } as any;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point | object = { x: 1, y: 2 };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point | Record<string, number> = { x: 1, y: 2 };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point = { x: 1, y: 2 } as any;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nclass Point3 extends Point {\n  z = 0;\n}\nconst point: Point = new Point3(1, 2);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ninterface Fancy extends Point {\n  z: number;\n}\ndeclare const fancy: Fancy;\nconst point: Point = fancy;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nfunction get<T extends Point>(value: T) {\n  const point: Point = value;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point = Object.assign(new Point(1, 2), { x: 3 });\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst draw: (point: Point) => void = (point: { x: number; y: number }) => {};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Promise<Point> = Promise.resolve(new Point(1, 2));\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Promise<Point | null> = Promise.resolve(null);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst points: Point[] = [new Point(1, 2)].map(point => point);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const points: Set<Point>;\nconst array: Point[] = [...points];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const maybe: Point | undefined;\nconst point: Point = maybe!;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst PointClass: typeof Point = Point;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ntype Constructor<T = {}> = new (...args: any[]) => T;\nfunction Tagged<TBase extends Constructor>(Base: TBase) {\n  return class extends Base {\n    tag = '';\n  };\n}\nconst TaggedPoint = Tagged(Point);\nconst point: Point = new TaggedPoint(1, 2);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const value: any;\nconst point: Point = value;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const readonlyPoint: Readonly<Point>;\nconst point: Point = readonlyPoint;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Required<Point> = new Point(1, 2);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ntype Shape = Point | { kind: 'plain'; x: number };\nconst shape: Shape = { kind: 'plain', x: 1 };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const points: Point[];\nconst readonlyPoints: readonly Point[] = points;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const points: Record<string, Point>;\nconst record: Record<string, Point> = { origin: new Point(0, 0), ...points };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const points: { [key: string]: Point };\nconst record: Record<string, Point> = points;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst record: Record<number, Point> = { 0: new Point(0, 0) };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst holder: { point: Point } = {\n  get point() {\n    return new Point(1, 2);\n  },\n};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Readonly<Point> = Object.freeze(new Point(1, 2));\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst pair: [Point, number] = [new Point(1, 2), 1];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nclass Point3 extends Point {}\ndeclare const union: Point | Point3;\nconst point: Point = union;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nfunction unwrap<T>(value: Readonly<T>): T {\n  return value as T;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare function Marker(props: { children: Point }): null;\nconst marker = <Marker>{new Point(1, 2)}</Marker>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {
+            "react-jsx.d.ts": "declare namespace JSX {\n  interface ElementChildrenAttribute {\n    children: {};\n  }\n}\n"
+          },
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst point: Readonly<Point> = plain;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst point: Readonly<Point> = Object.freeze(plain);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Alpha {\n  type = 'alpha' as const;\n}\nclass Beta {\n  type = 'beta' as const;\n}\ndeclare function useBeta(beta: Beta): void;\ndeclare const definition: (Alpha | Beta) & { type: 'beta' };\nuseBeta(definition);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Alpha {\n  alpha = 1;\n}\nclass Beta {\n  beta = 1;\n}\ndeclare const scope: Alpha | Beta;\nconst beta = scope as Beta;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nfunction wrap<T>(value: T) {\n  const promise: Promise<T> = Promise.resolve(value);\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nclass Point3 extends Point {}\nconst point: Point | Point3 = new Point3(1, 2);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst shorthand = { point = new Point(1, 2) };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare function draw(...points: Point[]): void;\ndeclare const points: Point[];\ndraw(...points);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nlet count = 0;\ncount += 1;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nfunction noop(): void {\n  return;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nfunction* points(): Generator<Point | undefined> {\n  yield;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function Marker(props: { children?: Point }): null;\nconst marker = <Marker>{/* empty */}</Marker>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {
+            "react-jsx.d.ts": "declare namespace JSX {\n  interface ElementChildrenAttribute {\n    children: {};\n  }\n}\n"
+          },
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = { [key: string]: Source };\ntype Target = { [key: string]: Target | Point };\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = { [key: number]: Source };\ntype Target = { [key: number]: Target | Point };\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = { [key: string]: SourceChild };\ntype SourceChild = { [key: number]: Source };\ntype Target = { [key: string]: TargetChild | Point };\ntype TargetChild = { [key: number]: Target | Point };\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = Source[];\ntype Target = (Target | Point)[];\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point = { x: 1, y: 2 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 22,
+              "EndLine": 8,
+              "EndColumn": 36,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 104,
+                "end": 118
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  x: number = Math.random();\n  y: number = Math.random();\n}\nconst o = { x: 1, y: 1 };\nconst p: Point = o;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 7,
+              "Column": 18,
+              "EndLine": 7,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 118,
+                "end": 119
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  x: number = Math.random();\n  y: number = Math.random();\n}\nfunction foo(o: { x: number; y: number }): Point {\n  return o;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 7,
+              "Column": 10,
+              "EndLine": 7,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 135,
+                "end": 136
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  x: number = Math.random();\n  y: number = Math.random();\n}\nclass Point2 {\n  x: number = Math.random();\n  y: number = Math.random();\n}\nfunction bar(p2: Point2): Point {\n  return p2;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 11,
+              "Column": 10,
+              "EndLine": 11,
+              "EndColumn": 12,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 193,
+                "end": 195
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  public x: number;\n  public y: number;\n\n  constructor(x: number, y: number) {\n    if (x < 0 || y < 0) {\n      throw new Error('Point must have positive values');\n    }\n\n    this.x = x;\n    this.y = y;\n  }\n}\nconst point: Point = { x: -1, y: -2 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 15,
+              "Column": 22,
+              "EndLine": 15,
+              "EndColumn": 38,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 244,
+                "end": 260
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point = { x: 1, y: 2 } as Point;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 15,
+              "EndLine": 8,
+              "EndColumn": 29,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 97,
+                "end": 111
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point = <Point>{ x: 1, y: 2 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 22,
+              "EndLine": 8,
+              "EndColumn": 36,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 104,
+                "end": 118
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point = { x: 1, y: 2 } satisfies Point;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 15,
+              "EndLine": 8,
+              "EndColumn": 29,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 97,
+                "end": 111
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare function draw(point: Point): void;\ndraw({ x: 1, y: 2 });\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 6,
+              "EndLine": 9,
+              "EndColumn": 20,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 131,
+                "end": 145
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nfunction make(): Point {\n  return { x: 1, y: 2 };\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 10,
+              "EndLine": 9,
+              "EndColumn": 24,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 117,
+                "end": 131
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst make = (): Point => ({ x: 1, y: 2 });\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 28,
+              "EndLine": 8,
+              "EndColumn": 42,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 110,
+                "end": 124
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst points: Point[] = [{ x: 1, y: 2 }];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 26,
+              "EndLine": 8,
+              "EndColumn": 40,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 108,
+                "end": 122
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst shape: { origin: Point } = { origin: { x: 1, y: 2 } };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 44,
+              "EndLine": 8,
+              "EndColumn": 58,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 126,
+                "end": 140
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nlet point: Point;\npoint = { x: 1, y: 2 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 9,
+              "EndLine": 9,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 109,
+                "end": 123
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point | undefined = { x: 1, y: 2 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 34,
+              "EndLine": 8,
+              "EndColumn": 48,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 116,
+                "end": 130
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point & { z: number } = { x: 1, y: 2, z: 3 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 38,
+              "EndLine": 8,
+              "EndColumn": 58,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 140,
+                "pos": 120
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nclass Label {\n  constructor(public text: string) {}\n}\nconst value: Label | Point = { text: 'origin' };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 11,
+              "Column": 30,
+              "EndLine": 11,
+              "EndColumn": 48,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Label` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 166,
+                "end": 184
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Box<T> {\n  constructor(public value: T) {}\n}\nconst box: Box<number> = { value: 1 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 5,
+              "Column": 26,
+              "EndLine": 5,
+              "EndColumn": 38,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Box<number>` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 89,
+                "pos": 77
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare function identity<T>(value: T): T;\nidentity<Point>({ x: 1, y: 2 });\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 17,
+              "EndLine": 9,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 142,
+                "end": 156
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nabstract class Shape {\n  abstract area(): number;\n}\nconst shape: Shape = { area: () => 1 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 5,
+              "Column": 22,
+              "EndLine": 5,
+              "EndColumn": 39,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Shape` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 91,
+                "pos": 74
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare class Point {\n  x: number;\n  y: number;\n}\nconst point: Point = { x: 1, y: 2 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 6,
+              "Column": 22,
+              "EndLine": 6,
+              "EndColumn": 36,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 86,
+                "pos": 72
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point = { ...new Point(1, 2) };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 22,
+              "EndLine": 8,
+              "EndColumn": 44,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 126,
+                "pos": 104
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const condition: boolean;\nconst point: Point = condition ? { x: 1, y: 2 } : new Point(3, 4);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 34,
+              "EndLine": 9,
+              "EndColumn": 48,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 150,
+                "end": 164
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nclass Line {\n  start: Point = { x: 0, y: 0 };\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 18,
+              "EndLine": 9,
+              "EndColumn": 32,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 113,
+                "end": 127
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nfunction draw(point: Point = { x: 0, y: 0 }) {}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 30,
+              "EndLine": 8,
+              "EndColumn": 44,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 112,
+                "end": 126
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare function Marker(props: { point: Point }): null;\nconst marker = <Marker point={{ x: 1, y: 2 }} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 31,
+              "EndLine": 9,
+              "EndColumn": 45,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {
+            "react-jsx.d.ts": "declare namespace JSX {\n  interface ElementChildrenAttribute {\n    children: {};\n  }\n}\n"
+          },
+          "Diagnostics": [
+            {
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 169,
+                "end": 183
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: InstanceType<typeof Point> = { x: 1, y: 2 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 43,
+              "EndLine": 8,
+              "EndColumn": 57,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 125,
+                "end": 139
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst origin = new Point(0, 0);\nconst point: typeof origin = { x: 1, y: 2 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 30,
+              "EndLine": 9,
+              "EndColumn": 44,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 144,
+                "end": 158
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nasync function make(): Promise<Point> {\n  return { x: 1, y: 2 };\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 10,
+              "EndLine": 9,
+              "EndColumn": 24,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 132,
+                "end": 146
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const value: { point?: Point };\nconst { point = { x: 0, y: 0 } } = value;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 17,
+              "EndLine": 9,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 139,
+                "end": 153
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nclass Holder {\n  get point(): Point {\n    return { x: 0, y: 0 };\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 10,
+              "Column": 12,
+              "EndLine": 10,
+              "EndColumn": 26,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 132,
+                "end": 146
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst Point = class {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n};\nconst point: InstanceType<typeof Point> = { x: 1, y: 2 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 8,
+              "Column": 43,
+              "EndLine": 8,
+              "EndColumn": 57,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 134,
+                "end": 148
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst point: Point = plain;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 22,
+              "EndLine": 9,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 151,
+                "end": 156
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Promise<Point> = Promise.resolve({ x: 1, y: 2 });\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 8,
+              "Column": 31,
+              "EndLine": 8,
+              "EndColumn": 62,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 113,
+                "end": 144
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst points: Point[] = [1].map(x => ({ x, y: 1 }));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 8,
+              "Column": 25,
+              "EndLine": 8,
+              "EndColumn": 52,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 107,
+                "end": 134
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare function identity<T>(value: T): T;\nconst point: Point = identity({ x: 1, y: 2 });\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 22,
+              "EndLine": 9,
+              "EndColumn": 46,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 171,
+                "pos": 147
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst points: Map<string, Point> = new Map([['origin', plain]]);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 36,
+              "EndLine": 9,
+              "EndColumn": 64,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 165,
+                "end": 193
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst points: [Point, number] = [plain, 1];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 34,
+              "EndLine": 9,
+              "EndColumn": 39,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 163,
+                "end": 168
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst point: Point = { ...plain };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 22,
+              "EndLine": 9,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 163,
+                "pos": 151
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst shape: { origin: Point } = { origin: plain };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 44,
+              "EndLine": 9,
+              "EndColumn": 49,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 173,
+                "end": 178
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare function getPlain(): Promise<{ x: number; y: number }>;\nasync function get() {\n  const point: Point = await getPlain();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 24,
+              "EndLine": 10,
+              "EndColumn": 40,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 193,
+                "end": 209
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ndeclare const fallback: Point;\nconst point: Point = plain ?? fallback;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 22,
+              "EndLine": 10,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 182,
+                "end": 187
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst point = Promise.resolve(plain) satisfies Promise<Point>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 15,
+              "EndLine": 9,
+              "EndColumn": 37,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 144,
+                "end": 166
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ndeclare function draw(...points: Point[]): void;\ndraw(new Point(1, 2), plain);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 23,
+              "EndLine": 10,
+              "EndColumn": 28,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 201,
+                "end": 206
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nclass Vector {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nconst point: Point = new Vector(1, 2);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 14,
+              "Column": 22,
+              "EndLine": 14,
+              "EndColumn": 38,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 187,
+                "end": 203
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nclass Box<T> {\n  constructor(public value: T) {}\n}\nconst box: Box<Point> = new Box(plain);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 12,
+              "Column": 25,
+              "EndLine": 12,
+              "EndColumn": 39,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 205,
+                "end": 219
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ninterface Fancy extends Point {\n  z: number;\n}\nconst fancy: Fancy = { x: 1, y: 2, z: 3 };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 11,
+              "Column": 22,
+              "EndLine": 11,
+              "EndColumn": 42,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 171,
+                "pos": 151
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nfunction getPoints(): Point[] {\n  return [plain].filter(Boolean);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 10,
+              "EndLine": 10,
+              "EndColumn": 33,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 194,
+                "pos": 171
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nclass Line {\n  constructor(\n    public start: Point,\n    public end: Point,\n  ) {}\n}\nnew Line(plain, new Point(1, 2));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 15,
+              "Column": 10,
+              "EndLine": 15,
+              "EndColumn": 15,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 224,
+                "end": 229
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nclass Base {\n  constructor(public point: Point) {}\n}\nclass Derived extends Base {\n  constructor() {\n    super(plain);\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 14,
+              "Column": 11,
+              "EndLine": 14,
+              "EndColumn": 16,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 245,
+                "pos": 240
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ndeclare const draw: ((point: Point) => void) | undefined;\ndraw?.(plain);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 8,
+              "EndLine": 10,
+              "EndColumn": 13,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 195,
+                "end": 200
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ninterface Repository {\n  get(): Point;\n}\nconst repository: Repository = {\n  get() {\n    return { x: 1, y: 2 };\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 13,
+              "Column": 12,
+              "EndLine": 13,
+              "EndColumn": 26,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 178,
+                "end": 192
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nclass Repository {\n  get(): Point {\n    return plain;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 11,
+              "Column": 12,
+              "EndLine": 11,
+              "EndColumn": 17,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 177,
+                "end": 182
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nfunction* points(): Generator<Point> {\n  yield plain;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 9,
+              "EndLine": 10,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 177,
+                "end": 182
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst make: () => Point = () => {\n  return plain;\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 10,
+              "EndLine": 10,
+              "EndColumn": 15,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 173,
+                "end": 178
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst draw: (point?: Point) => void = (point = plain) => {};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 48,
+              "EndLine": 9,
+              "EndColumn": 53,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 177,
+                "end": 182
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nclass Holder {\n  constructor(public point: Point = plain) {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 37,
+              "EndLine": 10,
+              "EndColumn": 42,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 181,
+                "end": 186
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nclass Holder {\n  accessor point: Point = plain;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 27,
+              "EndLine": 10,
+              "EndColumn": 32,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 171,
+                "end": 176
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nlet point: Point;\n({ point } = { point: plain });\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 23,
+              "EndLine": 10,
+              "EndColumn": 28,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 170,
+                "end": 175
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nclass Holder {\n  set origin(value: Point) {}\n}\nnew Holder().origin = plain;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 12,
+              "Column": 23,
+              "EndLine": 12,
+              "EndColumn": 28,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 199,
+                "end": 204
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ndeclare const points: Point[];\npoints[0] = plain;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 13,
+              "EndLine": 10,
+              "EndColumn": 18,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 178,
+                "pos": 173
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nlet point: Point | undefined;\npoint ??= plain;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 11,
+              "EndLine": 10,
+              "EndColumn": 16,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 170,
+                "end": 175
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst point: Point = (0, plain);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 26,
+              "EndLine": 9,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 155,
+                "end": 160
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ndeclare const condition: boolean;\nconst point: Point = condition ? plain || new Point(1, 2) : new Point(3, 4);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 34,
+              "EndLine": 10,
+              "EndColumn": 39,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 197,
+                "end": 202
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ndeclare const key: string;\nconst record: Record<string, Point> = { [key]: plain };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 48,
+              "EndLine": 10,
+              "EndColumn": 53,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 204,
+                "end": 209
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst grid: Point[][] = [[plain]];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 27,
+              "EndLine": 9,
+              "EndColumn": 32,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 156,
+                "end": 161
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\nfunction make<T extends Point>(): T {\n  return { x: 1, y: 2 } as T;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "objectLiteral",
+              "Line": 9,
+              "Column": 10,
+              "EndLine": 9,
+              "EndColumn": 24,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "objectLiteral",
+                "description": "This object literal is used where an instance of class `Point` is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 130,
+                "end": 144
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const maybe: { x: number; y: number } | undefined;\nconst point: Point = maybe!;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 22,
+              "EndLine": 9,
+              "EndColumn": 28,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 163,
+                "end": 169
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst point = new Promise<Point>(resolve => resolve(plain));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 53,
+              "EndLine": 9,
+              "EndColumn": 58,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 182,
+                "end": 187
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ninterface Shape {\n  origin: Point;\n}\nconst point: Shape['origin'] = plain;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 12,
+              "Column": 32,
+              "EndLine": 12,
+              "EndColumn": 37,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 198,
+                "end": 203
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plains: { x: number; y: number }[];\nconst points: readonly Point[] = plains;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 34,
+              "EndLine": 9,
+              "EndColumn": 40,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 172,
+                "pos": 166
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plains: Record<string, { x: number; y: number }>;\nconst points: Record<string, Point> = plains;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 39,
+              "EndLine": 9,
+              "EndColumn": 45,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 185,
+                "end": 191
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst points: Map<string, Point[]> = new Map([['origin', [plain]]]);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 38,
+              "EndLine": 9,
+              "EndColumn": 68,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 167,
+                "end": 197
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const union: Point | { x: number; y: number };\nconst point: Point = union;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 22,
+              "EndLine": 9,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 164,
+                "pos": 159
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const intersection: { x: number } & { y: number };\nconst point: Point = intersection;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 22,
+              "EndLine": 9,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 163,
+                "end": 175
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst points: (Point | null)[] = [plain, null];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 35,
+              "EndLine": 9,
+              "EndColumn": 40,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 164,
+                "end": 169
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ndeclare const condition: boolean;\nconst points: Point[] = [condition ? plain : new Point(1, 2)];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 38,
+              "EndLine": 10,
+              "EndColumn": 43,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 201,
+                "end": 206
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ndeclare function draw(point: Point): void;\ndraw(plain as Point);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 6,
+              "EndLine": 10,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 178,
+                "end": 183
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst points: [string, ...Point[]] = ['origin', plain];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 49,
+              "EndLine": 9,
+              "EndColumn": 54,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 178,
+                "end": 183
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\nconst shape: { origin?: Point } = { origin: plain };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 9,
+              "Column": 45,
+              "EndLine": 9,
+              "EndColumn": 50,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 174,
+                "end": 179
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point {\n  constructor(\n    public x: number,\n    public y: number,\n  ) {}\n}\ndeclare const plain: { x: number; y: number };\ndeclare function Marker(props: { children: Point }): null;\nconst marker = <Marker>{plain}</Marker>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 10,
+              "Column": 25,
+              "EndLine": 10,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {
+            "react-jsx.d.ts": "declare namespace JSX {\n  interface ElementChildrenAttribute {\n    children: {};\n  }\n}\n"
+          },
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 213,
+                "end": 218
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Beta {\n  beta = 1;\n}\ndeclare const value: string | { beta: number };\nconst beta = value as Beta;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 6,
+              "Column": 14,
+              "EndLine": 6,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Beta` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 89,
+                "end": 94
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = { [key: number]: Source; [key: string]: Source | { x: number } };\ntype Target = { [key: number]: Target; [key: string]: Target | Point };\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 6,
+              "Column": 24,
+              "EndLine": 6,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 229,
+                "end": 235
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\ntype Source = [Source, { x: number }];\ntype Target = [Target, Point];\ndeclare const source: Source;\nconst target: Target = source;\nconst another: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 6,
+              "Column": 24,
+              "EndLine": 6,
+              "EndColumn": 30,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonInstance",
+              "Line": 7,
+              "Column": 25,
+              "EndLine": 7,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 147,
+                "end": 153
+              },
+              "kind": 0
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 179,
+                "end": 185
+              },
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Point { x = 0; }\nclass OtherPoint { x = 0; }\ntype Source = [Source, OtherPoint, OtherPoint];\ntype Target = [Target, Point | OtherPoint, Point];\ndeclare const source: Source;\nconst target: Target = source;\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonInstance",
+              "Line": 7,
+              "Column": 24,
+              "EndLine": 7,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-class-instance-assignment",
+              "message": {
+                "id": "nonInstance",
+                "description": "This value is used where an instance of class `Point` is expected, but was not created by its constructor."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 204,
+                "end": 210
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

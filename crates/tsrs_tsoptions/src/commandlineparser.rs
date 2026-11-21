@@ -82,15 +82,21 @@ pub fn parse_command_line(
     );
     let compiler_options =
         convert_map_to_options(&options, CompilerOptionsParser(CompilerOptions::default())).0;
+    let file_names = parser
+        .file_names
+        .iter()
+        .map(|file_name| tspath::to_rooted_path(file_name, host.get_current_directory()))
+        .collect();
     let mut result = new_parsed_command_line(
         P::new(compiler_options),
-        parser.file_names,
+        file_names,
         Vec::new(),
         ComparePathsOptions {
             use_case_sensitive_file_names: host.fs().use_case_sensitive_file_names(),
             current_directory: host.get_current_directory().to_string(),
         },
     );
+    result.root_file_names_for_diagnostics = parser.file_names;
     result.errors = parser.errors;
     result.raw = CompilerOptionsValue::Object(parser.options);
     result

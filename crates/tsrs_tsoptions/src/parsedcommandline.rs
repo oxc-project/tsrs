@@ -65,6 +65,7 @@ pub struct ParsedCommandLine {
     pub resolved_project_reference_paths: OnceLock<Vec<String>>,
 
     pub literal_file_names_len: usize,
+    pub root_file_names_for_diagnostics: Vec<String>, // the command line file names as typed
     pub file_names_by_path: OnceLock<FxHashMap<Path, String>>, // maps file names to their paths, used for quick lookups
     pub content_mapper_extension_rewrites: OnceLock<Vec<ExtensionRewrite>>,
 }
@@ -85,6 +86,7 @@ impl ParsedCommandLine {
             common_source_directory_errors: Mutex::new(Vec::new()),
             resolved_project_reference_paths: OnceLock::new(),
             literal_file_names_len: 0,
+            root_file_names_for_diagnostics: Vec::new(),
             file_names_by_path: OnceLock::new(),
             content_mapper_extension_rewrites: OnceLock::new(),
         }
@@ -133,6 +135,7 @@ impl ParsedCommandLine {
             wildcard_directories: clone_once_lock(&self.wildcard_directories),
             include_globs: clone_once_lock(&self.include_globs),
             literal_file_names_len: self.literal_file_names_len,
+            root_file_names_for_diagnostics: self.root_file_names_for_diagnostics.clone(),
             ..ParsedCommandLine::empty()
         }
     }
@@ -391,6 +394,14 @@ impl ParsedCommandLine {
         &self.parsed_config.file_names
     }
 
+    // parsedcommandline.go:365
+    pub fn root_file_name_for_diagnostic(&self, index: usize) -> &str {
+        match self.root_file_names_for_diagnostics.get(index) {
+            Some(file_name) => file_name,
+            None => &self.file_names()[index],
+        }
+    }
+
     pub fn file_names_by_path(&self) -> &FxHashMap<Path, String> {
         self.file_names_by_path.get_or_init(|| {
             let mut file_names_by_path = FxHashMap::with_capacity_and_hasher(
@@ -627,6 +638,7 @@ impl ParsedCommandLine {
             wildcard_directories: clone_once_lock(&self.wildcard_directories),
             include_globs: clone_once_lock(&self.include_globs),
             literal_file_names_len,
+            root_file_names_for_diagnostics: self.root_file_names_for_diagnostics.clone(),
             ..ParsedCommandLine::empty()
         }
     }

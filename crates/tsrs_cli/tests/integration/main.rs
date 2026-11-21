@@ -29,6 +29,7 @@ mod lone_surrogate_path_valid_utf8;
 mod lsp_edit_resolutions;
 mod merged_interface_check_site;
 mod npm_lib_path;
+mod parse_command_line_file_names_not_rooted;
 mod process_ending_index_directory;
 mod program_path_case_sensitivity;
 mod recycle_checkers;

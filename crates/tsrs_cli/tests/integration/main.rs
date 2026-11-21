@@ -32,6 +32,7 @@ mod ls_resolve_file_not_normalized;
 mod lsp_edit_resolutions;
 mod merged_interface_check_site;
 mod npm_lib_path;
+mod overlay_files_missing_from_path_completions;
 mod parse_command_line_file_names_not_rooted;
 mod process_ending_index_directory;
 mod program_path_case_sensitivity;

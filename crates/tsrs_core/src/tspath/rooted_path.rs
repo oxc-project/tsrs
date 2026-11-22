@@ -2,7 +2,9 @@ use super::{
     EncodedRootLength, get_encoded_root_length, get_normalized_absolute_path,
     get_path_from_path_components, get_root_length, has_trailing_directory_separator,
     is_encoded_dynamic_file_name, path_components, path_components_relative_to, path_is_absolute,
+    trim_file_path_prefix,
 };
+use crate::stringutil::equate_string_case_insensitive;
 
 fn rooted_path_from_absolute(path: &str) -> String {
     try_rooted_path_from_absolute(path).unwrap_or_else(|| panic!("path must be absolute"))
@@ -41,6 +43,29 @@ pub fn resolve_file(directory: &str, path: &str) -> String {
     to_rooted_path(path, directory)
 }
 
+// rooted_path.go:746 `RootedDirectoryPath.ResolveRelativeFile`. Unlike `resolve_file`, it appends `path` as text, so a
+// first segment such as `c:` or `^` stays below `directory`. Go also panics for an empty directory and for a URL query
+// or fragment; those assertions are not ported.
+pub fn resolve_relative_file(directory: &str, path: &str) -> String {
+    if path.is_empty() {
+        return directory.to_string();
+    }
+    // relative_path.go:70 `requiresResolution`
+    if path == ".." || path.starts_with("../") || has_trailing_directory_separator(path) {
+        return to_rooted_path(path, directory);
+    }
+    append_path_to_directory(directory, path)
+}
+
+// rooted_path.go:853
+fn append_path_to_directory(directory: &str, path: &str) -> String {
+    if has_trailing_directory_separator(directory) {
+        format!("{directory}{path}")
+    } else {
+        format!("{directory}/{path}")
+    }
+}
+
 fn has_rooted_url_suffix(path: &str) -> bool {
     if !has_url_root(path) {
         return false;
@@ -55,6 +80,46 @@ fn has_url_root(path: &str) -> bool {
 
 pub fn rooted_directory_path_from_absolute(path: &str) -> String {
     rooted_path_from_absolute(path)
+}
+
+// rooted_path.go:563 `RelativeFilePathFromDirectory`: the part of `child` below `parent`, without the separator between
+// them, or `None` if `child` is not `parent` and not below it. Go calls `RelativePathWithinDirectory` and
+// `trimContainedPath` (rooted_path.go:575), which differ from this function only in the Go type.
+pub fn relative_file_path_from_directory<'a>(
+    parent: &str,
+    child: &'a str,
+    use_case_sensitive_file_names: bool,
+) -> Option<&'a str> {
+    if parent.is_empty() || child.is_empty() {
+        return None;
+    }
+    let parent_root_length = get_root_length(parent);
+    let child_root_length = get_root_length(child);
+    let parent_root = &parent[..parent_root_length];
+    let child_root = &child[..child_root_length];
+    let dynamic = is_encoded_dynamic_file_name(parent) || is_encoded_dynamic_file_name(child);
+    let roots_equal = if dynamic {
+        parent_root.strip_suffix('/').unwrap_or(parent_root)
+            == child_root.strip_suffix('/').unwrap_or(child_root)
+    } else {
+        equate_string_case_insensitive(parent_root, child_root)
+    };
+    if !roots_equal {
+        return None;
+    }
+    let relative = trim_file_path_prefix(
+        &child[child_root_length..],
+        &parent[parent_root_length..],
+        dynamic || use_case_sensitive_file_names,
+    )?;
+    if !relative.is_empty()
+        && !has_trailing_directory_separator(parent)
+        && parent.len() != parent_root_length
+        && !relative.starts_with('/')
+    {
+        return None;
+    }
+    Some(relative.strip_prefix('/').unwrap_or(relative))
 }
 
 // relativePathFromNormalizedPaths

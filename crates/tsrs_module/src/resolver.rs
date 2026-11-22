@@ -1694,21 +1694,14 @@ impl<'r> ResolutionState<'r> {
 
             let candidate_directories = self.get_output_directories_for_base_directory(&root_dir);
             for candidate_dir in &candidate_directories {
-                if tspath::contains_path(
+                if let Some(path_fragment) = tspath::relative_file_path_from_directory(
                     candidate_dir,
                     final_path,
-                    &ComparePathsOptions {
-                        use_case_sensitive_file_names: self.fs().use_case_sensitive_file_names(),
-                        current_directory: self.current_directory().to_string(),
-                    },
+                    self.fs().use_case_sensitive_file_names(),
                 ) {
                     // The matched export is looking up something in either the out declaration or js dir, now map the written path back into the source dir and source extension
-                    let path_fragment = if final_path.len() > candidate_dir.len() {
-                        &final_path[candidate_dir.len() + 1..] // +1 to also remove directory separator
-                    } else {
-                        ""
-                    };
-                    let possible_input_base = tspath::combine_paths(&root_dir, &[path_fragment]);
+                    let possible_input_base =
+                        tspath::resolve_relative_file(&root_dir, path_fragment);
                     let js_and_dts_extensions = [
                         tspath::EXTENSION_MJS,
                         tspath::EXTENSION_CJS,

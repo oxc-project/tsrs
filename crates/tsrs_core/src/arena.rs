@@ -886,6 +886,14 @@ impl Region {
         Region::new_in(first_chunk, false, true)
     }
 
+    /// `new`, with its chunks carved from the thread's large slabs (`LARGE_SLAB_SIZE`) rather than the standard slabs
+    /// its other regions share: for a region that outlives the regions made around it on the same thread (a file a
+    /// whole build shares), so that it does not keep their standard slabs from going back once they are freed.
+    pub fn new_in_large_slabs(first_chunk: usize) -> Region {
+        ANY_REGION.store(true, Ordering::Relaxed);
+        Region::new_in(first_chunk, true, true)
+    }
+
     fn new_in(first_chunk: usize, registered: bool, large_slabs: bool) -> Region {
         Region(Arc::new_cyclic(|weak| RegionInner {
             arena: Box::new(Arena::with_first_chunk(

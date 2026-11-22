@@ -83,7 +83,7 @@ impl Relation {
 
     // tsrs-only (`--maxMemory`, notes/mem-recycle-checkers.md): drops every cached result and frees the tables.
     pub(crate) fn clear(&self) {
-        *self.pairs.borrow_mut() = hashbrown::HashTable::new();
+        *self.pairs.borrow_mut() = hashbrown::HashTable::new_in(tsrs_core::hugealloc::HugeAlloc);
         *self.hashed.borrow_mut() = FxHashMap::default();
     }
 

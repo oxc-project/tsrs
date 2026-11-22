@@ -44,7 +44,7 @@ const _: () = assert!(
 const _: () = assert!(std::mem::size_of::<PackedSlot<CacheHashKey, P<Type>>>() == 20);
 
 pub struct PackedMap<K, V> {
-    table: hashbrown::HashTable<PackedSlot<K, V>>,
+    table: hashbrown::HashTable<PackedSlot<K, V>, tsrs_core::hugealloc::HugeAlloc>,
 }
 
 impl<K: Copy, V: Copy> Clone for PackedMap<K, V> {
@@ -55,14 +55,16 @@ impl<K: Copy, V: Copy> Clone for PackedMap<K, V> {
 
 impl<K, V> Default for PackedMap<K, V> {
     fn default() -> Self {
-        PackedMap { table: hashbrown::HashTable::new() }
+        PackedMap { table: hashbrown::HashTable::new_in(tsrs_core::hugealloc::HugeAlloc) }
     }
 }
 
 impl<K: PackedKey, V: Copy> PackedMap<K, V> {
     /// A map holding one entry, with the capacity `FxHashMap::from_iter([(key, value)])` has.
     pub(crate) fn from_one(key: K, value: V) -> Self {
-        let mut m = PackedMap { table: hashbrown::HashTable::with_capacity(1) };
+        let mut m = PackedMap {
+            table: hashbrown::HashTable::with_capacity_in(1, tsrs_core::hugealloc::HugeAlloc),
+        };
         m.insert(key, value);
         m
     }

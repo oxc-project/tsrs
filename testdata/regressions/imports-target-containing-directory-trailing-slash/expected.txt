@@ -1,0 +1,1 @@
+node_modules/main.ts(1,20): error TS7016: Could not find a declaration file for module '#s'. '<dir>/node_modules/a.js' implicitly has an 'any' type.

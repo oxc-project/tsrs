@@ -272,6 +272,9 @@ struct ResolutionState<'r> {
     // request fields
     name: String,
     containing_directory: String,
+    // resolver.go:254. Set while a bare `imports` target resolves from its package scope: `containing_directory` has
+    // no trailing separator, and the trace adds one.
+    containing_directory_has_trailing_separator: bool,
     is_config_lookup: bool,
     features: NodeResolutionFeatures,
     esm_mode: bool,
@@ -305,6 +308,7 @@ fn new_resolution_state<'r>(
     let mut state = ResolutionState {
         name: name.to_string(),
         containing_directory: containing_directory.to_string(),
+        containing_directory_has_trailing_separator: false,
         compiler_options: get_compiler_options_with_redirect(
             compiler_options,
             redirected_reference,
@@ -876,6 +880,7 @@ impl<'r> ResolutionState<'r> {
             tracer: None,
             name: String::new(),
             containing_directory: String::new(),
+            containing_directory_has_trailing_separator: false,
             is_config_lookup: false,
             features: NodeResolutionFeatures::None,
             esm_mode: false,
@@ -887,6 +892,14 @@ impl<'r> ResolutionState<'r> {
             resolved_package_directory: false,
             diagnostics: Vec::new(),
         }
+    }
+
+    // resolver.go:318
+    fn containing_directory_path(&self) -> String {
+        if self.containing_directory_has_trailing_separator {
+            return tspath::ensure_trailing_directory_separator(&self.containing_directory);
+        }
+        self.containing_directory.clone()
     }
 
     fn fs(&self) -> &'r dyn tsrs_vfs::FS {
@@ -959,11 +972,14 @@ impl<'r> ResolutionState<'r> {
         // Secondary lookup
         let mut resolved = None;
         if !from_config || !from_inferred_types_containing_file {
-            trace!(
-                self.tracer,
-                diagnostics::LOOKING_UP_IN_NODE_MODULES_FOLDER_INITIAL_LOCATION_0,
-                self.containing_directory
-            );
+            if self.tracer.is_some() {
+                let initial_location = self.containing_directory_path();
+                trace!(
+                    self.tracer,
+                    diagnostics::LOOKING_UP_IN_NODE_MODULES_FOLDER_INITIAL_LOCATION_0,
+                    initial_location
+                );
+            }
             if tspath::is_external_module_name_relative(&self.name) {
                 let candidate =
                     normalize_path_for_cjs_resolution(&self.containing_directory, &self.name);
@@ -1461,14 +1477,22 @@ impl<'r> ResolutionState<'r> {
                                 &[&combined_lookup, &scope_containing_directory],
                             );
                         }
+                        // resolver.go:971. The containing directory is the scope directory without a trailing
+                        // separator, so the self-name check for `/node_modules/` does not match it.
                         let name = std::mem::replace(&mut self.name, combined_lookup);
                         let containing_directory = std::mem::replace(
                             &mut self.containing_directory,
-                            scope_containing_directory,
+                            scope.package_directory.to_string(),
+                        );
+                        let containing_directory_has_trailing_separator = std::mem::replace(
+                            &mut self.containing_directory_has_trailing_separator,
+                            true,
                         );
                         let result = self.resolve_node_like();
                         self.name = name;
                         self.containing_directory = containing_directory;
+                        self.containing_directory_has_trailing_separator =
+                            containing_directory_has_trailing_separator;
                         if result.is_resolved() {
                             return Some(Resolved {
                                 path: result.resolved_file_name.to_string(),

@@ -1,0 +1,2 @@
+uncontextual.ts(1,21): error TS2339: Property 'a' does not exist on type '{ b?: number | undefined; }'.
+uncontextual.ts(4,5): error TS2353: Object literal may only specify known properties, and 'a' does not exist in type '{ b?: number | undefined; }'.

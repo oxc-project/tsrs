@@ -19,16 +19,6 @@
     },
     "suite": null
   },
-  "exit_code": 2,
-  "diagnostics": [
-    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(140,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
-    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(202,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
-    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(258,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
-    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(302,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
-    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(359,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
-    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(423,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
-    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(457,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
-    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(513,14): error TS7031: Binding element 'className' implicitly has an 'any' type.",
-    "apps/studio/components/interfaces/Integrations/Landing/Integrations.constants.tsx(569,14): error TS7031: Binding element 'className' implicitly has an 'any' type."
-  ]
+  "exit_code": 0,
+  "diagnostics": []
 }

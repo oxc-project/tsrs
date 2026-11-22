@@ -23,6 +23,16 @@ preserves this upstream behavior. The [recorded cases](../notes/open-history-dep
 counts, assignments and visit orders; such differences alone do not establish varying diagnostics across
 repeated default-mode runs with identical inputs and settings.
 
+## Backported upstream fixes
+
+tsrs includes these merged upstream fixes before the pin does. CI applies their patches from
+[`tools/typescript-backports`](../tools/typescript-backports) to the reference source and fixtures, so conformance
+and source-built oracles include them; the published pinned compiler does not.
+
+| upstream fix | difference from the pinned compiler |
+| --- | --- |
+| [microsoft/TypeScript#65556](https://github.com/microsoft/TypeScript/pull/65556) | An object binding pattern with a default value adds only its initialized elements to the default's type. A contextually typed `({ actions } = {}) => actions` no longer reports TS7031; without a contextual type, `{ a, b = 1 } = {}` reports TS2339 for `a` instead of TS7031 ([regression](../testdata/regressions/object-binding-default-padding)) |
+
 ## Command line
 
 Compilation defaults to the pinned TypeScript checker settings. Its opt-in fast preset is enabled

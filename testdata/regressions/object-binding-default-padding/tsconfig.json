@@ -1,0 +1,1 @@
+{"compilerOptions":{"strict":true,"noEmit":true,"target":"es2022","types":[],"skipLibCheck":true},"files":["contextual-callback.ts","contextual-method.ts","contextual-rest.ts","uncontextual.ts"]}

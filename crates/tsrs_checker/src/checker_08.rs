@@ -2997,18 +2997,16 @@ impl Checker {
     // checker.go:17146
     fn pad_object_literal_type(&mut self, t: P<Type>, pattern: P<Node>) -> P<Type> {
         let mut missing_elements: Vec<P<Node>> = Vec::new();
-        missing_elements.extend(pattern.elements().iter().filter_map(|&e| {
-            if has_dot_dot_dot_token(e) {
-                return None;
+        for e in pattern.elements().iter().copied() {
+            if e.initializer().is_some() {
+                let name = self.get_property_name_from_binding_element(e);
+                if name != INTERNAL_SYMBOL_NAME_MISSING
+                    && self.get_property_of_type(t, &name).is_none()
+                {
+                    missing_elements.push(e);
+                }
             }
-            let name = self.get_property_name_from_binding_element(e);
-            if name != INTERNAL_SYMBOL_NAME_MISSING && self.get_property_of_type(t, &name).is_none()
-            {
-                Some(e)
-            } else {
-                None
-            }
-        }));
+        }
         if missing_elements.is_empty() {
             return t;
         }
@@ -3022,7 +3020,7 @@ impl Checker {
                 self.new_symbol(SymbolFlags::Property | SymbolFlags::Optional, alloc_str(&name));
             let resolved_type = self.get_type_from_binding_element(
                 e, false, /*includePatternInType*/
-                true,  /*reportErrors*/
+                false, /*reportErrors*/
             );
             self.value_symbol_links.get(symbol).resolved_type.set(Some(resolved_type));
             members.set(symbol.name(), symbol);

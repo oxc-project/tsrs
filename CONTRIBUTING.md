@@ -27,6 +27,7 @@ configurations alone do not establish varying diagnostics on repeated identical 
 - Port the Go function you are fixing; keep its name, structure and control flow (`docs/PORTING.md`). Do not
   "improve" the algorithm. Internal-only differences (data layout, caching) are fine when no diagnostic changes.
 - If the Go code itself is wrong, report it upstream; tsrs follows it until the pinned commit moves.
+  A merged upstream fix can be adopted earlier as a [backport](#backports).
 
 ## Build
 
@@ -89,6 +90,21 @@ compiler versions, their source commits and the executable's version against Car
 checks use `node tools/port/build-published.mjs` and `target/published/debug/tsrs`, which also exercise npm's on-disk
 library layout. Source conformance keeps Go's source-default version; the two version strings can differ.
 
+### Backports
+
+A merged upstream fix that is newer than the pin is kept as a patch in `tools/typescript-backports/<commit>/`, named
+after its upstream pull request. After both source checks pass, apply the patches for the pinned commit before
+building a source oracle, running conformance or recording expected output:
+
+```sh
+node tools/typescript-backports/apply.mjs
+```
+
+CI applies the same patches after every reference checkout. The published compiler does not contain them, so
+compare affected behavior with a source-built oracle and update the affected determinism snapshots. Patches for
+another commit are not applied. Delete a backport when the pin includes its fix, and list it in
+[the differences from pinned TypeScript](docs/DEFAULTS.md#backported-upstream-fixes) while it is active.
+
 Internal oracle programs and instrumentation still build from the verified Go checkout:
 
 ```sh
@@ -97,7 +113,7 @@ reference_bin="$PWD/target/reference/tsgo"
 (cd ts-ref/tsc && GOTOOLCHAIN=auto GOWORK=off go build -o "$reference_bin" ./cmd/tsc)
 ```
 
-Keep tracked reference sources unchanged;
+Keep tracked reference sources unchanged apart from [backports](#backports);
 [Go overlays](docs/DEBUGGING.md#where-go-reports-an-error-an-instrumented-reference-with-go-build--overlay) support
 instrumentation. Rebuild the reference after the pin changes; its version string alone does not identify the commit.
 The checkout stays at the pinned revision until explicitly updated. `Cargo.toml` records the matching TypeScript

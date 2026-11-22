@@ -21,8 +21,6 @@
   },
   "exit_code": 2,
   "diagnostics": [
-    "packages/next/src/server/web/sandbox/context.ts(108,9): error TS2578: Unused '@ts-expect-error' directive.",
-    "packages/next/src/shared/lib/router/adapters.tsx(26,18): error TS7031: Binding element 'scroll' implicitly has an 'any' type.",
-    "packages/next/src/shared/lib/router/adapters.tsx(29,21): error TS7031: Binding element 'scroll' implicitly has an 'any' type."
+    "packages/next/src/server/web/sandbox/context.ts(108,9): error TS2578: Unused '@ts-expect-error' directive."
   ]
 }

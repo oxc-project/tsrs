@@ -116,6 +116,9 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Apply TypeScript backports
+        run: node tools/typescript-backports/apply.mjs
+
       # Warnings fail the build; Lint's clippy covers the targets no test builds (tool binaries without tests).
       - name: Workspace tests
         run: cargo test --profile ci --locked --config 'build.warnings="deny"'
@@ -142,6 +145,9 @@ jobs:
           path: ts-ref
           fetch-depth: 1
           persist-credentials: false
+
+      - name: Apply TypeScript backports
+        run: node tools/typescript-backports/apply.mjs
 
       # Conformance, regressions and determinism exercise the same compiled CLI.
       - name: Download correctness binaries
@@ -215,6 +221,9 @@ jobs:
           path: ts-ref
           fetch-depth: 1
           persist-credentials: false
+
+      - name: Apply TypeScript backports
+        run: node tools/typescript-backports/apply.mjs
 
       - id: harness-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -312,6 +321,9 @@ jobs:
           fetch-depth: 1
           sparse-checkout: tsc
           persist-credentials: false
+
+      - name: Apply TypeScript backports
+        run: node tools/typescript-backports/apply.mjs
 
       - name: Build Go Fourslash server
         run: cargo build --profile dev --locked -p tsrs_fourslash_server

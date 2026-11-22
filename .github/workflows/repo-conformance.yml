@@ -107,6 +107,10 @@ jobs:
           path: ts-ref
           persist-credentials: false
 
+      - name: Apply TypeScript backports
+        if: ${{ !inputs.rerun_run_id }}
+        run: node tools/typescript-backports/apply.mjs
+
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         if: ${{ !inputs.rerun_run_id }}
         with:

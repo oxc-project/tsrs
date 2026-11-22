@@ -251,7 +251,11 @@ pub(crate) fn process_all_program_files(
             use_case_sensitive_file_names: host.fs().use_case_sensitive_file_names(),
             current_directory: host.get_current_directory().to_string(),
         },
-        files_parser: FilesParser::new(single_threaded, max_node_module_js_depth),
+        files_parser: FilesParser::new(
+            single_threaded,
+            max_node_module_js_depth,
+            opts.min_parallel_round_files,
+        ),
         root_tasks: Vec::with_capacity(
             root_files.len() + compiler_options.lib.as_ref().map_or(0, std::vec::Vec::len),
         ),

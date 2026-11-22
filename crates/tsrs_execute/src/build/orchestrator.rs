@@ -732,19 +732,23 @@ impl Orchestrator {
         build_result
     }
 
-    // orchestrator.go:925
-    pub fn range_tasks(&'static self, order: &[String], f: &(dyn Fn(&Path, P<BuildTask>) + Sync)) {
-        let mut num_routines = 4;
+    /// How many projects build at once (`rangeTasks`): `--builders`, default 4, one with `--singleThreaded`.
+    pub(crate) fn builder_count(&self) -> usize {
         if self.api_mode.load(Ordering::SeqCst) {
             // API builds: one task region is entered at a time. Concurrent tasks could each wait to enter the
             // other's region (`arena::enter_owner` for lazily filled data of a shared source file), so the API
             // runs one builder.
-            num_routines = 1;
+            1
         } else if self.opts.command.compiler_options.single_threaded.is_true() {
-            num_routines = 1;
-        } else if let Some(builders) = self.opts.command.build_options.builders {
-            num_routines = builders as usize;
+            1
+        } else {
+            self.opts.command.build_options.builders.map_or(4, |builders| builders as usize)
         }
+    }
+
+    // orchestrator.go:925
+    pub fn range_tasks(&'static self, order: &[String], f: &(dyn Fn(&Path, P<BuildTask>) + Sync)) {
+        let num_routines = self.builder_count();
 
         let current_task_index = std::sync::atomic::AtomicUsize::new(0);
         let get_next_task = || -> Option<(Path, P<BuildTask>)> {

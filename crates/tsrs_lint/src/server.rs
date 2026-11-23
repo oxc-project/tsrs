@@ -4,7 +4,8 @@
 //! (`tsrs_project::Session`, the one `tsrs --lsp` uses): it holds the editor's unsaved text of open files, reuses
 //! programs across edits and keeps checkers warm, so a lint request after an edit only pays for what changed.
 //!
-//! Frames use the headless framing in both directions (`protocol.rs`). The client sends:
+//! Frames use the headless framing in both directions (`protocol.rs`): a little-endian `u32` JSON length, a `u8`
+//! message type, then the UTF-8 JSON. The client sends:
 //!
 //! | type | name | JSON |
 //! | --- | --- | --- |
@@ -14,6 +15,21 @@
 //! | 19 | `FilesChanged` | `{"changes": [{"path", "kind"}]}` (LSP `FileChangeType`: 1 created, 2 changed, 3 deleted) |
 //! | 20 | `Lint` | `{"id", "configs": [{"file_paths", "rules"}], "fix", "fix_suggestions"}` |
 //! | 21 | `Shutdown` | `{}` |
+//! | 22 | `Hello` | `{"protocol_version"}` |
+//!
+//! The server sends:
+//!
+//! | type | name | JSON |
+//! | --- | --- | --- |
+//! | 0 | `Error` | `{"id", "error"}` (`id` is null for a fatal error, after which the server exits with status 1) |
+//! | 1 | `Diagnostic` | the headless diagnostic with the request's `"id"` first |
+//! | 3 | `Done` | `{"id"}` |
+//! | 4 | `Hello` | `{"protocol_version", "version"}` (the tsrs-lint version) |
+//!
+//! The first frame must be the client's `Hello`. The server answers with its own, then exits with a fatal error if the
+//! client's `protocol_version` is not [`PROTOCOL_VERSION`]; any other first frame is a fatal error. After the
+//! handshake, frames of unknown types (and another `Hello`) are skipped, so a newer client can add notifications.
+//! A malformed notification is a fatal error, as the client's state and the server's would diverge.
 //!
 //! Notifications are applied in order before any later lint request takes a snapshot. A lint request lints every
 //! file in `configs`, as the headless mode does. It is answered with diagnostic frames carrying its `id`, then one
@@ -46,6 +62,11 @@ const DID_CLOSE: u8 = 18;
 const FILES_CHANGED: u8 = 19;
 const LINT: u8 = 20;
 const SHUTDOWN: u8 = 21;
+const HELLO: u8 = 22;
+
+/// The version of the frames below. A client and the server must speak the same version: any incompatible change to
+/// the protocol bumps it.
+pub const PROTOCOL_VERSION: u32 = 1;
 
 /// The stack of each request thread: the checker recurses as deeply as in the CLI.
 const STACK_SIZE: usize = 512 << 20;
@@ -118,7 +139,17 @@ pub fn run(base: Options, input: &mut dyn Read, output: Box<dyn Write + Send>) -
 
 impl Server {
     fn serve(self: &Arc<Self>, input: &mut dyn Read) -> i32 {
+        match self.handshake(input) {
+            Ok(true) => {}
+            // The client left before saying hello.
+            Ok(false) => return 0,
+            Err(error) => {
+                self.fatal(&error);
+                return 1;
+            }
+        }
         let mut requests: Vec<JoinHandle<()>> = Vec::new();
+        let mut skipped = FxHashSet::default();
         let code = loop {
             let frame = match protocol::read_frame(input) {
                 Ok(Some(frame)) => frame,
@@ -129,7 +160,7 @@ impl Server {
                 }
             };
             requests.retain(|request| !request.is_finished());
-            match self.handle(frame, &mut requests) {
+            match self.handle(frame, &mut requests, &mut skipped) {
                 Ok(true) => {}
                 Ok(false) => break 0,
                 Err(error) => {
@@ -144,15 +175,64 @@ impl Server {
         code
     }
 
-    /// Handles one frame. Returns `false` on shutdown.
+    /// Reads the client's `Hello` and answers with the server's. Returns `false` if the input ends first.
+    fn handshake(&self, input: &mut dyn Read) -> Result<bool, String> {
+        let Some((message_type, bytes)) =
+            protocol::read_frame(input).map_err(|error| format!("error reading frame: {error}"))?
+        else {
+            return Ok(false);
+        };
+        if message_type != HELLO {
+            return Err(format!(
+                "expected a Hello frame (message type {HELLO}) first, got message type {message_type}"
+            ));
+        }
+        // The client learns the server's versions even when it cannot go on.
+        let mut output = Vec::new();
+        protocol::write_message(
+            &mut output,
+            MessageType::ServerHello,
+            &protocol::object([
+                ("protocol_version", Value::Integer(PROTOCOL_VERSION.into())),
+                ("version", Value::String(env!("CARGO_PKG_VERSION").into())),
+            ]),
+        )
+        .map_err(|error| format!("could not encode Hello: {error}"))?;
+        self.write(&output);
+        let client = parse(&bytes)
+            .and_then(|value| {
+                let version = integer(payload::object(&value)?.get("protocol_version"))?;
+                u32::try_from(version).map_err(|error| error.to_string())
+            })
+            .map_err(|error| format!("invalid Hello frame: {error}"))?;
+        if client != PROTOCOL_VERSION {
+            return Err(format!(
+                "protocol version mismatch: client speaks {client}, tsrs-lint server speaks {PROTOCOL_VERSION}"
+            ));
+        }
+        Ok(true)
+    }
+
+    /// Handles one frame after the handshake. Returns `false` on shutdown.
+    ///
+    /// Frames of unknown types, and a second `Hello`, are skipped: a newer client may send notifications this server
+    /// does not know. `skipped` holds the types already logged.
     fn handle(
         self: &Arc<Self>,
         (message_type, bytes): (u8, Vec<u8>),
         requests: &mut Vec<JoinHandle<()>>,
+        skipped: &mut FxHashSet<u8>,
     ) -> Result<bool, String> {
-        let text =
-            std::str::from_utf8(&bytes).map_err(|error| format!("invalid frame: {error}"))?;
-        let value = json::unmarshal(text).map_err(|error| format!("invalid frame: {error}"))?;
+        if !matches!(
+            message_type,
+            DID_OPEN | DID_CHANGE | DID_CLOSE | FILES_CHANGED | LINT | SHUTDOWN
+        ) {
+            if skipped.insert(message_type) {
+                eprintln!("tsrs-lint server: skipping unknown message type {message_type}");
+            }
+            return Ok(true);
+        }
+        let value = parse(&bytes)?;
         let fields = payload::object(&value)?;
         let ctx = Context::background();
         match message_type {
@@ -217,7 +297,7 @@ impl Server {
                 requests.push(handle);
             }
             SHUTDOWN => return Ok(false),
-            other => return Err(format!("unknown message type: {other}")),
+            _ => unreachable!("message type {message_type} is skipped above"),
         }
         Ok(true)
     }
@@ -405,6 +485,12 @@ impl LintRequest {
 
 fn request_id(fields: &JsonMap) -> Result<u64, String> {
     u64::try_from(integer(fields.get("id"))?).map_err(|error| error.to_string())
+}
+
+/// A frame's JSON.
+fn parse(bytes: &[u8]) -> Result<Value, String> {
+    let text = std::str::from_utf8(bytes).map_err(|error| format!("invalid frame: {error}"))?;
+    json::unmarshal(text).map_err(|error| format!("invalid frame: {error}"))
 }
 
 fn normalize(path: &str, cwd: &str) -> String {

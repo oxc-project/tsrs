@@ -12,6 +12,8 @@ pub enum MessageType {
     Timing = 2,
     /// Server mode (`server.rs`): the end of a lint request.
     ServerLintDone = 3,
+    /// Server mode (`server.rs`): the reply to the client's `Hello`.
+    ServerHello = 4,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

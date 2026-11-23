@@ -6,6 +6,7 @@ use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 
 use tsrs_core::json::{self, Value};
 use tsrs_lint::protocol::{self, MessageType};
+use tsrs_lint::server::PROTOCOL_VERSION;
 
 const DID_OPEN: u8 = 16;
 const DID_CHANGE: u8 = 17;
@@ -13,6 +14,7 @@ const DID_CLOSE: u8 = 18;
 const FILES_CHANGED: u8 = 19;
 const LINT: u8 = 20;
 const SHUTDOWN: u8 = 21;
+const HELLO: u8 = 22;
 
 const ASYNC_A: &str = "export async function f(): Promise<number> { return 1; }\n";
 const SYNC_A: &str = "export function f(): number { return 1; }\n";
@@ -55,7 +57,17 @@ struct Answer {
 }
 
 impl Server {
+    /// Starts a server and completes the handshake.
     fn start(cwd: &Path) -> Self {
+        let mut server = Self::spawn(cwd);
+        server.hello(PROTOCOL_VERSION);
+        let (message_type, _) = server.read().expect("the server ended before its Hello");
+        assert_eq!(message_type, MessageType::ServerHello as u8);
+        server
+    }
+
+    /// Starts a server without a handshake.
+    fn spawn(cwd: &Path) -> Self {
         let mut child = Command::new(env!("CARGO_BIN_EXE_tsrs-lint"))
             .arg("server")
             .current_dir(cwd)
@@ -84,6 +96,13 @@ impl Server {
         let id = self.next_id;
         self.next_id += 1;
         id
+    }
+
+    fn hello(&mut self, protocol_version: u32) {
+        self.send(
+            HELLO,
+            &protocol::object([("protocol_version", Value::Integer(protocol_version.into()))]),
+        );
     }
 
     fn open(&mut self, path: &str, version: i64, text: &str) {
@@ -287,6 +306,79 @@ fn requests_fail_on_their_own_and_shutdown_ends_the_server() {
     let answer = server.lint_with_rule(&[&b], "not-a-rule");
     assert!(answer.error.is_some(), "{answer:?}");
     // The server keeps serving after a failed request.
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
+    server.send(SHUTDOWN, &protocol::object([]));
+    assert!(server.read().is_none());
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn the_handshake_answers_with_the_server_versions() {
+    let dir = fixture("hello");
+    let mut server = Server::spawn(&dir);
+    server.hello(PROTOCOL_VERSION);
+    let (message_type, value) = server.read().expect("the server ended before its Hello");
+    assert_eq!(message_type, MessageType::ServerHello as u8);
+    let Value::Object(fields) = &value else { panic!("{value:?}") };
+    assert_eq!(number(fields.get("protocol_version")), Some(u64::from(PROTOCOL_VERSION)));
+    assert_eq!(fields.get("version"), Some(&Value::String(env!("CARGO_PKG_VERSION").into())));
+    server.send(SHUTDOWN, &protocol::object([]));
+    assert!(server.read().is_none());
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn a_protocol_version_mismatch_ends_the_server_after_its_hello() {
+    let dir = fixture("mismatch");
+    let mut server = Server::spawn(&dir);
+    server.hello(PROTOCOL_VERSION + 1);
+    let (message_type, _) = server.read().expect("the server ended before its Hello");
+    assert_eq!(message_type, MessageType::ServerHello as u8);
+    assert_eq!(
+        fatal_error(server.read()),
+        format!(
+            "protocol version mismatch: client speaks {}, tsrs-lint server speaks {PROTOCOL_VERSION}",
+            PROTOCOL_VERSION + 1
+        )
+    );
+    assert!(server.read().is_none());
+    assert_eq!(server.exit_code(), 1);
+}
+
+#[test]
+fn a_first_frame_other_than_hello_ends_the_server() {
+    let dir = fixture("no-hello");
+    let b = path(&dir, "b.ts");
+    let mut server = Server::spawn(&dir);
+    server.open(&b, 1, CALLS_A);
+    let error = fatal_error(server.read());
+    assert!(error.contains("expected a Hello frame"), "{error}");
+    assert!(server.read().is_none());
+    assert_eq!(server.exit_code(), 1);
+
+    // A Hello without a protocol version is answered, then ends the server.
+    let mut server = Server::spawn(&dir);
+    server.send(HELLO, &protocol::object([]));
+    let (message_type, _) = server.read().expect("the server ended before its Hello");
+    assert_eq!(message_type, MessageType::ServerHello as u8);
+    let error = fatal_error(server.read());
+    assert!(error.starts_with("invalid Hello frame"), "{error}");
+    assert!(server.read().is_none());
+    assert_eq!(server.exit_code(), 1);
+}
+
+#[test]
+fn unknown_frame_types_are_skipped_after_the_handshake() {
+    let dir = fixture("unknown");
+    let b = path(&dir, "b.ts");
+    let mut server = Server::start(&dir);
+    server.send_frames(&[
+        raw_frame(99, b"not json"),
+        raw_frame(99, b"{}"),
+        raw_frame(250, b""),
+        // A second Hello is skipped too.
+        frame(HELLO, &protocol::object([("protocol_version", Value::Integer(0))])),
+    ]);
     assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
     server.send(SHUTDOWN, &protocol::object([]));
     assert!(server.read().is_none());

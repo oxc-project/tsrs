@@ -29,6 +29,7 @@ The client sends:
 | 19 | `FilesChanged` | `{"changes": [{"path", "kind"}]}` (LSP `FileChangeType`: 1 created, 2 changed, 3 deleted) |
 | 20 | `Lint` | `{"id", "configs": [{"file_paths", "rules"}], "fix", "fix_suggestions"}` |
 | 21 | `Shutdown` | `{}` |
+| 22 | `Hello` | `{"protocol_version"}` |
 
 The server sends:
 
@@ -37,6 +38,7 @@ The server sends:
 | 0 | `Error` | `{"id", "error"}` |
 | 1 | `Diagnostic` | headless mode's diagnostic object, with the request's `"id"` as its first field |
 | 3 | `Done` | `{"id"}` |
+| 4 | `Hello` | `{"protocol_version", "version"}` |
 
 `id` is a non-negative integer the client chooses; ids should be unique among the requests in flight. A `Lint`
 request's `configs` and `rules` are headless mode's (V2 payload); each file is linted once, with the rules of the
@@ -44,16 +46,44 @@ first config that names it. Compiler diagnostics are not reported. Tsconfig and 
 project are reported as in headless mode, on the tsconfig, once per request, and that project's files are not
 linted.
 
+## Handshake and versions
+
+The first frame must be the client's `Hello`. The server always answers it with its own `Hello`, for example:
+
+```json
+{"protocol_version": 1, "version": "7.1.0-beta.tsrs4"}
+```
+
+`protocol_version` is the server's protocol version (`PROTOCOL_VERSION` in `server.rs`) and `version` is the
+tsrs-lint version. Versions must match exactly: if the client's `protocol_version` differs, the server sends its
+`Hello`, then the fatal error
+
+```json
+{"id": null, "error": "protocol version mismatch: client speaks 2, tsrs-lint server speaks 1"}
+```
+
+and exits with status 1. A `Hello` without an integer `protocol_version` is also answered with the server's `Hello`
+and then a fatal error (`invalid Hello frame: ...`). Any other first frame gets a fatal error
+(`expected a Hello frame (message type 22) first, got message type <n>`) and no `Hello`. If the input ends before
+any frame, the server exits with status 0.
+
+Any change that an older client or server would misread bumps `PROTOCOL_VERSION`: a new or changed field whose
+meaning matters, a changed frame, or changed semantics. Adding a new client notification that an older server may
+safely ignore does not need a bump, since the server skips frames of unknown types (below).
+
 ## Errors
 
-- A frame that cannot be read, a frame of an unknown message type, a malformed notification (`DidOpen`,
-  `DidChange`, `DidClose`, `FilesChanged`, `Shutdown`), or a `Lint` frame without a valid `id` is a fatal error: an
-  error frame with a null `id`, after which the server exits with status 1. Going on would let the client's view of
-  open files and the server's diverge.
+After the handshake:
+
+- A frame of an unknown message type is skipped, and the server logs
+  `tsrs-lint server: skipping unknown message type <n>` to stderr once per type. A second `Hello` is skipped the
+  same way.
+- A malformed notification (`DidOpen`, `DidChange`, `DidClose`, `FilesChanged`, `Shutdown`), a `Lint`
+  frame without a valid `id`, or a frame that cannot be read is a fatal error: an error frame with a null `id`, after
+  which the server exits with status 1. Going on would let the client's view of open files and the server's
+  diverge.
 - A `Lint` request that cannot be parsed otherwise (an unknown rule, a bad `configs`) is answered with an error
   frame carrying its `id`, and the server keeps serving.
-
-If the input ends before any frame, the server exits with status 0.
 
 ## Requests
 

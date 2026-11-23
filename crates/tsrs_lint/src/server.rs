@@ -16,15 +16,19 @@
 //! | 20 | `Lint` | `{"id", "configs": [{"file_paths", "rules"}], "fix", "fix_suggestions"}` |
 //! | 21 | `Shutdown` | `{}` |
 //! | 22 | `Hello` | `{"protocol_version"}` |
+//! | 23 | `Cancel` | `{"id"}` |
 //!
 //! The server sends:
 //!
 //! | type | name | JSON |
 //! | --- | --- | --- |
-//! | 0 | `Error` | `{"id", "error"}` (`id` is null for a fatal error, after which the server exits with status 1) |
+//! | 0 | `Error` | `{"id", "error"}`, plus `"canceled": true` for a canceled request (see below) |
 //! | 1 | `Diagnostic` | the headless diagnostic with the request's `"id"` first |
 //! | 3 | `Done` | `{"id"}` |
 //! | 4 | `Hello` | `{"protocol_version", "version"}` (the tsrs-lint version) |
+//!
+//! A fatal error has a null `id`; the server exits with status 1 after it. A canceled request's error is
+//! `{"id", "error": "request canceled", "canceled": true}`.
 //!
 //! The first frame must be the client's `Hello`. The server answers with its own, then exits with a fatal error if the
 //! client's `protocol_version` is not [`PROTOCOL_VERSION`]; any other first frame is a fatal error. After the
@@ -34,18 +38,21 @@
 //! Notifications are applied in order, on the thread that reads frames, before any later lint request takes a
 //! snapshot. A lint request lints every file in `configs`, as the headless mode does; compiler diagnostics are not
 //! reported. Each request gets exactly one terminal frame: its diagnostic frames, each carrying its `id`, then
-//! `Done {"id"}`; or an error frame carrying its `id` (a request that cannot be parsed, or a panic), in which case
-//! its diagnostics are dropped. A request's frames are written at once, so requests never interleave.
+//! `Done {"id"}`; or an error frame carrying its `id` (a request that cannot be parsed, a panic, or a cancellation),
+//! in which case its diagnostics are dropped. A request's frames are written at once, so requests never interleave.
 //!
 //! Lint requests wait in a queue for a fixed pool of worker threads, first in, first out, and take their snapshot
 //! when a worker starts them. There are as many workers as the available parallelism, at most 4, unless
-//! `TSRS_LINT_SERVER_WORKERS` sets a positive number. `Shutdown` or the end of the input lets queued and running
-//! requests finish, then exits with status 0. `docs/LINT_SERVER.md` documents the protocol.
+//! `TSRS_LINT_SERVER_WORKERS` sets a positive number. `Cancel {"id"}` answers a queued request as canceled at once;
+//! a running request stops before its next file and is answered as canceled; a finished or unknown `id` is ignored.
+//! `Shutdown` or the end of the input answers queued requests as canceled, lets running requests finish, then exits
+//! with status 0. `docs/LINT_SERVER.md` documents the protocol.
 
 use std::collections::VecDeque;
 use std::io::{self, Read, Write};
 use std::num::NonZeroUsize;
 use std::panic::{AssertUnwindSafe, catch_unwind};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread::JoinHandle;
 
@@ -71,6 +78,7 @@ const FILES_CHANGED: u8 = 19;
 const LINT: u8 = 20;
 const SHUTDOWN: u8 = 21;
 const HELLO: u8 = 22;
+const CANCEL: u8 = 23;
 
 /// The version of the frames below. A client and the server must speak the same version: any incompatible change to
 /// the protocol bumps it.
@@ -84,6 +92,9 @@ const WORKERS_ENV: &str = "TSRS_LINT_SERVER_WORKERS";
 /// The most workers by default: each lint holds a checker, and an editor rarely has more requests in flight.
 const MAX_DEFAULT_WORKERS: usize = 4;
 
+/// The error text of a canceled request's error frame, which also carries `"canceled": true`.
+const CANCELED: &str = "request canceled";
+
 struct Server {
     session: Arc<Session>,
     cwd: String,
@@ -96,11 +107,13 @@ struct Server {
     queued: Condvar,
 }
 
-/// Lint requests waiting for a worker.
+/// Lint requests waiting for a worker, and the requests the workers are running.
 #[derive(Default)]
 struct Queue {
     /// First in, first out.
     pending: VecDeque<LintRequest>,
+    /// The id and cancellation flag of each running request.
+    running: Vec<(u64, Arc<AtomicBool>)>,
     /// Set at shutdown: workers exit once nothing is pending.
     closed: bool,
 }
@@ -201,7 +214,7 @@ impl Server {
                 }
             }
         };
-        // Queued and running requests finish.
+        // Queued requests are canceled; running ones finish.
         self.close_queue();
         for worker in workers {
             let _ = worker.join();
@@ -236,14 +249,17 @@ impl Server {
     fn work(&self) {
         while let Some(request) = self.next_request() {
             self.lint(&request);
+            let mut queue = self.queue.lock().unwrap();
+            queue.running.retain(|(_, canceled)| !Arc::ptr_eq(canceled, &request.canceled));
         }
     }
 
-    /// Waits for the next queued request, or returns `None` once the queue closes and nothing is pending.
+    /// Waits for the next queued request and marks it running, or returns `None` once the queue closes.
     fn next_request(&self) -> Option<LintRequest> {
         let mut queue = self.queue.lock().unwrap();
         loop {
             if let Some(request) = queue.pending.pop_front() {
+                queue.running.push((request.id, Arc::clone(&request.canceled)));
                 return Some(request);
             }
             if queue.closed {
@@ -253,10 +269,37 @@ impl Server {
         }
     }
 
-    /// Closes the queue: the workers lint the queued requests, then exit.
+    /// Closes the queue and answers every queued request as canceled.
     fn close_queue(&self) {
-        self.queue.lock().unwrap().closed = true;
+        let pending = {
+            let mut queue = self.queue.lock().unwrap();
+            queue.closed = true;
+            std::mem::take(&mut queue.pending)
+        };
         self.queued.notify_all();
+        for request in pending {
+            self.write_canceled(request.id);
+        }
+    }
+
+    /// Cancels request `id`: a queued request is answered at once, a running one stops before its next file. A
+    /// finished or unknown request is ignored.
+    fn cancel(&self, id: u64) {
+        let canceled_queued = {
+            let mut queue = self.queue.lock().unwrap();
+            for (running, canceled) in &queue.running {
+                if *running == id {
+                    // Only the flag is shared: its worker reads it and nothing else depends on its ordering.
+                    canceled.store(true, Ordering::Relaxed);
+                }
+            }
+            let before = queue.pending.len();
+            queue.pending.retain(|request| request.id != id);
+            before - queue.pending.len()
+        };
+        for _ in 0..canceled_queued {
+            self.write_canceled(id);
+        }
     }
 
     /// Reads the client's `Hello` and answers with the server's. Returns `false` if the input ends first.
@@ -308,7 +351,7 @@ impl Server {
     ) -> Result<bool, String> {
         if !matches!(
             message_type,
-            DID_OPEN | DID_CHANGE | DID_CLOSE | FILES_CHANGED | LINT | SHUTDOWN
+            DID_OPEN | DID_CHANGE | DID_CLOSE | FILES_CHANGED | LINT | SHUTDOWN | CANCEL
         ) {
             if skipped.insert(message_type) {
                 eprintln!("tsrs-lint server: skipping unknown message type {message_type}");
@@ -374,6 +417,7 @@ impl Server {
                 self.queue.lock().unwrap().pending.push_back(request);
                 self.queued.notify_one();
             }
+            CANCEL => self.cancel(request_id(fields)?),
             SHUTDOWN => return Ok(false),
             _ => unreachable!("message type {message_type} is skipped above"),
         }
@@ -391,16 +435,22 @@ impl Server {
                     .unwrap_or_else(|| "unknown panic".into());
                 Err(format!("panic: {message}"))
             });
-        let terminal = match result {
-            Ok(()) => protocol::write_message(
-                &mut output,
-                MessageType::ServerLintDone,
-                &protocol::object([("id", id_value(request.id))]),
-            ),
-            Err(error) => {
-                // Diagnostics of a failed request are dropped: the client keeps its previous results.
-                output.clear();
-                error_frame(&mut output, request.id, error)
+        let terminal = if request.is_canceled() {
+            // A canceled request's diagnostics are dropped, even if it got to the end.
+            output.clear();
+            canceled_frame(&mut output, request.id)
+        } else {
+            match result {
+                Ok(()) => protocol::write_message(
+                    &mut output,
+                    MessageType::ServerLintDone,
+                    &protocol::object([("id", id_value(request.id))]),
+                ),
+                Err(error) => {
+                    // Diagnostics of a failed request are dropped: the client keeps its previous results.
+                    output.clear();
+                    error_frame(&mut output, request.id, error)
+                }
             }
         };
         if let Err(error) = terminal {
@@ -408,6 +458,14 @@ impl Server {
             return;
         }
         self.write(&output);
+    }
+
+    fn write_canceled(&self, id: u64) {
+        let mut output = Vec::new();
+        match canceled_frame(&mut output, id) {
+            Ok(()) => self.write(&output),
+            Err(error) => eprintln!("tsrs-lint server: could not encode a response: {error}"),
+        }
     }
 
     fn write_request_error(&self, id: u64, error: String) {
@@ -433,6 +491,9 @@ impl Server {
         // Projects whose tsconfig errors were reported: once per request, as the headless mode does per program.
         let mut reported_projects = FxHashSet::default();
         for file in &request.files {
+            if request.is_canceled() {
+                return Ok(());
+            }
             self.lint_file(&ctx, request, file, &mut reported_projects, output)?;
         }
         Ok(())
@@ -462,6 +523,10 @@ impl Server {
                 let config_errors = self.config_errors(&project, program, &mut diagnostics)?;
                 if !reported_projects.insert(project.id().0) {
                     diagnostics.clear();
+                }
+                // Building the program can take a while: a request canceled meanwhile stops here.
+                if request.is_canceled() {
+                    return Ok(());
                 }
                 if !config_errors
                     && let Some(source_file) = program.get_source_file(&file.name)
@@ -529,6 +594,8 @@ struct LintRequest {
     options: Options,
     /// Each file once.
     files: Vec<RequestFile>,
+    /// Set by a `Cancel` frame while the request runs.
+    canceled: Arc<AtomicBool>,
 }
 
 struct RequestFile {
@@ -557,7 +624,12 @@ impl LintRequest {
                 }
             }
         }
-        Ok(Self { id, options, files })
+        Ok(Self { id, options, files, canceled: Arc::default() })
+    }
+
+    fn is_canceled(&self) -> bool {
+        // Only the flag is shared (see `Server::cancel`).
+        self.canceled.load(Ordering::Relaxed)
     }
 }
 
@@ -629,6 +701,18 @@ fn error_frame(output: &mut Vec<u8>, id: u64, error: String) -> io::Result<()> {
         output,
         MessageType::Error,
         &protocol::object([("id", id_value(id)), ("error", Value::String(error))]),
+    )
+}
+
+fn canceled_frame(output: &mut Vec<u8>, id: u64) -> io::Result<()> {
+    protocol::write_message(
+        output,
+        MessageType::Error,
+        &protocol::object([
+            ("id", id_value(id)),
+            ("error", Value::String(CANCELED.into())),
+            ("canceled", Value::Bool(true)),
+        ]),
     )
 }
 

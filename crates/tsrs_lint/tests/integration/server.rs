@@ -16,6 +16,7 @@ const FILES_CHANGED: u8 = 19;
 const LINT: u8 = 20;
 const SHUTDOWN: u8 = 21;
 const HELLO: u8 = 22;
+const CANCEL: u8 = 23;
 
 const ASYNC_A: &str = "export async function f(): Promise<number> { return 1; }\n";
 const SYNC_A: &str = "export function f(): number { return 1; }\n";
@@ -177,9 +178,53 @@ impl Server {
         frames
     }
 
+    /// Reads frames until each of `ids` has its terminal frame, and returns each request's terminal frame.
+    fn read_terminals(&mut self, ids: &[u64]) -> BTreeMap<u64, Terminal> {
+        let mut terminals = BTreeMap::new();
+        while terminals.len() < ids.len() {
+            let (message_type, value) = self.read().expect("the server ended before answering");
+            let Value::Object(fields) = &value else { panic!("{value:?}") };
+            let id = number(fields.get("id")).unwrap_or_else(|| panic!("no id: {value:?}"));
+            assert!(ids.contains(&id), "a frame of another request: {value:?}");
+            if message_type == MessageType::Diagnostic as u8 {
+                continue;
+            }
+            let terminal = Terminal::of(message_type, &value);
+            assert!(terminals.insert(id, terminal).is_none(), "a second terminal frame: {value:?}");
+        }
+        terminals
+    }
+
     fn exit_code(mut self) -> i32 {
         drop(self.stdin.take());
         self.child.wait().unwrap().code().unwrap()
+    }
+}
+
+/// How a request ended.
+#[derive(Debug, PartialEq, Eq)]
+enum Terminal {
+    Done,
+    Canceled,
+    Error(String),
+}
+
+impl Terminal {
+    fn of(message_type: u8, value: &Value) -> Self {
+        let Value::Object(fields) = value else { panic!("{value:?}") };
+        if message_type == MessageType::ServerLintDone as u8 {
+            return Self::Done;
+        }
+        assert_eq!(message_type, MessageType::Error as u8, "{value:?}");
+        let Some(Value::String(error)) = fields.get("error") else { panic!("{value:?}") };
+        match fields.get("canceled") {
+            Some(Value::Bool(true)) => {
+                assert_eq!(error, "request canceled");
+                Self::Canceled
+            }
+            None => Self::Error(error.clone()),
+            Some(other) => panic!("canceled: {other:?}"),
+        }
     }
 }
 
@@ -219,6 +264,10 @@ fn lint_frame(id: u64, files: &[&str], rule: &str) -> Vec<u8> {
             ("fix_suggestions", Value::Bool(true)),
         ]),
     )
+}
+
+fn cancel_frame(id: u64) -> Vec<u8> {
+    frame(CANCEL, &protocol::object([("id", id_value(id))]))
 }
 
 fn files_changed(changes: &[(&str, i64)]) -> Value {
@@ -443,27 +492,123 @@ fn queued_requests_are_answered_in_order() {
 }
 
 #[test]
-fn shutdown_lets_queued_requests_finish() {
-    let dir = fixture("shutdown-finish");
+fn canceling_a_queued_request_answers_it_at_once() {
+    let dir = fixture("cancel-queued");
     let b = path(&dir, "b.ts");
-    // One worker: the second request is still queued when the shutdown arrives.
+    // One worker: the second request waits behind the first.
     let mut server = Server::start_with_workers(&dir, Some("1"));
     let (first, second) = (server.take_id(), server.take_id());
     server.send_frames(&[
         lint_frame(first, &[&b], "no-floating-promises"),
         lint_frame(second, &[&b], "no-floating-promises"),
+        cancel_frame(second),
+    ]);
+    let terminals = server.read_terminals(&[first, second]);
+    assert_eq!(terminals[&first], Terminal::Done);
+    assert_eq!(terminals[&second], Terminal::Canceled);
+    // The server keeps serving.
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn a_canceled_request_drops_its_diagnostics() {
+    let dir = fixture("cancel-started");
+    let b = path(&dir, "b.ts");
+    let mut server = Server::start(&dir);
+    // The request is canceled whether or not a worker has started it: a running request checks before each file
+    // and before it answers.
+    let id = server.take_id();
+    server.send_frames(&[lint_frame(id, &[&b], "no-floating-promises"), cancel_frame(id)]);
+    let frames = server.read_terminals(&[id]);
+    assert_eq!(frames[&id], Terminal::Canceled);
+    server.send(SHUTDOWN, &protocol::object([]));
+    // No diagnostic of the canceled request follows.
+    assert!(server.read_to_end().is_empty());
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn canceling_an_unknown_or_finished_request_is_ignored() {
+    let dir = fixture("cancel-unknown");
+    let b = path(&dir, "b.ts");
+    let mut server = Server::start(&dir);
+    server.send_frames(&[cancel_frame(999)]);
+    let answer = server.lint(&[&b]);
+    assert_eq!(rules_of(&answer, &b), ["no-floating-promises"]);
+    // The request above has finished.
+    server.send_frames(&[cancel_frame(server.next_id - 1)]);
+    // `lint` asserts that every frame it reads belongs to its own request.
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
+    server.send(SHUTDOWN, &protocol::object([]));
+    assert!(server.read().is_none());
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn shutdown_cancels_queued_requests() {
+    let dir = fixture("shutdown");
+    let b = path(&dir, "b.ts");
+    let mut server = Server::start_with_workers(&dir, Some("1"));
+    let first = server.take_id();
+    server.send_frames(&[lint_frame(first, &[&b], "no-floating-promises")]);
+    // A round trip (a request that fails to parse is answered by the reader) gives the only worker time to start the
+    // first request, which builds a program. Nothing tells the client that a request has started, though.
+    assert!(server.lint_with_rule(&[&b], "not-a-rule").error.is_some());
+    // The second request waits behind the first when the shutdown arrives.
+    let second = server.take_id();
+    server.send_frames(&[
+        lint_frame(second, &[&b], "no-floating-promises"),
         frame(SHUTDOWN, &protocol::object([])),
     ]);
     let frames = server.read_to_end();
-    for id in [first, second] {
-        let types: Vec<u8> = frames[&id].iter().map(|(message_type, _)| *message_type).collect();
-        assert_eq!(
-            types,
-            [MessageType::Diagnostic as u8, MessageType::ServerLintDone as u8],
-            "{:?}",
-            frames[&id]
-        );
+    let terminal = |id: u64| {
+        let (message_type, value) = frames[&id].last().unwrap();
+        Terminal::of(*message_type, value)
+    };
+    // A running request finishes: one diagnostic, then Done.
+    match terminal(first) {
+        Terminal::Done => assert_eq!(frames[&first].len(), 2, "{:?}", frames[&first]),
+        Terminal::Canceled => assert_eq!(frames[&first].len(), 1, "{:?}", frames[&first]),
+        Terminal::Error(error) => panic!("{error}"),
     }
+    assert_eq!(terminal(second), Terminal::Canceled);
+    assert_eq!(frames[&second].len(), 1, "{:?}", frames[&second]);
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn every_request_gets_exactly_one_terminal_frame() {
+    let dir = fixture("terminals");
+    let b = path(&dir, "b.ts");
+    let mut server = Server::start_with_workers(&dir, Some("1"));
+    let ids: Vec<u64> = std::iter::repeat_with(|| server.take_id()).take(5).collect();
+    server.send_frames(&[
+        lint_frame(ids[0], &[&b], "no-floating-promises"),
+        lint_frame(ids[1], &[&b], "not-a-rule"),
+        lint_frame(ids[2], &[&b], "no-floating-promises"),
+        cancel_frame(ids[2]),
+        // Canceled twice: still one answer.
+        cancel_frame(ids[2]),
+        cancel_frame(999),
+        lint_frame(ids[3], &[&b], "no-floating-promises"),
+        lint_frame(ids[4], &[&b], "no-floating-promises"),
+    ]);
+    let terminals = server.read_terminals(&ids[..4]);
+    assert_eq!(terminals[&ids[0]], Terminal::Done);
+    assert!(matches!(&terminals[&ids[1]], Terminal::Error(error) if error.contains("not-a-rule")));
+    assert_eq!(terminals[&ids[2]], Terminal::Canceled);
+    assert_eq!(terminals[&ids[3]], Terminal::Done);
+    server.send(SHUTDOWN, &protocol::object([]));
+    // The last request finishes before the server exits, or is canceled if it was still queued.
+    let rest = server.read_to_end();
+    assert_eq!(rest.keys().copied().collect::<Vec<_>>(), [ids[4]], "{rest:?}");
+    let terminals: Vec<Terminal> = rest[&ids[4]]
+        .iter()
+        .filter(|(message_type, _)| *message_type != MessageType::Diagnostic as u8)
+        .map(|(message_type, value)| Terminal::of(*message_type, value))
+        .collect();
+    assert!(matches!(terminals[..], [Terminal::Done | Terminal::Canceled]), "{terminals:?}");
     assert_eq!(server.exit_code(), 0);
 }
 

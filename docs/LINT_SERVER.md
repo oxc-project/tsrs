@@ -30,12 +30,13 @@ The client sends:
 | 20 | `Lint` | `{"id", "configs": [{"file_paths", "rules"}], "fix", "fix_suggestions"}` |
 | 21 | `Shutdown` | `{}` |
 | 22 | `Hello` | `{"protocol_version"}` |
+| 23 | `Cancel` | `{"id"}` |
 
 The server sends:
 
 | type | name | JSON |
 | --- | --- | --- |
-| 0 | `Error` | `{"id", "error"}` |
+| 0 | `Error` | `{"id", "error"}`, plus `"canceled": true` for a canceled request |
 | 1 | `Diagnostic` | headless mode's diagnostic object, with the request's `"id"` as its first field |
 | 3 | `Done` | `{"id"}` |
 | 4 | `Hello` | `{"protocol_version", "version"}` |
@@ -78,7 +79,7 @@ After the handshake:
 - A frame of an unknown message type is skipped, and the server logs
   `tsrs-lint server: skipping unknown message type <n>` to stderr once per type. A second `Hello` is skipped the
   same way.
-- A malformed notification (`DidOpen`, `DidChange`, `DidClose`, `FilesChanged`, `Shutdown`), a `Lint`
+- A malformed notification (`DidOpen`, `DidChange`, `DidClose`, `FilesChanged`, `Cancel`, `Shutdown`), a `Lint`
   frame without a valid `id`, or a frame that cannot be read is a fatal error: an error frame with a null `id`, after
   which the server exits with status 1. Going on would let the client's view of open files and the server's
   diverge.
@@ -91,8 +92,8 @@ Notifications are applied in order on the thread that reads frames, so a lint re
 before it. Each lint request gets exactly one terminal frame:
 
 - its diagnostic frames, then `Done {"id"}`; or
-- one error frame carrying its `id`: a request that cannot be parsed, or a panic while linting. Its diagnostics are
-  dropped, so the client keeps its previous results.
+- one error frame carrying its `id`: a request that cannot be parsed, a panic while linting, or a cancellation. Its
+  diagnostics are dropped, so the client keeps its previous results.
 
 A request's frames are written in one locked write, so the frames of different requests never interleave.
 
@@ -107,11 +108,29 @@ Other environment variables read as in headless mode: `TSRS_FAST=0` turns off th
 `TSRS_LINT_RUN_EXTERNAL_CODE=1` runs content mappers, and
 `OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS=true` suppresses tsconfig and program errors.
 
+## Cancellation
+
+`Cancel {"id"}` cancels a request:
+
+- A queued request is removed from the queue and answered at once.
+- A running request stops before its next file (and after building a file's program), drops its diagnostics, and is
+  answered instead of `Done`. A request canceled after its last file is still answered as canceled if it has not
+  written its frames yet.
+- A finished or unknown `id` is ignored: no frame is sent.
+
+A canceled request's terminal frame is:
+
+```json
+{"id": 7, "error": "request canceled", "canceled": true}
+```
+
+Clients should recognize cancellation by `"canceled": true`, not by the error text.
+
 ## Shutdown
 
-`Shutdown`, or the end of the input, lets queued and running requests finish and write their frames, closes the
-project session, and exits with status 0. After a fatal error, queued and running requests also finish before the
-server exits.
+`Shutdown`, or the end of the input, answers every queued request as canceled, lets running requests finish and
+write their frames, closes the project session, and exits with status 0. After a fatal error, queued requests are
+answered as canceled the same way, after the fatal error frame.
 
 ## File changes
 

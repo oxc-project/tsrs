@@ -94,20 +94,24 @@ before it. Each lint request gets exactly one terminal frame:
 - one error frame carrying its `id`: a request that cannot be parsed, or a panic while linting. Its diagnostics are
   dropped, so the client keeps its previous results.
 
-Each lint request runs on a thread of its own, with a 512 MB stack, so requests run concurrently. A request takes its
-project snapshot when its thread starts. A request's frames are written in one locked write, so the frames of
-different requests never interleave.
+A request's frames are written in one locked write, so the frames of different requests never interleave.
 
-## Environment
+## Worker pool
 
-Environment variables are read as in headless mode: `TSRS_FAST=0` turns off the fast preset,
+Lint requests wait in a first-in, first-out queue for a fixed pool of worker threads, each with a 512 MB stack. A
+request takes its project snapshot when a worker starts it, so it also sees notifications that arrive while it is
+queued. The pool has as many workers as `std::thread::available_parallelism()`, clamped to 1 to 4, unless
+`TSRS_LINT_SERVER_WORKERS` is set to a positive integer, which is used as is; other values are ignored.
+
+Other environment variables read as in headless mode: `TSRS_FAST=0` turns off the fast preset,
 `TSRS_LINT_RUN_EXTERNAL_CODE=1` runs content mappers, and
 `OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS=true` suppresses tsconfig and program errors.
 
 ## Shutdown
 
-`Shutdown`, or the end of the input, lets running requests finish and write their frames, closes the project session,
-and exits with status 0. After a fatal error, running requests also finish before the server exits.
+`Shutdown`, or the end of the input, lets queued and running requests finish and write their frames, closes the
+project session, and exits with status 0. After a fatal error, queued and running requests also finish before the
+server exits.
 
 ## File changes
 

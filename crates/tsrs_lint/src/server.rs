@@ -31,14 +31,22 @@
 //! handshake, frames of unknown types (and another `Hello`) are skipped, so a newer client can add notifications.
 //! A malformed notification is a fatal error, as the client's state and the server's would diverge.
 //!
-//! Notifications are applied in order before any later lint request takes a snapshot. A lint request lints every
-//! file in `configs`, as the headless mode does. It is answered with diagnostic frames carrying its `id`, then one
-//! `Done {"id"}` frame, or an error frame carrying its `id`. Requests run concurrently. Compiler diagnostics are not
-//! reported. `docs/LINT_SERVER.md` documents the protocol.
+//! Notifications are applied in order, on the thread that reads frames, before any later lint request takes a
+//! snapshot. A lint request lints every file in `configs`, as the headless mode does; compiler diagnostics are not
+//! reported. Each request gets exactly one terminal frame: its diagnostic frames, each carrying its `id`, then
+//! `Done {"id"}`; or an error frame carrying its `id` (a request that cannot be parsed, or a panic), in which case
+//! its diagnostics are dropped. A request's frames are written at once, so requests never interleave.
+//!
+//! Lint requests wait in a queue for a fixed pool of worker threads, first in, first out, and take their snapshot
+//! when a worker starts them. There are as many workers as the available parallelism, at most 4, unless
+//! `TSRS_LINT_SERVER_WORKERS` sets a positive number. `Shutdown` or the end of the input lets queued and running
+//! requests finish, then exits with status 0. `docs/LINT_SERVER.md` documents the protocol.
 
+use std::collections::VecDeque;
 use std::io::{self, Read, Write};
+use std::num::NonZeroUsize;
 use std::panic::{AssertUnwindSafe, catch_unwind};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex};
 use std::thread::JoinHandle;
 
 use rustc_hash::FxHashSet;
@@ -68,8 +76,13 @@ const HELLO: u8 = 22;
 /// the protocol bumps it.
 pub const PROTOCOL_VERSION: u32 = 1;
 
-/// The stack of each request thread: the checker recurses as deeply as in the CLI.
+/// The stack of each worker thread: the checker recurses as deeply as in the CLI.
 const STACK_SIZE: usize = 512 << 20;
+
+/// Overrides the number of worker threads (a positive integer).
+const WORKERS_ENV: &str = "TSRS_LINT_SERVER_WORKERS";
+/// The most workers by default: each lint holds a checker, and an editor rarely has more requests in flight.
+const MAX_DEFAULT_WORKERS: usize = 4;
 
 struct Server {
     session: Arc<Session>,
@@ -78,6 +91,18 @@ struct Server {
     output: Mutex<Box<dyn Write + Send>>,
     /// Paths are normalized with [`tspath::normalize_slashes`].
     open_file_paths: Mutex<FxHashSet<String>>,
+    queue: Mutex<Queue>,
+    /// Signaled when a request is queued or the queue closes.
+    queued: Condvar,
+}
+
+/// Lint requests waiting for a worker.
+#[derive(Default)]
+struct Queue {
+    /// First in, first out.
+    pending: VecDeque<LintRequest>,
+    /// Set at shutdown: workers exit once nothing is pending.
+    closed: bool,
 }
 
 /// Runs the server on `input` and `output` until the input ends or a shutdown frame arrives. Returns the exit status.
@@ -131,6 +156,8 @@ pub fn run(base: Options, input: &mut dyn Read, output: Box<dyn Write + Send>) -
         options: base,
         output: Mutex::new(output),
         open_file_paths: Mutex::default(),
+        queue: Mutex::default(),
+        queued: Condvar::new(),
     });
     let code = server.serve(input);
     server.session.close();
@@ -148,7 +175,13 @@ impl Server {
                 return 1;
             }
         }
-        let mut requests: Vec<JoinHandle<()>> = Vec::new();
+        let workers = match self.start_workers(worker_count()) {
+            Ok(workers) => workers,
+            Err(error) => {
+                self.fatal(&error);
+                return 1;
+            }
+        };
         let mut skipped = FxHashSet::default();
         let code = loop {
             let frame = match protocol::read_frame(input) {
@@ -159,8 +192,7 @@ impl Server {
                     break 1;
                 }
             };
-            requests.retain(|request| !request.is_finished());
-            match self.handle(frame, &mut requests, &mut skipped) {
+            match self.handle(frame, &mut skipped) {
                 Ok(true) => {}
                 Ok(false) => break 0,
                 Err(error) => {
@@ -169,10 +201,62 @@ impl Server {
                 }
             }
         };
-        for request in requests {
-            let _ = request.join();
+        // Queued and running requests finish.
+        self.close_queue();
+        for worker in workers {
+            let _ = worker.join();
         }
         code
+    }
+
+    /// Starts `count` workers, which lint queued requests until the queue closes.
+    fn start_workers(self: &Arc<Self>, count: usize) -> Result<Vec<JoinHandle<()>>, String> {
+        let mut workers = Vec::with_capacity(count);
+        for index in 0..count {
+            let server = Arc::clone(self);
+            let worker = std::thread::Builder::new()
+                .name(format!("tsrs-lint-worker-{index}"))
+                .stack_size(STACK_SIZE)
+                .spawn(move || server.work());
+            match worker {
+                Ok(worker) => workers.push(worker),
+                Err(error) => {
+                    self.close_queue();
+                    for worker in workers {
+                        let _ = worker.join();
+                    }
+                    return Err(format!("could not start a lint worker: {error}"));
+                }
+            }
+        }
+        Ok(workers)
+    }
+
+    /// A worker: lints requests in the order they were queued until the queue closes.
+    fn work(&self) {
+        while let Some(request) = self.next_request() {
+            self.lint(&request);
+        }
+    }
+
+    /// Waits for the next queued request, or returns `None` once the queue closes and nothing is pending.
+    fn next_request(&self) -> Option<LintRequest> {
+        let mut queue = self.queue.lock().unwrap();
+        loop {
+            if let Some(request) = queue.pending.pop_front() {
+                return Some(request);
+            }
+            if queue.closed {
+                return None;
+            }
+            queue = self.queued.wait(queue).unwrap();
+        }
+    }
+
+    /// Closes the queue: the workers lint the queued requests, then exit.
+    fn close_queue(&self) {
+        self.queue.lock().unwrap().closed = true;
+        self.queued.notify_all();
     }
 
     /// Reads the client's `Hello` and answers with the server's. Returns `false` if the input ends first.
@@ -218,9 +302,8 @@ impl Server {
     /// Frames of unknown types, and a second `Hello`, are skipped: a newer client may send notifications this server
     /// does not know. `skipped` holds the types already logged.
     fn handle(
-        self: &Arc<Self>,
+        &self,
         (message_type, bytes): (u8, Vec<u8>),
-        requests: &mut Vec<JoinHandle<()>>,
         skipped: &mut FxHashSet<u8>,
     ) -> Result<bool, String> {
         if !matches!(
@@ -288,13 +371,8 @@ impl Server {
                         return Ok(true);
                     }
                 };
-                let server = Arc::clone(self);
-                let handle = std::thread::Builder::new()
-                    .name(format!("lint-request-{}", request.id))
-                    .stack_size(STACK_SIZE)
-                    .spawn(move || server.lint(&request))
-                    .map_err(|error| format!("could not start a lint request: {error}"))?;
-                requests.push(handle);
+                self.queue.lock().unwrap().pending.push_back(request);
+                self.queued.notify_one();
             }
             SHUTDOWN => return Ok(false),
             _ => unreachable!("message type {message_type} is skipped above"),
@@ -481,6 +559,22 @@ impl LintRequest {
         }
         Ok(Self { id, options, files })
     }
+}
+
+/// The number of worker threads: `TSRS_LINT_SERVER_WORKERS` if it is a positive integer, else the available
+/// parallelism up to [`MAX_DEFAULT_WORKERS`].
+fn worker_count() -> usize {
+    std::env::var(WORKERS_ENV)
+        .ok()
+        .and_then(|value| value.trim().parse::<NonZeroUsize>().ok())
+        .map_or_else(
+            || {
+                std::thread::available_parallelism()
+                    .map_or(1, NonZeroUsize::get)
+                    .clamp(1, MAX_DEFAULT_WORKERS)
+            },
+            NonZeroUsize::get,
+        )
 }
 
 fn request_id(fields: &JsonMap) -> Result<u64, String> {

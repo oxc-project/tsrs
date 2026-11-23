@@ -1,5 +1,6 @@
 //! `tsrs-lint server`, driven over its stdin and stdout as oxlint's language server drives it.
 
+use std::collections::BTreeMap;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
@@ -59,7 +60,12 @@ struct Answer {
 impl Server {
     /// Starts a server and completes the handshake.
     fn start(cwd: &Path) -> Self {
-        let mut server = Self::spawn(cwd);
+        Self::start_with_workers(cwd, None)
+    }
+
+    /// Starts a server with `TSRS_LINT_SERVER_WORKERS` set to `workers`, and completes the handshake.
+    fn start_with_workers(cwd: &Path, workers: Option<&str>) -> Self {
+        let mut server = Self::spawn(cwd, workers);
         server.hello(PROTOCOL_VERSION);
         let (message_type, _) = server.read().expect("the server ended before its Hello");
         assert_eq!(message_type, MessageType::ServerHello as u8);
@@ -67,8 +73,13 @@ impl Server {
     }
 
     /// Starts a server without a handshake.
-    fn spawn(cwd: &Path) -> Self {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_tsrs-lint"))
+    fn spawn(cwd: &Path, workers: Option<&str>) -> Self {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_tsrs-lint"));
+        command.env_remove("TSRS_LINT_SERVER_WORKERS");
+        if let Some(workers) = workers {
+            command.env("TSRS_LINT_SERVER_WORKERS", workers);
+        }
+        let mut child = command
             .arg("server")
             .current_dir(cwd)
             .stdin(Stdio::piped())
@@ -153,6 +164,17 @@ impl Server {
         let stdout: &mut dyn Read = &mut self.stdout;
         let (message_type, bytes) = protocol::read_frame(stdout).unwrap()?;
         Some((message_type, json::unmarshal(std::str::from_utf8(&bytes).unwrap()).unwrap()))
+    }
+
+    /// Reads frames until the server closes its output, and groups request frames by `id`.
+    fn read_to_end(&mut self) -> BTreeMap<u64, Vec<(u8, Value)>> {
+        let mut frames: BTreeMap<u64, Vec<(u8, Value)>> = BTreeMap::new();
+        while let Some((message_type, value)) = self.read() {
+            let Value::Object(fields) = &value else { panic!("{value:?}") };
+            let id = number(fields.get("id")).unwrap_or_else(|| panic!("no id: {value:?}"));
+            frames.entry(id).or_default().push((message_type, value));
+        }
+        frames
     }
 
     fn exit_code(mut self) -> i32 {
@@ -315,7 +337,7 @@ fn requests_fail_on_their_own_and_shutdown_ends_the_server() {
 #[test]
 fn the_handshake_answers_with_the_server_versions() {
     let dir = fixture("hello");
-    let mut server = Server::spawn(&dir);
+    let mut server = Server::spawn(&dir, None);
     server.hello(PROTOCOL_VERSION);
     let (message_type, value) = server.read().expect("the server ended before its Hello");
     assert_eq!(message_type, MessageType::ServerHello as u8);
@@ -330,7 +352,7 @@ fn the_handshake_answers_with_the_server_versions() {
 #[test]
 fn a_protocol_version_mismatch_ends_the_server_after_its_hello() {
     let dir = fixture("mismatch");
-    let mut server = Server::spawn(&dir);
+    let mut server = Server::spawn(&dir, None);
     server.hello(PROTOCOL_VERSION + 1);
     let (message_type, _) = server.read().expect("the server ended before its Hello");
     assert_eq!(message_type, MessageType::ServerHello as u8);
@@ -349,7 +371,7 @@ fn a_protocol_version_mismatch_ends_the_server_after_its_hello() {
 fn a_first_frame_other_than_hello_ends_the_server() {
     let dir = fixture("no-hello");
     let b = path(&dir, "b.ts");
-    let mut server = Server::spawn(&dir);
+    let mut server = Server::spawn(&dir, None);
     server.open(&b, 1, CALLS_A);
     let error = fatal_error(server.read());
     assert!(error.contains("expected a Hello frame"), "{error}");
@@ -357,7 +379,7 @@ fn a_first_frame_other_than_hello_ends_the_server() {
     assert_eq!(server.exit_code(), 1);
 
     // A Hello without a protocol version is answered, then ends the server.
-    let mut server = Server::spawn(&dir);
+    let mut server = Server::spawn(&dir, None);
     server.send(HELLO, &protocol::object([]));
     let (message_type, _) = server.read().expect("the server ended before its Hello");
     assert_eq!(message_type, MessageType::ServerHello as u8);
@@ -393,6 +415,56 @@ fn a_malformed_notification_ends_the_server() {
     fatal_error(server.read());
     assert!(server.read().is_none());
     assert_eq!(server.exit_code(), 1);
+}
+
+#[test]
+fn queued_requests_are_answered_in_order() {
+    let dir = fixture("queue");
+    let b = path(&dir, "b.ts");
+    // One worker: the requests wait in the queue and are linted first in, first out.
+    let mut server = Server::start_with_workers(&dir, Some("1"));
+    let ids: Vec<u64> = std::iter::repeat_with(|| server.take_id()).take(3).collect();
+    let frames: Vec<Vec<u8>> =
+        ids.iter().map(|id| lint_frame(*id, &[&b], "no-floating-promises")).collect();
+    server.send_frames(&frames);
+    let mut answered = Vec::new();
+    while answered.len() < ids.len() {
+        let (message_type, value) = server.read().expect("the server ended before answering");
+        let Value::Object(fields) = &value else { panic!("{value:?}") };
+        let id = number(fields.get("id")).unwrap_or_else(|| panic!("no id: {value:?}"));
+        if message_type == MessageType::ServerLintDone as u8 {
+            answered.push(id);
+        } else {
+            assert_eq!(message_type, MessageType::Diagnostic as u8, "{value:?}");
+        }
+    }
+    assert_eq!(answered, ids);
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn shutdown_lets_queued_requests_finish() {
+    let dir = fixture("shutdown-finish");
+    let b = path(&dir, "b.ts");
+    // One worker: the second request is still queued when the shutdown arrives.
+    let mut server = Server::start_with_workers(&dir, Some("1"));
+    let (first, second) = (server.take_id(), server.take_id());
+    server.send_frames(&[
+        lint_frame(first, &[&b], "no-floating-promises"),
+        lint_frame(second, &[&b], "no-floating-promises"),
+        frame(SHUTDOWN, &protocol::object([])),
+    ]);
+    let frames = server.read_to_end();
+    for id in [first, second] {
+        let types: Vec<u8> = frames[&id].iter().map(|(message_type, _)| *message_type).collect();
+        assert_eq!(
+            types,
+            [MessageType::Diagnostic as u8, MessageType::ServerLintDone as u8],
+            "{:?}",
+            frames[&id]
+        );
+    }
+    assert_eq!(server.exit_code(), 0);
 }
 
 #[test]

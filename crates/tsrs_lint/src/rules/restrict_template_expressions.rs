@@ -1,3 +1,4 @@
+use rustc_hash::FxHashSet;
 use tsrs_ast::{Kind, Node};
 use tsrs_checker::{Type, TypeFlags};
 use tsrs_core::{P, json::Value};
@@ -65,21 +66,36 @@ impl RestrictTemplateExpressions {
         })
     }
 
-    fn is_type_allowed(&self, context: &mut RuleContext<'_>, inner_type: P<Type>) -> bool {
+    fn is_type_allowed(
+        &self,
+        context: &mut RuleContext<'_>,
+        inner_type: P<Type>,
+        active_arrays: &mut FxHashSet<P<Type>>,
+    ) -> bool {
         utils::union_type_parts(&inner_type).iter().all(|t| {
             utils::intersection_type_parts(t).iter().any(|&t| {
-                t.flags().intersects(self.allowed_flags)
-                    || utils::matches_type_or_base_type(context.checker, t, &mut |_, t| {
-                        type_matches_some_specifier(t, &self.allow, context.program)
-                    })
-                    || (self.allow_array && context.checker.is_array_or_tuple_type(t) && {
-                        let element = context
-                            .checker
-                            .get_index_type_of_type(t, context.checker.number_type)
-                            .expect("array or tuple number index type");
-                        self.is_type_allowed(context, element)
-                    })
+                if t.flags().intersects(self.allowed_flags)
                     || (self.allow_reg_exp && t == context.checker.global_reg_exp_type)
+                    || (!self.allow.is_empty()
+                        && utils::matches_type_or_base_type(context.checker, t, &mut |_, t| {
+                            type_matches_some_specifier(t, &self.allow, context.program)
+                        }))
+                {
+                    return true;
+                }
+                if !self.allow_array || !context.checker.is_array_or_tuple_type(t) {
+                    return false;
+                }
+                if !active_arrays.insert(t) {
+                    return true;
+                }
+                let element = context
+                    .checker
+                    .get_number_index_type(t)
+                    .expect("array or tuple number index type");
+                let allowed = self.is_type_allowed(context, element, active_arrays);
+                active_arrays.remove(&t);
+                allowed
             })
         })
     }
@@ -98,7 +114,7 @@ impl Rule for RestrictTemplateExpressions {
             let expression = span.expression().expect("template span expression");
             let expression_type =
                 utils::get_constrained_type_at_location(context.checker, expression);
-            if !self.is_type_allowed(context, expression_type) {
+            if !self.is_type_allowed(context, expression_type, &mut FxHashSet::default()) {
                 let range = trim_node_range(context.source_file, expression);
                 let type_name = context.checker.type_to_string_exported(expression_type);
                 context.report_diagnostic(Diagnostic {

@@ -5,7 +5,7 @@
       "TSConfig": "tsconfig.minimal.json",
       "Valid": [
         {
-          "Code": "\n(() => {})();\n\nfunction foo() {}\nfoo(); // nothing to discard\n\nfunction bar(x: number) {\n  void x;\n  return 2;\n}\nvoid bar(); // discarding a number\n    ",
+          "Code": "\n(() => {})();\n\nfunction foo() {}\nfoo(); // nothing to discard\n\nfunction bar() {\n  return 2;\n}\nvoid bar(); // discarding a number\n    ",
           "Only": false,
           "Skip": false,
           "FileName": "",
@@ -16,7 +16,62 @@
           "Diagnostics": []
         },
         {
-          "Code": "\nfunction bar(x: never) {\n  void x;\n}\n    ",
+          "Code": "declare function fail(): never; void fail();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "void 0; void (0x0 as number);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "declare const promise: Promise<void>; void promise; void new Promise<void>(() => {});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "declare const thenable: { then(onFulfilled: () => void): void }; void thenable;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "void import('./file'); export {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "declare function getValue(): string; void (getValue() as string);",
           "Only": false,
           "Skip": false,
           "FileName": "",
@@ -314,7 +369,7 @@
           ]
         },
         {
-          "Code": "\nfunction bar(x: never) {\n  void x;\n}\n      ",
+          "Code": "declare function fail(): never;\nvoid fail();",
           "Only": false,
           "Skip": false,
           "FileName": "",
@@ -322,14 +377,14 @@
           "Errors": [
             {
               "MessageId": "meaninglessVoidOperator",
-              "Line": 3,
-              "Column": 3,
+              "Line": 2,
+              "Column": 1,
               "EndLine": 0,
               "EndColumn": 0,
               "Suggestions": [
                 {
                   "MessageId": "removeVoid",
-                  "Output": "\nfunction bar(x: never) {\n   x;\n}\n      "
+                  "Output": "declare function fail(): never;\n fail();"
                 }
               ]
             }
@@ -342,16 +397,9 @@
           "Files": {},
           "Diagnostics": [
             {
-              "kind": 0,
-              "rule": "no-meaningless-void-operator",
-              "message": {
-                "id": "meaninglessVoidOperator",
-                "description": "void operator shouldn't be used on never; it should convey that a return value is being ignored"
-              },
-              "file_path": "file.ts",
               "range": {
-                "pos": 28,
-                "end": 34
+                "pos": 32,
+                "end": 43
               },
               "suggestions": [
                 {
@@ -363,13 +411,20 @@
                     {
                       "text": "",
                       "range": {
-                        "pos": 28,
-                        "end": 32
+                        "pos": 32,
+                        "end": 36
                       }
                     }
                   ]
                 }
-              ]
+              ],
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOperator",
+                "description": "void operator shouldn't be used on never; it should convey that a return value is being ignored"
+              },
+              "file_path": "file.ts"
             }
           ]
         },
@@ -464,6 +519,622 @@
                 "pos": 55,
                 "end": 83
               }
+            }
+          ]
+        },
+        {
+          "Code": "function handler(): void {} void handler; export {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function handler(): void {}  handler; export {};"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 40
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 28,
+                    "end": 32
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "function bar(x: number) { void x; }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function bar(x: number) {  x; }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 26,
+                "end": 32
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 26,
+                    "end": 30
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "function bar(x: never) { void x; }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function bar(x: never) {  x; }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "checkNever": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 29
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 31
+              }
+            }
+          ]
+        },
+        {
+          "Code": "declare const obj: { value: number } | undefined; (void (0, obj?.value)!);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "declare const obj: { value: number } | undefined; ( (0, obj?.value)!);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 51,
+                    "end": 55
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 51,
+                "end": 72
+              }
+            }
+          ]
+        },
+        {
+          "Code": "const result = void 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 15,
+                "end": 21
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "const result = void (import('./file') as unknown); export {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 15,
+                "end": 49
+              }
+            }
+          ]
+        },
+        {
+          "Code": "void function() {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "( function() {});"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 18
+              },
+              "fixes": [
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 0,
+                    "end": 4
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 18,
+                    "end": 18
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "void { a: 1, b: 2 };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "( { a: 1, b: 2 });"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 0,
+                    "end": 4
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "end": 19,
+                    "pos": 19
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 19
+              }
+            }
+          ]
+        },
+        {
+          "Code": "if (true) void /* keep */ async function() {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "if (true) ( /* keep */ async function() {});"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 10,
+                "end": 45
+              },
+              "fixes": [
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 10,
+                    "end": 14
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 45,
+                    "end": 45
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-meaningless-void-operator"
+            }
+          ]
+        },
+        {
+          "Code": "void class {}.name;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "( class {}.name);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 18
+              },
+              "fixes": [
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 0,
+                    "end": 4
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 18,
+                    "end": 18
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "void \"use strict\";",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "( \"use strict\");"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 17
+              },
+              "fixes": [
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 0,
+                    "end": 4
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 17,
+                    "end": 17
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "run()\nvoid { a: 1 };\nrun()\nvoid [1, 2];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "run()\n;( { a: 1 });\nrun()\n; [1, 2];"
+          ],
+          "Errors": [
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "meaninglessVoidOnNonCall",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 6,
+                "end": 19
+              },
+              "fixes": [
+                {
+                  "text": ";(",
+                  "range": {
+                    "pos": 6,
+                    "end": 10
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 19,
+                    "end": 19
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts"
+            },
+            {
+              "kind": 0,
+              "rule": "no-meaningless-void-operator",
+              "message": {
+                "id": "meaninglessVoidOnNonCall",
+                "description": "void operator is useless here; it should only discard a call's return value"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 27,
+                "end": 38
+              },
+              "fixes": [
+                {
+                  "text": ";",
+                  "range": {
+                    "pos": 27,
+                    "end": 31
+                  }
+                }
+              ]
             }
           ]
         }

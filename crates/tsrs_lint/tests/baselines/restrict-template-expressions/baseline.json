@@ -1298,6 +1298,35 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "\n        type Value = string | Value[];\n        type Tuple = readonly [string | Tuple];\n        declare const value: Value;\n        declare const tuple: Tuple;\n        const msg = `${value} ${tuple}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [
@@ -2432,6 +2461,69 @@
                 "pos": 74,
                 "end": 77
               }
+            }
+          ]
+        },
+        {
+          "Code": "type Value = string | Date | Array<Value>;\ndeclare const value: Value;\nexport const text = `${value}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 24,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 94,
+                "end": 99
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: Value",
+                  "range": {
+                    "pos": 94,
+                    "end": 99
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts"
             }
           ]
         }

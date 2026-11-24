@@ -124,6 +124,17 @@
           "Tsx": false,
           "Files": {},
           "Diagnostics": []
+        },
+        {
+          "Code": "\n/** @param {string[]} queue */\nexport function pop(queue) {\n  const name = /** @type {string} */ (queue.pop());\n  return name;\n}\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "repro.js",
+          "Options": null,
+          "TSConfig": "./tsconfig.checkJs.json",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
         }
       ],
       "Invalid": [

@@ -77,6 +77,62 @@ fn shared_project_discovery_reads_each_config_once() {
 }
 
 #[test]
+fn project_discovery_reads_each_extended_config_once() {
+    let region = tsrs_core::arena::Region::new(1 << 20);
+    let _scope = region.enter();
+    let mut files = vec![
+        (
+            "/project/configs/root.json".to_owned(),
+            r#"{"compilerOptions":{"strict":true}}"#.to_owned(),
+        ),
+        (
+            "/project/configs/base.json".to_owned(),
+            r#"{"extends":"./root.json","compilerOptions":{"noImplicitReturns":true}}"#.to_owned(),
+        ),
+    ];
+    for project in ["a", "b", "c"] {
+        files.push((
+            format!("/project/{project}/tsconfig.json"),
+            r#"{"extends":"../configs/base.json","include":["*.ts"]}"#.to_owned(),
+        ));
+        files.push((format!("/project/{project}/index.ts"), "export {};".to_owned()));
+    }
+    let fs = P::new(vfstest::from_map(files, true)).get();
+    let reads = Arc::new(Mutex::new(BTreeMap::<String, usize>::new()));
+    let count_reads = Arc::clone(&reads);
+    let fs = wrapvfs::wrap(
+        fs,
+        wrapvfs::Replacements {
+            read_file: Some(Box::new(move |path| {
+                *count_reads.lock().unwrap().entry(path.to_owned()).or_default() += 1;
+                fs.read_file(path)
+            })),
+            ..Default::default()
+        },
+    );
+    let host = ConfigHost::new(Arc::new(fs), "/project".into());
+    let mut configs = FxHashMap::default();
+    for project in ["a", "b", "c"] {
+        let expected = format!("/project/{project}/tsconfig.json");
+        assert_eq!(
+            find_tsconfig(&format!("/project/{project}/index.ts"), &host, &mut configs),
+            Some(expected.clone()),
+        );
+        let options = configs[&tsrs_core::tspath::to_path(&expected, "/project", true)]
+            .as_ref()
+            .unwrap()
+            .compiler_options()
+            .unwrap();
+        assert!(options.strict.is_true());
+        assert!(options.no_implicit_returns.is_true());
+    }
+    let reads = reads.lock().unwrap();
+    for path in ["/project/configs/root.json", "/project/configs/base.json"] {
+        assert_eq!(reads.get(path), Some(&1), "{path}");
+    }
+}
+
+#[test]
 fn project_discovery_uses_canonical_file_membership() {
     let region = tsrs_core::arena::Region::new(1 << 20);
     let _scope = region.enter();

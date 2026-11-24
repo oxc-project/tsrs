@@ -1,0 +1,1 @@
+src/main.ts(2,14): error TS2883: The inferred type of 'v' cannot be named without a reference to 'L' from '../node_modules/pkg/dist/foo'. This is likely not portable. A type annotation is necessary.

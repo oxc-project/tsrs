@@ -1585,6 +1585,10 @@ pub fn try_get_module_name_from_exports_or_imports(
 
             match mode {
                 MatchingMode::Exact => {
+                    // specifiers.go:1269. An exact target that ends with a directory separator names no file.
+                    if tspath::has_trailing_directory_separator(str_value) {
+                        return String::new();
+                    }
                     if !extension_swapped_target.is_empty()
                         && tspath::compare_paths(
                             &extension_swapped_target,
@@ -1684,6 +1688,9 @@ pub fn try_get_module_name_from_exports_or_imports(
                     }
                 }
                 MatchingMode::Pattern => {
+                    // specifiers.go:1308. `resolve_path` keeps a trailing separator, so a target such as `./dist/*/`
+                    // matches no file name.
+                    let path_or_pattern = tspath::resolve_path(package_directory, &[str_value]);
                     let (leading_slice, trailing_slice, _) = cut(&path_or_pattern, "*");
                     let case_sensitive = host.use_case_sensitive_file_names();
                     if can_try_ts_extension

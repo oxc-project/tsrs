@@ -268,3 +268,68 @@ fn small_regions_share_slabs_and_trim() {
     assert!(Region::containing(y.addr()).unwrap().ptr_eq(&b));
     assert_eq!(*y, [8; 4]);
 }
+
+/// What one thread's resident memory grows by over `cycles` short-lived regions, each of which leaves one small
+/// region made by `long_lived` behind (as a `tsc -b` builder leaves a shared declaration file behind each program).
+fn growth(long_lived: fn(usize) -> tsrs_core::arena::Region, cycles: usize) -> usize {
+    use tsrs_core::arena::Region;
+    std::thread::spawn(move || {
+        let resident = || {
+            std::thread::sleep(std::time::Duration::from_millis(10));
+            tsrs_core::memsplit::process_memory()
+        };
+        let before = resident();
+        let mut kept = Vec::with_capacity(cycles);
+        for i in 0..cycles {
+            let short = Region::new_scratch(48 << 10);
+            {
+                let _s = short.enter();
+                let data = tsrs_core::alloc_slice(&vec![i as u8; 40 << 10]);
+                assert_eq!(data[0], i as u8);
+            }
+            let long = long_lived(4 << 10);
+            {
+                let _s = long.enter();
+                P::new([i as u64; 8]);
+            }
+            long.trim();
+            kept.push(long);
+            drop(short);
+        }
+        let after = resident();
+        drop(kept);
+        after.saturating_sub(before)
+    })
+    .join()
+    .unwrap()
+}
+
+/// A region that outlives the regions made around it on the same thread must not keep their standard slabs
+/// resident once they are freed: `Region::new_in_large_slabs` carves it from the thread's large slabs. Made with
+/// `Region::new`, each such region sits in a standard slab beside the freed regions and keeps it.
+#[test]
+fn long_lived_regions_in_large_slabs_do_not_keep_freed_slabs() {
+    const CYCLES: usize = 4096;
+    // The measure needs freed slabs to be reused, which `TSRS_ARENA_POISON=1` turns off.
+    if std::env::var_os("TSRS_ARENA_POISON").is_some_and(|v| v == "1")
+        || !crate::isolated::in_child(
+            "arena_test::long_lived_regions_in_large_slabs_do_not_keep_freed_slabs",
+        )
+    {
+        return;
+    }
+    let separate = growth(tsrs_core::arena::Region::new_in_large_slabs, CYCLES);
+    let shared = growth(tsrs_core::arena::Region::new, CYCLES);
+    // 4,096 cycles of 40 KiB: about 160 MiB if every freed slab stays; the long-lived regions themselves are 16 MiB.
+    assert!(
+        shared > 100 << 20,
+        "regions in standard slabs should keep the freed slabs (grew {} MiB)",
+        shared >> 20
+    );
+    assert!(
+        separate < shared / 3,
+        "large slabs grew {} MiB, standard slabs {} MiB",
+        separate >> 20,
+        shared >> 20
+    );
+}

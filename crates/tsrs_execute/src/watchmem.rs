@@ -29,7 +29,9 @@ impl FileRegions {
         size: usize,
         parse: impl FnOnce() -> Option<P<SourceFile>>,
     ) -> Option<P<SourceFile>> {
-        let region = Region::new(first_chunk(size));
+        // Large slabs: the file is kept for the session or the build, while the programs whose loader parsed it on
+        // this thread are freed long before. In the standard slabs their regions use, it would keep those slabs resident.
+        let region = Region::new_in_large_slabs(first_chunk(size));
         let file = {
             let _scope = region.enter();
             parse()

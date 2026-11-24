@@ -467,6 +467,8 @@ pub struct FilesParser {
     queue: Vec<QueuedTask>,
     max_depth: NodeModulesDepthLimit,
     single_threaded: bool,
+    // `ProgramOptions::min_parallel_round_files`.
+    min_parallel_round_files: usize,
     // Files parsed ahead of the round that loads them, by path (see `prefetch`).
     speculative: FxHashMap<Path, SpeculativeParse>,
     speculated: bool,
@@ -642,13 +644,18 @@ impl Speculation<'_> {
 }
 
 impl FilesParser {
-    pub(crate) fn new(single_threaded: bool, max_depth: i64) -> FilesParser {
+    pub(crate) fn new(
+        single_threaded: bool,
+        max_depth: i64,
+        min_parallel_round_files: usize,
+    ) -> FilesParser {
         FilesParser {
             task_data_by_path: FxHashMap::default(),
             datas: Vec::new(),
             queue: Vec::new(),
             max_depth: NodeModulesDepthLimit::from_option(max_depth),
             single_threaded,
+            min_parallel_round_files: min_parallel_round_files.max(2),
             speculative: FxHashMap::default(),
             speculated: false,
         }
@@ -864,7 +871,9 @@ impl FilesParser {
             }
             to_parse = rest;
         }
-        if to_parse.len() < 2 || loader.files_parser.single_threaded {
+        if to_parse.len() < loader.files_parser.min_parallel_round_files
+            || loader.files_parser.single_threaded
+        {
             loader.tasks.reserve(sub_tasks);
             return;
         }

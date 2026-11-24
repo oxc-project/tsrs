@@ -83,6 +83,11 @@ pub struct ProgramOptions {
     /// tsrs-only: `reuse_program` may replace a file that has synthetic imports (JSX runtime, import helpers) when
     /// its new version needs the same ones. Off, an edit of such a file is Go's full rebuild.
     pub reuse_synthetic_imports: bool,
+    /// tsrs-only: the smallest loader round (files to parse at one dependency level) that goes to the worker pool;
+    /// a smaller round is parsed on the calling thread (filesparser.rs `prefetch`). `tsc -b` raises it when several
+    /// builders share the pool: most of a project's rounds are then a few files, and handing each one to the pool
+    /// cost more than parsing it.
+    pub min_parallel_round_files: usize,
 }
 
 impl ProgramOptions {
@@ -104,6 +109,7 @@ impl ProgramOptions {
             checker_diagnostic_regions: false,
             regions: None,
             reuse_synthetic_imports: false,
+            min_parallel_round_files: 2,
         }
     }
 
@@ -131,6 +137,7 @@ impl ProgramOptions {
             checker_diagnostic_regions: false,
             regions: config.regions.map(|_| Arc::default()),
             reuse_synthetic_imports: false,
+            min_parallel_round_files: 2,
         }
     }
 

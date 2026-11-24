@@ -28,6 +28,12 @@ use crate::tsc::{
     emit_and_report_statistics,
 };
 
+// tsrs-only: the smallest loader round a project sends to the worker pool while other builders share it
+// (`ProgramOptions::min_parallel_round_files`); a smaller round is parsed on the builder thread. Under `-b` most rounds
+// are a few files, and handing each one to the pool costs more than parsing it. Parsing every round on the builder
+// thread was no faster than this.
+const SHARED_POOL_MIN_PARALLEL_ROUND: usize = 128;
+
 // tsrs-only (watch mode): the most changed paths a cycle can have and still reparse one file (`single_changed_file`).
 const MAX_ONE_FILE_CHANGES: usize = 256;
 
@@ -805,6 +811,9 @@ impl BuildTask {
                 watch && orchestrator.opts.testing.is_none();
             regions = frees.then(|| Arc::new(tsrs_compiler::ProgramRegions::default()));
             program_options.regions.clone_from(&regions);
+            if orchestrator.builder_count() > 1 {
+                program_options.min_parallel_round_files = SHARED_POOL_MIN_PARALLEL_ROUND;
+            }
             new_program(program_options)
         });
         self.built_program.store(true, Ordering::SeqCst);

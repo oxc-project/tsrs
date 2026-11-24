@@ -749,6 +749,10 @@ impl Orchestrator {
     // orchestrator.go:925
     pub fn range_tasks(&'static self, order: &[String], f: &(dyn Fn(&Path, P<BuildTask>) + Sync)) {
         let num_routines = self.builder_count();
+        // TSRS_MEM_SPLIT: with programs built at once, only the report at exit runs, without the allocator walk.
+        if num_routines > 1 {
+            tsrs_core::memsplit::set_concurrent_programs(true);
+        }
 
         let current_task_index = std::sync::atomic::AtomicUsize::new(0);
         let get_next_task = || -> Option<(Path, P<BuildTask>)> {

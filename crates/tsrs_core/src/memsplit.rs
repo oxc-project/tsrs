@@ -10,7 +10,7 @@
 //! only the arena and heap lines print.
 
 use std::fmt::Write;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use crate::arena::Arena;
@@ -27,6 +27,24 @@ fn mode() -> u8 {
 /// Whether `TSRS_MEM_SPLIT` is `1` or `purge`. Read once.
 pub fn enabled() -> bool {
     mode() != 0
+}
+
+static CONCURRENT_PROGRAMS: AtomicBool = AtomicBool::new(false);
+
+/// Records that programs build at once (`tsc -b` with more than one builder).
+///
+/// A report at one program's parse end or check end would then read the arenas and allocator pages that the other
+/// builders' threads are writing, and the allocator walk collects frees on pages that other threads own, which is only
+/// safe while they are parked. So only the report at exit runs, without the allocator walk.
+pub fn set_concurrent_programs(on: bool) {
+    // Relaxed: the builder threads that read it are spawned after it is set.
+    CONCURRENT_PROGRAMS.store(on, Ordering::Relaxed);
+}
+
+/// Whether a program's own reports (parse end, check end) run: the stat is on and no other program builds at once.
+pub fn program_reports() -> bool {
+    // Relaxed: set before the builder threads were spawned.
+    enabled() && !CONCURRENT_PROGRAMS.load(Ordering::Relaxed)
 }
 
 /// Distinguishes reusable allocator pages from live heap storage.
@@ -191,7 +209,12 @@ pub fn report(what: &str) {
     #[cfg(compressed_ptrs)]
     let _ =
         writeln!(out, "  reservation: {} MiB in chunks", mib(crate::reserve::reserved_in_use()));
-    let heap = HEAP_STATS.get().map(|f| f());
+    // Relaxed: set before the builder threads were spawned.
+    let concurrent = CONCURRENT_PROGRAMS.load(Ordering::Relaxed);
+    let heap = if concurrent { None } else { HEAP_STATS.get().map(|f| f()) };
+    if concurrent {
+        let _ = writeln!(out, "  heap (allocator walk): skipped, programs were built at once");
+    }
     if let Some(h) = heap {
         let _ = writeln!(
             out,

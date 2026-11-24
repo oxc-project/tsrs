@@ -147,9 +147,9 @@ dependencies = [
 
 [[package]]
 name = "codspeed"
-version = "6.0.0"
+version = "6.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e7c21807b937b8e535f2745cd83c525fc250524021cd662b9ba4d3e399bb504"
+checksum = "b4a421b41e765c0882236030e4431c948bb77f95e7b1c3252a95e03ac996f94e"
 dependencies = [
  "anyhow",
  "cc",
@@ -370,9 +370,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.17.1"
+version = "0.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
+checksum = "735eaa21a6a5ffb2e84362faaeb90c05ba8e19797ca30428478cb6ea3a4921bc"
 
 [[package]]
 name = "http"
@@ -671,9 +671,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.13.1"
+version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f020237b6c8eed93db2e2cb53c00c60a8e1bc73da7d073199a1180401450218d"
+checksum = "9807af0e638c12e753aa1b4e601791bf2a8f71274023c8bbeec12fc149950857"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -683,9 +683,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.18"
+version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2"
+checksum = "41d60ef07df457506a0a1a2073112eb4aae5733dbd2813c3da77d1b0fd441158"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -694,9 +694,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.8.11"
+version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
+checksum = "d902046e6a28a1e4c3cab97258a0ce11e994903f01c2d97a9447a0b3df85f4f6"
 
 [[package]]
 name = "regress"
@@ -864,9 +864,9 @@ checksum = "9b0e903ee191d8f7a8fbf0d712c3a1699d19e04ceba5ad1eb673053c7d938a09"
 
 [[package]]
 name = "smallvec"
-version = "1.16.5"
+version = "1.16.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "149309498a5f7334b12ddae0cad8aba81ce785fe91755068867e017cf98fee46"
+checksum = "3244542535d5de959d90ec55d1b5ff0fd2bb7b1310223907d5f11932847f7b59"
 
 [[package]]
 name = "stable_deref_trait"
@@ -951,7 +951,7 @@ checksum = "fd3ca314f692efd6c868f8408f53fe444634a845f96c028b97d35f6a1f79f0ee"
 
 [[package]]
 name = "tsrs_api"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "serde_json",
@@ -977,7 +977,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_api_codec"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_ast",
@@ -991,7 +991,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_api_transport"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "base64",
  "rustc-hash",
@@ -1004,7 +1004,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_ast"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "hashbrown",
@@ -1017,7 +1017,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_astnav"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "tsrs_ast",
  "tsrs_core",
@@ -1039,7 +1039,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_binder"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "rustc-hash",
@@ -1052,7 +1052,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_checker"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "hashbrown",
@@ -1076,7 +1076,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_cli"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "libc",
  "mimalloc-safe",
@@ -1093,7 +1093,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_compiler"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rayon",
  "rustc-hash",
@@ -1118,7 +1118,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_contentmapper"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_ast",
@@ -1145,7 +1145,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_core"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "dragonbox_ecma",
  "hashbrown",
@@ -1163,7 +1163,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_declarations"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_ast",
@@ -1204,14 +1204,14 @@ dependencies = [
 
 [[package]]
 name = "tsrs_diagnostics"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
 ]
 
 [[package]]
 name = "tsrs_execute"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "libc",
  "rustc-hash",
@@ -1243,7 +1243,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_fswatch"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "libc",
  "rustc-hash",
@@ -1264,7 +1264,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_incremental"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "rayon",
@@ -1285,7 +1285,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_ipc"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_core",
@@ -1293,7 +1293,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_lint"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "mimalloc-safe",
  "regex",
@@ -1315,7 +1315,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_ls"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "indexmap",
@@ -1343,7 +1343,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_lsp"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_api",
@@ -1363,7 +1363,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_lsproto"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_core",
@@ -1372,7 +1372,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_module"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "hashbrown",
@@ -1385,7 +1385,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_modulespecifiers"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "regex",
  "rustc-hash",
@@ -1397,7 +1397,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_parser"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "mimalloc-safe",
@@ -1411,7 +1411,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_printer"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "rustc-hash",
@@ -1425,7 +1425,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_project"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_ast",
@@ -1449,7 +1449,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_projectutil"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_core",
@@ -1457,7 +1457,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_pseudochecker"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "tsrs_ast",
  "tsrs_core",
@@ -1465,7 +1465,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_scanner"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "memchr",
@@ -1477,7 +1477,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_sourcemap"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_ast",
@@ -1487,7 +1487,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_spanmap"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "tsrs_core",
@@ -1528,7 +1528,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_transformers"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "rustc-hash",
@@ -1544,7 +1544,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_tsoptions"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "rustc-hash",
  "tsrs_ast",
@@ -1559,7 +1559,7 @@ dependencies = [
 
 [[package]]
 name = "tsrs_vfs"
-version = "7.1.0-beta.tsrs4"
+version = "7.1.0-beta.tsrs5"
 dependencies = [
  "bitflags",
  "rayon",

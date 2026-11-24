@@ -1,0 +1,1 @@
+{"compilerOptions":{"module":"nodenext","outDir":"dist","rootDir":"src","noEmit":true},"files":["src/a.ts"]}

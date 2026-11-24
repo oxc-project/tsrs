@@ -269,6 +269,31 @@ fn small_regions_share_slabs_and_trim() {
     assert_eq!(*y, [8; 4]);
 }
 
+/// A registered region in the large slabs (`Region::new_in_large_slabs`, which a build uses for the files it shares)
+/// is found by address beside standard-slab regions on the same thread, keeps its values across their frees and its
+/// own trim, and leaves the registry when dropped.
+#[test]
+fn large_slab_regions_stay_registered_beside_standard_slab_regions() {
+    use tsrs_core::arena::Region;
+    let short = Region::new(64 << 10);
+    let long = Region::new_in_large_slabs(4 << 10);
+    let (x, y) = {
+        let _s = short.enter();
+        let x = P::new([1u64; 4]);
+        let _l = long.enter();
+        (x, P::new([2u64; 4]))
+    };
+    assert!(Region::containing(x.addr()).unwrap().ptr_eq(&short));
+    assert!(Region::containing(y.addr()).unwrap().ptr_eq(&long));
+    drop(short);
+    long.trim();
+    assert!(Region::containing(y.addr()).unwrap().ptr_eq(&long));
+    assert_eq!(*y, [2; 4]);
+    let addr = y.addr();
+    drop(long);
+    assert!(Region::containing(addr).is_none());
+}
+
 /// What one thread's resident memory grows by over `cycles` short-lived regions, each of which leaves one small
 /// region made by `long_lived` behind (as a `tsc -b` builder leaves a shared declaration file behind each program).
 fn growth(long_lived: fn(usize) -> tsrs_core::arena::Region, cycles: usize) -> usize {
@@ -308,6 +333,10 @@ fn growth(long_lived: fn(usize) -> tsrs_core::arena::Region, cycles: usize) -> u
 /// resident once they are freed: `Region::new_in_large_slabs` carves it from the thread's large slabs. Made with
 /// `Region::new`, each such region sits in a standard slab beside the freed regions and keeps it.
 #[test]
+#[cfg_attr(
+    miri,
+    ignore = "re-runs itself in a child process and measures resident memory, which Miri's isolation forbids"
+)]
 fn long_lived_regions_in_large_slabs_do_not_keep_freed_slabs() {
     const CYCLES: usize = 4096;
     // The measure needs freed slabs to be reused, which `TSRS_ARENA_POISON=1` turns off.

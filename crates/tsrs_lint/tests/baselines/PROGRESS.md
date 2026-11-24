@@ -45,7 +45,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | no-unsafe-return | Updated to Go HEAD | 76 current cases; deferred return types, unsafe generic assignments, virtual dependency declarations and JSDoc callbacks |
 | no-unsafe-type-assertion | Updated to Go HEAD | 101 current cases; bidirectional any assignments, object widening, narrowing, unconstrained types and generic constraint diagnostics |
 | no-unsafe-unary-minus | Updated to Go HEAD | 23 current cases; UTF-8 ranges, union member ordering, generic constraints, ignored options and independent fix/suggestion flags |
-| non-nullable-type-assertion-style | Updated to Go HEAD | 26 current cases; UTF-8 suggestion ranges, independent flags, ignored options, assertion precedence and generic constraints |
+| non-nullable-type-assertion-style | Updated to 020d62f7 | 27 current cases; UTF-8 suggestion ranges, independent flags, ignored options, assertion precedence, generic constraints and JavaScript JSDoc casts |
 | only-throw-error | Updated to Go HEAD | 112 current cases; UTF-8 ranges, per-file options, null defaults, invalid options, rethrow boundaries and independent flags |
 | prefer-find | Updated to Go HEAD | 47 current cases; constant/coercion evaluation, constrained array unions/intersections, conditional/comma suggestions, UTF-8 comment ranges and independent suggestion flags |
 | prefer-includes | Updated to c0c11eaa | 81 current cases; parameter-text compatibility, regexp patterns, UTF-8 ranges, ignored options and independent fix flags |

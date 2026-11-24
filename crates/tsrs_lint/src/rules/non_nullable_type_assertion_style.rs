@@ -39,7 +39,7 @@ impl Rule for NonNullableTypeAssertionStyle {
     }
 
     fn visit(&mut self, _: Listener, node: P<Node>, context: &mut RuleContext<'_>) {
-        if ast::is_const_assertion(node) {
+        if ast::is_const_assertion(node) || ast::is_in_js_file(node) {
             return;
         }
 

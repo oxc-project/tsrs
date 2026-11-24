@@ -269,24 +269,6 @@ fn small_regions_share_slabs_and_trim() {
     assert_eq!(*y, [8; 4]);
 }
 
-const LONG_LIVED_CHILD: &str = "TSRS_ARENA_LONG_LIVED_TEST";
-
-/// Runs `test` alone in a child process of this test binary (resident memory is process-wide). True in the child.
-fn in_child(test: &str) -> bool {
-    if std::env::var_os(LONG_LIVED_CHILD).is_some_and(|name| name == test) {
-        return true;
-    }
-    let output = std::process::Command::new(std::env::current_exe().unwrap())
-        .args(["--exact", test, "--nocapture", "--test-threads=1"])
-        .env(LONG_LIVED_CHILD, test)
-        .output()
-        .unwrap();
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(output.status.success(), "{stdout}{}", String::from_utf8_lossy(&output.stderr));
-    assert!(stdout.contains("1 passed;"), "the child must run the isolated case:\n{stdout}");
-    false
-}
-
 /// What one thread's resident memory grows by over `cycles` short-lived regions, each of which leaves one small
 /// region made by `long_lived` behind (as a `tsc -b` builder leaves a shared declaration file behind each program).
 fn growth(long_lived: fn(usize) -> tsrs_core::arena::Region, cycles: usize) -> usize {
@@ -330,7 +312,9 @@ fn long_lived_regions_in_large_slabs_do_not_keep_freed_slabs() {
     const CYCLES: usize = 4096;
     // The measure needs freed slabs to be reused, which `TSRS_ARENA_POISON=1` turns off.
     if std::env::var_os("TSRS_ARENA_POISON").is_some_and(|v| v == "1")
-        || !in_child("arena_test::long_lived_regions_in_large_slabs_do_not_keep_freed_slabs")
+        || !crate::isolated::in_child(
+            "arena_test::long_lived_regions_in_large_slabs_do_not_keep_freed_slabs",
+        )
     {
         return;
     }

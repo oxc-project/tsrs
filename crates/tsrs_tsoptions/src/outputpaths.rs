@@ -460,15 +460,20 @@ pub fn get_source_file_path_in_new_dir_worker(
     common_source_directory: &str,
     use_case_sensitive_file_names: bool,
 ) -> String {
-    let mut source_file_path = tspath::get_normalized_absolute_path(file_name, current_directory);
-    if let Some(trimmed) = tspath::trim_file_path_prefix(
-        &source_file_path,
+    // outputpaths.go:221 `GetSourceFileNameInNewDir`. The part below the common source directory is appended to the
+    // new directory as text, so a first segment such as `c:` or `^` stays below the new directory.
+    let source_file_path = tspath::get_normalized_absolute_path(file_name, current_directory);
+    if source_file_path == common_source_directory {
+        return source_file_path;
+    }
+    match tspath::relative_file_path_from_directory(
         common_source_directory,
+        &source_file_path,
         use_case_sensitive_file_names,
     ) {
-        source_file_path = trimmed.to_string();
+        Some(relative_path) => tspath::resolve_relative_file(new_dir_path, relative_path),
+        None => source_file_path,
     }
-    tspath::combine_paths(new_dir_path, &[&source_file_path])
 }
 
 fn get_own_emit_output_file_path(

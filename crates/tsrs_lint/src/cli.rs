@@ -33,6 +33,20 @@ pub fn main(args: Vec<String>) -> i32 {
     }
 }
 
+/// The options read from the environment: oxlint passes its own flags only.
+fn environment_options() -> engine::Options {
+    engine::Options {
+        suppress_program_diagnostics: std::env::var(
+            "OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS",
+        )
+        .is_ok_and(|value| value == "true"),
+        // oxlint runs `<path> headless` with flags of its own, so `--runExternalCode` has an environment form.
+        run_external_code: std::env::var("TSRS_LINT_RUN_EXTERNAL_CODE")
+            .is_ok_and(|value| value == "1"),
+        ..Default::default()
+    }
+}
+
 /// Parses `headless [--fix] [--fix-suggestions] [--runExternalCode] [--debug timings]`.
 ///
 /// Reads the payload from `input`, lints it from the current directory and writes the frames to `output`. Returns
@@ -42,16 +56,7 @@ pub fn run(
     input: &mut dyn Read,
     output: &mut dyn Write,
 ) -> i32 {
-    let mut options = engine::Options {
-        suppress_program_diagnostics: std::env::var(
-            "OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS",
-        )
-        .is_ok_and(|value| value == "true"),
-        // oxlint runs `<path> headless` with flags of its own, so `--runExternalCode` has an environment form.
-        run_external_code: std::env::var("TSRS_LINT_RUN_EXTERNAL_CODE")
-            .is_ok_and(|value| value == "1"),
-        ..Default::default()
-    };
+    let mut options = environment_options();
     let mut headless = false;
     let mut args = args.into_iter();
     while let Some(arg) = args.next() {

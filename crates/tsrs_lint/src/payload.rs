@@ -68,8 +68,25 @@ fn deserialize_v1(value: &JsonMap) -> Result<Payload, String> {
 }
 
 fn deserialize_v2(value: &JsonMap) -> Result<Payload, String> {
+    let configs = deserialize_configs(value.get("configs"))?;
+    let mut source_overrides = OrderedMap::default();
+    if let Some(overrides) = value.get("source_overrides").filter(|v| **v != Value::Null) {
+        for (path, text) in object(overrides)? {
+            source_overrides.insert(path.to_owned(), string(Some(text))?);
+        }
+    }
+    Ok(Payload {
+        configs,
+        source_overrides,
+        report_syntactic: boolean(value.get("report_syntactic"))?,
+        report_semantic: boolean(value.get("report_semantic"))?,
+    })
+}
+
+/// The V2 `configs` array.
+fn deserialize_configs(value: Option<&Value>) -> Result<Vec<Config>, String> {
     let mut configs = Vec::new();
-    for config in array(value.get("configs"))? {
+    for config in array(value)? {
         let config = object(config)?;
         let file_paths = array(config.get("file_paths"))?
             .iter()
@@ -85,18 +102,7 @@ fn deserialize_v2(value: &JsonMap) -> Result<Payload, String> {
         }
         configs.push(Config { file_paths, rules });
     }
-    let mut source_overrides = OrderedMap::default();
-    if let Some(overrides) = value.get("source_overrides").filter(|v| **v != Value::Null) {
-        for (path, text) in object(overrides)? {
-            source_overrides.insert(path.to_owned(), string(Some(text))?);
-        }
-    }
-    Ok(Payload {
-        configs,
-        source_overrides,
-        report_syntactic: boolean(value.get("report_syntactic"))?,
-        report_semantic: boolean(value.get("report_semantic"))?,
-    })
+    Ok(configs)
 }
 
 pub(crate) fn object(value: &Value) -> Result<&JsonMap, String> {

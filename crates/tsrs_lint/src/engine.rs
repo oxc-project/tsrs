@@ -376,21 +376,7 @@ fn run_in_region(
     }
     if !unmatched.is_empty() {
         let config = tsrs_tsoptions::new_parsed_command_line(
-            P::new(CompilerOptions {
-                allow_js: Tristate::True,
-                module: ModuleKind::ES_NEXT,
-                module_resolution: ModuleResolutionKind::BUNDLER,
-                target: ScriptTarget::ES2022,
-                jsx: JsxEmit::REACT_JSX,
-                allow_importing_ts_extensions: Tristate::True,
-                strict_null_checks: Tristate::True,
-                strict_function_types: Tristate::True,
-                source_map: Tristate::True,
-                es_module_interop: Tristate::True,
-                allow_non_ts_extensions: Tristate::True,
-                resolve_json_module: Tristate::True,
-                ..Default::default()
-            }),
+            P::new(inferred_compiler_options()),
             unmatched.clone(),
             Vec::new(),
             tspath::ComparePathsOptions {
@@ -436,6 +422,25 @@ fn run_in_region(
         .map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+/// The compiler options of files outside every tsconfig: they are linted in one inferred program with these options.
+fn inferred_compiler_options() -> CompilerOptions {
+    CompilerOptions {
+        allow_js: Tristate::True,
+        module: ModuleKind::ES_NEXT,
+        module_resolution: ModuleResolutionKind::BUNDLER,
+        target: ScriptTarget::ES2022,
+        jsx: JsxEmit::REACT_JSX,
+        allow_importing_ts_extensions: Tristate::True,
+        strict_null_checks: Tristate::True,
+        strict_function_types: Tristate::True,
+        source_map: Tristate::True,
+        es_module_interop: Tristate::True,
+        allow_non_ts_extensions: Tristate::True,
+        resolve_json_module: Tristate::True,
+        ..Default::default()
+    }
 }
 
 /// A program's result, output and rule timings.
@@ -820,6 +825,15 @@ fn report_config_error(
     program_diagnostic: bool,
     writer: &mut dyn Write,
 ) -> Result<(), String> {
+    emit(&config_error(diagnostic, config_path, program_diagnostic)?, writer)
+}
+
+/// A tsconfig or program error, reported in place of the program's lint diagnostics.
+fn config_error(
+    diagnostic: P<TsDiagnostic>,
+    config_path: &str,
+    program_diagnostic: bool,
+) -> Result<Diagnostic, String> {
     // The help has the message chain, as `tsc` prints it: the reason that a content mapper could not be initialized,
     // for example, is in the chain of TS18099.
     let mut help = message_text(diagnostic)?;
@@ -828,23 +842,18 @@ fn report_config_error(
             "\nSee https://github.com/oxc-project/tsgolint/issues/351 for more information.",
         );
     }
-    emit(
-        &Diagnostic {
-            range: diagnostic_range(diagnostic),
-            message: RuleMessage {
-                id: "tsconfig-error".into(),
-                description: "Invalid tsconfig".into(),
-                help,
-            },
-            file_path: Some(
-                diagnostic
-                    .file()
-                    .map_or_else(|| config_path.to_owned(), |f| f.file_name().to_owned()),
-            ),
-            ..Default::default()
+    Ok(Diagnostic {
+        range: diagnostic_range(diagnostic),
+        message: RuleMessage {
+            id: "tsconfig-error".into(),
+            description: "Invalid tsconfig".into(),
+            help,
         },
-        writer,
-    )
+        file_path: Some(
+            diagnostic.file().map_or_else(|| config_path.to_owned(), |f| f.file_name().to_owned()),
+        ),
+        ..Default::default()
+    })
 }
 
 fn diagnostic_range(diagnostic: P<TsDiagnostic>) -> Option<Range> {

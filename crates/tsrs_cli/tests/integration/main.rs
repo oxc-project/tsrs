@@ -21,6 +21,7 @@ mod document_uri_trailing_slash_not_normalized;
 mod flow_memo;
 mod free_leaf_files;
 mod generate_trace;
+mod include_drive_like_directory;
 mod include_rooted_dot_segments;
 mod invalid_utf8_argument;
 #[cfg(all(target_os = "linux", target_env = "gnu"))]

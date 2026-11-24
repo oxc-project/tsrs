@@ -837,7 +837,14 @@ impl GlobVisitor {
                     .collect();
                 if let Some(symlinks) = &entries.symlinks {
                     for (dir, &matched) in entries.directories.iter().zip(&directories) {
-                        if matched && !symlinks.contains(dir) {
+                        // The visit resolves each name with Go's `ResolveDirectory` (vfsmatch.go:634), which appends
+                        // the name as text only if it has no root and no `\`. Any other name, such as `c:` or `a\..`,
+                        // can leave this tree, so it is not followed here, like a symlink.
+                        if matched
+                            && !symlinks.contains(dir)
+                            && tspath::get_root_length(dir) == 0
+                            && !dir.contains('\\')
+                        {
                             children.push(Pending {
                                 path: format!("{prefix}{dir}"),
                                 depth: child_depth,
@@ -962,13 +969,16 @@ impl GlobVisitor {
             if !matched {
                 continue;
             }
-            let abs_dir = format!("{abs_prefix}{dir}");
+            // vfsmatch.go:634 `absolutePath.ResolveDirectory(dir)`: a name with a root, such as a directory named `c:`,
+            // resolves to that root instead of being appended.
+            let abs_dir = tspath::resolve_file(&abs_prefix, dir);
             let mut child_real_path = String::new();
             if let Some(symlinks) = &entries.symlinks
                 && !symlinks.contains(dir)
             {
                 // Non-symlink directory: compute realpath incrementally.
-                child_real_path = tspath::combine_paths(&real_path, &[dir]);
+                // vfsmatch.go:639 `realPath.ResolveDirectory(dir)`
+                child_real_path = tspath::resolve_file(&real_path, dir);
             }
             // else: symlink directory; leave childRealPath empty to force Realpath call.
             // If Symlinks is None, the FS doesn't track symlinks;
@@ -976,7 +986,7 @@ impl GlobVisitor {
             self.visit(
                 host,
                 extensions,
-                &format!("{path_prefix}{dir}"),
+                &tspath::resolve_file(&path_prefix, dir),
                 &abs_dir,
                 depth,
                 &child_real_path,

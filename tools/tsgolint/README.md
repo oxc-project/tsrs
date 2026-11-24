@@ -71,21 +71,21 @@ oxlint runs `<path> headless ...`, which `tsrs` would read as a root file.
 
 ## Type checking in the lint run
 
-`oxlint --type-aware --type-check` asks the linter for compiler diagnostics too, with or without `TSRS_FAST=1`. As
-in tsgolint, they are reported only for the files oxlint sends: each is checked in the tsconfig program it maps to, and
-the program's other files supply types without their own diagnostics being reported. Oxlint ignores and command-line
-paths therefore limit type checking as well as lint rules. Global diagnostics without a source location, such as
-missing global types, are not reported. Listed files outside every tsconfig are linted and type-checked in an inferred
-program with the linter's default compiler options.
+`oxlint --type-aware --type-check` reports syntactic and semantic TypeScript diagnostics only for the files Oxlint
+sends, with or without `TSRS_FAST=1`. Oxlint's ignores and command-line paths limit that selection. Each selected
+file is checked in the tsconfig program it maps to. Other program files can still supply types. TSRS also reports
+declaration diagnostics for selected files when `declaration` or `composite` is enabled. Selected files outside
+every tsconfig are linted and type-checked in an inferred program with the linter's default compiler options.
+
+TSRS reports global diagnostics such as missing global types once per configured program, on its tsconfig and
+without a source range.
 
 ```sh
 OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint oxlint --type-aware --type-check
 ```
 
-This does not replace a separate no-emit typecheck: files oxlint does not lint (ignored, generated and declaration
-files) and global diagnostics are checked only by `tsrs --noEmit` or `tsrs --build`. The
-[measurements](../../notes/perf-tsgolint-check-program.md) of one lint and typecheck run were taken when the lint run
-checked whole tsconfig programs.
+Use `tsrs --noEmit` for a full tsconfig check, including files skipped by Oxlint, or `tsrs --build` to check a
+project-reference build.
 
 Run imported suites with:
 

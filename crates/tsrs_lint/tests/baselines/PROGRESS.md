@@ -21,7 +21,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | no-floating-promises | Updated to Go HEAD | 188 current cases, 1 upstream skips; promises/thenables, rejection handlers, allowlists, await/void suggestions |
 | no-for-in-array | Updated to Go HEAD | 24 current cases; structural array-likes and loop-header byte ranges |
 | no-implied-eval | Updated to Go HEAD | 70 current cases; Function constructors, timer handlers, local shadowing |
-| no-meaningless-void-operator | Updated to Go HEAD | 24 current cases; checkNever and independent fix/suggestion flags |
+| no-meaningless-void-operator | Updated to bcdea900 | 41 current cases; non-call operands, syntax-preserving removals, checkNever and independent fix/suggestion flags |
 | no-misused-promises | Updated to 1ae4bbd5 | 263 current cases, 1 upstream skip; conditionals with `flagUnions` none/strict/all from upstream #1353, predicates, spreads, nested void-return options, generic overloads and constraints, Promise-accepting overloads, constructors and impossible intersections |
 | no-misused-spread | Updated to Go HEAD | 133 current cases, 1 upstream skips; string/array/iterable/class checks, allowlists, await and map suggestions |
 | no-mixed-enums | Updated to Go HEAD | 51 current cases; initializer types, merged declarations and namespace/module augmentation |
@@ -63,7 +63,7 @@ and suggestions before its implementation commit. Upstream skips remain explicit
 | require-array-sort-compare | Updated to Go HEAD | 55 current cases; tuples, UTF-8 call ranges, computed/optional accesses, readonly tuples, generic constraints, array unions/intersections, per-file/null/invalid options and independent fix/suggestion flags |
 | require-await | Updated to Go HEAD | 90 current cases; UTF-8 heads/edits, nested and per-file scopes, constrained/union thenables and async iterables, decorators, ASI/comments, ignored options and independent suggestion flags |
 | restrict-plus-operands | Updated to Go HEAD | 122 current cases; UTF-8 operand/label ranges, constrained types, RegExp identity, union/intersection checks, per-file/null/invalid options and independent flags |
-| restrict-template-expressions | Updated to Go HEAD | 72 current cases; UTF-8 labeled ranges, null defaults, invalid options, per-file allowlists, nested arrays/tuples, constraints, tagged templates and independent flags |
+| restrict-template-expressions | Updated to c21e8f5e | 74 current cases; UTF-8 labeled ranges, null defaults, invalid options, per-file allowlists, nested and recursive arrays/tuples, constraints, tagged templates and independent flags |
 | return-await | Updated to Go HEAD | 107 current cases; 29 oracle regressions for UTF-8 ranges, per-file/null/invalid options, nested scopes, resource disposal, generic constraints, precedence and independent fix/suggestion flags |
 | strict-boolean-expressions | Updated to Go HEAD | 218 current cases; 24 oracle regressions for UTF-8 ranges, logical traversal state, assertion/array predicates, generic constraints, nullable options, strictNullChecks, invalid options and independent fix/suggestion flags |
 | strict-void-return | Updated to Go HEAD | 214 current cases, 1 upstream skips; UTF-8 ranges, contextual/generic/overload returns, inherited members, nested scopes, per-file/null/invalid options and independent fix/suggestion flags |

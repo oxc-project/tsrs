@@ -34,6 +34,7 @@ mod lsp_edit_resolutions;
 mod maproot_not_resolved;
 mod merged_interface_check_site;
 mod npm_lib_path;
+mod outdir_drive_like_segment;
 mod overlay_files_missing_from_path_completions;
 mod parse_command_line_file_names_not_rooted;
 mod process_ending_index_directory;

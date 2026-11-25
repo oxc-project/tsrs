@@ -1,1 +1,1 @@
-{"compilerOptions":{"target":"esnext","module":"esnext","strict":true,"noEmit":true,"types":[]},"files":["quoted.ts","mixed.ts","namespace.ts","other.ts","use.ts"]}
+{"compilerOptions":{"strict":true,"noEmit":true,"target":"esnext","types":[]},"files":["quoted.ts","mixed.ts","namespace.ts","other.ts","use.ts"]}

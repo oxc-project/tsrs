@@ -19,10 +19,10 @@ U+007F as that stray byte. Any other U+007F is user text and stays raw, as in Go
 `"\u{7F}\b\u{7F}"` (vadimdemedes/ink test/input-parser.ts, where the old text-only rule added `\uFFFD`s and pushed the
 diagnostic over the 320-character truncation; testdata/regressions/control-char-literal-types). Remaining
 representation limit: a user property name that starts with U+007F is still taken for an internal name by the checker
-(`is_reserved_member_name` drops `{"\u{7F}a": 1}` from object types, including a namespace import's properties; tsgo
-keeps it). An export named `"\u{7F}export"` lands in the binder's `export *` bucket; `get_exports_of_module_worker`
-visits only that bucket's `ExportDeclaration`s, so checking the module does not panic and the export resolves
-(testdata/regressions/quoted-export-star-name). A module's own `export *` bucket still answers an import of
-`"\u{7F}export"`: tsgo reports TS2305 or resolves the member re-exported through the module, while tsrs binds the import
-to the bucket, reports errors where it is used and drops the module's `require` from CommonJS emit. The bucket also
-keeps that name out of the module's TS2308 ambiguity check.
+(`is_reserved_member_name` drops `{"\u{7F}a": 1}` from object types, including a namespace import's properties, and from
+completions; tsgo keeps it). An export named `"\u{7F}export"` lands in the binder's `export *` bucket;
+`get_exports_of_module_worker` visits only that bucket's `ExportDeclaration`s, so checking the module does not panic and
+the export resolves (testdata/regressions/quoted-export-star-name). A module's own `export *` bucket still answers an
+import of `"\u{7F}export"`: tsgo reports TS2305 or resolves the member re-exported through the module, while tsrs binds
+the import to the bucket, reports errors where it is used and drops the module's `require` from CommonJS emit. The
+bucket also keeps that name out of the module's TS2308 ambiguity check.

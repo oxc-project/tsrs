@@ -122,6 +122,27 @@ pub fn relative_file_path_from_directory<'a>(
     Some(relative.strip_prefix('/').unwrap_or(relative))
 }
 
+// rooted_path.go:481 `RootedFilePath.SplitAtLastComponent`: the path before and through the last whole component
+// `component`, or `None` if no component is equal to it. A component that only starts with it (`node_modules_x`) does
+// not match. Go also panics for a component that is empty, `.`, `..`, or has a separator; those assertions are not
+// ported.
+pub fn split_at_last_component<'a>(path: &'a str, component: &str) -> Option<(&'a str, &'a str)> {
+    let needle = format!("/{component}");
+    let root_length = get_root_length(path);
+    let mut end = path.len();
+    while end > 0 {
+        let index = path[..end].rfind(&needle)?;
+        let component_end = index + needle.len();
+        if index + 1 >= root_length
+            && (component_end == path.len() || path.as_bytes()[component_end] == b'/')
+        {
+            return Some((&path[..index.max(root_length)], &path[..component_end]));
+        }
+        end = index;
+    }
+    None
+}
+
 // relativePathFromNormalizedPaths
 pub(super) fn relative_path_from_normalized_paths(
     from: &str,

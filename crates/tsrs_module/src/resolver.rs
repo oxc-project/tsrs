@@ -3153,11 +3153,13 @@ impl<'r> ResolutionState<'r> {
         }
         trace!(self.tracer, diagnostics::X_PACKAGE_JSON_HAS_A_PEER_DEPENDENCIES_FIELD);
         let package_directory = self.real_path(package_json_info.package_directory);
-        let Some(node_modules_index) = package_directory.rfind("/node_modules") else {
+        // resolver.go:2066: split at the last whole `node_modules` component, so `node_modules_x` does not match.
+        let Some((_, node_modules)) =
+            tspath::split_at_last_component(&package_directory, "node_modules")
+        else {
             return String::new();
         };
-        let node_modules =
-            format!("{}/", &package_directory[..node_modules_index + "/node_modules".len()]);
+        let node_modules = format!("{node_modules}/");
         let mut names: Vec<&String> = peer_dependencies.value.keys().collect();
         names.sort();
         let mut builder = String::new();

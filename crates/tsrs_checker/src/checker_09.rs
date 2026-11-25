@@ -3955,8 +3955,9 @@ impl Checker {
         result
     }
 
-    // The property named `name` in getPropertiesOfType(base_type), the list addInheritedMembers copies. A module's
-    // list keeps an export that `export type *` re-exports, which getPropertyOfType hides.
+    // The property named `name` in getPropertiesOfType(base_type), the list addInheritedMembers copies. tsrs-only:
+    // #64475 calls getPropertyOfTypeEx, which hides a module's export that `export type *` re-exports
+    // (notes/lazy-members.md).
     fn get_inherited_property(
         &mut self,
         base_type: P<Type>,
@@ -4045,7 +4046,8 @@ impl Checker {
 
     // Whether f visits an inherited prop now. As in addInheritedMembers, a later base replaces an inherited member
     // that is not a value (a module's export alias), so such a prop waits in replaceable, over an earlier one of its
-    // name, until every base is walked.
+    // name, until every base is walked. tsrs-only: #64475's everyLazyProperty visits the first prop of each name
+    // (notes/lazy-members.md).
     fn add_lazy_inherited_property(
         prop: P<Symbol>,
         seen: &mut FxHashSet<&'static str>,

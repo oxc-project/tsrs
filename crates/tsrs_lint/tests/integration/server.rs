@@ -676,3 +676,27 @@ fn files_created_and_deleted_on_disk_are_picked_up() {
     assert_eq!(rules_of(&server.lint(&[&b]), &b), NONE);
     assert_eq!(server.exit_code(), 0);
 }
+
+#[test]
+fn closed_files_outside_every_tsconfig_are_linted() {
+    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join("tsrs-lint-server").join("no-tsconfig");
+    let dir = project(&dir, ASYNC_A);
+    std::fs::remove_file(dir.join("tsconfig.json")).unwrap();
+    let b = path(&dir, "b.ts");
+    let mut server = Server::start(&dir);
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn closed_files_of_a_project_loaded_later_are_linted() {
+    let root = Path::new(env!("CARGO_TARGET_TMPDIR")).join("tsrs-lint-server").join("later");
+    let first = project(&root.join("first"), ASYNC_A);
+    let second = project(&root.join("second"), ASYNC_A);
+    let root = root.canonicalize().unwrap();
+    let (first_b, second_b) = (path(&first, "b.ts"), path(&second, "b.ts"));
+    let mut server = Server::start(&root);
+    assert_eq!(rules_of(&server.lint(&[&first_b]), &first_b), ["no-floating-promises"]);
+    assert_eq!(rules_of(&server.lint(&[&second_b]), &second_b), ["no-floating-promises"]);
+    assert_eq!(server.exit_code(), 0);
+}

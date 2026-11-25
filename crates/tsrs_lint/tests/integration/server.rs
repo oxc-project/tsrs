@@ -40,6 +40,16 @@ fn project(dir: &Path, a: &str) -> PathBuf {
     dir
 }
 
+/// Whether the server folds file names' case. The OS file system decides it as Go does: it is case-insensitive if the
+/// executable exists under its name with the case of each letter swapped.
+fn server_folds_case() -> bool {
+    let swapped: String = env!("CARGO_BIN_EXE_tsrs-lint")
+        .chars()
+        .map(|c| if c.is_uppercase() { c.to_ascii_lowercase() } else { c.to_ascii_uppercase() })
+        .collect();
+    Path::new(&swapped).exists()
+}
+
 fn path(dir: &Path, name: &str) -> String {
     dir.join(name).to_string_lossy().replace('\\', "/")
 }
@@ -896,15 +906,20 @@ fn a_projects_tsconfig_errors_are_reported_once_and_its_files_not_linted() {
 }
 
 #[test]
-fn a_file_opened_and_closed_in_different_case_is_closed() {
+fn names_that_differ_in_case_name_one_file_where_the_file_system_folds_case() {
     let dir = fixture("open-case");
-    if !dir.join("B.TS").exists() {
-        // A case-sensitive file system: `B.TS` is another file.
+    let (b, upper) = (path(&dir, "b.ts"), path(&dir, "B.TS"));
+    let mut server = Server::start(&dir);
+    if !server_folds_case() {
+        // A case-sensitive file system: `B.TS` is another file, which neither opens nor closes `b.ts`.
+        server.open(&upper, 1, "export {};\nPromise.resolve(1);\n");
+        assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
+        server.open(&b, 1, "export {};\n");
+        server.send(DID_CLOSE, &protocol::object([("path", Value::String(upper.clone()))]));
+        assert_eq!(rules_of(&server.lint(&[&b]), &b), NONE);
+        assert_eq!(server.exit_code(), 0);
         return;
     }
-    let b = path(&dir, "b.ts");
-    let mut server = Server::start(&dir);
-    let upper = path(&dir, "B.TS");
     server.open(&upper, 1, "export {};\n");
     assert_eq!(rules_of(&server.lint(&[&b]), &b), NONE);
     server.change(&b, 2, "export {};\nPromise.resolve(1);\n");

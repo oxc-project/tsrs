@@ -67,14 +67,13 @@ fallback ran for nearly every miss, though almost no name is a member of those f
 
 Why the result is the same: a name the filter rejects is a key of none of the four tables, so both fallback lookups
 would miss and the function would return `None`. The skipped steps have no effects for a type with resolved members:
-`signatures_of_structured_type` takes no lazy-member path then (`may_have_lazy_members` is false for a resolved type,
-and the mapped-type early return only counts unresolved types) and returns the resolved signatures;
-`get_property_of_object_type` on the four resolved types only reads. A type whose members are not resolved (the lazy
-member path) still takes the full fallback. The four types are set once at checker initialization, and a resolved
-member table is not written to afterwards (the `set` calls on member tables are on tables being built: resolution,
-mapped types, literals, JSX attributes). The only way a resolved type's members are replaced is the base-type cycle
-reset (`get_base_types`, `reset_resolved_base_types`), which clears `MembersResolved`; both reset sites drop the
-filter, which is built again once all four are resolved.
+`signatures_of_structured_type` takes no lazy-member path then (`may_have_lazy_members` is false for a resolved type)
+and returns the resolved signatures; `get_property_of_object_type` on the four resolved types only reads. A type whose
+members are not resolved (the lazy member path) still takes the full fallback. The four types are set once at checker
+initialization, and a resolved member table is not written to afterwards (the `set` calls on member tables are on
+tables being built: resolution, mapped types, literals, JSX attributes). The only way a resolved type's members are
+replaced is the base-type cycle reset (`get_base_types`, `reset_resolved_base_types`), which clears `MembersResolved`;
+both reset sites drop the filter, which is built again once all four are resolved.
 
 How often the filter skips the fallback (site counts on the change, single-threaded):
 

@@ -264,7 +264,7 @@ Wave 3 (the compiler and CLI integration, the scenario tests) is done. What wave
     `content_mapper_project_error_diagnostic`, `Program::{content_mapper_project, get_content_mapper,
     content_mapper_extensions}`.
   - The diagnostic writer takes `P<Diagnostic>` and reads it through Go's `ASTDiagnostic` (`diagnostic_file`,
-    `diagnostic_pos`, `diagnostic_len`, `diagnostic_message_chain`); `FileLike` keeps Go's identity, so each
+    `diagnostic_pos`, `diagnostic_end`, `diagnostic_message_chain`); `FileLike` keeps Go's identity, so each
     original-text or renamed wrapper is its own file in the error summary, as in Go.
 - `tsrs_incremental::content_mapper_identities(Option<&dyn Project>) -> Result<Option<Vec<String>>, Error>`.
 - `tsrs_execute`:

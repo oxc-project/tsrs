@@ -3076,7 +3076,7 @@ impl Checker {
             target_parameter_count += 1;
         }
         if !parameters.is_empty() && is_this_parameter(parameters[0]) {
-            target_parameter_count -= 1;
+            target_parameter_count = target_parameter_count.saturating_sub(1);
         }
         !self.has_effective_rest_parameter(signature)
             && self.get_parameter_count(signature) < target_parameter_count

@@ -1,0 +1,1 @@
+a.js(7,21): error TS2493: Tuple type '[x: number]' of length '1' has no element at index '1'.

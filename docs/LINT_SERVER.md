@@ -45,9 +45,9 @@ The server sends:
 
 `id` is a non-negative integer the client chooses; ids should be unique among the requests in flight. A `Lint`
 request's `configs` and `rules` are headless mode's (V2 payload); each file is linted once, with the rules of the
-first config that names it. Compiler diagnostics are not reported. Tsconfig and program errors of a configured
-project are reported as in headless mode, on the tsconfig, once per request, and that project's files are not
-linted.
+last config that names it, as in headless mode. Compiler diagnostics are not reported. Tsconfig and program errors of
+a configured project are reported as in headless mode, on the tsconfig, once per request, and that project's files
+are not linted.
 
 ## Handshake and versions
 

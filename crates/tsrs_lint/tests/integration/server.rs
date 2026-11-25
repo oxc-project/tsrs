@@ -791,3 +791,42 @@ fn a_fatal_error_is_the_last_frame() {
     }
     assert_eq!(server.exit_code(), 1);
 }
+
+#[test]
+fn a_file_in_several_configs_gets_the_last_configs_rules() {
+    let dir = fixture("several-configs");
+    let b = path(&dir, "b.ts");
+    let mut server = Server::start(&dir);
+    let config = |rule: &str| {
+        protocol::object([
+            ("file_paths", Value::Array(vec![Value::String(b.clone())])),
+            ("rules", Value::Array(vec![protocol::object([("name", Value::String(rule.into()))])])),
+        ])
+    };
+    for (rules, expected) in [
+        (["no-floating-promises", "await-thenable"], NONE.as_slice()),
+        (["await-thenable", "no-floating-promises"], ["no-floating-promises"].as_slice()),
+    ] {
+        let id = server.take_id();
+        server.send(
+            LINT,
+            &protocol::object([
+                ("id", id_value(id)),
+                ("configs", Value::Array(rules.iter().map(|rule| config(rule)).collect())),
+            ]),
+        );
+        let frames = server.read_terminals_with_diagnostics(id);
+        let flagged: Vec<&str> = frames
+            .iter()
+            .filter_map(|(_, value)| match value {
+                Value::Object(fields) => match fields.get("rule") {
+                    Some(Value::String(rule)) => Some(rule.as_str()),
+                    _ => None,
+                },
+                _ => None,
+            })
+            .collect();
+        assert_eq!(flagged, expected, "configs of {rules:?}");
+    }
+    assert_eq!(server.exit_code(), 0);
+}

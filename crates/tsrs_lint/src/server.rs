@@ -58,7 +58,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread::JoinHandle;
 
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use tsrs_core::P;
 use tsrs_core::context::{self, CheckerLifetime, Context};
@@ -610,7 +610,7 @@ impl Server {
 struct LintRequest {
     id: u64,
     options: Options,
-    /// Each file once.
+    /// Each file once, in the order the request first names it.
     files: Vec<RequestFile>,
     /// Set by a `Cancel` frame while the request runs.
     canceled: Arc<AtomicBool>,
@@ -630,14 +630,19 @@ impl LintRequest {
             ..base
         };
         let mut files: Vec<RequestFile> = Vec::new();
-        let mut seen: FxHashSet<String> = FxHashSet::default();
+        // Each file's index in `files`.
+        let mut seen: FxHashMap<String, usize> = FxHashMap::default();
         for config in payload::deserialize_configs(fields.get("configs"))? {
             for rule in &config.rules {
                 crate::registry::require_implemented(&rule.name)?;
             }
             for path in config.file_paths {
                 let name = normalize(&path, cwd);
-                if seen.insert(name.clone()) {
+                // A file named by several configs gets the rules of the last one, as in the headless mode.
+                if let Some(&index) = seen.get(&name) {
+                    files[index].rules.clone_from(&config.rules);
+                } else {
+                    seen.insert(name.clone(), files.len());
                     files.push(RequestFile { name, rules: config.rules.clone() });
                 }
             }

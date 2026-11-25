@@ -59,7 +59,7 @@ non-generic mapped types; no observable difference anywhere below).
   check of the condition asks whether it is a promise, which queries the call signatures of the type of `then`.
   Resolving that type resolves `typeof result` while `result` is being inferred, so tsgo-ref and tsrs without lazy
   members report TS7022; lazy members with the early return reported nothing
-  (testdata/regressions/lazy-mapped-signature-circularity). Upstream closed #64526 unmerged.
+  (testdata/regressions/lazy-mapped-signature-circularity).
 - `somePropertyReducesToNever` (#64526): ported onto the merged #64521 version (`OrderedMap` counts, iterated in
   discovery order). The PR as posted iterates a Go map there (`for propName := range counts`, both for the skipped
   constituent's lookups and the final check), which brings back the random creation order of combined properties

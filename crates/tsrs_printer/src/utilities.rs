@@ -1081,8 +1081,8 @@ pub struct LineCharacterCache {
     cached_line: usize,
     cached_pos: u32,
     cached_char: UTF16Offset,
-    // Whether cached_char counts from the line start. A step from inside a character counts its
-    // remaining bytes one unit each, as Go does, which a count from the line start would not.
+    // tsrs-only: whether cached_char equals the count from the line start. A forward step from inside a character
+    // counts the rest of its bytes one unit each, as Go does, so the two can differ.
     cached_char_from_line_start: bool,
     has_cached: bool,
 }

@@ -255,8 +255,7 @@ fn utf16_len(s: &str) -> usize {
     s.chars().map(char::len_utf16).sum()
 }
 
-// Go passes the signed length end - start. A range that ends on an earlier line than it starts, such as TS2635 on an
-// empty type argument list split across lines, then writes no lines.
+// diagnosticwriter.go:272. Go takes the signed length end - start, which is negative for a reversed range.
 fn write_code_snippet(
     writer: &mut dyn Write,
     source_file: &FileLike,

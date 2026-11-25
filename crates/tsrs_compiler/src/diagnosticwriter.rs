@@ -78,17 +78,17 @@ pub fn diagnostic_file(d: P<Diagnostic>) -> Option<FileLike> {
     Some(FileLike::SourceFile(file))
 }
 
-// diagnosticwriter.go:83
+// diagnosticwriter.go:89
 fn diagnostic_pos(d: P<Diagnostic>) -> u32 {
     resolve(d).loc.pos().expect_source("rendered diagnostics have source positions")
 }
 
-// diagnosticwriter.go:84
+// diagnosticwriter.go:90
 fn diagnostic_end(d: P<Diagnostic>) -> u32 {
     resolve(d).loc.end().expect_source("rendered diagnostics have source positions")
 }
 
-// The range (ASTDiagnostic).Pos and End read (diagnosticwriter.go:83-84), for a caller that handles a synthetic
+// The range (ASTDiagnostic).Pos and End read (diagnosticwriter.go:89-90), for a caller that handles a synthetic
 // position itself.
 pub fn diagnostic_loc(d: P<Diagnostic>) -> TextRange {
     resolve(d).loc

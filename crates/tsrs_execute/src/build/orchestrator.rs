@@ -143,9 +143,14 @@ impl Orchestrator {
         self.host.get().unwrap()
     }
 
-    // orchestrator.go:94
+    // orchestrator.go:94 and `relativePath` (:98): the absolute name when the relative path would start with a root.
     pub(crate) fn relative_file_name(&self, file_name: &str) -> String {
-        tspath::convert_to_relative_path(file_name, &self.compare_paths_options)
+        tspath::relative_path_from_path(
+            &self.compare_paths_options.current_directory,
+            file_name,
+            self.compare_paths_options.use_case_sensitive_file_names,
+        )
+        .unwrap_or_else(|| file_name.to_string())
     }
 
     // orchestrator.go:98

@@ -236,16 +236,18 @@ pub fn to_diagnostic(
     {
         return *diagnostic;
     }
+    // fileInclude.go:155: the absolute name when the relative path would start with a root.
     let diagnostic = compute_diagnostic(r, program, &|file_name: &str| {
-        if relative_file_name {
-            tspath::get_relative_path_from_directory(
+        if relative_file_name
+            && let Some(relative) = tspath::relative_path_from_path(
                 program.get_current_directory(),
                 file_name,
-                &program.compare_paths_options,
+                program.use_case_sensitive_file_names(),
             )
-        } else {
-            file_name.to_string()
+        {
+            return relative;
         }
+        file_name.to_string()
     });
     *program.include_processor.reason_diagnostics.lock().unwrap().entry(key).or_insert(diagnostic)
 }

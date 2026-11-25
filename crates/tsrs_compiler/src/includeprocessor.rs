@@ -2,7 +2,7 @@ use std::sync::{Mutex, OnceLock};
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::{self as ast, Diagnostic, DiagnosticsCollection, Node, new_compiler_diagnostic};
-use tsrs_core::tspath::Path;
+use tsrs_core::tspath::{self, Path};
 use tsrs_core::{ModuleKind, P};
 use tsrs_diagnostics as diagnostics;
 use tsrs_tsoptions as tsoptions;
@@ -150,7 +150,9 @@ impl IncludeProcessor {
             && ast::is_external_or_common_js_module(source_file)
         {
             let meta_data = program.get_source_file_meta_data(&path);
-            let package_json = format!("{}/package.json", meta_data.package_json_directory);
+            // includeprocessor.go:168 (`ResolveFile`): a root directory gives `C:/package.json`, not `C://package.json`.
+            let package_json =
+                tspath::resolve_file(&meta_data.package_json_directory, "package.json");
             match program.get_implied_node_format_for_emit(source_file) {
                 ModuleKind::ES_NEXT => {
                     if meta_data.package_json_type == "module" {

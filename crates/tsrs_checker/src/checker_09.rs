@@ -3946,18 +3946,37 @@ impl Checker {
             if result.is_some_and(|r| r.flags().intersects(SymbolFlags::Value)) {
                 break;
             }
-            if let Some(prop) = self.get_property_of_type_worker(
-                base_type,
-                name,
-                true,  /*skipObjectFunctionPropertyAugment*/
-                false, /*includeTypeOnlyMembers*/
-                instantiate,
-            ) && !is_static_private_identifier_property(prop)
+            if let Some(prop) = self.get_inherited_property(base_type, name, instantiate)
+                && !is_static_private_identifier_property(prop)
             {
                 result = Some(prop);
             }
         }
         result
+    }
+
+    // The property named `name` in getPropertiesOfType(base_type), the list addInheritedMembers copies. A module's
+    // list keeps an export that `export type *` re-exports, which getPropertyOfType hides.
+    fn get_inherited_property(
+        &mut self,
+        base_type: P<Type>,
+        name: &str,
+        instantiate: bool,
+    ) -> Option<P<Symbol>> {
+        let reduced = self.get_reduced_apparent_type(base_type);
+        if reduced.flags().intersects(TypeFlags::Object)
+            && reduced.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::ValueModule))
+        {
+            let symbol = self.resolve_structured_type_members(reduced).members()?.lookup(name)?;
+            return self.symbol_is_value(symbol).then_some(symbol);
+        }
+        self.get_property_of_type_worker(
+            base_type,
+            name,
+            true,  /*skipObjectFunctionPropertyAugment*/
+            false, /*includeTypeOnlyMembers*/
+            instantiate,
+        )
     }
 
     // f may see a declared member instead of its instantiation, which has the same flags.

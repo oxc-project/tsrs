@@ -1,0 +1,4 @@
+main.ts(4,7): error TS2741: Property 'hiddenToken' is missing in type 'Source' but required in type 'Box<number>'.
+main.ts(7,29): error TS2339: Property 'renamed' does not exist on type 'Box<number>'.
+main.ts(8,28): error TS2339: Property 'Shape' does not exist on type 'Box<number>'.
+main.ts(10,7): error TS2322: Type 'number' is not assignable to type 'string'.

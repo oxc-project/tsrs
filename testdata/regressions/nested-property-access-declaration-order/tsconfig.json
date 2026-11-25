@@ -1,1 +1,1 @@
-{"compilerOptions":{"strict":true,"noEmit":true,"target":"es2022","types":[],"lib":["es2022"]},"files":["a.ts"]}
+{"compilerOptions":{"strict":true,"noEmit":true,"target":"es2022","types":[]},"files":["a.ts"]}

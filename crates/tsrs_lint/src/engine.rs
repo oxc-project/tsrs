@@ -16,7 +16,9 @@ use tsrs_core::tspath;
 use tsrs_core::{
     CompilerOptions, JsxEmit, Locale, ModuleKind, ModuleResolutionKind, P, ScriptTarget, Tristate,
 };
-use tsrs_tsoptions::{ParseConfigHost, ParsedCommandLine};
+use tsrs_tsoptions::{
+    ExtendedConfigCache, ExtendedConfigCacheEntry, ParseConfigHost, ParsedCommandLine,
+};
 use tsrs_vfs::{FS, bundled, cachedvfs, osvfs, wrapvfs};
 
 use crate::payload::{ConfiguredRule, Payload};
@@ -45,6 +47,7 @@ struct Shared {
     // By the name asked for, which is absolute: a command line keeps the spelling it was parsed from.
     references: tsrs_core::collections::SyncMap<String, Option<P<ParsedCommandLine>>>,
     files: tsrs_core::collections::SyncMap<SourceFileParseOptions, Option<P<SourceFile>>>,
+    extended_configs: tsrs_core::collections::SyncMap<tspath::Path, P<ExtendedConfigCacheEntry>>,
     regions: Mutex<Vec<tsrs_core::arena::Region>>,
 }
 
@@ -56,6 +59,30 @@ impl Shared {
         region.trim();
         self.regions.lock().unwrap().push(region);
         value
+    }
+}
+
+impl ExtendedConfigCache for Shared {
+    fn get_extended_config(
+        &self,
+        file_name: &str,
+        path: &tspath::Path,
+        resolution_stack: &[tspath::Path],
+        host: &dyn ParseConfigHost,
+    ) -> P<ExtendedConfigCacheEntry> {
+        if let Some(entry) = self.extended_configs.load(path) {
+            return entry;
+        }
+        let entry = self.keep(0, || {
+            tsrs_tsoptions::parse_extended_config(
+                file_name,
+                path.clone(),
+                resolution_stack,
+                host,
+                Some(self),
+            )
+        });
+        self.extended_configs.load_or_store(path.clone(), entry).0
     }
 }
 
@@ -122,11 +149,12 @@ pub struct ConfigHost {
     cwd: String,
     // The command-line options every tsconfig is parsed with.
     existing_options: Option<CompilerOptions>,
+    shared: Arc<Shared>,
 }
 
 impl ConfigHost {
     pub fn new(fs: Arc<dyn FS>, cwd: String) -> Self {
-        Self { fs, cwd, existing_options: None }
+        Self { fs, cwd, existing_options: None, shared: Arc::default() }
     }
 }
 
@@ -322,13 +350,24 @@ fn run_in_region(
             unmatched.push(path.clone());
         }
     }
-    drop(config_cache);
-    let shared = Arc::default();
+    let shared = Arc::clone(&host.shared);
     let programs: Vec<(String, Vec<String>)> = programs.into_iter().collect();
+    let configs: Vec<Mutex<Option<ParsedCommandLine>>> = programs
+        .iter()
+        .map(|(config_path, _)| {
+            let key =
+                tspath::to_path(config_path, &host.cwd, host.fs.use_case_sensitive_file_names());
+            let config = config_cache.remove(&key).flatten().filter(|config| {
+                config.config_name() == tspath::get_normalized_absolute_path(config_path, &host.cwd)
+            });
+            Mutex::new(config)
+        })
+        .collect();
+    drop(config_cache);
     let next = AtomicUsize::new(0);
     let linted: Vec<Mutex<Option<Linted>>> = programs.iter().map(|_| Mutex::new(None)).collect();
-    // Each worker's tsconfigs are parsed into a scratch region of its own, kept until the request ends as the
-    // calling thread's is.
+    // What a worker allocates outside its programs' loader regions, such as a tsconfig whose discovery parse it
+    // cannot reuse, goes to a scratch region of its own, kept until the request ends as the calling thread's is.
     let scratch = Mutex::new(Vec::new());
     std::thread::scope(|scope| {
         for i in 0..program_threads(programs.len()) {
@@ -349,6 +388,7 @@ fn run_in_region(
                         let mut program_timings = BTreeMap::new();
                         let result = lint_program(
                             config_path,
+                            configs[index].lock().unwrap().take(),
                             files,
                             payload,
                             options,
@@ -456,6 +496,7 @@ fn program_threads(programs: usize) -> usize {
 #[expect(clippy::too_many_arguments, reason = "the request state each program reads")]
 fn lint_program(
     config_path: &str,
+    discovered: Option<ParsedCommandLine>,
     files: &[String],
     payload: &Payload,
     options: Options,
@@ -468,12 +509,17 @@ fn lint_program(
 ) -> Result<(), String> {
     // Dropped after the program: nothing that outlives a program points into its loader regions.
     let regions = RequestRegions::default();
-    let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
-        config_path,
-        host.existing_options.as_ref(),
-        None,
-        host,
-        None,
+    let (config, diagnostics) = discovered.map_or_else(
+        || {
+            tsrs_tsoptions::get_parsed_command_line_of_config_file(
+                config_path,
+                host.existing_options.as_ref(),
+                None,
+                host,
+                Some(&*host.shared),
+            )
+        },
+        |config| (Some(config), Vec::new()),
     );
     if !diagnostics.is_empty() {
         for diagnostic in diagnostics {
@@ -528,7 +574,7 @@ fn create_program(
         cwd,
         fs,
         &bundled::default_lib_path(),
-        None,
+        Some(Arc::clone(shared) as Arc<dyn ExtendedConfigCache + Send>),
         None,
         content_mappers.as_ref().and_then(|mappers| mappers.project.clone()),
     );
@@ -893,7 +939,7 @@ pub fn find_tsconfig(
                     host.existing_options.as_ref(),
                     None,
                     host,
-                    None,
+                    Some(&*host.shared),
                 );
                 if !diagnostics.is_empty() {
                     return None;

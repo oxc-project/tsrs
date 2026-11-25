@@ -1204,11 +1204,15 @@ fn try_directory_with_package_json(
             use_case_sensitive_file_names: host.use_case_sensitive_file_names(),
             current_directory: host.get_current_directory().to_string(),
         };
-        if tspath::compare_paths(
-            tspath::remove_file_extension(&main_export_file),
-            tspath::remove_file_extension(&module_file_to_try),
-            &compare_opt,
-        ) == std::cmp::Ordering::Equal
+        // specifiers.go:991 (`isPackageMainFile`): a main value that ends with a separator names a directory, so
+        // only its index file (checked below) can be the main file.
+        let main_is_directory = tspath::has_trailing_directory_separator(&main_file_relative);
+        if !main_is_directory
+            && tspath::compare_paths(
+                tspath::remove_file_extension(&main_export_file),
+                tspath::remove_file_extension(&module_file_to_try),
+                &compare_opt,
+            ) == std::cmp::Ordering::Equal
         {
             // ^ An arbitrary removal of file extension for this comparison is almost certainly wrong
             return PkgJsonDirAttemptResult {

@@ -270,7 +270,7 @@ fn write_code_snippet(
     let (last_line, mut last_line_char) =
         tsrs_scanner::get_ecma_line_and_utf16_character_of_position(source_file, end);
     if end == start {
-        last_line_char += 1; // When length is zero, squiggle the character right after the start position.
+        last_line_char += 1; // When the range is empty, squiggle the character right after the start position.
     }
 
     let text = source_file.text();

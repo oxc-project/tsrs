@@ -104,10 +104,12 @@ A request's frames are written in one locked write, so the frames of different r
 ## Worker pool
 
 Lint requests wait in a first-in, first-out queue for a fixed pool of worker threads, each with a 512 MB stack. A
-running request first loads the projects of its files, one file at a time, then takes one project snapshot and lints
-all of its files against it: it sees the notifications that arrive before that snapshot, and none that arrive while
-its files are linted. The pool has as many workers as `std::thread::available_parallelism()`, clamped to 1 to 4,
-unless `TSRS_LINT_SERVER_WORKERS` is set to a positive integer, which is used as is; other values are ignored.
+running request first loads the projects of its files, one file at a time, then takes one project snapshot and lints all
+of its files against it: it sees the notifications that arrive before that snapshot, and none that arrive while its
+files are linted. Closed files outside every configured project are linted last, each against a snapshot of its own: the
+session's inferred project holds the open files and only one closed file at a time. The pool has as many workers as
+`std::thread::available_parallelism()`, clamped to 1 to 4, unless `TSRS_LINT_SERVER_WORKERS` is set to a positive
+integer, which is used as is; other values are ignored.
 
 Other environment variables read as in headless mode: `TSRS_FAST=0` turns off the fast preset,
 `TSRS_LINT_RUN_EXTERNAL_CODE=1` runs content mappers, and

@@ -43,13 +43,13 @@
 //! a panic, or a cancellation), in which case its diagnostics are dropped. A request's frames are written at once,
 //! so requests never interleave.
 //!
-//! Lint requests wait in a queue for a fixed pool of worker threads, first in, first out. A running request loads
-//! its files' projects, then takes one snapshot for all of its files. There are as many workers as the available
-//! parallelism, at most 4, unless `TSRS_LINT_SERVER_WORKERS` sets a positive number. `Cancel {"id"}` answers a queued
-//! request as canceled at once; a running request stops before it loads its next file's project or lints its next
-//! file, and is answered as canceled; a finished or unknown `id` is ignored. `Shutdown` or the end of the input
-//! answers queued requests as canceled, lets running requests finish, then exits with status 0. `docs/LINT_SERVER.md`
-//! documents the protocol.
+//! Lint requests wait in a queue for a fixed pool of worker threads, first in, first out. A running request loads its
+//! files' projects, then takes one snapshot for all of its files (each closed file outside every configured project
+//! gets a snapshot of its own). There are as many workers as the available parallelism, at most 4, unless
+//! `TSRS_LINT_SERVER_WORKERS` sets a positive number. `Cancel {"id"}` answers a queued request as canceled at once; a
+//! running request stops before it loads its next file's project or lints its next file, and is answered as canceled; a
+//! finished or unknown `id` is ignored. `Shutdown` or the end of the input answers queued requests as canceled, lets
+//! running requests finish, then exits with status 0. `docs/LINT_SERVER.md` documents the protocol.
 
 use std::collections::VecDeque;
 use std::io::{self, Read, Write};
@@ -521,6 +521,10 @@ impl Server {
 
     /// Lints the request's files into `output`, all against one snapshot: a notification that arrives while the
     /// files are linted applies to later requests only.
+    ///
+    /// Closed files outside every configured project are the exception. The session's inferred project holds the
+    /// open files and only the closed file last requested, so each of them is linted against a snapshot of its own,
+    /// after the others.
     fn lint_files(&self, request: &LintRequest, output: &mut Vec<u8>) -> Result<(), String> {
         let ctx =
             context::with_checker_lifetime(&Context::background(), CheckerLifetime::Diagnostics);
@@ -529,26 +533,71 @@ impl Server {
         // Building a program cannot be interrupted, so the request's projects are loaded one file at a time first: a
         // request canceled meanwhile stops before it builds the next project's program. A file whose project is
         // already loaded costs a lookup.
-        for uri in &uris {
+        let mut alone = vec![false; uris.len()];
+        for (index, uri) in uris.iter().enumerate() {
             if request.is_canceled() {
                 return Ok(());
             }
-            self.session.with_snapshot_for_document(&ctx, uri, |_| {});
+            self.session.with_snapshot_for_document(&ctx, uri, |snapshot| {
+                alone[index] = snapshot
+                    .get_default_project(uri)
+                    .is_some_and(|project| project.kind == Kind::Inferred)
+                    && !self.is_open(&request.files[index].name);
+            });
         }
+        let shared: Vec<lsproto::DocumentUri> = uris
+            .iter()
+            .zip(&alone)
+            .filter(|(_, alone)| !**alone)
+            .map(|(uri, _)| uri.clone())
+            .collect();
+        // Whether each project seen has tsconfig or program errors, which are reported once per request, as the
+        // headless mode does per program.
+        let mut project_errors = FxHashMap::default();
         let mut result = Ok(());
         // The programs are loaded: this snapshot only updates them for notifications that arrived meanwhile.
-        self.session.with_snapshot_for_documents(&ctx, &uris, |snapshot| {
-            // Whether each project seen has tsconfig or program errors, which are reported once per request, as the
-            // headless mode does per program.
-            let mut project_errors = FxHashMap::default();
-            result = request.files.iter().zip(&uris).try_for_each(|(file, uri)| {
+        self.session.with_snapshot_for_documents(&ctx, &shared, |snapshot| {
+            result = (0..uris.len()).filter(|&index| !alone[index]).try_for_each(|index| {
                 if request.is_canceled() {
                     return Ok(());
                 }
-                self.lint_file(&ctx, snapshot, request, file, uri, &mut project_errors, output)
+                let file = &request.files[index];
+                self.lint_file(
+                    &ctx,
+                    snapshot,
+                    request,
+                    file,
+                    &uris[index],
+                    &mut project_errors,
+                    output,
+                )
             });
         });
-        result
+        result?;
+        (0..uris.len()).filter(|&index| alone[index]).try_for_each(|index| {
+            if request.is_canceled() {
+                return Ok(());
+            }
+            let mut result = Ok(());
+            self.session.with_snapshot_for_document(&ctx, &uris[index], |snapshot| {
+                let file = &request.files[index];
+                result = self.lint_file(
+                    &ctx,
+                    snapshot,
+                    request,
+                    file,
+                    &uris[index],
+                    &mut project_errors,
+                    output,
+                );
+            });
+            result
+        })
+    }
+
+    /// Whether `file_name` is open.
+    fn is_open(&self, file_name: &str) -> bool {
+        self.open_files.lock().unwrap().contains_key(&self.path(file_name))
     }
 
     /// Lints one file of the request.

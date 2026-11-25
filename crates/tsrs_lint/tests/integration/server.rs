@@ -921,3 +921,19 @@ fn a_file_opened_and_closed_in_different_case_is_closed() {
     assert_eq!(rules(&server.lint(&[&b])), ["no-floating-promises"]);
     assert_eq!(server.exit_code(), 0);
 }
+
+#[test]
+fn several_closed_files_outside_every_tsconfig_are_linted() {
+    let dir =
+        Path::new(env!("CARGO_TARGET_TMPDIR")).join("tsrs-lint-server").join("several-inferred");
+    let dir = project(&dir, ASYNC_A);
+    std::fs::remove_file(dir.join("tsconfig.json")).unwrap();
+    std::fs::write(dir.join("c.ts"), CALLS_A).unwrap();
+    let (b, c) = (path(&dir, "b.ts"), path(&dir, "c.ts"));
+    let mut server = Server::start(&dir);
+    // The session's inferred project holds the open files and one closed file at a time.
+    let answer = server.lint(&[&b, &c]);
+    assert_eq!(rules_of(&answer, &b), ["no-floating-promises"], "{answer:?}");
+    assert_eq!(rules_of(&answer, &c), ["no-floating-promises"], "{answer:?}");
+    assert_eq!(server.exit_code(), 0);
+}

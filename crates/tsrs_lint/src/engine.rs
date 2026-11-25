@@ -820,6 +820,7 @@ fn report_type_error(
                 help: String::new(),
             },
             file_path: Some(file.file_name().into()),
+            category: Some(diagnostic.category().name().to_owned()),
             ..Default::default()
         },
         writer,
@@ -843,6 +844,7 @@ fn report_global_error(
                 help: String::new(),
             },
             file_path: (!config_file_path.is_empty()).then(|| config_file_path.to_owned()),
+            category: Some(diagnostic.category().name().to_owned()),
             ..Default::default()
         },
         writer,

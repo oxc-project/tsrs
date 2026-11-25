@@ -150,7 +150,7 @@ fn borrowed_diagnostic_frames_match_value_encoding() {
     let controls: String = (0..32).map(char::from).collect();
     let unicode = format!("é中😀\u{2028}\u{2029}<>&\"\\/{controls}");
     for text in ["", "ordinary text", unicode.as_str()] {
-        for mask in 0..128 {
+        for mask in 0..256 {
             let message = RuleMessage {
                 id: text.into(),
                 description: text.into(),
@@ -165,6 +165,7 @@ fn borrowed_diagnostic_frames_match_value_encoding() {
                 message: message.clone(),
                 file_path: (mask & 2 != 0).then(|| text.into()),
                 rule: (mask & 4 != 0).then(|| text.into()),
+                category: (mask & 128 != 0).then(|| text.into()),
                 labeled_ranges: if mask & 16 == 0 {
                     vec![]
                 } else {

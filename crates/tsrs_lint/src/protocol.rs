@@ -1,6 +1,6 @@
 //! Framed headless output, ported from tsgolint's `cmd/tsgolint/headless.go`.
 
-use std::io::{self, Write};
+use std::io::{self, Read, Write};
 
 use tsrs_core::json::{self, JsonMap, Value};
 
@@ -272,7 +272,7 @@ pub fn write_diagnostic_with_id(
 }
 
 /// Reads one frame: its message type and JSON bytes, or `None` at the end of the input.
-pub fn read_frame(reader: &mut dyn io::Read) -> io::Result<Option<(u8, Vec<u8>)>> {
+pub fn read_frame(reader: &mut dyn Read) -> io::Result<Option<(u8, Vec<u8>)>> {
     let mut header = [0u8; 5];
     let mut filled = 0;
     while filled < header.len() {
@@ -282,9 +282,13 @@ pub fn read_frame(reader: &mut dyn io::Read) -> io::Result<Option<(u8, Vec<u8>)>
             n => filled += n,
         }
     }
-    let length = u32::from_le_bytes([header[0], header[1], header[2], header[3]]) as usize;
-    let mut payload = vec![0u8; length];
-    reader.read_exact(&mut payload)?;
+    let length = u32::from_le_bytes([header[0], header[1], header[2], header[3]]);
+    // The buffer grows as bytes arrive: a corrupt length does not allocate up to 4 GiB at once.
+    let mut payload = Vec::new();
+    reader.take(u64::from(length)).read_to_end(&mut payload)?;
+    if payload.len() != length as usize {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
     Ok(Some((header[4], payload)))
 }
 

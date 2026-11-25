@@ -830,3 +830,18 @@ fn a_file_in_several_configs_gets_the_last_configs_rules() {
     }
     assert_eq!(server.exit_code(), 0);
 }
+
+#[test]
+fn a_frame_shorter_than_its_length_is_a_fatal_error() {
+    let dir = fixture("short-frame");
+    let mut server = Server::start(&dir);
+    // A corrupt header announces 4 GiB of JSON; then the input ends.
+    let mut header = u32::MAX.to_le_bytes().to_vec();
+    header.push(DID_OPEN);
+    header.extend(b"{}");
+    server.send_frames(&[header]);
+    drop(server.stdin.take());
+    assert!(fatal_error(server.read()).starts_with("error reading frame"));
+    assert!(server.read().is_none());
+    assert_eq!(server.exit_code(), 1);
+}

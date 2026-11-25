@@ -1117,27 +1117,29 @@ impl LineCharacterCache {
         let end_pos = pos.min(self.text.len() as u32);
         // Go slices the text by bytes, so a position can fall inside a character.
         let text = self.text.as_bytes();
-        let mut character =
-            if self.has_cached && line == self.cached_line && end_pos >= self.cached_pos {
-                // Incremental: only count UTF-16 code units from the last cached position.
-                self.cached_char_from_line_start &=
-                    self.text.is_char_boundary(self.cached_pos as usize);
-                self.cached_char + utf16_len(&text[self.cached_pos as usize..end_pos as usize])
-            } else if self.has_cached
-                && line == self.cached_line
-                && self.cached_char_from_line_start
-                && self.text.is_char_boundary(end_pos as usize)
-                && end_pos - line_start > self.cached_pos - end_pos
-            {
-                // tsrs-only: a position before the cached one on the same line (the printer maps a node's start after its
-                // children's ends) is nearer to the cached position than to the line start; count back from there.
-                // Go counts from the line start, which counting back matches only from a character boundary.
-                self.cached_char - utf16_len(&text[end_pos as usize..self.cached_pos as usize])
-            } else {
-                // Full computation from line start.
-                self.cached_char_from_line_start = true;
-                utf16_len(&text[line_start as usize..end_pos as usize])
-            };
+        let mut character = if self.has_cached
+            && line == self.cached_line
+            && end_pos >= self.cached_pos
+        {
+            // Incremental: only count UTF-16 code units from the last cached position.
+            self.cached_char_from_line_start &=
+                self.text.is_char_boundary(self.cached_pos as usize);
+            self.cached_char + utf16_len_bytes(&text[self.cached_pos as usize..end_pos as usize])
+        } else if self.has_cached
+            && line == self.cached_line
+            && self.cached_char_from_line_start
+            && self.text.is_char_boundary(end_pos as usize)
+            && end_pos - line_start > self.cached_pos - end_pos
+        {
+            // tsrs-only: a position before the cached one on the same line (the printer maps a node's start after its
+            // children's ends) is nearer to the cached position than to the line start; count back from there.
+            // Go counts from the line start, which counting back matches only from a character boundary.
+            self.cached_char - utf16_len_bytes(&text[end_pos as usize..self.cached_pos as usize])
+        } else {
+            // Full computation from line start.
+            self.cached_char_from_line_start = true;
+            utf16_len_bytes(&text[line_start as usize..end_pos as usize])
+        };
         let cached_char = character;
         character += pos - end_pos;
         self.cached_line = line;

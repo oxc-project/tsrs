@@ -8,9 +8,10 @@
 use std::fmt::Write as _;
 use std::fs;
 use std::io::Read;
-use std::os::unix::io::FromRawFd;
 use std::process::{Command, Stdio};
 use std::time::Duration;
+
+use rustix::fs::{OFlags, fcntl_getfl, fcntl_setfl};
 
 // Enough errors that the output comfortably exceeds the Linux default pipe
 // buffer size (64 KiB) and exercises the poll/retry path.
@@ -130,38 +131,18 @@ fn new_temp_dir(label: &str) -> std::path::PathBuf {
 }
 
 fn run_tsrs_with_pipe(dir: &std::path::Path, args: &[&str], mode: PipeMode) -> Output {
-    // SAFETY: `libc::pipe` returns two fresh file descriptors and writes
-    // them into the provided array.
-    let fds = unsafe {
-        let mut fds = [0; 2];
-        assert_eq!(libc::pipe(fds.as_mut_ptr()), 0);
-        fds
-    };
-    let [read_fd, write_fd] = fds;
+    let (mut reader, writer) = std::io::pipe().unwrap();
 
     if matches!(mode, PipeMode::NonBlocking) {
-        // SAFETY: `write_fd` was just created by `pipe()` and is therefore a
-        // valid, open file descriptor.
-        unsafe {
-            let flags = libc::fcntl(write_fd, libc::F_GETFL);
-            assert!(flags >= 0, "F_GETFL failed");
-            assert_eq!(
-                libc::fcntl(write_fd, libc::F_SETFL, flags | libc::O_NONBLOCK),
-                0,
-                "F_SETFL O_NONBLOCK failed"
-            );
-        }
+        let flags = fcntl_getfl(&writer).unwrap();
+        fcntl_setfl(&writer, flags | OFlags::NONBLOCK).unwrap();
     }
-
-    // SAFETY: `write_fd` was returned by `pipe()` and ownership is transferred
-    // to `Stdio`, which becomes the child's stdout.
-    let write_stdio = unsafe { Stdio::from_raw_fd(write_fd) };
 
     let mut child = Command::new(env!("CARGO_BIN_EXE_tsrs"))
         .args(args)
         .current_dir(dir)
-        .stdout(write_stdio)
-        .stderr(Stdio::piped())
+        .stdout(Stdio::from(writer))
+        .stderr(Stdio::null())
         .spawn()
         .unwrap();
 
@@ -169,15 +150,9 @@ fn run_tsrs_with_pipe(dir: &std::path::Path, args: &[&str], mode: PipeMode) -> O
     std::thread::sleep(Duration::from_millis(500));
 
     let mut stdout = Vec::new();
-    // SAFETY: `read_fd` was returned by `pipe()` and is not used elsewhere.
-    unsafe {
-        let mut file = std::fs::File::from_raw_fd(read_fd);
-        file.read_to_end(&mut stdout).unwrap();
-    }
+    reader.read_to_end(&mut stdout).unwrap();
 
     let status = child.wait().unwrap();
-    // Discard any stderr; it is not part of this regression.
-    drop(child.stderr.take());
 
     Output { stdout, status }
 }

@@ -1,6 +1,6 @@
-// The expected values are pinned tsgo's output for this project. After the invalid `¬`, the printer maps the end
-// of the `{` token one byte into the character, and Go counts each byte of a split character as one UTF-16 unit.
-// `n.ts` also maps a position before a cached one on the same line.
+// The expected values are pinned tsgo's output for this project. Both files map a brace token's end one byte into
+// the invalid `¬`, and Go counts each byte of a split character as one UTF-16 unit. `n.ts` then counts on from
+// there before mapping an earlier position on the same line.
 
 use std::process::Command;
 

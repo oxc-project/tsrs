@@ -147,4 +147,5 @@ that change project configuration or module resolution. Open files are read from
 text; after `DidClose`, a file is read from disk again.
 
 Files map to projects by the language server's default-project rules. Files outside every tsconfig are linted in an
-inferred project with headless mode's default compiler options.
+inferred project with headless mode's default compiler options. A file a lint request finds without a project (missing
+on disk, or without a script kind) is skipped by later requests until a `DidOpen`, `DidClose` or `FilesChanged` arrives.

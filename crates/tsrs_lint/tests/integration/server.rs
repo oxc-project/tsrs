@@ -932,3 +932,32 @@ fn several_closed_files_outside_every_tsconfig_are_linted() {
     assert_eq!(rules_of(&answer, &c), ["no-floating-promises"], "{answer:?}");
     assert_eq!(server.exit_code(), 0);
 }
+
+#[test]
+fn a_file_without_a_project_is_linted_once_a_notification_gives_it_one() {
+    let dir = fixture("no-project");
+    let (b, c) = (path(&dir, "b.ts"), path(&dir, "c.ts"));
+    let _ = std::fs::remove_file(dir.join("c.ts"));
+    let mut server = Server::start(&dir);
+    // `c.ts` does not exist: it has no project, and later requests skip it.
+    for _ in 0..2 {
+        let answer = server.lint(&[&b, &c]);
+        assert_eq!(rules_of(&answer, &b), ["no-floating-promises"]);
+        assert_eq!(rules_of(&answer, &c), NONE);
+    }
+    // An edit of an open file gives no other file a project.
+    server.open(&b, 1, CALLS_A);
+    server.change(&b, 2, CALLS_A);
+    assert_eq!(rules_of(&server.lint(&[&c]), &c), NONE);
+    // Created on disk.
+    std::fs::write(dir.join("c.ts"), CALLS_A).unwrap();
+    server.send(FILES_CHANGED, &files_changed(&[(&c, 1)]));
+    assert_eq!(rules_of(&server.lint(&[&b, &c]), &c), ["no-floating-promises"]);
+    // Deleted, then opened: an open file has a project even when it is not on disk.
+    std::fs::remove_file(dir.join("c.ts")).unwrap();
+    server.send(FILES_CHANGED, &files_changed(&[(&c, 3)]));
+    assert_eq!(rules_of(&server.lint(&[&c]), &c), NONE);
+    server.open(&c, 1, CALLS_A);
+    assert_eq!(rules_of(&server.lint(&[&c]), &c), ["no-floating-promises"]);
+    assert_eq!(server.exit_code(), 0);
+}

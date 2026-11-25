@@ -113,6 +113,9 @@ struct Server {
     /// only are one file to the session on a case-insensitive file system. Changes and the close use the opened name,
     /// as the session expects (closing an inferred project's file under another name panics, as in Go).
     open_files: Mutex<FxHashMap<tspath::Path, String>>,
+    /// Files a request found without a project (a path missing on disk, or one without a script kind). Later requests
+    /// skip them instead of asking the session, which would update its snapshot for each of them every time.
+    no_project: Mutex<NoProject>,
     queue: Mutex<Queue>,
     /// Signaled when a request is queued or the queue closes.
     queued: Condvar,
@@ -123,6 +126,26 @@ struct Output {
     writer: Box<dyn Write + Send>,
     /// Set by a fatal error, which is the last frame: the frames of requests that end after it are dropped.
     closed: bool,
+}
+
+/// Files without a project, valid until the next notification that could give one a project.
+#[derive(Default)]
+struct NoProject {
+    /// Counts those notifications: a request records the files it found without a project only if none arrived
+    /// meanwhile.
+    generation: u64,
+    paths: FxHashSet<tspath::Path>,
+}
+
+/// How a request lints one of its files.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum FileLint {
+    /// Against the snapshot the request's other files share.
+    Shared,
+    /// Against a snapshot of its own: a closed file outside every configured project.
+    Alone,
+    /// Not at all: the file has no project.
+    Skip,
 }
 
 /// Lint requests waiting for a worker, and the requests the workers are running.
@@ -189,6 +212,7 @@ pub fn run(base: Options, input: &mut dyn Read, output: Box<dyn Write + Send>) -
         output: Mutex::new(Output { writer: output, closed: false }),
         use_case_sensitive_file_names,
         open_files: Mutex::default(),
+        no_project: Mutex::default(),
         queue: Mutex::default(),
         queued: Condvar::new(),
     });
@@ -409,6 +433,7 @@ impl Server {
                         }],
                     );
                 } else {
+                    self.forget_files_without_project();
                     self.open_files.lock().unwrap().insert(self.path(&name), name.clone());
                     self.session.did_open_file(&ctx, uri(&name), version, text, UNKNOWN_LANGUAGE);
                 }
@@ -417,10 +442,12 @@ impl Server {
                 let name = file_name(fields, &self.cwd)?;
                 let opened = self.open_files.lock().unwrap().remove(&self.path(&name));
                 if let Some(opened) = opened {
+                    self.forget_files_without_project();
                     self.session.did_close_file(&ctx, uri(&opened));
                 }
             }
             FILES_CHANGED => {
+                self.forget_files_without_project();
                 let mut events = Vec::new();
                 for change in payload::array(fields.get("changes"))? {
                     let change = payload::object(change)?;
@@ -533,22 +560,43 @@ impl Server {
         // Building a program cannot be interrupted, so the request's projects are loaded one file at a time first: a
         // request canceled meanwhile stops before it builds the next project's program. A file whose project is
         // already loaded costs a lookup.
-        let mut alone = vec![false; uris.len()];
+        let generation = self.no_project.lock().unwrap().generation;
+        let mut lints = vec![FileLint::Skip; uris.len()];
+        let mut without_project = Vec::new();
         for (index, uri) in uris.iter().enumerate() {
             if request.is_canceled() {
                 return Ok(());
             }
+            let path = self.path(&request.files[index].name);
+            if self.no_project.lock().unwrap().paths.contains(&path) {
+                continue;
+            }
             self.session.with_snapshot_for_document(&ctx, uri, |snapshot| {
-                alone[index] = snapshot
-                    .get_default_project(uri)
-                    .is_some_and(|project| project.kind == Kind::Inferred)
-                    && !self.is_open(&request.files[index].name);
+                lints[index] = match snapshot.get_default_project(uri) {
+                    None => FileLint::Skip,
+                    Some(project)
+                        if project.kind == Kind::Inferred
+                            && !self.is_open(&request.files[index].name) =>
+                    {
+                        FileLint::Alone
+                    }
+                    Some(_) => FileLint::Shared,
+                };
             });
+            if lints[index] == FileLint::Skip {
+                without_project.push(path);
+            }
+        }
+        {
+            let mut no_project = self.no_project.lock().unwrap();
+            if no_project.generation == generation {
+                no_project.paths.extend(without_project);
+            }
         }
         let shared: Vec<lsproto::DocumentUri> = uris
             .iter()
-            .zip(&alone)
-            .filter(|(_, alone)| !**alone)
+            .zip(&lints)
+            .filter(|(_, lint)| **lint == FileLint::Shared)
             .map(|(uri, _)| uri.clone())
             .collect();
         // Whether each project seen has tsconfig or program errors, which are reported once per request, as the
@@ -557,24 +605,26 @@ impl Server {
         let mut result = Ok(());
         // The programs are loaded: this snapshot only updates them for notifications that arrived meanwhile.
         self.session.with_snapshot_for_documents(&ctx, &shared, |snapshot| {
-            result = (0..uris.len()).filter(|&index| !alone[index]).try_for_each(|index| {
-                if request.is_canceled() {
-                    return Ok(());
-                }
-                let file = &request.files[index];
-                self.lint_file(
-                    &ctx,
-                    snapshot,
-                    request,
-                    file,
-                    &uris[index],
-                    &mut project_errors,
-                    output,
-                )
-            });
+            result = (0..uris.len())
+                .filter(|&index| lints[index] == FileLint::Shared)
+                .try_for_each(|index| {
+                    if request.is_canceled() {
+                        return Ok(());
+                    }
+                    let file = &request.files[index];
+                    self.lint_file(
+                        &ctx,
+                        snapshot,
+                        request,
+                        file,
+                        &uris[index],
+                        &mut project_errors,
+                        output,
+                    )
+                });
         });
         result?;
-        (0..uris.len()).filter(|&index| alone[index]).try_for_each(|index| {
+        (0..uris.len()).filter(|&index| lints[index] == FileLint::Alone).try_for_each(|index| {
             if request.is_canceled() {
                 return Ok(());
             }
@@ -593,6 +643,13 @@ impl Server {
             });
             result
         })
+    }
+
+    /// Empties the files without a project: a notification may have given one a project.
+    fn forget_files_without_project(&self) {
+        let mut no_project = self.no_project.lock().unwrap();
+        no_project.generation += 1;
+        no_project.paths.clear();
     }
 
     /// Whether `file_name` is open.

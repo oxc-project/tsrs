@@ -1,6 +1,4 @@
-// An async generator yielding an invalid thenable beside another yield. Pinned tsgo panics on a nil union constituent
-// here; tsrs reports TS1321 and infers the yield type from the other yields. The lone invalid yield matches tsgo in
-// testdata/regressions/async-generator-invalid-thenable-yield.
+// Pinned tsgo panics on this input, so EXPECTED is tsrs output rather than tsgo output.
 
 use std::process::Command;
 

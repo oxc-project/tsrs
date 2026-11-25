@@ -379,7 +379,9 @@ fn files_changed_on_disk_are_picked_up() {
 
     // A closed file is read from disk again.
     server.change(&b, 2, "export {};\nPromise.resolve(1);\n");
-    assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
+    let answer = server.lint(&[&b]);
+    eprintln!("DEBUG {answer:?}");
+    assert_eq!(rules_of(&answer, &b), ["no-floating-promises"]);
     server.send(DID_CLOSE, &protocol::object([("path", Value::String(b.clone()))]));
     assert_eq!(rules_of(&server.lint(&[&b]), &b), NONE);
     assert_eq!(server.exit_code(), 0);
@@ -890,5 +892,32 @@ fn a_projects_tsconfig_errors_are_reported_once_and_its_files_not_linted() {
     assert_eq!(rules_of(&answer, &a), NONE, "{answer:?}");
     assert_eq!(rules_of(&answer, &b), NONE, "{answer:?}");
     assert_eq!(rules_of(&answer, &tsconfig), [""], "one tsconfig error: {answer:?}");
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn a_file_opened_and_closed_in_different_case_is_closed() {
+    let dir = fixture("open-case");
+    if !dir.join("B.TS").exists() {
+        // A case-sensitive file system: `B.TS` is another file.
+        return;
+    }
+    let b = path(&dir, "b.ts");
+    // Diagnostics name the file as it was opened, which may differ in case from `b.ts`.
+    let rules = |answer: &Answer| -> Vec<String> {
+        assert_eq!(answer.error, None);
+        answer.diagnostics.iter().map(|(_, rule)| rule.clone()).collect()
+    };
+    let mut server = Server::start(&dir);
+    let upper = path(&dir, "B.TS");
+    server.open(&upper, 1, "export {};\n");
+    assert_eq!(rules(&server.lint(&[&b])), NONE);
+    server.change(&b, 2, "export {};\nPromise.resolve(1);\n");
+    assert_eq!(rules(&server.lint(&[&b])), ["no-floating-promises"]);
+    server.change(&upper, 3, "export {};\n");
+    assert_eq!(rules(&server.lint(&[&b])), NONE);
+    // Closed under the other name: `b.ts` is read from disk again.
+    server.send(DID_CLOSE, &protocol::object([("path", Value::String(b.clone()))]));
+    assert_eq!(rules(&server.lint(&[&b])), ["no-floating-promises"]);
     assert_eq!(server.exit_code(), 0);
 }

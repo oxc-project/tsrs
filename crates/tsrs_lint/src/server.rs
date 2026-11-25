@@ -107,8 +107,12 @@ struct Server {
     cwd: String,
     options: Options,
     output: Mutex<Output>,
-    /// Paths are absolute and normalized ([`normalize`]).
-    open_file_paths: Mutex<FxHashSet<String>>,
+    /// Whether the file system tells file names apart by case, as the session does.
+    use_case_sensitive_file_names: bool,
+    /// The name each open file was opened under, by its session path ([`Server::path`]): names that differ in case
+    /// only are one file to the session on a case-insensitive file system. Changes and the close use the opened name,
+    /// as the session expects (closing an inferred project's file under another name panics, as in Go).
+    open_files: Mutex<FxHashMap<tspath::Path, String>>,
     queue: Mutex<Queue>,
     /// Signaled when a request is queued or the queue closes.
     queued: Condvar,
@@ -151,6 +155,7 @@ pub fn run(base: Options, input: &mut dyn Read, output: Box<dyn Write + Send>) -
         }
     };
     let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(osvfs::fs()));
+    let use_case_sensitive_file_names = fs.use_case_sensitive_file_names();
     let session = tsrs_project::new_session(&SessionInit {
         background_ctx: Context::background(),
         options: Arc::new(SessionOptions {
@@ -182,7 +187,8 @@ pub fn run(base: Options, input: &mut dyn Read, output: Box<dyn Write + Send>) -
         cwd,
         options: base,
         output: Mutex::new(Output { writer: output, closed: false }),
-        open_file_paths: Mutex::default(),
+        use_case_sensitive_file_names,
+        open_files: Mutex::default(),
         queue: Mutex::default(),
         queued: Condvar::new(),
     });
@@ -389,13 +395,11 @@ impl Server {
                 let version = integer(fields.get("version"))?;
                 let version = i32::try_from(version).map_err(|error| error.to_string())?;
                 let text = payload::string(fields.get("text"))?;
-                let uri = uri(&name);
-                if self.open_file_paths.lock().unwrap().insert(name) {
-                    self.session.did_open_file(&ctx, uri, version, text, UNKNOWN_LANGUAGE);
-                } else {
+                let opened = self.open_files.lock().unwrap().get(&self.path(&name)).cloned();
+                if let Some(opened) = opened {
                     self.session.did_change_file(
                         &ctx,
-                        uri,
+                        uri(&opened),
                         version,
                         vec![lsproto::TextDocumentContentChangePartialOrWholeDocument {
                             whole_document: Some(lsproto::TextDocumentContentChangeWholeDocument {
@@ -404,12 +408,16 @@ impl Server {
                             ..Default::default()
                         }],
                     );
+                } else {
+                    self.open_files.lock().unwrap().insert(self.path(&name), name.clone());
+                    self.session.did_open_file(&ctx, uri(&name), version, text, UNKNOWN_LANGUAGE);
                 }
             }
             DID_CLOSE => {
                 let name = file_name(fields, &self.cwd)?;
-                if self.open_file_paths.lock().unwrap().remove(&name) {
-                    self.session.did_close_file(&ctx, uri(&name));
+                let opened = self.open_files.lock().unwrap().remove(&self.path(&name));
+                if let Some(opened) = opened {
+                    self.session.did_close_file(&ctx, uri(&opened));
                 }
             }
             FILES_CHANGED => {
@@ -617,6 +625,11 @@ impl Server {
             diagnostics.push(engine::config_error(diagnostic, &config_path, program_diagnostic)?);
         }
         Ok(!errors.is_empty())
+    }
+
+    /// The session's path of `file_name`: case-folded on a case-insensitive file system.
+    fn path(&self, file_name: &str) -> tspath::Path {
+        tspath::to_path(file_name, &self.cwd, self.use_case_sensitive_file_names)
     }
 
     /// Writes a fatal error, the last frame the server writes.

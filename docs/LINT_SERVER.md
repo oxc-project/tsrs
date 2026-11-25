@@ -19,7 +19,8 @@ client would are in `crates/tsrs_lint/tests/integration/server.rs`.
 Both directions use headless mode's framing: a little-endian `u32` byte length of the JSON, a `u8` message type,
 then the UTF-8 JSON, which is always an object. Paths should be absolute; backslashes are accepted. Every path, in
 notifications and lint requests alike, is resolved against the server's working directory and normalized (`.` and `..`
-segments removed), so one file has one name.
+segments removed), so one file has one name. On a case-insensitive file system, names that differ in case only name
+one file: a `DidChange` or `DidClose` may use any of them.
 
 The client sends:
 

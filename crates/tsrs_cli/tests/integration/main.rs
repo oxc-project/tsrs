@@ -10,6 +10,7 @@ mod async_generator_missing_yield_type;
 mod base_type_cycle_entry;
 mod broken_pipe;
 mod build_free_programs;
+mod build_info_caret_directory;
 mod build_mem_split;
 mod build_project_path_trailing_slash;
 mod buildinfo_name_config_drive_stem;

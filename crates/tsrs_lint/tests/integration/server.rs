@@ -749,3 +749,20 @@ fn a_request_sees_one_state_of_the_workspace() {
     }
     assert_eq!(server.exit_code(), 0);
 }
+
+#[test]
+fn notification_paths_name_files_as_lint_requests_do() {
+    let dir = fixture("paths");
+    let b = path(&dir, "b.ts");
+    let mut server = Server::start(&dir);
+    // Unsaved text that has no floating promise, opened under a path with a `..` segment.
+    server.open(&path(&dir, "sub/../b.ts"), 1, "export {};\n");
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), NONE);
+    // A relative path names the same file, so closing it reads `b.ts` from disk again.
+    server.send(DID_CLOSE, &protocol::object([("path", Value::String("b.ts".into()))]));
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
+    // And so does a relative open.
+    server.open("./b.ts", 1, "export {};\n");
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), NONE);
+    assert_eq!(server.exit_code(), 0);
+}

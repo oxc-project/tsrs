@@ -100,7 +100,7 @@ struct Server {
     cwd: String,
     options: Options,
     output: Mutex<Box<dyn Write + Send>>,
-    /// Paths are normalized with [`tspath::normalize_slashes`].
+    /// Paths are absolute and normalized ([`normalize`]).
     open_file_paths: Mutex<FxHashSet<String>>,
     queue: Mutex<Queue>,
     /// Signaled when a request is queued or the queue closes.
@@ -363,7 +363,7 @@ impl Server {
         let ctx = Context::background();
         match message_type {
             DID_OPEN | DID_CHANGE => {
-                let name = file_name(fields)?;
+                let name = file_name(fields, &self.cwd)?;
                 let version = integer(fields.get("version"))?;
                 let version = i32::try_from(version).map_err(|error| error.to_string())?;
                 let text = payload::string(fields.get("text"))?;
@@ -385,7 +385,7 @@ impl Server {
                 }
             }
             DID_CLOSE => {
-                let name = file_name(fields)?;
+                let name = file_name(fields, &self.cwd)?;
                 if self.open_file_paths.lock().unwrap().remove(&name) {
                     self.session.did_close_file(&ctx, uri(&name));
                 }
@@ -396,7 +396,7 @@ impl Server {
                     let change = payload::object(change)?;
                     let kind = integer(change.get("kind"))?;
                     events.push(lsproto::FileEvent {
-                        uri: uri(&file_name(change)?),
+                        uri: uri(&file_name(change, &self.cwd)?),
                         type_: lsproto::FileChangeType(
                             u32::try_from(kind).map_err(|e| e.to_string())?,
                         ),
@@ -662,12 +662,13 @@ fn normalize(path: &str, cwd: &str) -> String {
     tspath::get_normalized_absolute_path(&tspath::normalize_slashes(path), cwd)
 }
 
-fn file_name(fields: &JsonMap) -> Result<String, String> {
+/// A notification's `path`, normalized as a lint request's paths are, so that both name a file the same way.
+fn file_name(fields: &JsonMap, cwd: &str) -> Result<String, String> {
     let path = payload::string(fields.get("path"))?;
     if path.is_empty() {
         return Err("expected a path".into());
     }
-    Ok(tspath::normalize_slashes(&path))
+    Ok(normalize(&path, cwd))
 }
 
 fn uri(file_name: &str) -> lsproto::DocumentUri {

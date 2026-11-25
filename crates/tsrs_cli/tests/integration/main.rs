@@ -39,6 +39,7 @@ mod npm_lib_path;
 mod outdir_drive_like_segment;
 mod overlay_files_missing_from_path_completions;
 mod parse_command_line_file_names_not_rooted;
+mod pretty_reversed_diagnostic_range;
 mod process_ending_index_directory;
 mod program_path_case_sensitivity;
 mod recycle_checkers;

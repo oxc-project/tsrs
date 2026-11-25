@@ -39,12 +39,6 @@ pub struct Diag {
     pub related: Vec<Diag>,
 }
 
-impl Diag {
-    fn len(&self) -> Option<u32> {
-        Some(self.end?.saturating_sub(self.pos?))
-    }
-}
-
 fn diagnostic_path(d: &Diag) -> &str {
     d.file.as_ref().map_or("", |f| f.file_name.as_str())
 }
@@ -293,11 +287,12 @@ fn format_diagnostic_with_color_and_context(
         && diagnostic.code != file_appears_to_be_binary_code()
     {
         output.push_str(format_opts.new_line);
+        let pos = diagnostic.pos.unwrap_or(0);
         write_code_snippet(
             output,
             file,
-            diagnostic.pos.unwrap_or(0),
-            diagnostic.len().unwrap_or(0),
+            pos,
+            diagnostic.end.unwrap_or(pos),
             get_category_format(diagnostic.category),
             "",
             format_opts,
@@ -317,7 +312,7 @@ fn format_diagnostic_with_color_and_context(
                 output,
                 file,
                 pos,
-                related_information.len().unwrap_or(0),
+                related_information.end.unwrap_or(pos),
                 FOREGROUND_COLOR_ESCAPE_CYAN,
                 "    ",
                 format_opts,
@@ -331,7 +326,7 @@ fn write_code_snippet(
     writer: &mut String,
     source_file: &FileLike,
     start: u32,
-    length: u32,
+    end: u32,
     squiggle_color: &str,
     indent: &str,
     format_opts: &FormattingOptions,
@@ -339,9 +334,9 @@ fn write_code_snippet(
     let (first_line, first_line_char) =
         get_ecma_line_and_utf16_character_of_position(source_file, start);
     let (last_line, mut last_line_char) =
-        get_ecma_line_and_utf16_character_of_position(source_file, start + length);
-    if length == 0 {
-        last_line_char += 1; // When length is zero, squiggle the character right after the start position.
+        get_ecma_line_and_utf16_character_of_position(source_file, end);
+    if end == start {
+        last_line_char += 1; // When the range is empty, squiggle the character right after the start position.
     }
 
     let last_line_of_file = get_ecma_line_of_position(

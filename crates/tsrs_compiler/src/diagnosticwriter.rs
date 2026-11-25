@@ -78,17 +78,17 @@ pub fn diagnostic_file(d: P<Diagnostic>) -> Option<FileLike> {
     Some(FileLike::SourceFile(file))
 }
 
-// diagnosticwriter.go:83
+// diagnosticwriter.go:89
 fn diagnostic_pos(d: P<Diagnostic>) -> u32 {
     resolve(d).loc.pos().expect_source("rendered diagnostics have source positions")
 }
 
-// diagnosticwriter.go:85
-fn diagnostic_len(d: P<Diagnostic>) -> u32 {
-    resolve(d).loc.len().expect("rendered diagnostics have source positions")
+// diagnosticwriter.go:90
+fn diagnostic_end(d: P<Diagnostic>) -> u32 {
+    resolve(d).loc.end().expect_source("rendered diagnostics have source positions")
 }
 
-// The range (ASTDiagnostic).Pos and End read (diagnosticwriter.go:83-84), for a caller that handles a synthetic
+// The range (ASTDiagnostic).Pos and End read (diagnosticwriter.go:89-90), for a caller that handles a synthetic
 // position itself.
 pub fn diagnostic_loc(d: P<Diagnostic>) -> TextRange {
     resolve(d).loc
@@ -214,7 +214,7 @@ pub fn format_diagnostic_with_color_and_context(
             output,
             &file,
             diagnostic_pos(diagnostic),
-            diagnostic_len(diagnostic),
+            diagnostic_end(diagnostic),
             get_category_format(diagnostic.category()),
             "",
             format_opts,
@@ -240,7 +240,7 @@ pub fn format_diagnostic_with_color_and_context(
                     output,
                     &file,
                     pos,
-                    diagnostic_len(related_information),
+                    diagnostic_end(related_information),
                     FOREGROUND_COLOR_ESCAPE_CYAN,
                     "    ",
                     format_opts,
@@ -255,11 +255,12 @@ fn utf16_len(s: &str) -> usize {
     s.chars().map(char::len_utf16).sum()
 }
 
+// diagnosticwriter.go:272. Go takes the signed length end - start, which is negative for a reversed range.
 fn write_code_snippet(
     writer: &mut dyn Write,
     source_file: &FileLike,
     start: u32,
-    length: u32,
+    end: u32,
     squiggle_color: &str,
     indent: &str,
     format_opts: &FormattingOptions,
@@ -267,18 +268,15 @@ fn write_code_snippet(
     let (first_line, first_line_char) =
         tsrs_scanner::get_ecma_line_and_utf16_character_of_position(source_file, start);
     let (last_line, mut last_line_char) =
-        tsrs_scanner::get_ecma_line_and_utf16_character_of_position(
-            source_file,
-            start.checked_add(length).expect("diagnostic range overflow"),
-        );
-    if length == 0 {
-        last_line_char += 1; // When length is zero, squiggle the character right after the start position.
+        tsrs_scanner::get_ecma_line_and_utf16_character_of_position(source_file, end);
+    if end == start {
+        last_line_char += 1; // When the range is empty, squiggle the character right after the start position.
     }
 
     let text = source_file.text();
     let last_line_of_file = tsrs_scanner::get_ecma_line_of_position(source_file, text.len() as u32);
 
-    let has_more_than_five_lines = last_line - first_line >= 4;
+    let has_more_than_five_lines = last_line >= first_line + 4;
     let mut gutter_width = (last_line + 1).to_string().len();
     if has_more_than_five_lines {
         gutter_width = gutter_width.max(ELLIPSIS.len());
@@ -357,7 +355,7 @@ fn write_code_snippet(
     }
 }
 
-// strings.Repeat panics on a negative count; the Go code never passes one for valid diagnostics.
+// strings.Repeat panics on a negative count, which Go reaches for a range that ends before it starts on one line.
 fn go_repeat_count(n: i64) -> usize {
     assert!(n >= 0, "strings: negative Repeat count");
     n as usize

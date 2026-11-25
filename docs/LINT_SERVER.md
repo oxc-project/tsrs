@@ -83,7 +83,8 @@ After the handshake:
   same way.
 - A malformed notification (`DidOpen`, `DidChange`, `DidClose`, `FilesChanged`, `Cancel`, `Shutdown`), a `Lint`
   frame without a valid `id`, or a frame that cannot be read is a fatal error: an error frame with a null `id`, after
-  which the server exits with status 1. Going on would let the client's view of open files and the server's
+  which the server writes nothing, not even the terminal frames of queued or running requests, and exits with status
+  1. Going on would let the client's view of open files and the server's
   diverge.
 - A `Lint` request that cannot be parsed otherwise (an unknown rule, a bad `configs`) is answered with an error
   frame carrying its `id`, and the server keeps serving.
@@ -91,7 +92,7 @@ After the handshake:
 ## Requests
 
 Notifications are applied in order on the thread that reads frames, so a lint request sees every notification sent
-before it. Each lint request gets exactly one terminal frame:
+before it. Each lint request gets exactly one terminal frame, unless a fatal error ends the server first:
 
 - its diagnostic frames, then `Done {"id"}`; or
 - one error frame carrying its `id`: a request that cannot be parsed, a panic while linting, or a cancellation. Its
@@ -132,8 +133,8 @@ Clients should recognize cancellation by `"canceled": true`, not by the error te
 ## Shutdown
 
 `Shutdown`, or the end of the input, answers every queued request as canceled, lets running requests finish and
-write their frames, closes the project session, and exits with status 0. After a fatal error, queued requests are
-answered as canceled the same way, after the fatal error frame.
+write their frames, closes the project session, and exits with status 0. After a fatal error, which is the last frame,
+queued and running requests are not answered.
 
 ## File changes
 

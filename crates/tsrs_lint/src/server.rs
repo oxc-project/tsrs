@@ -27,7 +27,8 @@
 //! | 3 | `Done` | `{"id"}` |
 //! | 4 | `Hello` | `{"protocol_version", "version"}` (the tsrs-lint version) |
 //!
-//! A fatal error has a null `id`; the server exits with status 1 after it. A canceled request's error is
+//! A fatal error has a null `id` and is the last frame: the server writes nothing after it, not even the terminal
+//! frames of queued or running requests, and exits with status 1. A canceled request's error is
 //! `{"id", "error": "request canceled", "canceled": true}`.
 //!
 //! The first frame must be the client's `Hello`. The server answers with its own, then exits with a fatal error if the
@@ -37,9 +38,10 @@
 //!
 //! Notifications are applied in order, on the thread that reads frames, before any later lint request takes a
 //! snapshot. A lint request lints every file in `configs`, as the headless mode does; compiler diagnostics are not
-//! reported. Each request gets exactly one terminal frame: its diagnostic frames, each carrying its `id`, then
-//! `Done {"id"}`; or an error frame carrying its `id` (a request that cannot be parsed, a panic, or a cancellation),
-//! in which case its diagnostics are dropped. A request's frames are written at once, so requests never interleave.
+//! reported. Each request gets exactly one terminal frame, unless a fatal error comes first: its diagnostic frames,
+//! each carrying its `id`, then `Done {"id"}`; or an error frame carrying its `id` (a request that cannot be parsed,
+//! a panic, or a cancellation), in which case its diagnostics are dropped. A request's frames are written at once,
+//! so requests never interleave.
 //!
 //! Lint requests wait in a queue for a fixed pool of worker threads, first in, first out, and take one snapshot
 //! when a worker starts them, for all of their files. There are as many workers as the available parallelism, at
@@ -99,12 +101,19 @@ struct Server {
     session: Arc<Session>,
     cwd: String,
     options: Options,
-    output: Mutex<Box<dyn Write + Send>>,
+    output: Mutex<Output>,
     /// Paths are absolute and normalized ([`normalize`]).
     open_file_paths: Mutex<FxHashSet<String>>,
     queue: Mutex<Queue>,
     /// Signaled when a request is queued or the queue closes.
     queued: Condvar,
+}
+
+/// The server's output.
+struct Output {
+    writer: Box<dyn Write + Send>,
+    /// Set by a fatal error, which is the last frame: the frames of requests that end after it are dropped.
+    closed: bool,
 }
 
 /// Lint requests waiting for a worker, and the requests the workers are running.
@@ -167,7 +176,7 @@ pub fn run(base: Options, input: &mut dyn Read, output: Box<dyn Write + Send>) -
         session,
         cwd,
         options: base,
-        output: Mutex::new(output),
+        output: Mutex::new(Output { writer: output, closed: false }),
         open_file_paths: Mutex::default(),
         queue: Mutex::default(),
         queued: Condvar::new(),
@@ -476,9 +485,14 @@ impl Server {
         }
     }
 
-    /// Writes a request's frames at once, so the frames of concurrent requests never interleave.
+    /// Writes a request's frames at once, so the frames of concurrent requests never interleave. Nothing is written
+    /// after a fatal error.
     fn write(&self, bytes: &[u8]) {
-        let mut writer = self.output.lock().unwrap();
+        let mut output = self.output.lock().unwrap();
+        if output.closed {
+            return;
+        }
+        let writer = &mut output.writer;
         if let Err(error) = writer.write_all(bytes).and_then(|()| writer.flush()) {
             eprintln!("tsrs-lint server: could not write a response: {error}");
         }
@@ -577,14 +591,19 @@ impl Server {
         Ok(!errors.is_empty())
     }
 
+    /// Writes a fatal error, the last frame the server writes.
     fn fatal(&self, error: &str) {
-        let mut writer = self.output.lock().unwrap();
+        let mut output = self.output.lock().unwrap();
+        if output.closed {
+            return;
+        }
+        output.closed = true;
         let _ = protocol::write_message(
-            &mut *writer,
+            &mut output.writer,
             MessageType::Error,
             &protocol::object([("id", Value::Null), ("error", Value::String(error.into()))]),
         );
-        let _ = writer.flush();
+        let _ = output.writer.flush();
     }
 }
 

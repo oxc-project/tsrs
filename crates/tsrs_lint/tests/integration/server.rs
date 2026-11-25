@@ -766,3 +766,28 @@ fn notification_paths_name_files_as_lint_requests_do() {
     assert_eq!(rules_of(&server.lint(&[&b]), &b), NONE);
     assert_eq!(server.exit_code(), 0);
 }
+
+#[test]
+fn a_fatal_error_is_the_last_frame() {
+    let dir = fixture("fatal-last");
+    let b = path(&dir, "b.ts");
+    let mut server = Server::start_with_workers(&dir, Some("1"));
+    // The first request runs and the second waits when the malformed notification arrives.
+    let (first, second) = (server.take_id(), server.take_id());
+    server.send_frames(&[
+        lint_frame(first, &[&b], "no-floating-promises"),
+        lint_frame(second, &[&b], "no-floating-promises"),
+        raw_frame(DID_OPEN, b"not json"),
+    ]);
+    let mut frames = Vec::new();
+    while let Some(frame) = server.read() {
+        frames.push(frame);
+    }
+    let last = frames.pop();
+    assert!(fatal_error(last).starts_with("invalid frame"));
+    for (_, value) in &frames {
+        let Value::Object(fields) = value else { panic!("{value:?}") };
+        assert_ne!(fields.get("id"), Some(&Value::Null), "a second fatal error: {value:?}");
+    }
+    assert_eq!(server.exit_code(), 1);
+}

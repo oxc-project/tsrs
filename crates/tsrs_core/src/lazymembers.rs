@@ -133,7 +133,6 @@ lazy_member_stats! {
     mapped_members_created: "Lazy mapped members created",
     mapped_member_lookups: "Lazy mapped member lookups",
     mapped_index_info_queries: "Lazy mapped index info queries",
-    mapped_signature_early_returns: "Mapped signature early returns",
     some_property_skipped_constituents: "somePropertyReducesToNever skips",
     tuple_tables_created: "Lazy tuple tables",
     tuple_tables_resolved_in_full: "Lazy tuple tables resolved in full",

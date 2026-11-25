@@ -78,8 +78,9 @@ non-generic mapped types; no observable difference anywhere below).
   (testdata/regressions/lazy-mapped-template-cycle; the same change makes tsgo-pr-b match tsgo-ref there).
 - `getMemberOfUnresolvedStructuredType` (#64475) looks a base type's member up with `getPropertyOfTypeEx`, which hides
   a module export re-exported by `export type *`, while `resolveObjectTypeMembers` and `everyLazyProperty` take the
-  base's members from `getPropertiesOfType`, which keeps it. An interface that extends `typeof ns` then had no member
-  for a name the relater had enumerated, and the relater panicked. tsrs looks the member of a module base up in its
+  base's members from `getPropertiesOfType`, which keeps it. A lookup on an interface that extends `typeof ns` then
+  missed the member (TS2339) or took a later base's member of that name, and tsrs's lazy relater, which enumerates a
+  member and then looks it up (notes/mem-lazy.md L10), panicked. tsrs looks the member of a module base up in its
   resolved members, as `getPropertiesOfType` does (testdata/regressions/lazy-namespace-base-type-only-export).
 - `everyLazyProperty` (#64475) keeps the first base's property of each name, and so did tsrs's
   `get_lazy_properties_in_order` (notes/mem-lazy.md L10), but `addInheritedMembers` lets a later base replace an

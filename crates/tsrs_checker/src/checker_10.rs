@@ -1579,16 +1579,16 @@ impl Checker {
             {
                 yield_expr_type = self.get_regular_type_of_literal_type(yield_expr_type);
             }
-            // Go appends a possibly-nil result here; a nil constituent would crash the union below.
-            let yielded = self
-                .get_yielded_type_of_yield_expression(
-                    yield_expr,
-                    yield_expr_type,
-                    self.any_type,
-                    is_async,
-                )
-                .unwrap();
-            append_if_unique(&mut yield_types, yielded);
+            // Go appends a nil awaited type: alone it selects the never fallback, and beside other
+            // yielded types it crashes the union.
+            if let Some(yielded) = self.get_yielded_type_of_yield_expression(
+                yield_expr,
+                yield_expr_type,
+                self.any_type,
+                is_async,
+            ) {
+                append_if_unique(&mut yield_types, yielded);
+            }
 
             let next_type = if yield_expr.as_yield_expression().asterisk_token.is_some() {
                 let use_ =

@@ -6,6 +6,7 @@ static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 mod api_contentmapper;
 mod api_memory_test;
 mod api_test;
+mod async_generator_missing_yield_type;
 mod base_type_cycle_entry;
 mod broken_pipe;
 mod build_free_programs;

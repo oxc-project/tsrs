@@ -28,8 +28,8 @@
 //! | 4 | `Hello` | `{"protocol_version", "version"}` (the tsrs-lint version) |
 //!
 //! A fatal error has a null `id` and is the last frame: the server writes nothing after it, not even the terminal
-//! frames of queued or running requests, and exits with status 1. A canceled request's error is
-//! `{"id", "error": "request canceled", "canceled": true}`.
+//! frames of queued or running requests (which stop before their next file), and exits with status 1. A canceled
+//! request's error is `{"id", "error": "request canceled", "canceled": true}`.
 //!
 //! The first frame must be the client's `Hello`. The server answers with its own, then exits with a fatal error if the
 //! client's `protocol_version` is not [`PROTOCOL_VERSION`]; any other first frame is a fatal error. After the
@@ -228,8 +228,9 @@ impl Server {
                 }
             }
         };
-        // Queued requests are canceled; running ones finish.
-        self.close_queue();
+        // Queued requests are canceled. Running ones finish, unless a fatal error dropped their answers: then they stop
+        // before their next file.
+        self.close_queue(code != 0);
         for worker in workers {
             let _ = worker.join();
         }
@@ -248,7 +249,7 @@ impl Server {
             match worker {
                 Ok(worker) => workers.push(worker),
                 Err(error) => {
-                    self.close_queue();
+                    self.close_queue(false);
                     for worker in workers {
                         let _ = worker.join();
                     }
@@ -283,11 +284,18 @@ impl Server {
         }
     }
 
-    /// Closes the queue and answers every queued request as canceled.
-    fn close_queue(&self) {
+    /// Closes the queue and answers every queued request as canceled. With `cancel_running`, the running requests
+    /// are canceled too.
+    fn close_queue(&self, cancel_running: bool) {
         let pending = {
             let mut queue = self.queue.lock().unwrap();
             queue.closed = true;
+            if cancel_running {
+                for (_, canceled) in &queue.running {
+                    // Only the flag is shared (see `Server::cancel`).
+                    canceled.store(true, Ordering::Relaxed);
+                }
+            }
             std::mem::take(&mut queue.pending)
         };
         self.queued.notify_all();

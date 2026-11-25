@@ -83,8 +83,8 @@ After the handshake:
   same way.
 - A malformed notification (`DidOpen`, `DidChange`, `DidClose`, `FilesChanged`, `Cancel`, `Shutdown`), a `Lint`
   frame without a valid `id`, or a frame that cannot be read is a fatal error: an error frame with a null `id`, after
-  which the server writes nothing, not even the terminal frames of queued or running requests, and exits with status
-  1. Going on would let the client's view of open files and the server's
+  which the server writes nothing, not even the terminal frames of queued or running requests (which stop before
+  their next file), and exits with status 1. Going on would let the client's view of open files and the server's
   diverge.
 - A `Lint` request that cannot be parsed otherwise (an unknown rule, a bad `configs`) is answered with an error
   frame carrying its `id`, and the server keeps serving.

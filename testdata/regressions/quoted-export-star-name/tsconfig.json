@@ -1,0 +1,1 @@
+{"compilerOptions":{"strict":true,"noEmit":true,"target":"esnext","allowJs":true,"types":[]},"files":["quoted.ts","mixed.ts","namespace.ts","other.ts","cjs.js","use.ts","cjs-use.ts"]}

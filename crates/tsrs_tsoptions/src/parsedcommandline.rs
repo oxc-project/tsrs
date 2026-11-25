@@ -67,6 +67,9 @@ pub struct ParsedCommandLine {
     pub literal_file_names_len: usize,
     pub root_file_names_for_diagnostics: Vec<String>, // the command line file names as typed
     pub file_names_by_path: OnceLock<FxHashMap<Path, String>>, // maps file names to their paths, used for quick lookups
+    /// Wildcard-matched files skipped only because a same-stem file with a higher-priority extension was included.
+    pub extension_shadowed_file_names: Vec<String>,
+    pub extension_shadowed_file_names_by_path: OnceLock<FxHashMap<Path, String>>,
     pub content_mapper_extension_rewrites: OnceLock<Vec<ExtensionRewrite>>,
 }
 
@@ -88,6 +91,8 @@ impl ParsedCommandLine {
             literal_file_names_len: 0,
             root_file_names_for_diagnostics: Vec::new(),
             file_names_by_path: OnceLock::new(),
+            extension_shadowed_file_names: Vec::new(),
+            extension_shadowed_file_names_by_path: OnceLock::new(),
             content_mapper_extension_rewrites: OnceLock::new(),
         }
     }
@@ -136,6 +141,7 @@ impl ParsedCommandLine {
             include_globs: clone_once_lock(&self.include_globs),
             literal_file_names_len: self.literal_file_names_len,
             root_file_names_for_diagnostics: self.root_file_names_for_diagnostics.clone(),
+            extension_shadowed_file_names: self.extension_shadowed_file_names.clone(),
             ..ParsedCommandLine::empty()
         }
     }
@@ -420,6 +426,24 @@ impl ParsedCommandLine {
         })
     }
 
+    pub fn extension_shadowed_file_names_by_path(&self) -> &FxHashMap<Path, String> {
+        self.extension_shadowed_file_names_by_path.get_or_init(|| {
+            let mut map = FxHashMap::with_capacity_and_hasher(
+                self.extension_shadowed_file_names.len(),
+                rustc_hash::FxBuildHasher,
+            );
+            map.extend(self.extension_shadowed_file_names.iter().map(|file_name| {
+                let path = tspath::to_path(
+                    file_name,
+                    self.get_current_directory(),
+                    self.use_case_sensitive_file_names(),
+                );
+                (path, file_name.clone())
+            }));
+            map
+        })
+    }
+
     pub fn project_references(&self) -> &[ProjectReference] {
         &self.parsed_config.project_references
     }
@@ -617,7 +641,7 @@ impl ParsedCommandLine {
     pub fn reload_file_names_of_parsed_command_line(&self, fs: &dyn FS) -> ParsedCommandLine {
         let mut parsed_config = self.parsed_config.clone();
         let config_file = self.config_file.unwrap();
-        let (file_names, literal_file_names_len) = {
+        let (file_names, literal_file_names_len, extension_shadowed_file_names) = {
             let specs = config_file.config_file_specs.lock().unwrap();
             get_file_names_from_config_specs(
                 specs.as_ref().unwrap(),
@@ -639,6 +663,7 @@ impl ParsedCommandLine {
             include_globs: clone_once_lock(&self.include_globs),
             literal_file_names_len,
             root_file_names_for_diagnostics: self.root_file_names_for_diagnostics.clone(),
+            extension_shadowed_file_names,
             ..ParsedCommandLine::empty()
         }
     }

@@ -659,17 +659,15 @@ fn for_each_object_property(object_literal: Option<P<Node>>, cb: &mut dyn FnMut(
     }
 }
 
-// file_rename.go:394
+// file_rename.go:385. The absolute name when the relative path would start with a root (a first segment such as `^`
+// or `c:`).
 fn relative_path_from_directory(
     from_directory: &str,
     to: &str,
     use_case_sensitive_file_names: bool,
 ) -> String {
-    tspath::get_relative_path_from_directory(
-        from_directory,
-        to,
-        &ComparePathsOptions { use_case_sensitive_file_names, ..Default::default() },
-    )
+    tspath::relative_path_from_path(from_directory, to, use_case_sensitive_file_names)
+        .unwrap_or_else(|| to.to_string())
 }
 
 // file_rename.go:398

@@ -903,22 +903,17 @@ fn a_file_opened_and_closed_in_different_case_is_closed() {
         return;
     }
     let b = path(&dir, "b.ts");
-    // Diagnostics name the file as it was opened, which may differ in case from `b.ts`.
-    let rules = |answer: &Answer| -> Vec<String> {
-        assert_eq!(answer.error, None);
-        answer.diagnostics.iter().map(|(_, rule)| rule.clone()).collect()
-    };
     let mut server = Server::start(&dir);
     let upper = path(&dir, "B.TS");
     server.open(&upper, 1, "export {};\n");
-    assert_eq!(rules(&server.lint(&[&b])), NONE);
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), NONE);
     server.change(&b, 2, "export {};\nPromise.resolve(1);\n");
-    assert_eq!(rules(&server.lint(&[&b])), ["no-floating-promises"]);
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
     server.change(&upper, 3, "export {};\n");
-    assert_eq!(rules(&server.lint(&[&b])), NONE);
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), NONE);
     // Closed under the other name: `b.ts` is read from disk again.
     server.send(DID_CLOSE, &protocol::object([("path", Value::String(b.clone()))]));
-    assert_eq!(rules(&server.lint(&[&b])), ["no-floating-promises"]);
+    assert_eq!(rules_of(&server.lint(&[&b]), &b), ["no-floating-promises"]);
     assert_eq!(server.exit_code(), 0);
 }
 

@@ -637,14 +637,23 @@ impl Server {
         {
             let mut checker = program.get_type_checker_for_file(ctx, source_file);
             let mut timings = std::collections::BTreeMap::new();
-            diagnostics.extend(engine::lint_file(
-                program,
-                source_file,
-                &file.rules,
-                request.options,
-                &mut checker,
-                &mut timings,
-            )?);
+            // The file under the request's path: the program names an open file as it was opened, which may differ in
+            // case on a case-insensitive file system.
+            diagnostics.extend(
+                engine::lint_file(
+                    program,
+                    source_file,
+                    &file.rules,
+                    request.options,
+                    &mut checker,
+                    &mut timings,
+                )?
+                .into_iter()
+                .map(|diagnostic| protocol::Diagnostic {
+                    file_path: Some(file.name.clone()),
+                    ..diagnostic
+                }),
+            );
         }
         for diagnostic in &diagnostics {
             protocol::write_diagnostic_with_id(output, request.id, diagnostic)

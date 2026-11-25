@@ -1237,6 +1237,23 @@ impl Session {
         f(&snapshot);
     }
 
+    // No Go counterpart: `with_snapshot_for_document` for several documents at once, so that `tsrs-lint server`
+    // lints every file of a request against one snapshot.
+    pub fn with_snapshot_for_documents(
+        &self,
+        ctx: &Context,
+        uris: &[lsproto::DocumentUri],
+        f: impl FnOnce(&Arc<Snapshot>),
+    ) {
+        let snapshot = self.get_snapshot(
+            ctx,
+            ResourceRequest { documents: uris.to_vec(), ..Default::default() },
+            true, /*callerRef*/
+        );
+        let _deref = DerefOnDrop(&snapshot);
+        f(&snapshot);
+    }
+
     // session.go:1235
     // GetCurrentLanguageServiceWithAutoImports flushes pending file changes, clones the
     // current snapshot with auto-import preparation for the given URI, then returns a

@@ -195,6 +195,22 @@ impl Server {
         terminals
     }
 
+    /// Reads request `id`'s frames through its terminal frame, which must be `Done`.
+    fn read_terminals_with_diagnostics(&mut self, id: u64) -> Vec<(u8, Value)> {
+        let mut frames = Vec::new();
+        loop {
+            let (message_type, value) = self.read().expect("the server ended before answering");
+            let Value::Object(fields) = &value else { panic!("{value:?}") };
+            assert_eq!(number(fields.get("id")), Some(id), "{value:?}");
+            if message_type == MessageType::Diagnostic as u8 {
+                frames.push((message_type, value));
+                continue;
+            }
+            assert_eq!(Terminal::of(message_type, &value), Terminal::Done);
+            return frames;
+        }
+    }
+
     fn exit_code(mut self) -> i32 {
         drop(self.stdin.take());
         self.child.wait().unwrap().code().unwrap()
@@ -698,5 +714,38 @@ fn closed_files_of_a_project_loaded_later_are_linted() {
     let mut server = Server::start(&root);
     assert_eq!(rules_of(&server.lint(&[&first_b]), &first_b), ["no-floating-promises"]);
     assert_eq!(rules_of(&server.lint(&[&second_b]), &second_b), ["no-floating-promises"]);
+    assert_eq!(server.exit_code(), 0);
+}
+
+#[test]
+fn a_request_sees_one_state_of_the_workspace() {
+    let dir = fixture("one-snapshot");
+    let a = path(&dir, "a.ts");
+    let callers: Vec<String> = (0..40)
+        .map(|index| {
+            let name = format!("c{index}.ts");
+            std::fs::write(dir.join(&name), CALLS_A).unwrap();
+            path(&dir, &name)
+        })
+        .collect();
+    let callers: Vec<&str> = callers.iter().map(String::as_str).collect();
+    let mut server = Server::start_with_workers(&dir, Some("1"));
+    server.open(&a, 1, ASYNC_A);
+    for version in 2..12 {
+        // The edit races the request: each file must see either the old `a.ts` or the new one, all the same.
+        let id = server.take_id();
+        let text = if version % 2 == 0 { SYNC_A } else { ASYNC_A };
+        server.send_frames(&[
+            lint_frame(id, &callers, "no-floating-promises"),
+            frame(DID_CHANGE, &document(&a, version, text)),
+        ]);
+        let frames = server.read_terminals_with_diagnostics(id);
+        let flagged = frames.iter().filter(|(t, _)| *t == MessageType::Diagnostic as u8).count();
+        assert!(
+            flagged == 0 || flagged == callers.len(),
+            "{flagged} of {} files flagged",
+            callers.len()
+        );
+    }
     assert_eq!(server.exit_code(), 0);
 }

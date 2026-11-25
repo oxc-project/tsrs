@@ -41,12 +41,12 @@
 //! `Done {"id"}`; or an error frame carrying its `id` (a request that cannot be parsed, a panic, or a cancellation),
 //! in which case its diagnostics are dropped. A request's frames are written at once, so requests never interleave.
 //!
-//! Lint requests wait in a queue for a fixed pool of worker threads, first in, first out, and take their snapshot
-//! when a worker starts them. There are as many workers as the available parallelism, at most 4, unless
-//! `TSRS_LINT_SERVER_WORKERS` sets a positive number. `Cancel {"id"}` answers a queued request as canceled at once;
-//! a running request stops before its next file and is answered as canceled; a finished or unknown `id` is ignored.
-//! `Shutdown` or the end of the input answers queued requests as canceled, lets running requests finish, then exits
-//! with status 0. `docs/LINT_SERVER.md` documents the protocol.
+//! Lint requests wait in a queue for a fixed pool of worker threads, first in, first out, and take one snapshot
+//! when a worker starts them, for all of their files. There are as many workers as the available parallelism, at
+//! most 4, unless `TSRS_LINT_SERVER_WORKERS` sets a positive number. `Cancel {"id"}` answers a queued request as
+//! canceled at once; a running request stops before its next file and is answered as canceled; a finished or unknown
+//! `id` is ignored. `Shutdown` or the end of the input answers queued requests as canceled, lets running requests
+//! finish, then exits with status 0. `docs/LINT_SERVER.md` documents the protocol.
 
 use std::collections::VecDeque;
 use std::io::{self, Read, Write};
@@ -64,7 +64,7 @@ use tsrs_core::jsnum;
 use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_core::tspath;
 use tsrs_lsproto as lsproto;
-use tsrs_project::{Kind, Session, SessionInit, SessionOptions};
+use tsrs_project::{Kind, Session, SessionInit, SessionOptions, Snapshot};
 use tsrs_vfs::{FS, bundled, osvfs};
 
 use crate::engine::{self, Options};
@@ -484,75 +484,74 @@ impl Server {
         }
     }
 
-    /// Lints the request's files into `output`.
+    /// Lints the request's files into `output`, all against one snapshot: a notification that arrives while the
+    /// request runs applies to later requests only.
     fn lint_files(&self, request: &LintRequest, output: &mut Vec<u8>) -> Result<(), String> {
         let ctx =
             context::with_checker_lifetime(&Context::background(), CheckerLifetime::Diagnostics);
-        // Projects whose tsconfig errors were reported: once per request, as the headless mode does per program.
-        let mut reported_projects = FxHashSet::default();
-        for file in &request.files {
-            if request.is_canceled() {
-                return Ok(());
-            }
-            self.lint_file(&ctx, request, file, &mut reported_projects, output)?;
-        }
-        Ok(())
-    }
-
-    /// Lints one file of the request.
-    fn lint_file(
-        &self,
-        ctx: &Context,
-        request: &LintRequest,
-        file: &RequestFile,
-        reported_projects: &mut FxHashSet<String>,
-        output: &mut Vec<u8>,
-    ) -> Result<(), String> {
-        let uri = uri(&file.name);
+        let uris: Vec<lsproto::DocumentUri> =
+            request.files.iter().map(|file| uri(&file.name)).collect();
         let mut result = Ok(());
-        self.session.with_snapshot_for_document(ctx, &uri, |snapshot| {
-            result = (|| {
-                // A file without a project (an unknown script kind, for example) has nothing to lint.
-                let Some(project) = snapshot.get_default_project(&uri) else {
-                    return Ok(());
-                };
-                let Some(program) = project.get_program() else {
-                    return Ok(());
-                };
-                let mut diagnostics = Vec::new();
-                let config_errors = self.config_errors(&project, program, &mut diagnostics)?;
-                if !reported_projects.insert(project.id().0) {
-                    diagnostics.clear();
-                }
-                // Building the program can take a while: a request canceled meanwhile stops here.
+        self.session.with_snapshot_for_documents(&ctx, &uris, |snapshot| {
+            // Projects whose tsconfig errors were reported: once per request, as the headless mode does per program.
+            let mut reported_projects = FxHashSet::default();
+            result = request.files.iter().zip(&uris).try_for_each(|(file, uri)| {
+                // Building the programs can take a while: a request canceled meanwhile stops here.
                 if request.is_canceled() {
                     return Ok(());
                 }
-                if !config_errors
-                    && let Some(source_file) = program.get_source_file(&file.name)
-                    // Rules see a content-mapped file's virtual text, whose ranges do not apply on disk.
-                    && !source_file.is_content_mapped()
-                    && !file.rules.is_empty()
-                {
-                    let mut checker = program.get_type_checker_for_file(ctx, source_file);
-                    let mut timings = std::collections::BTreeMap::new();
-                    diagnostics.extend(engine::lint_file(
-                        program,
-                        source_file,
-                        &file.rules,
-                        request.options,
-                        &mut checker,
-                        &mut timings,
-                    )?);
-                }
-                for diagnostic in &diagnostics {
-                    protocol::write_diagnostic_with_id(output, request.id, diagnostic)
-                        .map_err(|error| error.to_string())?;
-                }
-                Ok(())
-            })();
+                self.lint_file(&ctx, snapshot, request, file, uri, &mut reported_projects, output)
+            });
         });
         result
+    }
+
+    /// Lints one file of the request.
+    #[expect(clippy::too_many_arguments, reason = "the request state each file reads")]
+    fn lint_file(
+        &self,
+        ctx: &Context,
+        snapshot: &Snapshot,
+        request: &LintRequest,
+        file: &RequestFile,
+        uri: &lsproto::DocumentUri,
+        reported_projects: &mut FxHashSet<String>,
+        output: &mut Vec<u8>,
+    ) -> Result<(), String> {
+        // A file without a project (an unknown script kind, for example) has nothing to lint.
+        let Some(project) = snapshot.get_default_project(uri) else {
+            return Ok(());
+        };
+        let Some(program) = project.get_program() else {
+            return Ok(());
+        };
+        let mut diagnostics = Vec::new();
+        let config_errors = self.config_errors(&project, program, &mut diagnostics)?;
+        if !reported_projects.insert(project.id().0) {
+            diagnostics.clear();
+        }
+        if !config_errors
+            && let Some(source_file) = program.get_source_file(&file.name)
+            // Rules see a content-mapped file's virtual text, whose ranges do not apply on disk.
+            && !source_file.is_content_mapped()
+            && !file.rules.is_empty()
+        {
+            let mut checker = program.get_type_checker_for_file(ctx, source_file);
+            let mut timings = std::collections::BTreeMap::new();
+            diagnostics.extend(engine::lint_file(
+                program,
+                source_file,
+                &file.rules,
+                request.options,
+                &mut checker,
+                &mut timings,
+            )?);
+        }
+        for diagnostic in &diagnostics {
+            protocol::write_diagnostic_with_id(output, request.id, diagnostic)
+                .map_err(|error| error.to_string())?;
+        }
+        Ok(())
     }
 
     /// Reports a configured project's tsconfig and program errors as the headless mode does, in which case its files

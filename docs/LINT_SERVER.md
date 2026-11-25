@@ -100,9 +100,10 @@ A request's frames are written in one locked write, so the frames of different r
 ## Worker pool
 
 Lint requests wait in a first-in, first-out queue for a fixed pool of worker threads, each with a 512 MB stack. A
-request takes its project snapshot when a worker starts it, so it also sees notifications that arrive while it is
-queued. The pool has as many workers as `std::thread::available_parallelism()`, clamped to 1 to 4, unless
-`TSRS_LINT_SERVER_WORKERS` is set to a positive integer, which is used as is; other values are ignored.
+request takes one project snapshot when a worker starts it, and lints all of its files against it: it sees the
+notifications that arrive while it is queued, and none that arrive while it runs. The pool has as many workers as
+`std::thread::available_parallelism()`, clamped to 1 to 4, unless `TSRS_LINT_SERVER_WORKERS` is set to a positive
+integer, which is used as is; other values are ignored.
 
 Other environment variables read as in headless mode: `TSRS_FAST=0` turns off the fast preset,
 `TSRS_LINT_RUN_EXTERNAL_CODE=1` runs content mappers, and
@@ -113,7 +114,7 @@ Other environment variables read as in headless mode: `TSRS_FAST=0` turns off th
 `Cancel {"id"}` cancels a request:
 
 - A queued request is removed from the queue and answered at once.
-- A running request stops before its next file (and after building a file's program), drops its diagnostics, and is
+- A running request stops before its next file (and after building its programs), drops its diagnostics, and is
   answered instead of `Done`. A request canceled after its last file is still answered as canceled if it has not
   written its frames yet.
 - A finished or unknown `id` is ignored: no frame is sent.

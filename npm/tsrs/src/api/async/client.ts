@@ -112,6 +112,7 @@ export class Client {
 
             this.process = spawn(resolveExePath(options), args, {
                 stdio: ["pipe", "pipe", "inherit"],
+                windowsHide: true,
             });
 
             this.process.once("error", error => {

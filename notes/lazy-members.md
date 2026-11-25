@@ -54,11 +54,11 @@ non-generic mapped types; no observable difference anywhere below).
 ## Deviations from the Go diffs
 
 - The mapped-type early return (#64526: `getSignaturesOfStructuredType` answers "no signatures" for an unresolved
-  mapped type) is removed: Go resolves the mapped type, and resolving its template can report a circularity error. In
-  `const result = make() ? 1 : 2`, where `make()` returns `{ then: { [K in "x"]: typeof result } }`, the known-truthy
-  check of the condition asks whether it is a promise, which queries the call signatures of the type of `then`.
-  Resolving that type resolves `typeof result` while `result` is being inferred, so tsgo-ref and tsrs without lazy
-  members report TS7022; lazy members with the early return reported nothing
+  mapped type) is removed: tsgo-ref resolves the mapped type, and resolving its template can report a circularity
+  error. In `const result = make() ? 1 : 2`, where `make()` returns `{ then: { [K in "x"]: typeof result } }`, the
+  known-truthy check of the condition asks whether it is a promise, which queries the call signatures of the type of
+  `then`. Resolving that type resolves `typeof result` while `result` is being inferred, so tsgo-ref and tsrs
+  without lazy members report TS7022; lazy members with the early return reported nothing
   (testdata/regressions/lazy-mapped-signature-circularity).
 - `somePropertyReducesToNever` (#64526): ported onto the merged #64521 version (`OrderedMap` counts, iterated in
   discovery order). The PR as posted iterates a Go map there (`for propName := range counts`, both for the skipped

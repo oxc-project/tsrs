@@ -40,8 +40,8 @@ Follow-up candidates (each behind its own switch, effective only with this flag 
 - checker_11.rs `some_property_reduces_to_never`, relater_1.rs `is_weak_type`, checker_13.rs
   `is_string_index_signature_only_type_worker`, checker_15.rs `is_function_object_type`.
 
-The flag is read only where a lazy table would be created (`get_ready_lazy_member_table`, `get_lazy_mapped_table`)
-and at the two #64526 sites that change work without a table (the mapped-type early return in
+In the ported code, the flag is read only where a lazy table would be created (`get_ready_lazy_member_table`,
+`get_lazy_mapped_table`) and at the two #64526 sites that change work without a table (the mapped-type early return in
 `signatures_of_structured_type`, since removed, and the skipped constituent in `some_property_reduces_to_never`).
 Everything else in the diffs (the refactored `get_single_signature`, `is_weak_type`, `is_function_object_type`,
 `is_string_index_signature_only_type_worker`, `get_property_of_type_ex`, the `instantiate_symbol` split, the

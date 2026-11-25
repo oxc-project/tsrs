@@ -39,11 +39,7 @@ fn referenced_project_on_another_drive_reports_ts2878() {
   "files": ["main.ts"],
   "references": [{ "path": "D:/lib" }],
   "compilerOptions": {
-    "strict": true,
-    "target": "esnext",
-    "module": "nodenext",
     "types": [],
-    "rootDir": ".",
     "rootDirs": ["C:/app", "D:/lib"],
     "rewriteRelativeImportExtensions": true,
     "noEmit": true
@@ -56,11 +52,7 @@ fn referenced_project_on_another_drive_reports_ts2878() {
             r#"{
   "files": ["dep.ts"],
   "compilerOptions": {
-    "strict": true,
-    "target": "esnext",
-    "module": "nodenext",
     "types": [],
-    "rootDir": ".",
     "composite": true
   }
 }"#,

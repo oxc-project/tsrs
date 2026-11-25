@@ -1857,12 +1857,14 @@ impl Checker {
         }
         let mut diagnostic: Option<P<Diagnostic>> = None;
         let declaration_name = right.text();
+        // As in Go, a nested access skips the declaration-order query, which can resolve the property's type while a
+        // field initializer is being checked.
         if !(!Self::is_in_property_initializer_or_class_static_block(
             node, false, /*ignoreArrowFunctions*/
         ) || Self::is_optional_property_declaration(value_declaration)
-            || self.is_block_scoped_name_declared_before_use(value_declaration, right)
             || ast::is_access_expression(node)
-                && ast::is_access_expression(node.expression().unwrap()))
+                && ast::is_access_expression(node.expression().unwrap())
+            || self.is_block_scoped_name_declared_before_use(value_declaration, right))
             && !(ast::is_method_declaration(value_declaration)
                 && self
                     .get_combined_modifier_flags_cached(value_declaration)

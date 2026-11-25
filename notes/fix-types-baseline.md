@@ -19,4 +19,7 @@ U+007F as that stray byte. Any other U+007F is user text and stays raw, as in Go
 `"\u{7F}\b\u{7F}"` (vadimdemedes/ink test/input-parser.ts, where the old text-only rule added `\uFFFD`s and pushed the
 diagnostic over the 320-character truncation; testdata/regressions/control-char-literal-types). Remaining
 representation limit: a user property name that starts with U+007F is still taken for an internal name by the checker
-(`is_reserved_member_name` drops `{"\u{7F}a": 1}` from object types; tsgo keeps it).
+(`is_reserved_member_name` drops `{"\u{7F}a": 1}` from object types; tsgo keeps it). A quoted export named
+`"\u{7F}export"` shares the binder's `export *` bucket: `get_exports_of_module_worker` resolves only that bucket's
+`ExportDeclaration`s, so the export is importable (testdata/regressions/quoted-export-star-name), but a module's own
+`export *` bucket still hides the name re-exported through it and from its TS2308 ambiguity check.

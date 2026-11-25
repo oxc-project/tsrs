@@ -1,3 +1,2 @@
 a.ts(3,26): error TS2540: Cannot assign to 'later' because it is a read-only property.
-a.ts(7,20): error TS2729: Property 'second' is used before its initialization.
-a.ts(8,21): error TS2729: Property 'self' is used before its initialization.
+a.ts(7,21): error TS2729: Property 'self' is used before its initialization.

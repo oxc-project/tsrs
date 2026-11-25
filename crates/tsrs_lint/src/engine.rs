@@ -534,16 +534,30 @@ fn lint_program(
         },
         |config| (Some(config), Vec::new()),
     );
+    let has_direct_files = files.iter().any(|(_, shadowed)| !shadowed);
+    let push_shadowed = |unmatched: &mut Vec<String>| {
+        for (name, shadowed) in files {
+            if *shadowed {
+                unmatched.push(name.clone());
+            }
+        }
+    };
     if !diagnostics.is_empty() {
-        for diagnostic in diagnostics {
-            report_config_error(diagnostic, config_path, false, writer)?;
+        push_shadowed(unmatched);
+        if has_direct_files {
+            for diagnostic in diagnostics {
+                report_config_error(diagnostic, config_path, false, writer)?;
+            }
         }
         return Ok(());
     }
     let config = config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
     if !config.errors.is_empty() && !options.suppress_program_diagnostics {
-        for diagnostic in &config.errors {
-            report_config_error(*diagnostic, config_path, false, writer)?;
+        push_shadowed(unmatched);
+        if has_direct_files {
+            for diagnostic in &config.errors {
+                report_config_error(*diagnostic, config_path, false, writer)?;
+            }
         }
         return Ok(());
     }
@@ -556,13 +570,6 @@ fn lint_program(
         shared,
     );
     let program_ref = program.program;
-    let diagnostics = program_ref.get_program_diagnostics();
-    if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
-        for diagnostic in diagnostics {
-            report_config_error(diagnostic, config_path, true, writer)?;
-        }
-        return Ok(());
-    }
     let mut program_files = Vec::with_capacity(files.len());
     for (name, shadowed) in files {
         if *shadowed && program_ref.get_source_file(name).is_none() {
@@ -572,6 +579,13 @@ fn lint_program(
         }
     }
     if program_files.is_empty() {
+        return Ok(());
+    }
+    let diagnostics = program_ref.get_program_diagnostics();
+    if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
+        for diagnostic in diagnostics {
+            report_config_error(diagnostic, config_path, true, writer)?;
+        }
         return Ok(());
     }
     run_program(program_ref, &program_files, payload, options, writer, file_configs, timings)

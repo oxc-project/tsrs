@@ -3988,7 +3988,9 @@ impl Checker {
         if let Some(lm) = self.get_ready_lazy_member_table(t) {
             self.lazy_member_stats.member_every_property_queries += 1;
             let mut seen = self.free_name_sets.pop().unwrap_or_default();
-            let result = self.every_lazy_property(t, lm, &mut seen, f);
+            let mut replaceable = Vec::new();
+            let result = self.every_lazy_property(t, lm, &mut seen, &mut replaceable, f)
+                && replaceable.iter().all(|&p| seen.contains(p.name()) || f(self, p));
             if seen.capacity() <= 1024 {
                 seen.clear();
                 self.free_name_sets.push(seen);
@@ -4003,12 +4005,14 @@ impl Checker {
         !self.every_property_of_structured_type(t, &mut |_, _| false)
     }
 
-    // seen has the names of properties that hide inherited ones, as in addInheritedMembers.
+    // seen has the names of properties that hide inherited ones, as in addInheritedMembers; replaceable has the
+    // inherited properties that a later base can still replace.
     fn every_lazy_property(
         &mut self,
         t: P<Type>,
         lm: P<LazyMemberTable>,
         seen: &mut FxHashSet<&'static str>,
+        replaceable: &mut Vec<P<Symbol>>,
         f: &mut dyn FnMut(&mut Checker, P<Symbol>) -> bool,
     ) -> bool {
         if let Some(declared_members) =
@@ -4023,20 +4027,40 @@ impl Checker {
         for &base_type in lm.ready.get().unwrap().base_types.get() {
             let reduced = self.get_reduced_apparent_type(base_type);
             if let Some(base_table) = self.get_ready_lazy_member_table(reduced) {
-                if !self.every_lazy_property(reduced, base_table, seen, f) {
+                if !self.every_lazy_property(reduced, base_table, seen, replaceable, f) {
                     return false;
                 }
                 continue;
             }
             if self.get_properties_of_type(base_type).iter().copied().into_iter().any(|prop| {
                 !is_static_private_identifier_property(prop)
-                    && seen.insert(prop.name())
+                    && Self::add_lazy_inherited_property(prop, seen, replaceable)
                     && !f(self, prop)
             }) {
                 return false;
             }
         }
         true
+    }
+
+    // Whether f visits an inherited prop now. As in addInheritedMembers, a later base replaces an inherited member
+    // that is not a value (a module's export alias), so such a prop waits in replaceable, over an earlier one of its
+    // name, until every base is walked.
+    fn add_lazy_inherited_property(
+        prop: P<Symbol>,
+        seen: &mut FxHashSet<&'static str>,
+        replaceable: &mut Vec<P<Symbol>>,
+    ) -> bool {
+        if prop.flags().intersects(SymbolFlags::Value) {
+            return seen.insert(prop.name());
+        }
+        if !seen.contains(prop.name()) {
+            match replaceable.iter_mut().find(|p| p.name() == prop.name()) {
+                Some(p) => *p = prop,
+                None => replaceable.push(prop),
+            }
+        }
+        false
     }
 }
 

@@ -81,6 +81,11 @@ non-generic mapped types; no observable difference anywhere below).
   base's members from `getPropertiesOfType`, which keeps it. An interface that extends `typeof ns` then had no member
   for a name the relater had enumerated, and the relater panicked. tsrs looks the member of a module base up in its
   resolved members, as `getPropertiesOfType` does (testdata/regressions/lazy-namespace-base-type-only-export).
+- `everyLazyProperty` (#64475) keeps the first base's property of each name, and so did tsrs's
+  `get_lazy_properties_in_order` (notes/mem-lazy.md L10), but `addInheritedMembers` lets a later base replace an
+  inherited member that is not a value: a module's export alias. A weak-type check or a missing-property report then
+  saw the alias, not the later base's optional property. Both let a later base replace it
+  (testdata/regressions/lazy-namespace-base-alias-replaced).
 - `lazyMappedTable.members` (a SymbolTable holding nil entries for "being created / no member") is a
   `FxHashMap<String, Option<P<Symbol>>>`; `getLazyMappedTypeMember`'s `(member, ok)` is `Option<Option<P<Symbol>>>`.
 

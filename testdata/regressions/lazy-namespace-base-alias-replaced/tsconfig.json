@@ -1,0 +1,1 @@
+{"compilerOptions":{"strict":true,"noEmit":true,"target":"es2020","types":[],"skipLibCheck":true},"files":["values.ts","barrel.ts","aliases.ts","model.d.ts","main.ts"]}

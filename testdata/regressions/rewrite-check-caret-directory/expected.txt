@@ -1,0 +1,1 @@
+a.ts(1,8): error TS2876: This relative import path is unsafe to rewrite because it looks like a file name, but actually resolves to "<dir>/^/x.ts/index.ts".

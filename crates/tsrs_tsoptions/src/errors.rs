@@ -85,7 +85,8 @@ pub(crate) fn create_unknown_option_error(
 ) -> P<Diagnostic> {
     if let Some(alternate_mode) = alternate_mode
         && let Some(options_name_map) = alternate_mode.options_name_map
-        && let Some(other_option) = options_name_map.get(&unknown_option.to_lowercase())
+        && let Some(other_option) =
+            options_name_map.get(&tsrs_core::stringutil::go_strings_to_lower(unknown_option))
     {
         // tscbuildoption
         let mut diagnostic = alternate_mode.diagnostic;

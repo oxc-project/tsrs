@@ -3937,7 +3937,7 @@ fn extract_pragmas(comment_range: ast::CommentRange, text: &str) -> Vec<ast::Pra
                 continue;
             }
             let line_end = line_end_pos(text, pos);
-            let pragma_name = text[name_pos..name_end].to_lowercase();
+            let pragma_name = tsrs_core::stringutil::go_strings_to_lower(&text[name_pos..name_end]);
             if pragma_name == "jsx"
                 || pragma_name == "jsxfrag"
                 || pragma_name == "jsximportsource"

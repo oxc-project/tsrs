@@ -97,6 +97,10 @@ const MAX_DEFAULT_WORKERS: usize = 4;
 /// The error text of a canceled request's error frame, which also carries `"canceled": true`.
 const CANCELED: &str = "request canceled";
 
+/// The language of an opened file: unknown, so the session takes its script kind from the file name, as it does for
+/// a file on disk (any extension, in any case).
+const UNKNOWN_LANGUAGE: lsproto::LanguageKind = lsproto::LanguageKind("");
+
 struct Server {
     session: Arc<Session>,
     cwd: String,
@@ -377,8 +381,8 @@ impl Server {
                 let version = i32::try_from(version).map_err(|error| error.to_string())?;
                 let text = payload::string(fields.get("text"))?;
                 let uri = uri(&name);
-                if self.open_file_paths.lock().unwrap().insert(name.clone()) {
-                    self.session.did_open_file(&ctx, uri, version, text, language_kind(&name));
+                if self.open_file_paths.lock().unwrap().insert(name) {
+                    self.session.did_open_file(&ctx, uri, version, text, UNKNOWN_LANGUAGE);
                 } else {
                     self.session.did_change_file(
                         &ctx,
@@ -697,16 +701,6 @@ fn file_name(fields: &JsonMap, cwd: &str) -> Result<String, String> {
 
 fn uri(file_name: &str) -> lsproto::DocumentUri {
     tsrs_ls::lsconv::file_name_to_document_uri(file_name)
-}
-
-fn language_kind(file_name: &str) -> lsproto::LanguageKind {
-    let extension = file_name.rsplit_once('.').map_or("", |(_, extension)| extension);
-    match extension {
-        "tsx" => lsproto::LanguageKind::TYPE_SCRIPT_REACT,
-        "jsx" => lsproto::LanguageKind::JAVA_SCRIPT_REACT,
-        "js" | "mjs" | "cjs" => lsproto::LanguageKind::JAVA_SCRIPT,
-        _ => lsproto::LanguageKind::TYPE_SCRIPT,
-    }
 }
 
 fn integer(value: Option<&Value>) -> Result<i64, String> {

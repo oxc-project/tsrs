@@ -845,3 +845,28 @@ fn a_frame_shorter_than_its_length_is_a_fatal_error() {
     assert!(server.read().is_none());
     assert_eq!(server.exit_code(), 1);
 }
+
+#[test]
+fn an_open_file_is_parsed_by_its_extension_in_any_case() {
+    let dir = fixture("extension-case");
+    // JSDoc types apply in JavaScript only: parsed as TypeScript, `p` would be `any`.
+    let text = "/** @type {Promise<number>} */\nexport let p;\np;\n";
+    for name in ["c.js", "d.JS"] {
+        std::fs::write(dir.join(name), text).unwrap();
+        let file = path(&dir, name);
+        let mut server = Server::start(&dir);
+        assert_eq!(
+            rules_of(&server.lint(&[&file]), &file),
+            ["no-floating-promises"],
+            "{name} on disk"
+        );
+        // Text other than the disk's, so the open file is parsed again.
+        server.open(&file, 1, &format!("// open\n{text}"));
+        assert_eq!(
+            rules_of(&server.lint(&[&file]), &file),
+            ["no-floating-promises"],
+            "{name} open"
+        );
+        assert_eq!(server.exit_code(), 0);
+    }
+}

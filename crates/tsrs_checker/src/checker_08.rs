@@ -2019,8 +2019,9 @@ impl Checker {
                 let mut lookup_table: ExportCollisionTable = FxHashMap::default();
                 let declarations = export_stars.declarations();
                 for &node in declarations {
-                    // tsrs-only: the internal prefix is U+007F, not Go's 0xFE, so a quoted export named
-                    // "\u{7f}export" lands in this bucket too; only an `export *` declaration belongs here.
+                    // tsrs-only: unlike Go's 0xFE, the U+007F internal-name prefix can occur in user text, so
+                    // any export named "\u007fexport" lands in this bucket too; only its `export *` declarations
+                    // belong here.
                     if !ast::is_export_declaration(node) {
                         continue;
                     }

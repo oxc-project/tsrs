@@ -283,11 +283,11 @@ pub type UTF16Offset = u32;
 
 // UTF16Len returns the number of UTF-16 code units needed to
 // represent the given UTF-8 encoded string.
-pub fn utf16_len(s: &str) -> UTF16Offset {
-    if s.is_ascii() {
-        return s.len() as UTF16Offset;
+pub fn utf16_len(s: impl AsRef<[u8]>) -> UTF16Offset {
+    let bytes = s.as_ref();
+    if bytes.is_ascii() {
+        return bytes.len() as UTF16Offset;
     }
-    let bytes = s.as_bytes();
     for (i, &byte) in bytes.iter().enumerate() {
         if byte >= 0x80 {
             // Found non-ASCII; count the ASCII prefix, then decode the rest.

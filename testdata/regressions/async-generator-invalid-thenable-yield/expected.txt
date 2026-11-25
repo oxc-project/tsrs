@@ -2,4 +2,8 @@ a.ts(2,11): error TS1321: Type of 'yield' operand in an async generator must eit
 a.ts(6,11): error TS1321: Type of 'yield' operand in an async generator must either be a valid promise or must not contain a callable 'then' member.
 a.ts(7,11): error TS1321: Type of 'yield' operand in an async generator must either be a valid promise or must not contain a callable 'then' member.
 a.ts(11,11): error TS1321: Type of 'yield' operand in an async generator must either be a valid promise or must not contain a callable 'then' member.
-a.ts(14,7): error TS2322: Type 'AsyncGenerator<never, void, unknown>' is not assignable to type 'string'.
+a.ts(19,11): error TS1062: Type is referenced directly or indirectly in the fulfillment callback of its own 'then' method.
+a.ts(24,12): error TS1322: Type of iterated elements of a 'yield*' operand must either be a valid promise or must not contain a callable 'then' member.
+a.ts(27,7): error TS2322: Type 'AsyncGenerator<never, void, unknown>' is not assignable to type 'string'.
+a.ts(28,7): error TS2322: Type 'AsyncGenerator<never, void, unknown>' is not assignable to type 'string'.
+a.ts(29,7): error TS2322: Type 'AsyncGenerator<never, void, any>' is not assignable to type 'string'.

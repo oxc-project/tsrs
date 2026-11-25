@@ -331,12 +331,26 @@ export function memoryFileSystem(files = {}, { caseInsensitive = false } = {}) {
         },
         writeFile(path, data, append) {
             const p = normalize(path);
-            const prev = append ? map.get(fold(p))?.data ?? new Uint8Array(0) : new Uint8Array(0);
+            const fp = fold(p);
+            // A write must not create a file below a regular file or replace an implicit directory.
+            for (let i = p.lastIndexOf("/"); i > 0; i = p.lastIndexOf("/", i - 1)) {
+                const ancestor = fold(p.slice(0, i));
+                if (map.has(ancestor)) {
+                    throw new Error("File exists (os error 17)");
+                }
+            }
+            const prefix = fp + "/";
+            for (const key of map.keys()) {
+                if (key.startsWith(prefix)) {
+                    throw new Error("Is a directory (os error 21)");
+                }
+            }
+            const prev = append ? map.get(fp)?.data ?? new Uint8Array(0) : new Uint8Array(0);
             const next = new Uint8Array(prev.length + data.length);
             next.set(prev);
             next.set(data, prev.length);
-            put(map.get(fold(p))?.path ?? p, next);
-            written.set(map.get(fold(p)).path, decoder.decode(next));
+            put(map.get(fp)?.path ?? p, next);
+            written.set(map.get(fp).path, decoder.decode(next));
         },
         remove(path) {
             const p = fold(normalize(path));

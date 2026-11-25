@@ -870,3 +870,25 @@ fn an_open_file_is_parsed_by_its_extension_in_any_case() {
         assert_eq!(server.exit_code(), 0);
     }
 }
+
+#[test]
+fn a_projects_tsconfig_errors_are_reported_once_and_its_files_not_linted() {
+    let dir = fixture("tsconfig-errors-once");
+    let (a, b, tsconfig) = (path(&dir, "a.ts"), path(&dir, "b.ts"), path(&dir, "tsconfig.json"));
+    std::fs::write(
+        dir.join("tsconfig.json"),
+        r#"{ "compilerOptions": { "strict": true, "target": "not-a-target" }, "include": ["*.ts"] }"#,
+    )
+    .unwrap();
+    std::fs::write(
+        dir.join("a.ts"),
+        "export async function f(): Promise<number> { return 1; }\nf();\n",
+    )
+    .unwrap();
+    let mut server = Server::start(&dir);
+    let answer = server.lint(&[&a, &b]);
+    assert_eq!(rules_of(&answer, &a), NONE, "{answer:?}");
+    assert_eq!(rules_of(&answer, &b), NONE, "{answer:?}");
+    assert_eq!(rules_of(&answer, &tsconfig), [""], "one tsconfig error: {answer:?}");
+    assert_eq!(server.exit_code(), 0);
+}

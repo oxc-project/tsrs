@@ -530,13 +530,14 @@ impl Server {
         let mut result = Ok(());
         // The programs are loaded: this snapshot only updates them for notifications that arrived meanwhile.
         self.session.with_snapshot_for_documents(&ctx, &uris, |snapshot| {
-            // Projects whose tsconfig errors were reported: once per request, as the headless mode does per program.
-            let mut reported_projects = FxHashSet::default();
+            // Whether each project seen has tsconfig or program errors, which are reported once per request, as the
+            // headless mode does per program.
+            let mut project_errors = FxHashMap::default();
             result = request.files.iter().zip(&uris).try_for_each(|(file, uri)| {
                 if request.is_canceled() {
                     return Ok(());
                 }
-                self.lint_file(&ctx, snapshot, request, file, uri, &mut reported_projects, output)
+                self.lint_file(&ctx, snapshot, request, file, uri, &mut project_errors, output)
             });
         });
         result
@@ -551,7 +552,7 @@ impl Server {
         request: &LintRequest,
         file: &RequestFile,
         uri: &lsproto::DocumentUri,
-        reported_projects: &mut FxHashSet<String>,
+        project_errors: &mut FxHashMap<String, bool>,
         output: &mut Vec<u8>,
     ) -> Result<(), String> {
         // A file without a project (an unknown script kind, for example) has nothing to lint.
@@ -562,10 +563,15 @@ impl Server {
             return Ok(());
         };
         let mut diagnostics = Vec::new();
-        let config_errors = self.config_errors(&project, program, &mut diagnostics)?;
-        if !reported_projects.insert(project.id().0) {
-            diagnostics.clear();
-        }
+        // A project's errors are computed and reported for its first file only.
+        let project_id = project.id().0;
+        let config_errors = if let Some(&config_errors) = project_errors.get(&project_id) {
+            config_errors
+        } else {
+            let config_errors = self.config_errors(&project, program, &mut diagnostics)?;
+            project_errors.insert(project_id, config_errors);
+            config_errors
+        };
         if !config_errors
             && let Some(source_file) = program.get_source_file(&file.name)
             // Rules see a content-mapped file's virtual text, whose ranges do not apply on disk.

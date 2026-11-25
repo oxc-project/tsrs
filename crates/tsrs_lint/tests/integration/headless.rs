@@ -7405,3 +7405,199 @@ fn a_content_mapper_that_cannot_be_initialized_is_reported_with_the_reason() {
         ))
     );
 }
+
+#[test]
+fn extension_shadowed_imported_file_uses_configured_program_and_unimported_falls_back() {
+    let root = std::env::current_dir().unwrap().join("target/lint-extension-shadowed-tsx");
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(
+        root.join("tsconfig.json"),
+        r#"{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "include": ["src"]
+}"#,
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("src/router.ts"),
+        "export interface Register {}\n\
+         type SearchFn = Register extends { readonly search: infer S } ? (prev: S) => S : unknown;\n\
+         export const navigate = (_opts: { readonly search: SearchFn }): void => {};\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("src/register.ts"),
+        "declare module \"./router.ts\" {\n  interface Register {\n    readonly search: { readonly q: string };\n  }\n}\nexport {};\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("src/entry.ts"),
+        "import { view } from \"./widget.tsx\";\nexport const run = (): void => { view(); };\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("src/widget.ts"),
+        "export const helper = (s: { readonly q: string }) => s;\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("src/widget.tsx"),
+        "import { navigate } from \"./router.ts\";\n\
+         import { helper } from \"./widget.ts\";\n\
+         export const view = (): void => {\n  navigate({ search: (prev) => helper(prev) });\n};\n\
+         const arr: string[] = [];\n\
+         export const first: string = arr[0];\n",
+    )
+    .unwrap();
+    // Same-stem `.tsx` sibling that is NOT imported by the program: must fall back to the
+    // inferred program (where `noUncheckedIndexedAccess` is off, so `arr[0]` is not TS2322).
+    std::fs::write(root.join("src/orphan.ts"), "export const keep = 1;\n").unwrap();
+    std::fs::write(
+        root.join("src/orphan.tsx"),
+        "const arr: string[] = [];\nexport const first: string = arr[0];\n",
+    )
+    .unwrap();
+
+    let file = |name: &str| Value::String(root.join(name).to_string_lossy().into_owned());
+    let payload_for = |files: Vec<Value>| {
+        json::marshal(&protocol::object([
+            ("version", Value::Integer(2)),
+            (
+                "configs",
+                Value::Array(vec![protocol::object([
+                    ("file_paths", Value::Array(files)),
+                    ("rules", Value::Array(Vec::new())),
+                ])]),
+            ),
+            ("report_syntactic", Value::Bool(true)),
+            ("report_semantic", Value::Bool(true)),
+        ]))
+        .unwrap()
+    };
+
+    let all_files = vec![
+        file("src/entry.ts"),
+        file("src/orphan.ts"),
+        file("src/orphan.tsx"),
+        file("src/register.ts"),
+        file("src/router.ts"),
+        file("src/widget.ts"),
+        file("src/widget.tsx"),
+    ];
+    for input in [payload_for(all_files), payload_for(vec![file("src/widget.tsx")])] {
+        for fast in ["0", "1"] {
+            assert_eq!(
+                reported_ids(&input, &[("TSRS_FAST", fast)], "lint-extension-shadowed-tsx"),
+                vec!["src/widget.tsx TS2322"],
+                "fast={fast}"
+            );
+        }
+    }
+    for fast in ["0", "1"] {
+        assert_eq!(
+            reported_ids(
+                &payload_for(vec![file("src/orphan.tsx")]),
+                &[("TSRS_FAST", fast)],
+                "lint-extension-shadowed-tsx",
+            ),
+            Vec::<String>::new(),
+            "fast={fast}"
+        );
+    }
+}
+
+#[test]
+fn extension_shadowed_unimported_file_falls_back_when_config_or_program_has_diagnostics() {
+    let payload_for = |files: Vec<Value>| {
+        json::marshal(&protocol::object([
+            ("version", Value::Integer(2)),
+            (
+                "configs",
+                Value::Array(vec![protocol::object([
+                    ("file_paths", Value::Array(files)),
+                    ("rules", Value::Array(Vec::new())),
+                ])]),
+            ),
+            ("report_semantic", Value::Bool(true)),
+        ]))
+        .unwrap()
+    };
+
+    // Config error (unknown compiler option): linting only the unimported shadowed file falls back
+    // to the inferred program without surfacing a tsconfig-error; linting a direct file too still
+    // reports the config error without dropping the shadowed file.
+    let bad_config = std::env::current_dir().unwrap().join("target/lint-shadowed-bad-config");
+    let _ = std::fs::remove_dir_all(&bad_config);
+    std::fs::create_dir_all(bad_config.join("src")).unwrap();
+    std::fs::write(
+        bad_config.join("tsconfig.json"),
+        r#"{"compilerOptions":{"unknownOption":true},"include":["src"]}"#,
+    )
+    .unwrap();
+    std::fs::write(bad_config.join("src/orphan.ts"), "export const keep = 1;\n").unwrap();
+    std::fs::write(bad_config.join("src/orphan.tsx"), "export const n: number = \"x\";\n").unwrap();
+    let bad_file = |name: &str| Value::String(bad_config.join(name).to_string_lossy().into_owned());
+    assert_eq!(
+        reported_ids(
+            &payload_for(vec![bad_file("src/orphan.tsx")]),
+            &[],
+            "lint-shadowed-bad-config"
+        ),
+        vec!["src/orphan.tsx TS2322"],
+    );
+    assert_eq!(
+        reported_ids(
+            &payload_for(vec![bad_file("src/orphan.ts"), bad_file("src/orphan.tsx")]),
+            &[],
+            "lint-shadowed-bad-config",
+        ),
+        vec!["src/orphan.tsx TS2322", "tsconfig.json tsconfig-error"],
+    );
+
+    // Program diagnostic (composite project importing a shadowed file triggers TS6307):
+    // linting only an unimported shadowed sibling must not emit the program diagnostic and must
+    // still check the file in the inferred program; linting both still reports both.
+    let composite = std::env::current_dir().unwrap().join("target/lint-shadowed-composite-diag");
+    let _ = std::fs::remove_dir_all(&composite);
+    std::fs::create_dir_all(composite.join("src")).unwrap();
+    std::fs::write(
+        composite.join("tsconfig.json"),
+        r#"{"compilerOptions":{"composite":true,"jsx":"react-jsx","allowImportingTsExtensions":true,"emitDeclarationOnly":true},"include":["src"]}"#,
+    )
+    .unwrap();
+    std::fs::write(
+        composite.join("src/entry.ts"),
+        "import { x } from \"./widget.tsx\";\nexport const y = x;\n",
+    )
+    .unwrap();
+    std::fs::write(composite.join("src/widget.ts"), "export const w = 1;\n").unwrap();
+    std::fs::write(composite.join("src/widget.tsx"), "export const x = 2;\n").unwrap();
+    std::fs::write(composite.join("src/orphan.ts"), "export const keep = 1;\n").unwrap();
+    std::fs::write(composite.join("src/orphan.tsx"), "export const n: number = \"x\";\n").unwrap();
+    let comp_file = |name: &str| Value::String(composite.join(name).to_string_lossy().into_owned());
+    assert_eq!(
+        reported_ids(
+            &payload_for(vec![comp_file("src/orphan.tsx")]),
+            &[],
+            "lint-shadowed-composite-diag",
+        ),
+        vec!["src/orphan.tsx TS2322"],
+    );
+    let both = reported_ids(
+        &payload_for(vec![comp_file("src/entry.ts"), comp_file("src/orphan.tsx")]),
+        &[],
+        "lint-shadowed-composite-diag",
+    );
+    assert!(both.iter().any(|entry| entry == "src/orphan.tsx TS2322"), "{both:?}");
+    assert!(both.iter().any(|entry| entry.ends_with(" tsconfig-error")), "{both:?}");
+}

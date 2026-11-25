@@ -1,1 +1,2 @@
 a.js(1,7): error TS1010: '*/' expected.
+b.js(1,7): error TS1010: '*/' expected.

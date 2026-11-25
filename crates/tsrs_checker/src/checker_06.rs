@@ -1857,8 +1857,8 @@ impl Checker {
         }
         let mut diagnostic: Option<P<Diagnostic>> = None;
         let declaration_name = right.text();
-        // As in Go, a nested access skips the declaration-order query, which can resolve the property's type while a
-        // field initializer is being checked.
+        // Test for a nested access before `is_block_scoped_name_declared_before_use`, as Go does: from a static
+        // initializer, that call resolves the property's type and can report a false circularity.
         if !(!Self::is_in_property_initializer_or_class_static_block(
             node, false, /*ignoreArrowFunctions*/
         ) || Self::is_optional_property_declaration(value_declaration)

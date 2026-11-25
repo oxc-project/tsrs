@@ -366,8 +366,8 @@ fn run_in_region(
     drop(config_cache);
     let next = AtomicUsize::new(0);
     let linted: Vec<Mutex<Option<Linted>>> = programs.iter().map(|_| Mutex::new(None)).collect();
-    // Each worker's tsconfigs are parsed into a scratch region of its own, kept until the request ends as the
-    // calling thread's is.
+    // What a worker allocates outside its programs' loader regions, such as a tsconfig whose discovery parse it
+    // cannot reuse, goes to a scratch region of its own, kept until the request ends as the calling thread's is.
     let scratch = Mutex::new(Vec::new());
     std::thread::scope(|scope| {
         for i in 0..program_threads(programs.len()) {

@@ -1,3 +1,5 @@
+// EXPECTED is pinned tsgo's stdout for this project.
+
 use std::process::Command;
 
 const SOURCE: &str = "declare const f: number;

@@ -356,7 +356,7 @@ fn write_code_snippet(
     }
 }
 
-// strings.Repeat panics on a negative count; the Go code never passes one for valid diagnostics.
+// strings.Repeat panics on a negative count, which Go reaches for a range that ends before it starts on one line.
 fn go_repeat_count(n: i64) -> usize {
     assert!(n >= 0, "strings: negative Repeat count");
     n as usize

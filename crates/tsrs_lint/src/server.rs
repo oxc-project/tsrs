@@ -43,12 +43,13 @@
 //! a panic, or a cancellation), in which case its diagnostics are dropped. A request's frames are written at once,
 //! so requests never interleave.
 //!
-//! Lint requests wait in a queue for a fixed pool of worker threads, first in, first out, and take one snapshot
-//! when a worker starts them, for all of their files. There are as many workers as the available parallelism, at
-//! most 4, unless `TSRS_LINT_SERVER_WORKERS` sets a positive number. `Cancel {"id"}` answers a queued request as
-//! canceled at once; a running request stops before its next file and is answered as canceled; a finished or unknown
-//! `id` is ignored. `Shutdown` or the end of the input answers queued requests as canceled, lets running requests
-//! finish, then exits with status 0. `docs/LINT_SERVER.md` documents the protocol.
+//! Lint requests wait in a queue for a fixed pool of worker threads, first in, first out. A running request loads
+//! its files' projects, then takes one snapshot for all of its files. There are as many workers as the available
+//! parallelism, at most 4, unless `TSRS_LINT_SERVER_WORKERS` sets a positive number. `Cancel {"id"}` answers a queued
+//! request as canceled at once; a running request stops before it loads its next file's project or lints its next
+//! file, and is answered as canceled; a finished or unknown `id` is ignored. `Shutdown` or the end of the input
+//! answers queued requests as canceled, lets running requests finish, then exits with status 0. `docs/LINT_SERVER.md`
+//! documents the protocol.
 
 use std::collections::VecDeque;
 use std::io::{self, Read, Write};
@@ -503,18 +504,27 @@ impl Server {
     }
 
     /// Lints the request's files into `output`, all against one snapshot: a notification that arrives while the
-    /// request runs applies to later requests only.
+    /// files are linted applies to later requests only.
     fn lint_files(&self, request: &LintRequest, output: &mut Vec<u8>) -> Result<(), String> {
         let ctx =
             context::with_checker_lifetime(&Context::background(), CheckerLifetime::Diagnostics);
         let uris: Vec<lsproto::DocumentUri> =
             request.files.iter().map(|file| uri(&file.name)).collect();
+        // Building a program cannot be interrupted, so the request's projects are loaded one file at a time first: a
+        // request canceled meanwhile stops before it builds the next project's program. A file whose project is
+        // already loaded costs a lookup.
+        for uri in &uris {
+            if request.is_canceled() {
+                return Ok(());
+            }
+            self.session.with_snapshot_for_document(&ctx, uri, |_| {});
+        }
         let mut result = Ok(());
+        // The programs are loaded: this snapshot only updates them for notifications that arrived meanwhile.
         self.session.with_snapshot_for_documents(&ctx, &uris, |snapshot| {
             // Projects whose tsconfig errors were reported: once per request, as the headless mode does per program.
             let mut reported_projects = FxHashSet::default();
             result = request.files.iter().zip(&uris).try_for_each(|(file, uri)| {
-                // Building the programs can take a while: a request canceled meanwhile stops here.
                 if request.is_canceled() {
                     return Ok(());
                 }

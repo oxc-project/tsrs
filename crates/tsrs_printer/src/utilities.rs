@@ -1133,7 +1133,7 @@ impl LineCharacterCache {
         {
             // tsrs-only: a position before the cached one on the same line (the printer maps a node's start after its
             // children's ends) is nearer to the cached position than to the line start; count back from there.
-            // Go counts from the line start, which counting back matches only from a character boundary.
+            // Go counts from the line start, which counting back reproduces only when end_pos is a character boundary.
             self.cached_char - utf16_len_bytes(&bytes[end_pos as usize..self.cached_pos as usize])
         } else {
             // Full computation from line start.

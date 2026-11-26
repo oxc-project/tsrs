@@ -438,18 +438,18 @@ impl Checker {
                             && !source_file.content_mapper().is_empty()
                             && mapped_source);
                     if !resolved_using_rewritable_extension && should_rewrite {
-                        let relative_to_source_file = tspath::get_relative_path_from_file(
+                        // checker.go:15601: the absolute name when the relative path would start with a root.
+                        let relative_to_source_file = tspath::relative_path_from_file_to_path(
                             &tspath::get_normalized_absolute_path(
                                 importing_source_file.file_name(),
                                 &self.program.get_current_directory(),
                             ),
                             resolved_module.resolved_file_name,
-                            &tspath::ComparePathsOptions {
-                                use_case_sensitive_file_names: self
-                                    .program
-                                    .use_case_sensitive_file_names(),
-                                current_directory: self.program.get_current_directory(),
-                            },
+                            case_sensitive,
+                        )
+                        .map_or_else(
+                            || resolved_module.resolved_file_name.to_string(),
+                            |relative| tspath::ensure_path_is_non_module_name(&relative),
                         );
                         self.error(error_node, &diagnostics::THIS_RELATIVE_IMPORT_PATH_IS_UNSAFE_TO_REWRITE_BECAUSE_IT_LOOKS_LIKE_A_FILE_NAME_BUT_ACTUALLY_RESOLVES_TO_0, &[&relative_to_source_file]);
                     } else if resolved_using_rewritable_extension

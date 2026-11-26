@@ -40,7 +40,7 @@ The linter (`tsrs --lint` and `tsrs-lint`) enables the preset by default; `TSRS_
 | Types, Symbols and Instantiations counters | Counts the work of its checkers | Counts tsrs's work; checker count, assignment, caches and lazy members can all change the values. Matching `--checkers` alone does not make these counters identical |
 | Parallel parsing | Goroutines scheduled by the Go runtime | A thread pool of `min(available parallelism, 32)`, overridden by a positive `RAYON_NUM_THREADS`; `--singleThreaded` disables parallel parsing. With more than one builder, `--build` parses a loader round of fewer than 128 files on the builder thread |
 | Incremental startup | Reads tsbuildinfo, then builds the program | Both at once on two threads, unless `--singleThreaded` |
-| tsbuildinfo contents | tsgo's fields | The same by default. Opt-in modes add `tsrsPerformance`; canonical history also adds `tsrsCanonicalCheckSignature` and `tsrsInterfaceFiles`. Changing history or lazy members invalidates incompatible cached diagnostics |
+| tsbuildinfo contents | tsgo's fields | The same by default. Opt-in modes add `tsrsPerformance`; canonical history also adds `tsrsCanonicalCheckSignature` and `tsrsInterfaceFiles`. Changing history or lazy members invalidates incompatible cached diagnostics. `--watch` can store a different set of signatures (see [Watch mode](#watch-mode)) |
 | `--version` | `Version <TypeScript version>` | Appends `(tsrs <release>, microsoft/TypeScript@<commit>)`. Unstamped source builds use `7.1.0-beta`; npm builds use the pinned package version on both sides |
 | `--init` | Writes a tsconfig.json | `error: --init is not supported by tsrs.` on stderr, exit status 5, no file written |
 | `--help`, `--all`, `-b --help` | Full option help | A version line and short usage, exit status 0 |
@@ -63,6 +63,8 @@ The linter (`tsrs --lint` and `tsrs-lint`) enables the preset by default; `TSRS_
 | Realpath on Linux | `O_PATH` and `/proc/self/fd`, falling back to walking symlinks | Rust's `std::fs::canonicalize` |
 | Memory management | Go garbage collection; honors Go runtime environment settings | Arenas and mimalloc. On Linux, huge pages are enabled for eligible arena allocations, not mimalloc's heap by default. Go runtime variables have no effect |
 | Arguments that aren't UTF-8 (Unix) | Kept as bytes for file lookups; diagnostics print each run of invalid bytes as U+FFFD | Each run of invalid bytes becomes U+FFFD before parsing, so diagnostics match but lookups use the replaced name: a file whose name isn't UTF-8 (possible on Linux) is not found |
+| Source files that aren't UTF-8 | Kept as bytes: `.js` copies them, and `.d.ts` escapes them in string literals (`\uFFFD`, or `\uD800` for an encoded lone surrogate) | Each invalid sequence becomes U+FFFD when the file is read, so `.js` and `.d.ts` hold U+FFFD. UTF-16 with a byte order mark is decoded as in tsgo |
+| Fractional `**` in constant folding (enum members, inlined `const enum` values) | Go `math.Pow` of the build architecture: arm64 and amd64 can differ in the last digit, and amd64 also depends on the CPU's FMA support | Go's arm64 result on every platform. `2 ** 0.2` is `1.1486983549970349`, as in tsgo on arm64; tsgo on amd64 gives `1.148698354997035` |
 | tsrs-only flags with `-b` | — | The tsrs-only flags (`--checkerAssignment`, `--checkerCostCache`, `--maxMemory`, `--lazyMembers`, `--noLazyMembers`) are rejected with TS5072 |
 
 The preset is supported by ordinary compilation, watch and build mode. `--fast` works in response files and is
@@ -77,8 +79,10 @@ The tsrs-only flags are described in [Performance options](USAGE.md#performance-
 [`checkerpool.rs`](../crates/tsrs_compiler/src/checkerpool.rs),
 [`execute.rs`](../crates/tsrs_execute/src/execute.rs),
 [`statistics.rs`](../crates/tsrs_execute/src/tsc/statistics.rs),
-[`buildinfo.rs`](../crates/tsrs_incremental/src/buildinfo.rs) and
-[`bundled.rs`](../crates/tsrs_vfs/src/bundled/bundled.rs).
+[`buildinfo.rs`](../crates/tsrs_incremental/src/buildinfo.rs),
+[`bundled.rs`](../crates/tsrs_vfs/src/bundled/bundled.rs),
+[`internal.rs`](../crates/tsrs_vfs/src/internal/internal.rs) and
+[`math.rs`](../crates/tsrs_core/src/jsnum/math.rs).
 
 ## Watch mode
 
@@ -93,6 +97,7 @@ The tsrs-only flags are described in [Performance options](USAGE.md#performance-
 | kqueue descriptor limit | Raised by the Go runtime | Raised by tsrs, which reports when it isn't enough |
 | Events that start a rebuild | Every relevant event | Skips the build's own outputs and files whose modification time didn't change; rescans files changed during the first build; watches directories reached through symlinks; rebuilds on case-only renames |
 | Parsed files in `-b --watch` | Reparsed every cycle | Reused when the text is unchanged |
+| Declaration signatures with `incremental` | Computed during each cycle | Also computed by a background job between cycles, so after an edit `.tsbuildinfo` can store signatures for different files than tsgo. Diagnostics and emitted files are the same |
 | Backend override | none | `TSRS_WATCH_BACKEND=kqueue` uses the macOS fallback |
 
 Write settling is enabled for `--watch` and `-b --watch`, not the language server. The backends and consolidation
@@ -147,6 +152,9 @@ rules are shared, so other watcher differences can also affect the language serv
   the enum (`"module": 42` gives `ModuleKind(42)`). tsrs looks the number up in the enum map and falls back to unset.
 - **`watchInterval`** uses Go `int` (64-bit on 64-bit builds) and 32-bit storage in tsrs. Neither side implements
   polling with this option.
+- **`maxNodeModuleJsDepth` of 2^63 or more**: tsgo converts it with Go `int(float64)`, which saturates on arm64
+  and gives the minimum value on amd64, where every JavaScript file in `node_modules` is then skipped. tsrs
+  saturates on every platform, as tsgo on arm64 does.
 - **`builders` from the API below 1** queues nothing in tsgo; tsrs ignores it because API mode always uses 1.
 - **Content mappers:** with `contentMappers`, tsrs leaves a mapped file's own `.d<ext>.ts` output out of wildcard
   includes when the mapped source is also included. tsgo includes it, which can give TS5055 on a later emit.

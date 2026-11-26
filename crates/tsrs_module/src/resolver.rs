@@ -495,8 +495,9 @@ impl DefaultResolver<'_> {
         let containing_directory = tspath::get_directory_path(containing_file);
         let mut trace_builder = self.new_trace_builder();
 
+        // resolver.go:431: Go compares the whole base name, so `a__inferred type names__.ts` does not match.
         let from_inferred_types_containing_file =
-            containing_file.ends_with(INFERRED_TYPES_CONTAINING_FILE);
+            tspath::get_base_file_name_cow(containing_file) == INFERRED_TYPES_CONTAINING_FILE;
 
         let cache_key = TypeRefDirectiveResolutionCacheKey {
             containing_directory: containing_directory.clone(),

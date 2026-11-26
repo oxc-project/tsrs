@@ -2343,15 +2343,16 @@ fn parse_json_config_file_content_worker(
 
     let get_file_names = |base_path: &str,
                           errors: &mut Vec<P<Diagnostic>>|
-     -> (Vec<String>, usize) {
+     -> (Vec<String>, usize, Vec<String>) {
         let parsed_config_options = parsed_config.options.as_ref();
-        let (file_names, literal_file_names_len) = get_file_names_from_config_specs(
-            &config_file_specs,
-            base_path,
-            parsed_config_options,
-            host.fs(),
-            &content_mapper_extensions,
-        );
+        let (file_names, literal_file_names_len, extension_shadowed_file_names) =
+            get_file_names_from_config_specs(
+                &config_file_specs,
+                base_path,
+                parsed_config_options,
+                host.fs(),
+                &content_mapper_extensions,
+            );
         if should_report_no_input_files(
             &file_names,
             can_json_report_no_input_files(&raw_config),
@@ -2368,7 +2369,7 @@ fn parse_json_config_file_content_worker(
                 &[&config_file_name, &stringify_json(&include_specs), &stringify_json(&exclude_specs)],
             ));
         }
-        (file_names, literal_file_names_len)
+        (file_names, literal_file_names_len, extension_shadowed_file_names)
     };
 
     let get_project_references = |base_path: &str,
@@ -2431,7 +2432,7 @@ fn parse_json_config_file_content_worker(
         project_references
     };
 
-    let (file_names, literal_file_names_len) =
+    let (file_names, literal_file_names_len, extension_shadowed_file_names) =
         get_file_names(&base_path_for_file_names, &mut errors);
     let mut compile_on_save = false;
     if let CompilerOptionsValue::Object(raw) = &parsed_config.raw
@@ -2459,6 +2460,7 @@ fn parse_json_config_file_content_worker(
             current_directory: base_path_for_file_names,
         },
         literal_file_names_len,
+        extension_shadowed_file_names,
         ..ParsedCommandLine::empty()
     }
 }
@@ -3020,6 +3022,7 @@ fn declaration_output_of_mapped_file(file: &str, mapped_extensions: &[&str]) -> 
 fn remove_wildcard_files_with_lower_priority_extension(
     file: &str,
     wildcard_files: &mut OrderedMap<String, String>,
+    shadowed_files: &mut OrderedMap<String, String>,
     extensions: &[Vec<&str>],
     key_mapper: impl Fn(&str) -> String,
 ) {
@@ -3037,7 +3040,9 @@ fn remove_wildcard_files_with_lower_priority_extension(
             return;
         }
         let lower_priority_path = key_mapper(&tspath::change_extension(file, ext));
-        wildcard_files.shift_remove(&lower_priority_path);
+        if let Some(removed) = wildcard_files.shift_remove(&lower_priority_path) {
+            shadowed_files.insert(lower_priority_path, removed);
+        }
     }
 }
 
@@ -3054,7 +3059,7 @@ pub(crate) fn get_file_names_from_config_specs(
     options: Option<&CompilerOptions>,
     host: &dyn FS,
     extra_extensions: &[String],
-) -> (Vec<String>, usize) {
+) -> (Vec<String>, usize, Vec<String>) {
     let base_path = tspath::normalize_path(base_path);
     let key_mappper =
         |value: &str| tspath::get_canonical_file_name(value, host.use_case_sensitive_file_names());
@@ -3070,6 +3075,8 @@ pub(crate) fn get_file_names_from_config_specs(
     // file map with a possibly case insensitive key. We use this map to store paths matched
     // via wildcard of *.json kind
     let mut wild_card_json_file_map: OrderedMap<String, String> = OrderedMap::default();
+    // Wildcard paths skipped only because a same-stem file with a higher-priority extension was included.
+    let mut extension_shadowed_file_map: OrderedMap<String, String> = OrderedMap::default();
     let validated_files_spec = &config_file_specs.validated_files_spec;
     let validated_include_specs = &config_file_specs.validated_include_specs;
     let validated_exclude_specs = &config_file_specs.validated_exclude_specs;
@@ -3158,6 +3165,10 @@ pub(crate) fn get_file_names_from_config_specs(
                         || wildcard_file_map.contains_key(&canonical_file_name)
                 },
             ) {
+                let key = key_mappper(&file);
+                if !literal_file_map.contains_key(&key) {
+                    extension_shadowed_file_map.insert(key, file);
+                }
                 continue;
             }
             if let Some(source) = mapped_source_of_declaration_output(&file, &mapped_extensions) {
@@ -3173,6 +3184,7 @@ pub(crate) fn get_file_names_from_config_specs(
             remove_wildcard_files_with_lower_priority_extension(
                 &file,
                 &mut wildcard_file_map,
+                &mut extension_shadowed_file_map,
                 &supported_extension_groups,
                 key_mappper,
             );
@@ -3191,7 +3203,8 @@ pub(crate) fn get_file_names_from_config_specs(
     files.extend(literal_file_map.values().map(std::clone::Clone::clone));
     files.extend(wildcard_file_map.values().map(std::clone::Clone::clone));
     files.extend(wild_card_json_file_map.values().map(std::clone::Clone::clone));
-    (files, literal_file_map.len())
+    let extension_shadowed: Vec<String> = extension_shadowed_file_map.into_values().collect();
+    (files, literal_file_map.len(), extension_shadowed)
 }
 
 fn to_owned_groups(groups: &[&[&str]]) -> Vec<Vec<String>> {

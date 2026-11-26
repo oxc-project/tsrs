@@ -28,6 +28,9 @@ tsrs_lint.workspace = true
 mimalloc-safe.workspace = true
 libc.workspace = true
 
+[target.'cfg(unix)'.dev-dependencies]
+rustix.workspace = true
+
 [features]
 noembed = ["tsrs_vfs/noembed"]
 # The system allocator instead of mimalloc, for sanitizer builds (AddressSanitizer and ThreadSanitizer track only its

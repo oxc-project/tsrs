@@ -223,11 +223,11 @@ impl DeclarationTransformer {
         if node.kind() == Kind::JsxText {
             return Vec::new();
         }
-        scanner::get_leading_comment_ranges(
-            source_file.text(),
-            node.pos().expect_source("parsed nodes have source positions"),
-        )
-        .collect()
+        // Go's scanner yields no comment ranges for a synthesized position (-1).
+        let Some(pos) = node.pos().source_offset() else {
+            return Vec::new();
+        };
+        scanner::get_leading_comment_ranges(source_file.text(), pos).collect()
     }
 }
 

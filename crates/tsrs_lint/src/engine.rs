@@ -327,7 +327,7 @@ fn run_in_region(
     host: &ConfigHost,
     regions: &RequestRegions,
 ) -> Result<(), String> {
-    let mut programs: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut programs: BTreeMap<String, Vec<(String, bool)>> = BTreeMap::new();
     let mut unmatched = Vec::new();
     let mut file_configs = BTreeMap::new();
     let mut timings: BTreeMap<String, (u64, u64)> = BTreeMap::new();
@@ -344,14 +344,15 @@ fn run_in_region(
     let mut config_cache = FxHashMap::default();
     for path in file_configs.keys() {
         let resolved = tspath::get_normalized_absolute_path(path, cwd);
-        if let Some(config_path) = find_tsconfig(&resolved, host, &mut config_cache) {
-            programs.entry(config_path).or_default().push(path.clone());
-        } else {
-            unmatched.push(path.clone());
+        match find_tsconfig_match(&resolved, host, &mut config_cache) {
+            Some((config_path, shadowed)) => {
+                programs.entry(config_path).or_default().push((path.clone(), shadowed));
+            }
+            None => unmatched.push(path.clone()),
         }
     }
     let shared = Arc::clone(&host.shared);
-    let programs: Vec<(String, Vec<String>)> = programs.into_iter().collect();
+    let programs: Vec<(String, Vec<(String, bool)>)> = programs.into_iter().collect();
     let configs: Vec<Mutex<Option<ParsedCommandLine>>> = programs
         .iter()
         .map(|(config_path, _)| {
@@ -386,6 +387,7 @@ fn run_in_region(
                         };
                         let mut output = Vec::new();
                         let mut program_timings = BTreeMap::new();
+                        let mut dropped = Vec::new();
                         let result = lint_program(
                             config_path,
                             configs[index].lock().unwrap().take(),
@@ -398,8 +400,10 @@ fn run_in_region(
                             &shared,
                             &file_configs,
                             &mut program_timings,
+                            &mut dropped,
                         );
-                        *linted[index].lock().unwrap() = Some((result, output, program_timings));
+                        *linted[index].lock().unwrap() =
+                            Some((result, output, program_timings, dropped));
                     }
                     drop(entered);
                     scratch.lock().unwrap().push(region);
@@ -408,11 +412,19 @@ fn run_in_region(
         }
     });
     // Output in program order, as when the programs ran one after another.
+    let mut had_dropped = false;
     for slot in linted {
-        let (result, output, program_timings) = slot.into_inner().unwrap().unwrap();
+        let (result, output, program_timings, dropped) = slot.into_inner().unwrap().unwrap();
         writer.write_all(&output).map_err(|error| error.to_string())?;
         merge_timings(&mut timings, program_timings);
+        if !dropped.is_empty() {
+            had_dropped = true;
+            unmatched.extend(dropped);
+        }
         result?;
+    }
+    if had_dropped {
+        unmatched.sort();
     }
     if !unmatched.is_empty() {
         let config = tsrs_tsoptions::new_parsed_command_line(
@@ -478,8 +490,8 @@ fn run_in_region(
     Ok(())
 }
 
-/// A program's result, output and rule timings.
-type Linted = (Result<(), String>, Vec<u8>, BTreeMap<String, (u64, u64)>);
+/// A program's result, output, rule timings, and any extension-shadowed files that turned out not to be imported.
+type Linted = (Result<(), String>, Vec<u8>, BTreeMap<String, (u64, u64)>, Vec<String>);
 
 /// Programs linted at once. Each checks on its own checker pool, so a few at a time fill the machine without holding
 /// every program in memory: a quarter of the cores. A set `RAYON_NUM_THREADS` gives each program that many checkers
@@ -497,7 +509,7 @@ fn program_threads(programs: usize) -> usize {
 fn lint_program(
     config_path: &str,
     discovered: Option<ParsedCommandLine>,
-    files: &[String],
+    files: &[(String, bool)],
     payload: &Payload,
     options: Options,
     writer: &mut dyn Write,
@@ -506,6 +518,7 @@ fn lint_program(
     shared: &Arc<Shared>,
     file_configs: &BTreeMap<String, &[ConfiguredRule]>,
     timings: &mut BTreeMap<String, (u64, u64)>,
+    unmatched: &mut Vec<String>,
 ) -> Result<(), String> {
     // Dropped after the program: nothing that outlives a program points into its loader regions.
     let regions = RequestRegions::default();
@@ -521,16 +534,30 @@ fn lint_program(
         },
         |config| (Some(config), Vec::new()),
     );
+    let has_direct_files = files.iter().any(|(_, shadowed)| !shadowed);
+    let push_shadowed = |unmatched: &mut Vec<String>| {
+        for (name, shadowed) in files {
+            if *shadowed {
+                unmatched.push(name.clone());
+            }
+        }
+    };
     if !diagnostics.is_empty() {
-        for diagnostic in diagnostics {
-            report_config_error(diagnostic, config_path, false, writer)?;
+        push_shadowed(unmatched);
+        if has_direct_files {
+            for diagnostic in diagnostics {
+                report_config_error(diagnostic, config_path, false, writer)?;
+            }
         }
         return Ok(());
     }
     let config = config.ok_or_else(|| format!("couldn't read tsconfig at {config_path}"))?;
     if !config.errors.is_empty() && !options.suppress_program_diagnostics {
-        for diagnostic in &config.errors {
-            report_config_error(*diagnostic, config_path, false, writer)?;
+        push_shadowed(unmatched);
+        if has_direct_files {
+            for diagnostic in &config.errors {
+                report_config_error(*diagnostic, config_path, false, writer)?;
+            }
         }
         return Ok(());
     }
@@ -543,6 +570,17 @@ fn lint_program(
         shared,
     );
     let program_ref = program.program;
+    let mut program_files = Vec::with_capacity(files.len());
+    for (name, shadowed) in files {
+        if *shadowed && program_ref.get_source_file(name).is_none() {
+            unmatched.push(name.clone());
+        } else {
+            program_files.push(name.clone());
+        }
+    }
+    if program_files.is_empty() {
+        return Ok(());
+    }
     let diagnostics = program_ref.get_program_diagnostics();
     if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
         for diagnostic in diagnostics {
@@ -550,7 +588,7 @@ fn lint_program(
         }
         return Ok(());
     }
-    run_program(program_ref, files, payload, options, writer, file_configs, timings)
+    run_program(program_ref, &program_files, payload, options, writer, file_configs, timings)
 }
 
 fn create_program(
@@ -820,6 +858,7 @@ fn report_type_error(
                 help: String::new(),
             },
             file_path: Some(file.file_name().into()),
+            category: Some(diagnostic.category().name().to_owned()),
             ..Default::default()
         },
         writer,
@@ -843,6 +882,7 @@ fn report_global_error(
                 help: String::new(),
             },
             file_path: (!config_file_path.is_empty()).then(|| config_file_path.to_owned()),
+            category: Some(diagnostic.category().name().to_owned()),
             ..Default::default()
         },
         writer,
@@ -921,9 +961,21 @@ pub fn find_tsconfig(
     host: &ConfigHost,
     configs: &mut FxHashMap<tspath::Path, Option<ParsedCommandLine>>,
 ) -> Option<String> {
+    find_tsconfig_match(file, host, configs).map(|(path, _)| path)
+}
+
+/// Finds the tsconfig covering `file`. Returns `(config_path, shadowed)`, where `shadowed` is `true` when the file
+/// matched the config's `include`/`exclude` globs but was omitted from `file_names()` solely because a same-stem file
+/// with a higher-priority extension (e.g. `foo.ts` alongside `foo.tsx`) was included.
+fn find_tsconfig_match(
+    file: &str,
+    host: &ConfigHost,
+    configs: &mut FxHashMap<tspath::Path, Option<ParsedCommandLine>>,
+) -> Option<(String, bool)> {
     let mut next = compute_config_file_name(file, false, host);
     let mut visited = FxHashSet::default();
     let file_path = tspath::to_path(file, &host.cwd, host.fs.use_case_sensitive_file_names());
+    let mut shadowed_match: Option<String> = None;
     while let Some(config_path) = next {
         let mut queue = VecDeque::from([config_path.clone()]);
         let mut disable_solution_searching = false;
@@ -959,19 +1011,25 @@ pub fn find_tsconfig(
                         .compiler_options()
                         .is_none_or(|options| !options.composite.is_true())
                         || config.possibly_matches_file_name(file))
-                    && config.file_names_by_path().contains_key(&file_path)
                 {
-                    return Some(path);
+                    if config.file_names_by_path().contains_key(&file_path) {
+                        return Some((path, false));
+                    }
+                    if shadowed_match.is_none()
+                        && config.extension_shadowed_file_names_by_path().contains_key(&file_path)
+                    {
+                        shadowed_match = Some(path);
+                    }
                 }
                 queue.extend(config.resolved_project_reference_paths().iter().cloned());
             }
         }
         if disable_solution_searching {
-            return None;
+            return shadowed_match.map(|path| (path, true));
         }
         next = compute_config_file_name(&config_path, true, host);
     }
-    None
+    shadowed_match.map(|path| (path, true))
 }
 
 fn compute_config_file_name(file: &str, skip_directory: bool, host: &ConfigHost) -> Option<String> {

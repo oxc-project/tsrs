@@ -17,6 +17,7 @@ mod build_verbose_caret_directory;
 mod buildinfo_name_config_drive_stem;
 mod buildinfo_root_empty_array_omitted;
 mod buildinfo_tuple_array_length;
+mod cli_option_name_unicode_lowercase;
 mod common_source_dir_config_dir;
 mod declaration_specifier_caret_directory;
 mod default_emit;

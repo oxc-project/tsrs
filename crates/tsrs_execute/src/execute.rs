@@ -55,7 +55,7 @@ pub fn command_line_with_testing(
     testing: Option<&'static dyn tsc::CommandLineTesting>,
 ) -> CommandLineResult {
     if let Some(first) = command_line_args.first() {
-        match first.to_lowercase().as_str() {
+        match tsrs_core::stringutil::go_strings_to_lower(first).as_str() {
             "-b" | "--b" | "-build" | "--build" => {
                 let host = parse_config_host(sys);
                 let mut command = tsoptions::parse_build_command_line(&command_line_args, host);

@@ -28,7 +28,12 @@
         "src/api/async/client.ts": {
             "upstreamSha256": "978d956bdedb8de2aa43908267b1cc4ccbd993b3ff1271af0e0f885b22ef85df",
             "patch": "npm/sdk/patches/async-client-connection-loss.patch",
-            "patchSha256": "3587f236e3ebd9775376774c5418fd1fb12b4a0e72cea22a9eca50d730b577f5"
+            "patchSha256": "6e6e748507fc9521a5e73fec1eb9903e0c6b17ee7ce535e11b64dfab492efb2c"
+        },
+        "src/api/syncChannel.ts": {
+            "upstreamSha256": "249ae8532112f7efbfe0c33bae2a481ef0ff3c6c9575392b25ee77c6812f687b",
+            "patch": "npm/sdk/patches/sync-channel-windows-hide.patch",
+            "patchSha256": "0b0cee6920dab3aa0134f1c52ac904fca42f4310f1d5deb8010b192ed53b5136"
         },
         "vendor/vscode-jsonrpc/lib/common/connection.js": {
             "upstreamSha256": "0a3a46fad254b78fc2ee371d8438037c860b9bc73124fddb038bf3bb5a3c94f4",
@@ -46,7 +51,7 @@
         "schemas/jsconfig.schema.json": "d08929daca0eca2051ea199af2ec6a232b1a1fe0d580a8f5c37d6d4e4e1edcfa",
         "schemas/tsconfig.schema.json": "bd09d4918310176dd3e121a48baa92ff8823d44d7f43f433ad5e8f4b8074d020",
         "src/api/async/api.ts": "d20b7c55f5c3570a82fc664cae32fcea2d7f41d8dd07b10cf814926970045e27",
-        "src/api/async/client.ts": "c93e76b44b5716d5bcaa211159cba2121df5fe17e3479246056ee960c34d1087",
+        "src/api/async/client.ts": "9f9944c9c995975e371e9f4eb76a76d79b45791631ace3fd498435bcffc82497",
         "src/api/async/types.ts": "d012d3ebab050cebb522cce9a5b2c6978a3bcbe6ab379e66b98555120c5af338",
         "src/api/compilerOptions.generated.ts": "6a94efc2d1c6d5faca655ba953733770d35e578f8db5c0039ac4d0b72c387c18",
         "src/api/diagnosticFormatter.ts": "967c080f681bf0979a8a2a9ae7e5d778701f62a0ac8a682ca33b3d29a69bf7c3",
@@ -71,7 +76,7 @@
         "src/api/sync/client.ts": "3dd6d69e4b0761d753b1351da46a61ffe83a4bd775b871620f32ce375dd423dc",
         "src/api/sync/generatorSupport.ts": "d4ac0592637c9b796d8ab45a036e2cec7cbd8ea1949da2d6e58a5144b2da245c",
         "src/api/sync/types.ts": "d405fd1bce55680a3d0857f1b6b7891dbf35eea9280b414f48cafe568f217833",
-        "src/api/syncChannel.ts": "249ae8532112f7efbfe0c33bae2a481ef0ff3c6c9575392b25ee77c6812f687b",
+        "src/api/syncChannel.ts": "6a0eb30a0d2592d132edca594464472b78566ff49fa443f1650c73ee9042bab2",
         "src/api/timing.ts": "843ef53eec4a6fe1345d06cf66cd91e7581deb1542bc5a3b330eedddf9e14aa2",
         "src/api/timingDump.ts": "4e831ae48bf3b8856199004fb5a69a1cbf17322e391544cc567045adf47cd97d",
         "src/api/typedPaths.ts": "90819f25cc92406047aa23bd8647ebe546154030e1f3aa32a9c5133b43e8023d",

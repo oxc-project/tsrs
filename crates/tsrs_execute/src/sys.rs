@@ -9,8 +9,65 @@ use tsrs_vfs::{FS, bundled, osvfs};
 
 use crate::tsc::System;
 
+// Go's os.Stdout parks the goroutine on EAGAIN until the fd is writable, so fmt.Fprint appears to block.
+// Rust returns WouldBlock on a non-blocking stdout pipe; poll until writable and retry so output is not dropped.
+#[derive(Debug)]
+struct StdoutWriter(std::io::Stdout);
+
+impl Write for StdoutWriter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        #[cfg(unix)]
+        {
+            use std::io::ErrorKind;
+
+            loop {
+                match self.0.write(buf) {
+                    Ok(n) => return Ok(n),
+                    Err(ref e) if e.kind() == ErrorKind::Interrupted => {}
+                    Err(ref e) if e.kind() == ErrorKind::WouldBlock => poll_out(&self.0)?,
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+        #[cfg(not(unix))]
+        self.0.write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        #[cfg(unix)]
+        {
+            use std::io::ErrorKind;
+
+            loop {
+                match self.0.flush() {
+                    Ok(()) => return Ok(()),
+                    Err(ref e) if e.kind() == ErrorKind::Interrupted => {}
+                    Err(ref e) if e.kind() == ErrorKind::WouldBlock => poll_out(&self.0)?,
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+        #[cfg(not(unix))]
+        self.0.flush()
+    }
+}
+
+#[cfg(unix)]
+fn poll_out(fd: &impl std::os::fd::AsFd) -> std::io::Result<()> {
+    use rustix::event::{PollFd, PollFlags, poll};
+
+    let mut fds = [PollFd::new(fd, PollFlags::OUT)];
+    loop {
+        match poll(&mut fds, None) {
+            Ok(_) => return Ok(()),
+            Err(rustix::io::Errno::INTR) => {}
+            Err(err) => return Err(err.into()),
+        }
+    }
+}
+
 pub struct OsSys {
-    writer: Mutex<std::io::BufWriter<std::io::Stdout>>,
+    writer: Mutex<std::io::BufWriter<StdoutWriter>>,
     fs: Arc<dyn FS>,
     default_library_path: String,
     cwd: String,
@@ -96,7 +153,7 @@ pub fn new_system() -> OsSys {
         cwd: tspath::normalize_path(&cwd),
         fs: Arc::new(bundled::wrap_fs(osvfs::fs())),
         default_library_path: bundled::default_lib_path(),
-        writer: Mutex::new(std::io::BufWriter::new(std::io::stdout())),
+        writer: Mutex::new(std::io::BufWriter::new(StdoutWriter(std::io::stdout()))),
         start: Instant::now(),
     }
 }

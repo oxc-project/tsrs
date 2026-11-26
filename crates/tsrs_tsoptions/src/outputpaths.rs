@@ -438,17 +438,16 @@ fn get_output_path_without_changing_extension(
     host: &dyn OutputPathsHost,
 ) -> String {
     if !output_directory.is_empty() {
-        return tspath::resolve_path(
-            output_directory,
-            &[&tspath::get_relative_path_from_directory(
-                &host.common_source_directory(),
-                input_file_name,
-                &ComparePathsOptions {
-                    use_case_sensitive_file_names: host.use_case_sensitive_file_names(),
-                    current_directory: host.get_current_directory().to_string(),
-                },
-            )],
-        );
+        // outputpaths.go:208: the input file name when the relative path would start with a root (a first segment such
+        // as `^` or `c:`).
+        let Some(relative_path) = tspath::relative_path_from_path(
+            &host.common_source_directory(),
+            input_file_name,
+            host.use_case_sensitive_file_names(),
+        ) else {
+            return input_file_name.to_string();
+        };
+        return tspath::resolve_relative_file(output_directory, &relative_path);
     }
     input_file_name.to_string()
 }
@@ -523,10 +522,15 @@ pub fn get_build_info_file_name(options: &CompilerOptions, opts: &ComparePathsOp
     } else if options.root_dir.is_empty() {
         tspath::combine_paths(&options.out_dir, &[&tspath::get_base_file_name(config_file_name)])
     } else {
-        tspath::resolve_path(
-            &options.out_dir,
-            &[&tspath::get_relative_path_from_directory(&options.root_dir, config_file_name, opts)],
-        )
+        // outputpaths.go:267: the config file name when the relative path would start with a root.
+        match tspath::relative_path_from_path(
+            &options.root_dir,
+            config_file_name,
+            opts.use_case_sensitive_file_names,
+        ) {
+            Some(relative_path) => tspath::resolve_relative_file(&options.out_dir, &relative_path),
+            None => config_file_name.clone(),
+        }
     };
     tspath::remove_file_extension(&build_info_file_name).to_string()
         + tspath::EXTENSION_TS_BUILD_INFO

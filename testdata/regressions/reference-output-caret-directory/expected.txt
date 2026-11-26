@@ -1,0 +1,1 @@
+b.ts(1,19): error TS6305: Output file '<dir>/lib/^/a.d.ts' has not been built from source file '<dir>/lib/^/a.ts'.

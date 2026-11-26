@@ -108,6 +108,35 @@ test("write error texts equal native", async () => {
     }
 });
 
+// Regression: in-memory write errors (path through a file or target is an implicit directory) are reported as
+// TS5033 and emit nothing, instead of exiting 0 and writing under a regular file (issue #1044).
+test("in-memory write errors report TS5033", async () => {
+    const cases = [
+        {
+            name: "outDir is a regular file",
+            files: {
+                "/src/a.ts": "export const a = 1;\n",
+                "/src/dist": "This is a regular file.\n",
+                "/src/tsconfig.json": JSON.stringify({ compilerOptions: { outDir: "dist", types: [], skipLibCheck: true }, files: ["a.ts"] }),
+            },
+        },
+        {
+            name: "emitted file path is an implicit directory",
+            files: {
+                "/src/a.ts": "export const a = 1;\n",
+                "/src/dist/a.js/nested": "x\n",
+                "/src/tsconfig.json": JSON.stringify({ compilerOptions: { outDir: "dist", types: [], skipLibCheck: true }, files: ["a.ts"] }),
+            },
+        },
+    ];
+    for (const { name, files } of cases) {
+        const r = await tsc(["-p", ".", "--pretty", "false"], { cwd: "/src", files });
+        assert.equal(r.exitCode, 2, name);
+        assert.match(r.stdout, /TS5033/, name);
+        assert.deepEqual(r.files, {}, name);
+    }
+});
+
 // Regression: watch mode starts (and never exits) instead of being refused, in any spelling, or `--watch false`
 // is refused. The module has no file watcher; native tsrs watches (so it is not run here: it would not exit).
 test("--watch is refused in every spelling; --watch false runs", async () => {

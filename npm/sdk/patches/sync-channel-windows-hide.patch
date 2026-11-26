@@ -1,0 +1,23 @@
+tsrs patch to microsoft/TypeScript@3e9236361fa9 packages/typescript/src/api/syncChannel.ts
+(applied by npm/sdk/sync-upstream.mjs; the selected original is recorded in npm/tsrs/UPSTREAM.json "patchedFiles").
+
+Passes windowsHide: true when spawning the sync API server process so console-less Windows processes (daemons,
+detached workers) do not open a visible console window. No effect on POSIX or when the parent already has a console.
+--- a/packages/typescript/src/api/syncChannel.ts
++++ b/packages/typescript/src/api/syncChannel.ts
+@@ -156,6 +156,7 @@ export class SyncRpcChannel {
+             const pipePath = createPipePath();
+             this.child = spawn(exe, [...args, "--pipe", pipePath], {
+                 stdio: ["ignore", "ignore", "inherit"],
++                windowsHide: true,
+             });
+ 
+             // Retry openSync until the child creates the named pipe.
+@@ -186,6 +187,7 @@ export class SyncRpcChannel {
+             // POSIX: use stdio pipe file descriptors directly.
+             this.child = spawn(exe, args, {
+                 stdio: ["pipe", "pipe", "inherit"],
++                windowsHide: true,
+             });
+ 
+             const stdout = this.child.stdout! as StdoutWithHandle;

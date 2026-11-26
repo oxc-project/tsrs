@@ -52,6 +52,7 @@ mod process_ending_index_directory;
 mod program_path_case_sensitivity;
 mod recycle_checkers;
 mod reference_path_resolve_file;
+mod rewrite_import_cross_drive_reference;
 mod server_signals;
 mod show_config;
 mod split_check;

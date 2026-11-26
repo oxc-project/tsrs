@@ -478,17 +478,10 @@ impl Checker {
                         let own_root_dir = self.program.common_source_directory();
                         let other_root_dir = redirect.common_source_directory();
 
-                        let compare_options = tspath::ComparePathsOptions {
-                            use_case_sensitive_file_names: self
-                                .program
-                                .use_case_sensitive_file_names(),
-                            current_directory: self.program.get_current_directory(),
-                        };
-
-                        let root_dir_path = tspath::get_relative_path_from_directory(
+                        let root_dir_path = tspath::relative_path_from_path(
                             &own_root_dir,
                             &other_root_dir,
-                            &compare_options,
+                            case_sensitive,
                         );
 
                         // Get outDir paths, defaulting to root directories if not specified
@@ -501,13 +494,16 @@ impl Checker {
                         if other_out_dir.is_empty() {
                             other_out_dir = other_root_dir;
                         }
-                        let out_dir_path = tspath::get_relative_path_from_directory(
+                        let out_dir_path = tspath::relative_path_from_path(
                             &own_out_dir,
                             &other_out_dir,
-                            &compare_options,
+                            case_sensitive,
                         );
 
-                        if root_dir_path != out_dir_path {
+                        if root_dir_path.is_none()
+                            || out_dir_path.is_none()
+                            || root_dir_path != out_dir_path
+                        {
                             self.error(error_node, &diagnostics::THIS_IMPORT_PATH_IS_UNSAFE_TO_REWRITE_BECAUSE_IT_RESOLVES_TO_ANOTHER_PROJECT_AND_THE_RELATIVE_PATH_BETWEEN_THE_PROJECTS_OUTPUT_FILES_IS_NOT_THE_SAME_AS_THE_RELATIVE_PATH_BETWEEN_ITS_INPUT_FILES, &[]);
                         }
                     }

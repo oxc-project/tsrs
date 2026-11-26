@@ -3158,12 +3158,14 @@ impl Program {
     }
 
     pub fn explain_files(&self, w: &mut dyn Write) {
+        // program.go:2158: the absolute name when the relative path would start with a root.
         let to_relative_file_name = |file_name: &str| {
-            tspath::get_relative_path_from_directory(
+            tspath::relative_path_from_path(
                 self.get_current_directory(),
                 file_name,
-                &self.compare_paths_options,
+                self.use_case_sensitive_file_names(),
             )
+            .unwrap_or_else(|| file_name.to_string())
         };
         let mut files_explained = 0usize;
         let mut explain_file = |file_name: &str, path: &Path, files_explained: &mut usize| {

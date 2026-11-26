@@ -419,6 +419,17 @@ fn write_with_style_and_reset(output: &mut dyn Write, text: &str, format_style: 
     w!(output, "{}", RESET_ESCAPE_SEQUENCE);
 }
 
+// diagnosticwriter.go:27 `formatFileNameRelativeTo`: the absolute name when the relative path would start with a root
+// (a first segment such as `^` or `c:`).
+fn format_file_name_relative_to(file_name: &str, options: &ComparePathsOptions) -> String {
+    tspath::relative_path_from_path(
+        &options.current_directory,
+        file_name,
+        options.use_case_sensitive_file_names,
+    )
+    .unwrap_or_else(|| file_name.to_string())
+}
+
 fn write_location(
     output: &mut dyn Write,
     file: &FileLike,
@@ -429,9 +440,7 @@ fn write_location(
     let (first_line, first_char) =
         tsrs_scanner::get_ecma_line_and_utf16_character_of_position(file, pos);
     let relative_file_name = match format_opts {
-        Some(opts) => {
-            tspath::convert_to_relative_path(file.file_name(), &opts.compare_paths_options)
-        }
+        Some(opts) => format_file_name_relative_to(file.file_name(), &opts.compare_paths_options),
         None => file.file_name().to_string(),
     };
 
@@ -592,7 +601,7 @@ fn pretty_path_for_file_error(
         && tspath::path_is_absolute(&format_opts.compare_paths_options.current_directory)
     {
         file_name =
-            tspath::convert_to_relative_path(file.file_name(), &format_opts.compare_paths_options);
+            format_file_name_relative_to(file.file_name(), &format_opts.compare_paths_options);
     }
     format!("{}{}:{}{}", file_name, FOREGROUND_COLOR_ESCAPE_GREY, line + 1, RESET_ESCAPE_SEQUENCE)
 }
@@ -609,7 +618,7 @@ pub fn write_format_diagnostic(
         );
         let file_name = file.file_name();
         let relative_file_name =
-            tspath::convert_to_relative_path(file_name, &format_opts.compare_paths_options);
+            format_file_name_relative_to(file_name, &format_opts.compare_paths_options);
         w!(output, "{}({},{}): ", relative_file_name, line + 1, character + 1);
     }
 

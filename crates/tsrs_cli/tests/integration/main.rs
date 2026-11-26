@@ -13,6 +13,7 @@ mod build_free_programs;
 mod build_info_caret_directory;
 mod build_mem_split;
 mod build_project_path_trailing_slash;
+mod build_verbose_caret_directory;
 mod buildinfo_name_config_drive_stem;
 mod buildinfo_root_empty_array_omitted;
 mod buildinfo_tuple_array_length;

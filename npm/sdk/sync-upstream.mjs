@@ -30,6 +30,7 @@ const VERBATIM_FILES = ["tsconfig.base.json", "tsconfig.json", "tsconfig.dev.jso
 // Deliberate tsrs changes to upstream sources, documented in each patch header and in npm/README.md.
 const PATCHES = {
     "src/api/async/client.ts": "async-client-connection-loss.patch",
+    "src/api/syncChannel.ts": "sync-channel-windows-hide.patch",
     "vendor/vscode-jsonrpc/lib/common/connection.js": "vscode-jsonrpc-send-request-write-error.patch",
     "vendor/vscode-jsonrpc/package.json": "vscode-jsonrpc-msgpack-version.patch",
 };

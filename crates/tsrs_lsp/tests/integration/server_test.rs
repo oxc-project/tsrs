@@ -726,6 +726,22 @@ fn will_rename_files_leaves_unrelated_unresolved_imports_alone() {
     assert_eq!(edits, vec![("file:///home/projects/b.ts".to_string(), "./a2".to_string())]);
 }
 
+// file_rename.go:385: a file moved into a directory named `^` gets its absolute name in a reference path, because the
+// relative path `^/x.ts` would start with a root.
+#[test]
+fn will_rename_files_into_caret_directory() {
+    let files = [
+        ("/home/projects/tsconfig.json", "{}"),
+        ("/home/projects/a.ts", "/// <reference path=\"./x.ts\" />\nexport {};\n"),
+        ("/home/projects/x.ts", "declare const x: number;\n"),
+    ];
+    let (edits, _) = will_rename_files(&files, &[("/home/projects/x.ts", "/home/projects/^/x.ts")]);
+    assert_eq!(
+        edits,
+        vec![("file:///home/projects/a.ts".to_string(), "/home/projects/^/x.ts".to_string())]
+    );
+}
+
 // Not a Go test (Go computes each rename on its own, so `./b` in a.ts got both `../src/b` and `../lib/b` here). The
 // renames of a file and a file it imports are computed together.
 #[test]

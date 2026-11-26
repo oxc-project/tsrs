@@ -58,3 +58,4 @@ mod union_too_complex_cross_product;
 mod unsupported_commands;
 mod watch_b_stale_reference_config;
 mod watch_macos;
+mod watched_file_ignored_path_raw_uri;

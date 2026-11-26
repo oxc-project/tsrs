@@ -584,10 +584,11 @@ impl ConfigFileRegistryBuilder {
             reason = "order-independent: fills path sets and a list (a map in Go) whose later uses commute apart from log lines; Go ranges the set too"
         )]
         for uri in summary.changed.keys() {
-            if tspath::contains_ignored_path(&uri.0) {
+            // configfileregistrybuilder.go:470: Go checks the decoded path, not the URI text (`%23` for `#`).
+            let file_name = uri.file_name();
+            if tspath::contains_ignored_path(&file_name) {
                 continue;
             }
-            let file_name = uri.file_name();
             let path = self.to_path(&file_name);
             let base_name = tspath::get_base_file_name(&path);
             if self.is_config_base_name(&base_name) {
@@ -602,10 +603,10 @@ impl ConfigFileRegistryBuilder {
             reason = "order-independent: fills path sets and maps and a list (a map in Go) whose later uses commute apart from log lines; Go ranges the set too"
         )]
         for uri in summary.deleted.keys() {
-            if tspath::contains_ignored_path(&uri.0) {
+            let file_name = uri.file_name();
+            if tspath::contains_ignored_path(&file_name) {
                 continue;
             }
-            let file_name = uri.file_name();
             let path = self.to_path(&file_name);
             deleted_files.insert(path.clone(), file_name);
             let base_name = tspath::get_base_file_name(&path);
@@ -621,10 +622,10 @@ impl ConfigFileRegistryBuilder {
             reason = "order-independent: fills path sets and maps and a list (a map in Go) whose later uses commute apart from log lines; Go ranges the set too"
         )]
         for uri in summary.created.keys() {
-            if tspath::contains_ignored_path(&uri.0) {
+            let file_name = uri.file_name();
+            if tspath::contains_ignored_path(&file_name) {
                 continue;
             }
-            let file_name = uri.file_name();
             let path = self.to_path(&file_name);
             created_files.insert(path.clone(), file_name);
             let base_name = tspath::get_base_file_name(&path);

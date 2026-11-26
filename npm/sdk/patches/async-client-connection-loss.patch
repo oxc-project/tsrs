@@ -10,6 +10,7 @@ starts with "API server connection lost: " followed by a best-effort detail. The
 and idempotent close lifecycle remain upstream's; a lost connection records serverTimingError and still writes the dump.
 The sync client is unchanged: its next call already throws at once, with the raw pipe error (EBADF/EPIPE)
 or "Unexpected EOF while reading from child process (...)".
+Also passes windowsHide: true when spawning the API server so console-less Windows processes do not open a visible console window.
 --- a/target/scratch/source109/upstream.ts
 +++ b/target/scratch/source109/merged.ts
 @@ -59,6 +59,9 @@ export class Client {
@@ -22,7 +23,14 @@ or "Unexpected EOF while reading from child process (...)".
      private timing: TimingCollector | undefined;
      private timingDump: TimingDump | undefined;
      private closing: Promise<void> | undefined;
-@@ -124,6 +127,10 @@ export class Client {
+@@ -110,6 +113,7 @@ export class Client {
+             this.process = spawn(resolveExePath(options), args, {
+                 stdio: ["pipe", "pipe", "inherit"],
++                windowsHide: true,
+             });
+ 
+             this.process.once("error", error => {
+@@ -124,6 +128,10 @@ export class Client {
              const writer = new StreamMessageWriter(this.process.stdin!);
              this.connection = createMessageConnection(reader, writer);
              this.registerFSCallbacks(this.connection, options.fs, fsConfiguration);
@@ -33,7 +41,7 @@ or "Unexpected EOF while reading from child process (...)".
              this.connection.listen();
          });
      }
-@@ -136,6 +143,7 @@ export class Client {
+@@ -136,6 +144,7 @@ export class Client {
                  const reader = new SocketMessageReader(this.socket!);
                  const writer = new SocketMessageWriter(this.socket!);
                  this.connection = createMessageConnection(reader, writer);
@@ -41,7 +49,7 @@ or "Unexpected EOF while reading from child process (...)".
                  this.connection.listen();
                  this.connected = true;
                  resolve();
-@@ -312,10 +320,24 @@ export class Client {
+@@ -312,10 +321,24 @@ export class Client {
              }
          }
          catch (error) {
@@ -67,7 +75,7 @@ or "Unexpected EOF while reading from child process (...)".
      private scheduleImmediateBatch(): void {
          if (this.nextBatch) return;
          this.nextBatch = setImmediate(this.doBatch.bind(this));
-@@ -340,6 +362,7 @@ export class Client {
+@@ -340,6 +363,7 @@ export class Client {
  
      async apiRequest<K extends APIRequest["method"]>(method: K, params: APIMethodInfo[K]["params"]): Promise<APIMethodInfo[K]["result"]> {
          if (this.closed) throw new Error("Client is closed");

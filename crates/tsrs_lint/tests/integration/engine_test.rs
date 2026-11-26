@@ -211,3 +211,28 @@ fn project_discovery_traverses_non_matching_composite_references() {
     }
     assert_eq!(configs.len(), 5);
 }
+
+#[test]
+fn project_discovery_matches_extension_shadowed_files_without_capturing_excluded_files() {
+    let region = tsrs_core::arena::Region::new(1 << 20);
+    let _scope = region.enter();
+    let fs = vfstest::from_map(
+        [
+            ("/project/tsconfig.json", r#"{"include":["src"],"exclude":["src/excluded.tsx"]}"#),
+            ("/project/src/widget.ts", "export const a = 1;"),
+            ("/project/src/widget.tsx", "export const b = 2;"),
+            ("/project/src/excluded.ts", "export const c = 3;"),
+            ("/project/src/excluded.tsx", "export const d = 4;"),
+            ("/project/src/script.js", "export const e = 5;"),
+        ],
+        true,
+    );
+    let host = ConfigHost::new(Arc::new(fs), "/project".into());
+    let mut configs = FxHashMap::default();
+    assert_eq!(
+        find_tsconfig("/project/src/widget.tsx", &host, &mut configs),
+        Some("/project/tsconfig.json".into()),
+    );
+    assert_eq!(find_tsconfig("/project/src/excluded.tsx", &host, &mut configs), None);
+    assert_eq!(find_tsconfig("/project/src/script.js", &host, &mut configs), None);
+}

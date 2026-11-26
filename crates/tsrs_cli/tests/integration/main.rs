@@ -29,6 +29,7 @@ mod include_rooted_dot_segments;
 mod invalid_utf8_argument;
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 mod isolated;
+mod jsdoc_callback_strip_internal;
 mod lazy_dts_build;
 mod lint_mode;
 mod lone_surrogate_path_valid_utf8;
@@ -36,6 +37,7 @@ mod ls_resolve_file_not_normalized;
 mod lsp_edit_resolutions;
 mod maproot_not_resolved;
 mod merged_interface_check_site;
+mod nonblocking_stdout;
 mod npm_lib_path;
 mod outdir_drive_like_segment;
 mod overlay_files_missing_from_path_completions;

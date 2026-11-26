@@ -44,6 +44,7 @@ mod nonblocking_stdout;
 mod npm_lib_path;
 mod outdir_drive_like_segment;
 mod overlay_files_missing_from_path_completions;
+mod package_main_directory_stem_match;
 mod parse_command_line_file_names_not_rooted;
 mod peer_dependencies_node_modules_prefix;
 mod process_ending_index_directory;

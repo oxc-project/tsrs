@@ -55,6 +55,7 @@ mod reference_path_resolve_file;
 mod rewrite_import_cross_drive_reference;
 mod server_signals;
 mod show_config;
+mod sourcemap_mid_character_position;
 mod split_check;
 mod symbol_name_literal_clone;
 mod trace_resolution_order;

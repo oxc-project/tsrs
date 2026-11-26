@@ -284,10 +284,15 @@ pub type UTF16Offset = u32;
 // UTF16Len returns the number of UTF-16 code units needed to
 // represent the given UTF-8 encoded string.
 pub fn utf16_len(s: &str) -> UTF16Offset {
-    if s.is_ascii() {
-        return s.len() as UTF16Offset;
+    utf16_len_bytes(s.as_bytes())
+}
+
+// UTF16Len over bytes, which a Go string can hold: bytes that are not valid UTF-8 count one unit each (U+FFFD),
+// as Go's range over a string does.
+pub fn utf16_len_bytes(bytes: &[u8]) -> UTF16Offset {
+    if bytes.is_ascii() {
+        return bytes.len() as UTF16Offset;
     }
-    let bytes = s.as_bytes();
     for (i, &byte) in bytes.iter().enumerate() {
         if byte >= 0x80 {
             // Found non-ASCII; count the ASCII prefix, then decode the rest.

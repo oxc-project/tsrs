@@ -612,20 +612,18 @@ fn get_local_module_specifier(
         );
     }
     if relative_path.is_empty() {
-        relative_path = process_ending(
-            &ensure_path_is_non_module_name(&tspath::get_relative_path_from_directory(
-                source_directory,
-                module_file_name,
-                &tspath::ComparePathsOptions {
-                    use_case_sensitive_file_names: host.use_case_sensitive_file_names(),
-                    current_directory: host.get_current_directory().to_string(),
-                },
-            )),
+        // specifiers.go:503: the absolute name when the relative path would start with a root.
+        let path = tspath::relative_path_from_path(
+            source_directory,
             module_file_name,
-            &allowed_endings,
-            compiler_options,
-            Some(host),
+            host.use_case_sensitive_file_names(),
+        )
+        .map_or_else(
+            || module_file_name.to_string(),
+            |relative| ensure_path_is_non_module_name(&relative),
         );
+        relative_path =
+            process_ending(&path, module_file_name, &allowed_endings, compiler_options, Some(host));
     }
 
     if (paths.is_none() && !compiler_options.get_resolve_package_json_imports())
@@ -1611,14 +1609,19 @@ pub fn try_get_module_name_from_exports_or_imports(
                     }
                 }
                 MatchingMode::Directory => {
+                    // specifiers.go:1286: Go uses an empty fragment when the relative path would start with a root.
+                    let fragment_of = |file_name: &str| {
+                        tspath::relative_path_from_path(
+                            &path_or_pattern,
+                            file_name,
+                            host.use_case_sensitive_file_names(),
+                        )
+                        .unwrap_or_default()
+                    };
                     if can_try_ts_extension
                         && tspath::contains_path(target_file_path, &path_or_pattern, &compare_opts)
                     {
-                        let fragment = tspath::get_relative_path_from_directory(
-                            &path_or_pattern,
-                            target_file_path,
-                            &compare_opts,
-                        );
+                        let fragment = fragment_of(target_file_path);
                         return tspath::get_normalized_absolute_path(
                             &tspath::combine_paths(
                                 &tspath::combine_paths(package_name, &[str_value]),
@@ -1634,11 +1637,7 @@ pub fn try_get_module_name_from_exports_or_imports(
                             &compare_opts,
                         )
                     {
-                        let fragment = tspath::get_relative_path_from_directory(
-                            &path_or_pattern,
-                            &extension_swapped_target,
-                            &compare_opts,
-                        );
+                        let fragment = fragment_of(&extension_swapped_target);
                         return tspath::get_normalized_absolute_path(
                             &tspath::combine_paths(
                                 &tspath::combine_paths(package_name, &[str_value]),
@@ -1650,11 +1649,7 @@ pub fn try_get_module_name_from_exports_or_imports(
                     if !can_try_ts_extension
                         && tspath::contains_path(&path_or_pattern, target_file_path, &compare_opts)
                     {
-                        let fragment = tspath::get_relative_path_from_directory(
-                            &path_or_pattern,
-                            target_file_path,
-                            &compare_opts,
-                        );
+                        let fragment = fragment_of(target_file_path);
                         return tspath::get_normalized_absolute_path(
                             &tspath::combine_paths(
                                 &tspath::combine_paths(package_name, &[str_value]),
@@ -1666,21 +1661,13 @@ pub fn try_get_module_name_from_exports_or_imports(
                     if !output_file.is_empty()
                         && tspath::contains_path(&path_or_pattern, &output_file, &compare_opts)
                     {
-                        let fragment = tspath::get_relative_path_from_directory(
-                            &path_or_pattern,
-                            &output_file,
-                            &compare_opts,
-                        );
+                        let fragment = fragment_of(&output_file);
                         return tspath::combine_paths(package_name, &[&fragment]);
                     }
                     if !declaration_file.is_empty()
                         && tspath::contains_path(&path_or_pattern, &declaration_file, &compare_opts)
                     {
-                        let fragment = tspath::get_relative_path_from_directory(
-                            &path_or_pattern,
-                            &declaration_file,
-                            &compare_opts,
-                        );
+                        let fragment = fragment_of(&declaration_file);
                         let js_extension = get_js_extension_for_file(&declaration_file, options);
                         let fragment_with_js_extension =
                             tspath::change_extension(&fragment, &js_extension);

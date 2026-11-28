@@ -172,6 +172,12 @@ or a changed constraint before revisiting the approach.
   single-threaded instructions on 12; none reduced instructions in every pair. Default RSS and wall time were
   mixed. Original maps restored; revisit with a cache-specific API or workload benefit, not a map-type swap alone.
 
+- Interning tables filed by their youngest type id, Bun's layout from oven-sh/bun#46001
+  ([perf-intern-table-locality.md](perf-intern-table-locality.md)): not built. Profiled on `ce090c5a`, the
+  per-checker union, intersection, indexed-access, tuple and template-literal tables cost 0.75% of mikro-orm's
+  single-threaded CPU and 0.12% of t3code-server's and vscode's, hash and comparison included. tsrs already files
+  instantiations per generic target and per active mapper. Revisit only if a profile shows those tables above 2%.
+
 - Unicode normalization library cleanup ([rust-stdlib-normalization.md](rust-stdlib-normalization.md)), applied at
   the user's request: unicode-normalization 0.1.25 matches the existing Unicode 17 NFD output. Five-pair Mac
   screening on Compiler/Compiler-Unions: -0.017% to -0.011% single instructions, -0.198% to -0.056% default RSS;
@@ -258,7 +264,11 @@ or a changed constraint before revisiting the approach.
 - A type graph shared by the checker threads as the default (frozen seed + forks; notes/spike-shared-graph.md
   sections 1-9, PR 213 closed): exact in every run, but on the 16-vCPU Linux runner peak -5..-10% at the default 8
   checkers for +6..+18% wall, because every checker waits for the serial seed. Under `--maxMemory` it landed (see
-  "Shared type graph under `--maxMemory`" above); without a memory target the wait is still there.
+  "Shared type graph under `--maxMemory`" above); without a memory target the wait is still there. Re-measured
+  2026-11-02 under `--fast` at 16 checkers on the Mac ([perf-fast-checker-cold-start.md](perf-fast-checker-cold-start.md)):
+  the same trade on mikro-orm, t3code-server and vscode (peak -3.5% to -16.4%, wall +8% to +32%), and no gain on
+  mui-docs, whose duplicated cold start the seed's sample misses. Seeded with two named files instead (a probe), it
+  removes 58% of t3code-server's instructions and 43% of its peak at -7% wall; the open part is choosing those files.
 - Checking a relation without reporting first and elaborating only on failure, as bun does
   (notes/perf-excalidraw-typefest.md): on excalidraw at 9 checkers, 501 -> 379 MiB after the deferred constraint
   check. Not exact against tsgo: the reporting run spends more of the relation complexity budget, so a

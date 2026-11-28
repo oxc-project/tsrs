@@ -76,6 +76,17 @@ non-generic mapped types; no observable difference anywhere below).
   no table) or TS2456 (object modifiers), where `resolveMappedTypeMembers` sees an empty type and tsgo-ref reports
   nothing. tsrs resolves the template only in `get_lazy_mapped_type_index_infos`, under its `resolving` guard
   (testdata/regressions/lazy-mapped-template-cycle; the same change makes tsgo-pr-b match tsgo-ref there).
+- `getMemberOfUnresolvedStructuredType` (#64475) looks a base type's member up with `getPropertyOfTypeEx`, which hides
+  a module export re-exported by `export type *`, while `resolveObjectTypeMembers` and `everyLazyProperty` take the
+  base's members from `getPropertiesOfType`, which keeps it. A lookup on an interface that extends `typeof ns` then
+  missed the member (TS2339) or took a later base's member of that name, and tsrs's lazy relater, which enumerates a
+  member and then looks it up (notes/mem-lazy.md L10), panicked. tsrs looks the member of a module base up in its
+  resolved members, as `getPropertiesOfType` does (testdata/regressions/lazy-namespace-base-type-only-export).
+- `everyLazyProperty` (#64475) keeps the first base's property of each name, and so did tsrs's
+  `get_lazy_properties_in_order` (notes/mem-lazy.md L10), but `addInheritedMembers` lets a later base replace an
+  inherited member that is not a value: a module's export alias. A weak-type check or a missing-property report then
+  saw the alias, not the later base's optional property. Both let a later base replace it
+  (testdata/regressions/lazy-namespace-base-alias-replaced).
 - `lazyMappedTable.members` (a SymbolTable holding nil entries for "being created / no member") is a
   `FxHashMap<String, Option<P<Symbol>>>`; `getLazyMappedTypeMember`'s `(member, ok)` is `Option<Option<P<Symbol>>>`.
 

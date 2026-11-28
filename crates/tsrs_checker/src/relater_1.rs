@@ -2242,13 +2242,13 @@ impl Checker {
             return Some(properties.get().to_vec());
         }
         let mut members: Vec<P<Symbol>> = Vec::new();
-        let mut seen: FxHashSet<&'static str> = FxHashSet::default();
+        let mut indices: FxHashMap<&'static str, usize> = FxHashMap::default();
         if let Some(declared_members) =
             self.resolve_declared_members(reduced.target().unwrap()).declared_members.get()
         {
             for (id, symbol) in declared_members.entries() {
                 if self.is_named_member(symbol, id) {
-                    seen.insert(id);
+                    indices.insert(id, members.len());
                     members.push(lm.declared.lookup(id).unwrap_or(symbol));
                 }
             }
@@ -2260,8 +2260,20 @@ impl Checker {
                     None => self.get_properties_of_type(base_type).into(),
                 };
             for &p in base_properties.iter() {
-                if !is_static_private_identifier_property(p) && seen.insert(p.name()) {
-                    members.push(p);
+                if is_static_private_identifier_property(p) {
+                    continue;
+                }
+                match indices.entry(p.name()) {
+                    Entry::Vacant(entry) => {
+                        entry.insert(members.len());
+                        members.push(p);
+                    }
+                    Entry::Occupied(entry) => {
+                        let member = &mut members[*entry.get()];
+                        if !member.flags().intersects(SymbolFlags::Value) {
+                            *member = p;
+                        }
+                    }
                 }
             }
         }

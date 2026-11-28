@@ -1,0 +1,1 @@
+main.ts(6,7): error TS2559: Type '{ zz: number; }' has no properties in common with type 'Weak<number>'.

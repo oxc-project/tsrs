@@ -188,7 +188,10 @@ impl Parser {
         let line_start = self.source_text[..start as usize].rfind('\n').map_or(0, |i| i + 1) as u32;
         let initial_indent = start + 4 - line_start;
         // -2 for trailing `*/`
-        self.source_text = &self.source_text[..(end - 2) as usize];
+        // An unterminated comment has no `*/`, so the cut can split a character. Go scans each leftover byte as an
+        // invalid character; a str cannot hold them, so they are dropped.
+        let text_end = self.source_text.floor_char_boundary((end - 2) as usize);
+        self.source_text = &self.source_text[..text_end];
         self.scanner.set_text(self.source_text);
         // +3 for leading `/**`
         self.scanner.reset_pos(start + 3);

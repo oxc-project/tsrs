@@ -544,14 +544,18 @@ impl Checker {
         base_symbols: &[P<Symbol>],
     ) -> Option<P<SymbolTable>> {
         let mut symbols = symbols;
-        for &base in base_symbols {
+        // tsrs-only: room for the remaining bases before the first insert (capacity only; notes/perf-presized-tables.md).
+        let mut reserved = false;
+        for (i, &base) in base_symbols.iter().enumerate() {
             if !is_static_private_identifier_property(base) {
                 let s = symbols.and_then(|table| table.lookup(base.name()));
                 if s.is_none() || !s.unwrap().flags().intersects(SymbolFlags::Value) {
-                    if symbols.is_none() {
-                        symbols = Some(SymbolTable::new());
+                    let table = *symbols.get_or_insert_with(SymbolTable::new);
+                    if !reserved {
+                        table.reserve(base_symbols.len() - i);
+                        reserved = true;
                     }
-                    symbols.unwrap().set(base.name(), base);
+                    table.set(base.name(), base);
                 }
             }
         }

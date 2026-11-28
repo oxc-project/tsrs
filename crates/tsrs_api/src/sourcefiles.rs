@@ -163,14 +163,7 @@ impl Session {
         if let Some(t) = self.source_files.tables.lock().unwrap().get(&addr) {
             return Arc::clone(t);
         }
-        #[expect(
-            clippy::deref_addrof,
-            reason = "the raw pointer round trip deliberately severs the temporary P borrow"
-        )]
-        // SAFETY: `file` is reachable from a live snapshot or lease for the whole request, and the cached table built
-        // from it is evicted when the file's arena region is freed (`store_table`).
-        let file_ref: &'static SourceFile = unsafe { &*(&raw const *file) };
-        self.store_table(addr, Arc::new(codec::build_node_index_table(file_ref)))
+        self.store_table(addr, Arc::new(codec::build_node_index_table(file.get())))
     }
 
     /// Go `GetOrComputeData`: keeps an existing table for the file, else stores `table`.
@@ -196,14 +189,7 @@ impl Session {
 
     /// Go `encoder.EncodeSourceFile` + `SetSourceFileID`.
     fn encode_source_file(&self, file: P<SourceFile>) -> ApiResult<Vec<u8>> {
-        #[expect(
-            clippy::deref_addrof,
-            reason = "the raw pointer round trip deliberately severs the temporary P borrow"
-        )]
-        // SAFETY: as in `node_index_table`: the file outlives the request, and the cached table is evicted when its arena
-        // region is freed.
-        let file_ref: &'static SourceFile = unsafe { &*(&raw const *file) };
-        let (mut data, table) = codec::encode_source_file(file_ref)
+        let (mut data, table) = codec::encode_source_file(file.get())
             .map_err(|e| ApiError::internal(format!("failed to encode source file: {e}")))?;
         self.store_table(file.as_node().addr(), Arc::new(table));
         // Go `SetSourceFileID(data, sourceFileNodeID(file))` after encoding.

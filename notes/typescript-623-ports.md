@@ -2806,9 +2806,12 @@ page-granular approaches; this port keeps them. It routes reserved and
 ordinary IDs to separate dense tables, preserving stable links and preventing
 numeric collisions. The generic core `PagedLinkStore`, currently without
 production consumers, now allocates per slot and distinguishes an untouched
-slot from one with a value; it retains its sparse high-key fallback. As in Go,
-reserved IDs beyond 16 million use a hash-backed fallback rather than grow a
-dense index for a long-lived process. A node group may still report a
+slot from one with a value; it retains its sparse high-key fallback. The port
+first kept Go's limit for the checker stores too, hashing reserved IDs beyond
+16 million rather than growing a dense index for a long-lived process. Rust's
+reserved IDs stop at 2^31 (below), so the dense tables now cover the whole
+range: a program past 16 million paid for the hash on every lookup, about 2% of
+its cycles (`notes/perf-dense-link-id-cap.md`). A node group may still report a
 default-valued link for another slot in the same group. Its only checker use
 reads `resolved_symbol`, whose default is `None`,
 so that distinction does not change observable behavior.

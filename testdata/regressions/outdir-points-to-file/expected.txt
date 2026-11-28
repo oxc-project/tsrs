@@ -1,0 +1,1 @@
+error TS5033: Could not write file '<dir>/a/fuzz.js': mkdir <dir>/a: not a directory.

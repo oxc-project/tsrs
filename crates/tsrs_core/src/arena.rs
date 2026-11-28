@@ -450,11 +450,12 @@ impl Arena {
         self.rewindable(cp).is_some()
     }
 
-    /// The range allocated since `cp` (lowest address, length) when it can be discarded: same chunk and no free or
-    /// pin since.
+    /// The range allocated since `cp` (lowest address, length) when it can be discarded: same chunk, no free or
+    /// pin since, and no destructor registered since. A region drops the values it tracks when it is freed;
+    /// discarding one would leak what it owns.
     #[inline]
     fn rewindable(&self, cp: &Checkpoint) -> Option<(*mut u8, usize)> {
-        if cp.start != self.start.get() || cp.epoch != self.epoch.get() {
+        if cp.start != self.start.get() || cp.epoch != self.epoch.get() || self.drops.borrow().len() != cp.drops {
             return None;
         }
         let now = self.ptr.get();
@@ -744,8 +745,6 @@ pub(crate) fn rewind(arena: &Arena, cp: Checkpoint) {
     if len == 0 {
         return;
     }
-    // Values discarded by the rewind are not dropped (as in a thread arena); forget their drop entries.
-    arena.drops.borrow_mut().truncate(cp.drops);
     if poison_mode() {
         // SAFETY: `now .. now + len` is the range allocated since the checkpoint, in the current chunk.
         unsafe { std::ptr::write_bytes(now, POISON, len) };

@@ -6,7 +6,6 @@ crates/tsrs_ast/src/symbol.rs	Sync	ExtraSlot
 crates/tsrs_compiler/src/checkerpool.rs	Send	CheckerSlot
 crates/tsrs_compiler/src/checkerpool.rs	Send	PooledChecker
 crates/tsrs_compiler/src/checkerpool.rs	Sync	CheckerSlot
-crates/tsrs_compiler/src/checkerpool.rs	Sync	PooledChecker
 crates/tsrs_compiler/src/sharedgraph.rs	Send	Base
 crates/tsrs_compiler/src/sharedgraph.rs	Send	SeedOut
 crates/tsrs_compiler/src/sharedgraph.rs	Sync	Base

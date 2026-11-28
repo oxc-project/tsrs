@@ -14,9 +14,9 @@ Port of Max's two upstream PRs that make member resolution lazier:
   `isStringIndexSignatureOnlyTypeWorker` and `isFunctionObjectType` answer from it; members are instantiated one at a
   time and reused if the type is later resolved in full.
 - #64526 "build members of keyof mapped types lazily" (stacked): `{ [P in keyof T]: X }` over an object type gets a
-  `lazyMappedTable` that creates the member being looked up and the index infos on demand; mapped types answer "no
-  signatures" without resolving; `somePropertyReducesToNever` looks members of one lazy constituent up by name
-  instead of listing them.
+  `lazyMappedTable` that creates the member being looked up and the index infos on demand; mapped types answered "no
+  signatures" without resolving (since removed, see the deviations); `somePropertyReducesToNever` looks members of one
+  lazy constituent up by name instead of listing them.
 
 **Default at the time of the port.** `--noLazyMembers` (CLI) or `TSRS_LAZY_MEMBERS=0` (any binary: `tsrs`, `tsrs-test`) turns it off;
 the opt-out mode is reference-identical (suite and counters, below). `--lazyMembers` / `TSRS_LAZY_MEMBERS=1` force it
@@ -40,10 +40,10 @@ Follow-up candidates (each behind its own switch, effective only with this flag 
 - checker_11.rs `some_property_reduces_to_never`, relater_1.rs `is_weak_type`, checker_13.rs
   `is_string_index_signature_only_type_worker`, checker_15.rs `is_function_object_type`.
 
-The flag is read only where a lazy table would be created (`get_ready_lazy_member_table`, `get_lazy_mapped_table`)
-and at the two #64526 sites that change work without a table (the mapped-type early return in
-`signatures_of_structured_type`, the skipped constituent in `some_property_reduces_to_never`). Everything else in
-the diffs (the refactored `get_single_signature`, `is_weak_type`, `is_function_object_type`,
+In the ported code, the flag is read only where a lazy table would be created (`get_ready_lazy_member_table`,
+`get_lazy_mapped_table`) and at the two #64526 sites that change work without a table (the mapped-type early return in
+`signatures_of_structured_type`, since removed, and the skipped constituent in `some_property_reduces_to_never`).
+Everything else in the diffs (the refactored `get_single_signature`, `is_weak_type`, `is_function_object_type`,
 `is_string_index_signature_only_type_worker`, `get_property_of_type_ex`, the `instantiate_symbol` split, the
 factored `resolve_mapped_type_members`) runs in both modes, and the opt-out mode is still exactly
 reference-identical: **without tables the refactors are behavior- and work-neutral** (one caveat for upstream:
@@ -53,6 +53,13 @@ non-generic mapped types; no observable difference anywhere below).
 
 ## Deviations from the Go diffs
 
+- The mapped-type early return (#64526: `getSignaturesOfStructuredType` answers "no signatures" for an unresolved
+  mapped type) is removed: tsgo-ref resolves the mapped type, and resolving its template can report a circularity
+  error. In `const result = make() ? 1 : 2`, where `make()` returns `{ then: { [K in "x"]: typeof result } }`, the
+  known-truthy check of the condition asks whether it is a promise, which queries the call signatures of the type of
+  `then`. Resolving that type resolves `typeof result` while `result` is being inferred, so tsgo-ref and tsrs
+  without lazy members report TS7022; lazy members with the early return reported nothing
+  (testdata/regressions/lazy-mapped-signature-circularity).
 - `somePropertyReducesToNever` (#64526): ported onto the merged #64521 version (`OrderedMap` counts, iterated in
   discovery order). The PR as posted iterates a Go map there (`for propName := range counts`, both for the skipped
   constituent's lookups and the final check), which brings back the random creation order of combined properties

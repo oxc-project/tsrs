@@ -3032,8 +3032,8 @@ impl Checker {
     }
 
     // Go's getSignaturesOfStructuredType returns the stored slice; this is it without the copy.
-    /// A type with resolved members has no lazy member table, so the resolved signatures are the answer (a mapped
-    /// type's early return aside); that path makes no call and saves no registers.
+    /// A type with resolved members has no lazy member table, so the resolved signatures are the answer; that path
+    /// makes no call and saves no registers.
     #[cfg_attr(feature = "site-counts", track_caller)]
     pub(crate) fn signatures_of_structured_type(
         &mut self,
@@ -3042,7 +3042,6 @@ impl Checker {
     ) -> &'static [P<Signature>] {
         if t.flags().intersects(TypeFlags::StructuredType)
             && t.object_flags_lazy().intersects(ObjectFlags::MembersResolved)
-            && !(self.lazy_members && t.object_flags().intersects(ObjectFlags::Mapped))
         {
             let resolved = t.as_structured_type();
             return if kind == SignatureKind::Call {
@@ -3071,16 +3070,6 @@ impl Checker {
                 return ready.call_signatures.get();
             }
             return ready.construct_signatures.get();
-        }
-        if self.lazy_members
-            && self.mapped_types_resolving == 0
-            && t.object_flags().intersects(ObjectFlags::Mapped)
-        {
-            if !t.object_flags_lazy().intersects(ObjectFlags::MembersResolved) {
-                self.lazy_member_stats.mapped_signature_early_returns += 1;
-            }
-            // Mapped types have no signatures.
-            return &[];
         }
         let resolved = self.resolve_structured_type_members(t);
         if kind == SignatureKind::Call {
